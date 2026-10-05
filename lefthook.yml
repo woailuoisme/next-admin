@@ -26,15 +26,15 @@ commit-msg:
     "conventional-commits":
       run: |
         head -n 1 {1} | grep -qE '^((feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9_-]+\))?!?: .+)|(^Merge .+)|(^Revert .+)' || {
-          echo "❌ 提交信息格式不符合规范！必须遵循 Conventional Commits 格式："
-          echo "   例如: feat: 添加用户管理模块"
-          echo "         fix(table): 修复分页重置异常"
-          echo "         chore: 更新构建配置"
+          echo "提交信息格式不符合规范！必须遵循 Conventional Commits 格式："
+          echo "例如: feat: 添加用户管理模块"
+          echo "例如: fix(table): 修复分页重置异常"
+          echo "例如: chore: 更新构建配置"
           exit 1
         }
 
 pre-push:
   parallel: false
   jobs:
-    - name: check
-      run: bun run check
+    - name: test
+      run: bun run test
