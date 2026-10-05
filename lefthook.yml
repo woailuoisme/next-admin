@@ -1,0 +1,40 @@
+# Lefthook Git hooks configuration
+# Refer: https://lefthook.dev/configuration/
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: oxlint
+      glob: "*.{js,ts,jsx,tsx}"
+      exclude:
+        - "src/components/ui/**/*"
+      run: bun x oxlint --fix {staged_files}
+      stage_fixed: true
+
+    - name: oxfmt
+      glob: "*.{js,ts,jsx,tsx,json,jsonc,css}"
+      exclude:
+        - "src/components/ui/**/*"
+      run: bun x oxfmt {staged_files}
+      stage_fixed: true
+
+    - name: typecheck
+      run: bun run typecheck
+
+commit-msg:
+  commands:
+    "conventional-commits":
+      run: |
+        head -n 1 {1} | grep -qE '^((feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9_-]+\))?!?: .+)|(^Merge .+)|(^Revert .+)' || {
+          echo "❌ 提交信息格式不符合规范！必须遵循 Conventional Commits 格式："
+          echo "   例如: feat: 添加用户管理模块"
+          echo "         fix(table): 修复分页重置异常"
+          echo "         chore: 更新构建配置"
+          exit 1
+        }
+
+pre-push:
+  parallel: false
+  jobs:
+    - name: check
+      run: bun run check

@@ -1,0 +1,22 @@
+# rumdl - 高性能 Markdown 检查与格式化工具配置
+# 官方仓库: https://github.com/mrspartak/rumdl
+
+[global]
+# 排除检查与格式化的目录列表
+exclude = ["node_modules", ".output", ".tanstack", "dist"]
+
+# MD013: 单行最大字符长度限制（禁用以保证文档排版与书写灵活性）
+[MD013]
+enabled = false
+
+# MD025: 单个文档中只允许一个一级标题（禁用，允许包含多个顶层标题）
+[MD025]
+enabled = false
+
+# MD041: 文件首行必须是一级标题（禁用，兼容 Frontmatter 元数据或非标题开头的文件）
+[MD041]
+enabled = false
+
+# MD034: 裸链接未使用格式化包裹（禁用，允许直接书写裸 URL）
+[MD034]
+enabled = false

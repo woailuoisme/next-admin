@@ -1,0 +1,12 @@
+/* ==========================================================================
+   Tweakcn Multi-Theme Aggregator
+   Official Themes from Tweakcn Ecosystem
+   https://tweakcn.com/editor/theme
+   ========================================================================== */
+
+/* Distinct Built-in Themes */
+@import "./themes/supabase.css";
+@import "./themes/catppuccin.css";
+@import "./themes/caffeine.css";
+@import "./themes/twitter.css";
+@import "./themes/vercel.css";

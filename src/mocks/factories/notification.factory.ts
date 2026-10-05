@@ -1,0 +1,71 @@
+import type { NotificationItem } from "@/features/notifications";
+
+export function createInitialNotifications(): NotificationItem[] {
+  const now = Date.now();
+  return [
+    {
+      id: "notif-1",
+      title: "新订单待发货 #ORD-2026-9042",
+      description: "客户 Emily Watson 刚刚完成了 $1,289.00 的高定耳机订单，请及时处理发货。",
+      category: "order",
+      severity: "success",
+      read: false,
+      createdAt: new Date(now - 10 * 60 * 1000).toISOString(),
+      actionUrl: "/orders",
+      actionLabel: "查看订单",
+    },
+    {
+      id: "notif-2",
+      title: "库存告警：Pro Gaming Mouse 低于阈值",
+      description: "该商品当前仅剩 3 件库存，预计将在 24 小时内售罄，建议尽快补货。",
+      category: "system",
+      severity: "warning",
+      read: false,
+      createdAt: new Date(now - 45 * 60 * 1000).toISOString(),
+      actionUrl: "/products",
+      actionLabel: "调整库存",
+    },
+    {
+      id: "notif-3",
+      title: "新注册 VIP 会员认证完成",
+      description: "Alexander Hayes 完成企业账户实名认证，已自动升级为尊享采购商。",
+      category: "customer",
+      severity: "info",
+      read: false,
+      createdAt: new Date(now - 2 * 3600 * 1000).toISOString(),
+      actionUrl: "/users",
+      actionLabel: "客户档案",
+    },
+    {
+      id: "notif-4",
+      title: "系统数据库自动快照完成",
+      description: "每日例行增量容灾快照已备份至冷存储集群，数据校验通过无损坏。",
+      category: "system",
+      severity: "info",
+      read: true,
+      createdAt: new Date(now - 5 * 3600 * 1000).toISOString(),
+    },
+    {
+      id: "notif-5",
+      title: "退款申请待审核 #ORD-2026-8819",
+      description: "订单因物流包装轻微磨损发起 $49.00 部分退款申请，等待管理员审批。",
+      category: "order",
+      severity: "warning",
+      read: true,
+      createdAt: new Date(now - 24 * 3600 * 1000).toISOString(),
+      actionUrl: "/orders",
+      actionLabel: "审核退款",
+    },
+    {
+      id: "notif-6",
+      title: "安全审计：检测到新节点登录管理后台",
+      description: "管理员 Alex Chen 从新 IP (198.51.100.24) 成功登录，已记录进审计日志。",
+      category: "system",
+      severity: "error",
+      read: false,
+      createdAt: new Date(now - 28 * 3600 * 1000).toISOString(),
+      actionUrl: "/admin-users",
+      actionLabel: "查看权限",
+    },
+  ];
+}

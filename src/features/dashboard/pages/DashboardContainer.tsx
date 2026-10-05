@@ -1,0 +1,21 @@
+"use client";
+
+import { parseAsStringLiteral, useQueryState } from "nuqs";
+
+import { DashboardPage } from "./DashboardPage";
+import { DASHBOARD_TIME_RANGES } from "../schemas";
+import type { DashboardTimeRange } from "../types";
+
+export function DashboardContainer() {
+  const [range, setRange] = useQueryState(
+    "range",
+    parseAsStringLiteral(DASHBOARD_TIME_RANGES).withDefault("30d"),
+  );
+
+  return (
+    <DashboardPage
+      range={range as DashboardTimeRange}
+      onRangeChange={(newRange) => setRange(newRange)}
+    />
+  );
+}
