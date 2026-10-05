@@ -38,7 +38,7 @@ export const BLANK_MAP_STYLE: StyleSpecification = {
 };
 
 /**
- * 底图服务 Token（通过 `.env` 的 `VITE_*` 变量注入，见 `src/env.ts`）
+ * 底图服务 Token（通过 `.env` 变量注入，见 `src/env.ts`）
  *
  * - `TIANDITU_TOKEN`：**必需**。缺 token 或 token 失效时天地图瓦片接口会拒绝请求
  *   （实测失效 token 返回 `403 application/json`），底图呈整图空白。
@@ -46,8 +46,8 @@ export const BLANK_MAP_STYLE: StyleSpecification = {
  * - `AMAP_KEY`：可选。当前使用的 XYZ 栅格瓦片端点
  *   `wprd0X.is.autonavi.com/appmaptile` 本身免 key，仅改用需授权端点时才需要
  */
-const TIANDITU_TOKEN = env.VITE_TIANDITU_TOKEN;
-const AMAP_KEY = env.VITE_AMAP_KEY;
+const TIANDITU_TOKEN = env.TIANDITU_TOKEN;
+const AMAP_KEY = env.AMAP_KEY;
 
 let hasWarnedTiandituToken = false;
 
@@ -157,7 +157,7 @@ export function resolveBasemapConfig(
   if (key === "tianditu" && !TIANDITU_TOKEN && !hasWarnedTiandituToken) {
     hasWarnedTiandituToken = true;
     console.warn(
-      "[map] 未配置 VITE_TIANDITU_TOKEN：天地图瓦片会被接口拒绝，底图将显示为空白。请参考 .env.example 配置。",
+      "[map] 未配置 NEXT_PUBLIC_TIANDITU_TOKEN：天地图瓦片会被接口拒绝，底图将显示为空白。请参考 .env.example 配置。",
     );
   }
 

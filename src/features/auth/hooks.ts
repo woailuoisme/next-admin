@@ -23,8 +23,8 @@ export function useLoginMutation() {
       toast.success(toastMessages.loginSuccess(data.admin.name));
       const redirectPath =
         typeof window !== "undefined"
-          ? new URLSearchParams(window.location.search).get("from") || "/dashboard"
-          : "/dashboard";
+          ? new URLSearchParams(window.location.search).get("from") || "/overview"
+          : "/overview";
       router.push(redirectPath);
     },
     onError: async (error) => {

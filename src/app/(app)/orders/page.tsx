@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { OrdersPage } from "@/features/orders/pages/OrdersPage";
 import { orderQueries } from "@/features/orders/queries";
 import type { OrderSearchParams } from "@/features/orders/types";
-import { getQueryClient } from "@/lib/query-client";
+import { getQueryClient, prefetchWithTimeout } from "@/lib/query-client";
 
 export const metadata: Metadata = {
   title: "订单管理",
@@ -18,11 +18,7 @@ export default async function Page(props: {
   const queryClient = getQueryClient();
 
   // Non-blocking prefetch with graceful offline / build-time fallback
-  try {
-    await queryClient.query(orderQueries.list(search));
-  } catch {
-    // Graceful fallback to client-side fetching if backend is offline during build
-  }
+  await prefetchWithTimeout(queryClient.prefetchQuery(orderQueries.list(search)));
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

@@ -11,6 +11,7 @@ export interface NotificationHeaderProps {
 
 export interface NotificationTabsProps {
   activeTab: NotificationTabKey;
+  unreadCount?: number;
   onTabChange: (tab: NotificationTabKey) => void;
   className?: string;
 }
@@ -30,6 +31,8 @@ export interface NotificationPopoverProps {
   isMarkingAllAsRead: boolean;
   onTabChange: (tab: NotificationTabKey) => void;
   onMarkAllAsRead: (e: React.MouseEvent) => void;
+  onMarkAsRead?: (id: string) => void;
+  onDelete?: (id: string) => void;
   onItemClick: (item: NotificationItem) => void;
   onGotoOverview: () => void;
   className?: string;

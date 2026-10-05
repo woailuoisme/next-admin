@@ -19,6 +19,8 @@ export const NotificationPopover = memo(function NotificationPopover({
   isMarkingAllAsRead,
   onTabChange,
   onMarkAllAsRead,
+  onMarkAsRead,
+  onDelete,
   onItemClick,
   onGotoOverview,
   className,
@@ -28,7 +30,7 @@ export const NotificationPopover = memo(function NotificationPopover({
       align="end"
       sideOffset={8}
       className={cn(
-        "w-[380px] overflow-hidden rounded-xl border-border/70 bg-popover/95 p-0 shadow-2xl backdrop-blur-xl",
+        "w-[400px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border-border/70 bg-popover/95 p-0 shadow-2xl backdrop-blur-2xl",
         className,
       )}
     >
@@ -37,12 +39,14 @@ export const NotificationPopover = memo(function NotificationPopover({
         isMarkingAllAsRead={isMarkingAllAsRead}
         onMarkAllAsRead={onMarkAllAsRead}
       />
-      <NotificationTabs activeTab={activeTab} onTabChange={onTabChange} />
+      <NotificationTabs activeTab={activeTab} unreadCount={unreadCount} onTabChange={onTabChange} />
       <NotificationList
         items={items}
         isLoading={isLoading}
         activeTab={activeTab}
         onItemClick={onItemClick}
+        onMarkAsRead={onMarkAsRead}
+        onDelete={onDelete}
       />
       <NotificationFooter total={totalCount} onGotoOverview={onGotoOverview} />
     </PopoverContent>

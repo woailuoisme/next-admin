@@ -1,4 +1,5 @@
-import { useDebounceFn, useMemoizedFn } from "ahooks";
+import { useDebouncer } from "@tanstack/react-pacer";
+import { useMemoizedFn } from "ahooks";
 import { useState } from "react";
 
 export interface UseQuickFilterOptions {
@@ -20,7 +21,7 @@ export function useQuickFilter({
     setLocalSearch(value);
   }
 
-  const { run: triggerQuickFilter } = useDebounceFn(
+  const debouncer = useDebouncer(
     (val: string) => {
       onChange?.(val);
     },
@@ -29,10 +30,11 @@ export function useQuickFilter({
 
   const handleSearchChange = useMemoizedFn((val: string) => {
     setLocalSearch(val);
-    triggerQuickFilter(val);
+    debouncer.maybeExecute(val);
   });
 
   const handleClearSearch = useMemoizedFn(() => {
+    debouncer.cancel();
     setLocalSearch("");
     onChange?.("");
   });

@@ -4,10 +4,11 @@ import { useMemoizedFn } from "ahooks";
 import { DollarSign, Image as ImageIcon, Layers, Package, Tag } from "lucide-react";
 import { useMemo } from "react";
 
+import { useTranslations } from "next-intl";
+
 import { FormDialog } from "@/components/dialogs";
 import { FormSection, NumberInput, SelectInput, TextareaInput, TextInput } from "@/components/form";
 import { categoryQueries } from "@/features/categories";
-import { m } from "@/i18n";
 
 import type { Product, ProductInput } from "../types";
 
@@ -38,6 +39,7 @@ export function ProductFormDialog({
   productToEdit,
   productIdToEdit,
 }: ProductFormDialogProps) {
+  const t = useTranslations("product");
   const createMutation = useCreateProductMutation();
   const updateMutation = useUpdateProductMutation();
 
@@ -98,15 +100,15 @@ export function ProductFormDialog({
 
   const statusOptions = useMemo(() => {
     const labelMap = {
-      active: m.product.status_active(),
-      draft: m.product.status_draft(),
-      out_of_stock: m.product.status_out_of_stock(),
+      active: t("status_active"),
+      draft: t("status_draft"),
+      out_of_stock: t("status_out_of_stock"),
     };
     return PRODUCT_STATUS_OPTIONS.map((opt) => ({
       label: labelMap[opt.labelKey],
       value: opt.value,
     }));
-  }, []);
+  }, [t]);
 
   return (
     <FormDialog
@@ -116,9 +118,9 @@ export function ProductFormDialog({
       form={form}
       defaultValues={defaultValues}
       entityName="Product"
-      createTitle={m.product.form_create_title()}
-      editTitle={m.product.form_edit_title()}
-      description={isEditing ? m.product.form_edit_desc() : m.product.form_create_desc()}
+      createTitle={t("form_create_title")}
+      editTitle={t("form_edit_title")}
+      description={isEditing ? t("form_edit_desc") : t("form_create_desc")}
       size="xl"
       allowFullscreen
       isSubmitting={isPending}
@@ -126,17 +128,17 @@ export function ProductFormDialog({
       <div className="space-y-4">
         {/* 基本信息区块 */}
         <FormSection
-          title={m.product.section_basic()}
-          description={m.product.section_basic_desc()}
+          title={t("section_basic")}
+          description={t("section_basic_desc")}
           icon={<Layers className="size-4" />}
           columns={2}
         >
           <TextInput
             name="title"
-            label={m.product.title_label()}
+            label={t("title_label")}
             required
             colSpan={2}
-            placeholder={m.product.title_placeholder()}
+            placeholder={t("title_placeholder")}
             clearable
             prefix={<Tag className="size-3.5" />}
             onChange={(val: string) => {
@@ -148,24 +150,24 @@ export function ProductFormDialog({
 
           <TextInput
             name="slug"
-            label={m.product.slug_label()}
+            label={t("slug_label")}
             required
             prefix="/"
             placeholder="wireless-anc-headphones"
-            tooltip={m.product.slug_tooltip()}
+            tooltip={t("slug_tooltip")}
           />
 
           <SelectInput
             name="categoryId"
-            label={m.product.category_label()}
+            label={t("category_label")}
             required
             options={categoryOptions}
-            placeholder={m.product.category_placeholder()}
+            placeholder={t("category_placeholder")}
           />
 
           <TextInput
             name="imageUrl"
-            label={m.product.image_label()}
+            label={t("image_label")}
             required
             colSpan={2}
             prefix={<ImageIcon className="size-3.5" />}
@@ -175,26 +177,26 @@ export function ProductFormDialog({
 
           <TextareaInput
             name="description"
-            label={m.product.desc_label()}
+            label={t("desc_label")}
             required
             colSpan={2}
             rows={3}
             showCount
             maxLength={300}
-            placeholder={m.product.desc_placeholder()}
+            placeholder={t("desc_placeholder")}
           />
         </FormSection>
 
         {/* 成本、定价与库存控制 */}
         <FormSection
-          title={m.product.section_pricing()}
-          description={m.product.section_pricing_desc()}
+          title={t("section_pricing")}
+          description={t("section_pricing_desc")}
           icon={<DollarSign className="size-4" />}
           columns={3}
         >
           <NumberInput
             name="price"
-            label={m.product.price_label()}
+            label={t("price_label")}
             step={0.01}
             min={0.01}
             required
@@ -203,27 +205,27 @@ export function ProductFormDialog({
 
           <NumberInput
             name="costPrice"
-            label={m.product.cost_label()}
+            label={t("cost_label")}
             step={0.01}
             min={0}
             required
             prefix="$"
-            hint={m.product.cost_hint()}
+            hint={t("cost_hint")}
           />
 
           <NumberInput
             name="stock"
-            label={m.product.stock_label()}
+            label={t("stock_label")}
             step={1}
             min={0}
             required
-            suffix={m.product.stock_suffix()}
+            suffix={t("stock_suffix")}
             prefix={<Package className="size-3.5" />}
           />
 
           <SelectInput
             name="status"
-            label={m.product.status_label()}
+            label={t("status_label")}
             required
             colSpan={3}
             options={statusOptions}

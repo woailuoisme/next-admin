@@ -25,8 +25,12 @@ export function createTestQueryClient() {
   });
 }
 
+import { NextIntlClientProvider } from "next-intl";
+import { DICTIONARY, type SupportedLocale } from "@/i18n";
+
 export interface ExtendedRenderOptions extends Omit<RenderOptions, "wrapper"> {
   queryClient?: QueryClient;
+  locale?: SupportedLocale;
 }
 
 /**
@@ -34,17 +38,26 @@ export interface ExtendedRenderOptions extends Omit<RenderOptions, "wrapper"> {
  */
 export function renderWithProviders(
   ui: ReactElement,
-  { queryClient = createTestQueryClient(), ...renderOptions }: ExtendedRenderOptions = {},
+  {
+    queryClient = createTestQueryClient(),
+    locale = "zh",
+    ...renderOptions
+  }: ExtendedRenderOptions = {},
 ) {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-        <NuqsAdapter>
-          <QueryClientProvider client={queryClient}>
-            <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
-          </QueryClientProvider>
-        </NuqsAdapter>
-      </ThemeProvider>
+      <NextIntlClientProvider
+        locale={locale}
+        messages={DICTIONARY[locale as keyof typeof DICTIONARY] ?? DICTIONARY.zh}
+      >
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+              <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
+            </QueryClientProvider>
+          </NuqsAdapter>
+        </ThemeProvider>
+      </NextIntlClientProvider>
     );
   }
 

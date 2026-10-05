@@ -16,7 +16,7 @@ async function startWorker(): Promise<void> {
 }
 
 export function enableMocking(): Promise<void> {
-  if (typeof window === "undefined" || !env.NEXT_PUBLIC_ENABLE_MOCK) {
+  if (typeof window === "undefined" || !env.ENABLE_MOCK) {
     return Promise.resolve();
   }
 

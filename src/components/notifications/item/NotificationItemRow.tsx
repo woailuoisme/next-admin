@@ -1,7 +1,10 @@
 import { useMemoizedFn } from "ahooks";
-import { Clock, ExternalLink } from "lucide-react";
+import { ArrowRight, Check, Clock, ExternalLink, Trash2 } from "lucide-react";
 import { memo } from "react";
+import { useTranslations } from "next-intl";
 
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 import type { NotificationItemRowProps } from "./types";
@@ -11,7 +14,10 @@ import { SEVERITY_BADGE_CLASSES, formatRelativeTime, getCategoryIconComponent } 
 export const NotificationItemRow = memo(function NotificationItemRow({
   item,
   onItemClick,
+  onMarkAsRead,
+  onDelete,
 }: NotificationItemRowProps) {
+  const t = useTranslations("notification");
   const { Icon, className: iconClassName } = getCategoryIconComponent(item.category, item.severity);
   const severityBgClass = SEVERITY_BADGE_CLASSES[item.severity];
 
@@ -26,6 +32,21 @@ export const NotificationItemRow = memo(function NotificationItemRow({
     }
   });
 
+  const handleMarkRead = useMemoizedFn((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMarkAsRead?.(item.id);
+  });
+
+  const handleDelete = useMemoizedFn((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.(item.id);
+  });
+
+  const handleExternalAction = useMemoizedFn((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onItemClick(item);
+  });
+
   return (
     <div
       role="button"
@@ -34,16 +55,16 @@ export const NotificationItemRow = memo(function NotificationItemRow({
       onKeyDown={handleKeyDown}
       data-testid={`notification-item-${item.id}`}
       className={cn(
-        "group relative flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        "group relative mx-1 flex cursor-pointer items-start gap-3 rounded-xl p-3 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         item.read
-          ? "border-transparent text-muted-foreground hover:bg-muted/50"
-          : "border-primary/10 bg-primary/5 text-foreground hover:bg-primary/10",
+          ? "text-muted-foreground hover:bg-muted/50"
+          : "bg-primary/[0.03] text-foreground hover:bg-primary/[0.07]",
       )}
     >
-      {/* 分类/级别图标 */}
+      {/* 分类/级别精致微圆底图标 */}
       <div
         className={cn(
-          "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border shadow-2xs",
+          "mt-0.5 flex size-7.5 shrink-0 items-center justify-center rounded-full transition-transform duration-150 group-hover:scale-105",
           severityBgClass,
         )}
       >
@@ -52,18 +73,28 @@ export const NotificationItemRow = memo(function NotificationItemRow({
 
       {/* 文本及元信息 */}
       <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex items-center justify-between gap-1.5">
-          <h4
-            className={cn(
-              "line-clamp-1 text-xs leading-snug font-semibold",
-              item.read ? "text-foreground/85" : "text-foreground",
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-1.5">
+            {!item.read && (
+              <span
+                data-testid="notification-unread-dot"
+                className="bg-primary size-1.5 shrink-0 rounded-full"
+              />
             )}
-          >
-            {item.title}
-          </h4>
-          <span className="text-muted-foreground/80 flex shrink-0 items-center gap-1 text-[10px]">
+            <h4
+              className={cn(
+                "line-clamp-1 text-xs leading-snug tracking-tight",
+                item.read ? "font-medium text-foreground/85" : "font-semibold text-foreground",
+              )}
+            >
+              {item.title}
+            </h4>
+          </div>
+
+          {/* 时间戳（悬浮工具栏出现时淡出避免视觉冲突） */}
+          <span className="text-muted-foreground/75 flex shrink-0 items-center gap-1 text-[10px] transition-opacity duration-150 group-hover:opacity-0">
             <Clock className="size-2.5" />
-            {formatRelativeTime(item.createdAt)}
+            {formatRelativeTime(item.createdAt, t)}
           </span>
         </div>
 
@@ -71,21 +102,82 @@ export const NotificationItemRow = memo(function NotificationItemRow({
           {item.description}
         </p>
 
+        {/* 实体轻量标签入口 */}
         {item.actionLabel && (
-          <div className="text-primary flex items-center gap-1 pt-1 text-[11px] font-medium hover:underline">
-            <span>{item.actionLabel}</span>
-            <ExternalLink className="size-2.5" />
+          <div className="pt-0.5">
+            <span
+              onClick={handleExternalAction}
+              className="bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium transition-colors"
+            >
+              <span>{item.actionLabel}</span>
+              <ArrowRight className="size-2.5" />
+            </span>
           </div>
         )}
       </div>
 
-      {/* 未读指示点 */}
-      {!item.read && (
-        <span
-          data-testid="notification-unread-dot"
-          className="bg-primary ring-background absolute top-3 right-2 size-2 rounded-full ring-2"
-        />
-      )}
+      {/* 悬停微型工具栏 (Hover Actions Toolbar) */}
+      <div
+        className="border-border/50 bg-popover/95 absolute top-2.5 right-2.5 z-10 hidden items-center gap-0.5 rounded-md border p-0.5 shadow-xs backdrop-blur-md transition-all group-hover:flex"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {!item.read && onMarkAsRead && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleMarkRead}
+                aria-label={t("mark_as_read")}
+                className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 rounded"
+              >
+                <Check className="size-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-[11px]">
+              {t("mark_as_read")}
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {item.actionUrl && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleExternalAction}
+                aria-label={t("open_details")}
+                className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 rounded"
+              >
+                <ExternalLink className="size-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-[11px]">
+              {t("open_details")}
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {onDelete && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDelete}
+                aria-label={t("delete")}
+                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive size-6 rounded"
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-[11px]">
+              {t("delete")}
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
     </div>
   );
 });

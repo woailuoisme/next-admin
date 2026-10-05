@@ -1,5 +1,6 @@
 export const menu = {
   navigation: "Navigation",
+  overview: "Overview",
   dashboard: "Dashboard",
   catalog: "Catalog",
   products: "Products",

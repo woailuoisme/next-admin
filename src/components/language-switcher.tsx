@@ -1,7 +1,8 @@
 "use client";
 
 import { Check, Languages } from "lucide-react";
-import { useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,23 +13,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { setUserLocale, type SupportedLocale } from "@/i18n";
 import { setupZodLocale } from "@/lib/zod";
-import { DEFAULT_LOCALE, getLocale, setLocale, type SupportedLocale } from "@/i18n";
 
 const LOCALE_OPTIONS: { code: SupportedLocale; name: string; nativeName: string }[] = [
   { code: "zh", name: "Simplified Chinese", nativeName: "简体中文" },
   { code: "en", name: "English", nativeName: "English (US)" },
 ];
 
-const emptySubscribe = () => () => {};
-
 export function LanguageSwitcher() {
-  const currentLocale = useSyncExternalStore(emptySubscribe, getLocale, () => DEFAULT_LOCALE);
+  const currentLocale = useLocale() as SupportedLocale;
+  const router = useRouter();
 
   const handleLocaleChange = (locale: SupportedLocale) => {
     if (locale === currentLocale) return;
+    setUserLocale(locale);
     setupZodLocale(locale);
-    setLocale(locale, { reload: true });
+    router.refresh();
   };
 
   return (

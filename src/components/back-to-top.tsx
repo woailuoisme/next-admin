@@ -5,9 +5,9 @@ import { clamp } from "es-toolkit";
 import { ArrowUp } from "lucide-react";
 import { type CSSProperties, type MouseEvent, type ReactNode, useEffect, useState } from "react";
 
+import { useTranslations } from "next-intl";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { m } from "@/i18n";
 
 export interface BackToTopProps {
   /**
@@ -42,7 +42,7 @@ export interface BackToTopProps {
 
   /**
    * Tooltip 浮层提示内容，设为 null 或 false 可禁用 Tooltip
-   * @default m.back_to_top()
+   * @default t("back_to_top")
    */
   tooltip?: ReactNode | false | null;
 
@@ -157,6 +157,7 @@ export function BackToTop({
   onClick,
   "aria-label": ariaLabel,
 }: BackToTopProps) {
+  const t = useTranslations("common");
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -192,9 +193,9 @@ export function BackToTop({
     return null;
   }
 
-  const resolvedTooltip = tooltip === undefined ? m.common.back_to_top() : tooltip;
+  const resolvedTooltip = tooltip === undefined ? t("back_to_top") : tooltip;
   const buttonAriaLabel =
-    ariaLabel || (typeof resolvedTooltip === "string" ? resolvedTooltip : m.common.back_to_top());
+    ariaLabel || (typeof resolvedTooltip === "string" ? resolvedTooltip : t("back_to_top"));
 
   const strokeDashoffset = CIRCUMFERENCE - (progress / 100) * CIRCUMFERENCE;
 

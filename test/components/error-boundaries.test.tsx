@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { NotFoundComponent } from "@/components/layout/not-found-component";
 import { RootErrorComponent } from "@/components/layout/root-error-component";
-import DashboardLoading from "@/app/(dashboard)/loading";
+import DashboardLoading from "@/app/(app)/loading";
 import { renderWithProviders, screen } from "../test-utils";
 
 describe("Error Boundaries & Layout Fallbacks", () => {

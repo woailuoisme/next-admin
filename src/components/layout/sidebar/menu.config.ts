@@ -11,40 +11,52 @@ import {
   Users,
 } from "lucide-react";
 
-import { m } from "@/i18n";
+import { createTranslator, useTranslations } from "next-intl";
+
+import { DICTIONARY, getUserLocale } from "@/i18n";
 
 import type { NavGroup } from "./types";
 
+function getMenuTranslator() {
+  const locale = getUserLocale();
+  return createTranslator({
+    locale,
+    messages: DICTIONARY[locale] ?? DICTIONARY.zh,
+    namespace: "menu",
+  });
+}
+
 /**
- * Get localized sidebar navigation menu groups with concise wording
+ * Get localized sidebar navigation menu groups with concise wording.
+ * Accepts an optional translation function (e.g. from useTranslations('menu')).
  */
-export function getSidebarMenuGroups(): NavGroup[] {
+export function getSidebarMenuGroups(tMenu?: (key: any) => string): NavGroup[] {
+  const t = tMenu ?? getMenuTranslator();
   return [
     {
-      title: m.menu.navigation(),
       items: [
         {
-          title: m.menu.dashboard(),
-          to: "/dashboard",
+          title: t("overview"),
+          to: "/overview",
           icon: LayoutDashboard,
         },
         {
-          title: m.menu.catalog(),
+          title: t("catalog"),
           icon: Package,
           defaultOpen: true,
           items: [
-            { title: m.menu.products(), to: "/products", badge: 12 },
-            { title: m.menu.categories(), to: "/categories", badge: 4 },
-            { title: m.menu.orders(), to: "/orders", badge: 15 },
+            { title: t("products"), to: "/products", badge: 12 },
+            { title: t("categories"), to: "/categories", badge: 4 },
+            { title: t("orders"), to: "/orders", badge: 15 },
           ],
         },
         {
-          title: m.menu.users(),
+          title: t("users"),
           icon: Users,
           items: [
-            { title: m.menu.customers(), to: "/users" },
+            { title: t("customers"), to: "/users" },
             {
-              title: m.menu.staff(),
+              title: t("staff"),
               to: "/admin-users",
               roles: ["superadmin", "admin"],
             },
@@ -211,4 +223,12 @@ export function getRouteTitle(pathname: string, fallback?: string): string {
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+/**
+ * React hook to retrieve translated sidebar navigation groups within Client Components
+ */
+export function useSidebarMenuGroups(): NavGroup[] {
+  const t = useTranslations("menu");
+  return getSidebarMenuGroups(t);
 }

@@ -2,11 +2,12 @@ import { useMemoizedFn } from "ahooks";
 import { Bell } from "lucide-react";
 import { forwardRef, memo } from "react";
 
+import { useTranslations } from "next-intl";
+
 import { Button } from "@/components/ui/button";
 import { PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { m } from "@/i18n";
 
 import type { NotificationTriggerProps } from "./types";
 
@@ -15,6 +16,7 @@ export const NotificationTrigger = memo(
     { unreadCount, onPrefetch, className, onMouseEnter, onFocus, ...props },
     ref,
   ) {
+    const t = useTranslations("notification");
     const handleMouseEnter = useMemoizedFn((e: React.MouseEvent<HTMLButtonElement>) => {
       onPrefetch?.();
       onMouseEnter?.(e);
@@ -40,7 +42,7 @@ export const NotificationTrigger = memo(
                   "relative size-8 rounded-full transition-colors hover:bg-accent/80",
                   className,
                 )}
-                aria-label={m.notification.view()}
+                aria-label={t("view")}
                 onMouseEnter={handleMouseEnter}
                 onFocus={handleFocus}
                 {...props}
@@ -61,8 +63,7 @@ export const NotificationTrigger = memo(
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="text-xs font-medium">
-            {m.notification.title()}{" "}
-            {unreadCount > 0 ? `(${m.notification.unread_count({ count: unreadCount })})` : ""}
+            {t("title")} {unreadCount > 0 ? `(${t("unread_count", { count: unreadCount })})` : ""}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

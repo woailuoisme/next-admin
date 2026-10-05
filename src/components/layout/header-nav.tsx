@@ -35,7 +35,7 @@ export const HeaderNav = memo(function HeaderNav() {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild className="text-xs">
-                <Link href="/dashboard">Admin</Link>
+                <Link href="/overview">Admin</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />

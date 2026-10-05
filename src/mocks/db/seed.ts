@@ -62,7 +62,7 @@ export const getDb = getDatabaseSnapshot;
 await seedDatabase();
 
 // Devtools helper attached to window for manual testing in browser console
-if (typeof window !== "undefined" && import.meta.env?.DEV) {
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   (window as unknown as { __resetMockDb?: () => Promise<MockDatabase> }).__resetMockDb =
     resetDatabase;
 }

@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 const AUTH_COOKIE_NAME = "auth_token";
 
 const PROTECTED_PREFIXES = [
+  "/overview",
   "/dashboard",
   "/products",
   "/categories",
@@ -16,15 +17,15 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
 
-  // 1. 根路径重定向
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // 1. 根路径或旧 /dashboard 重定向至 /overview
+  if (pathname === "/" || pathname === "/dashboard") {
+    return NextResponse.redirect(new URL("/overview", request.url));
   }
 
-  // 2. 登录页拦截：已登录用户重定向至 /dashboard
+  // 2. 登录页拦截：已登录用户重定向至 /overview
   if (pathname.startsWith("/login")) {
     if (token) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/overview", request.url));
     }
     return NextResponse.next();
   }

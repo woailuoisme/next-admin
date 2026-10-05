@@ -10,6 +10,7 @@ import { Popover } from "@/components/ui/popover";
 import {
   fetchNotifications,
   notificationKeys,
+  useDeleteNotificationMutation,
   useMarkAllAsReadMutation,
   useMarkAsReadMutation,
   useNotifications,
@@ -58,6 +59,7 @@ export const NotificationBell = memo(function NotificationBell({
 
   const markAsReadMutation = useMarkAsReadMutation();
   const markAllAsReadMutation = useMarkAllAsReadMutation();
+  const deleteMutation = useDeleteNotificationMutation();
 
   const unreadCount = open
     ? (listData?.unreadCount ?? countData ?? 0)
@@ -90,6 +92,14 @@ export const NotificationBell = memo(function NotificationBell({
     }
   });
 
+  const handleSingleMarkRead = useMemoizedFn((id: string) => {
+    markAsReadMutation.mutate(id);
+  });
+
+  const handleDelete = useMemoizedFn((id: string) => {
+    deleteMutation.mutate(id);
+  });
+
   const handleMarkAllRead = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();
     if (unreadCount > 0) {
@@ -118,6 +128,8 @@ export const NotificationBell = memo(function NotificationBell({
         isMarkingAllAsRead={markAllAsReadMutation.isPending}
         onTabChange={setActiveTab}
         onMarkAllAsRead={handleMarkAllRead}
+        onMarkAsRead={handleSingleMarkRead}
+        onDelete={handleDelete}
         onItemClick={handleItemClick}
         onGotoOverview={handleGotoOverview}
       />

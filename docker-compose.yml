@@ -2,20 +2,12 @@ services:
   app:
     build:
       context: .
-      args:
-        # 数据源默认启用本地 MSW Mock；切换真实后端服务请设为 false 并提供对应 API 地址
-        NEXT_PUBLIC_ENABLE_MOCK: ${NEXT_PUBLIC_ENABLE_MOCK:-true}
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
-        NEXT_PUBLIC_AMAP_KEY: ${NEXT_PUBLIC_AMAP_KEY:-}
-        NEXT_PUBLIC_TIANDITU_TOKEN: ${NEXT_PUBLIC_TIANDITU_TOKEN:-}
-        NEXT_PUBLIC_CENTRIFUGE_WS_URL: ${NEXT_PUBLIC_CENTRIFUGE_WS_URL:-}
-        NEXT_PUBLIC_GLITCHTIP_DSN: ${NEXT_PUBLIC_GLITCHTIP_DSN:-}
     image: next-sn-admin:latest
     container_name: next-sn-admin
     pull_policy: build
     ports:
-      - "3200:3200"
+      - "${PORT:-3500}:${PORT:-3500}"
     environment:
-      PORT: "3200"
-      SERVER_URL: ${SERVER_URL:-http://localhost:3200}
+      PORT: "${PORT:-3500}"
+      SERVER_URL: ${SERVER_URL:-http://localhost:3500}
     restart: unless-stopped

@@ -7,6 +7,8 @@ export interface NotificationListProps {
   isLoading: boolean;
   activeTab: NotificationTabKey;
   onItemClick: (item: NotificationItem) => void;
+  onMarkAsRead?: (id: string) => void;
+  onDelete?: (id: string) => void;
   className?: string;
 }
 

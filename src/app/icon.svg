@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <style>
+    .bg { fill: #18181b; }
+    .fg { fill: #fafafa; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #fafafa; }
+      .fg { fill: #18181b; }
+    }
+  </style>
+  <rect class="bg" width="32" height="32" rx="8" />
+  <!-- Dashboard 布局：侧栏 + 指标卡 + 内容区（行业通用 Admin Panel 语义） -->
+  <rect class="fg" x="7" y="7" width="7.5" height="10" rx="1.75" />
+  <rect class="fg" x="17.5" y="7" width="7.5" height="6" rx="1.75" />
+  <rect class="fg" x="17.5" y="15.5" width="7.5" height="9.5" rx="1.75" />
+  <rect class="fg" x="7" y="19.5" width="7.5" height="5.5" rx="1.75" fill-opacity="0.6" />
+</svg>

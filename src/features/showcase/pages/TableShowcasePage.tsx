@@ -166,7 +166,7 @@ const INITIAL_DATA: ShowcaseItem[] = Array.from({ length: 48 }, (_, i) => {
   const isVerified = i % 2 === 0;
   const authorNames = ["Alex Chen", "Sarah Miller", "David Kim", "Elena Rostova"];
   const tagSets = [
-    ["React", "TypeScript", "Tailwind", "Vite", "Shadcn"],
+    ["React", "TypeScript", "Tailwind", "Next.js", "Shadcn"],
     ["Frontend", "UI/UX", "Design"],
     ["Node.js", "Bun", "API", "REST", "GraphQL"],
     ["DevOps", "Docker", "CI/CD"],

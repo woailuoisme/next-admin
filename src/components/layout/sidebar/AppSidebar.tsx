@@ -8,7 +8,7 @@ import { useAuthSession } from "@/stores/auth";
 
 import type { NavGroup, SidebarUser } from "./types";
 
-import { getAuthorizedMenu, getSidebarMenuGroups } from "./menu.config";
+import { getAuthorizedMenu, useSidebarMenuGroups } from "./menu.config";
 import { NavMain } from "./NavMain";
 import { NavUser } from "./NavUser";
 import { SidebarHeader } from "./SidebarHeader";
@@ -22,10 +22,12 @@ export function AppSidebar({ className, customGroups, ...props }: AppSidebarProp
   const admin = session?.admin;
   const userRole = admin?.role;
 
+  const dynamicGroups = useSidebarMenuGroups();
+
   const menuGroups = useMemo(() => {
-    const baseGroups = customGroups ?? getSidebarMenuGroups();
+    const baseGroups = customGroups ?? dynamicGroups;
     return getAuthorizedMenu(baseGroups, userRole);
-  }, [customGroups, userRole]);
+  }, [customGroups, dynamicGroups, userRole]);
 
   const currentUser: SidebarUser | null = useMemo(() => {
     if (!admin) return null;

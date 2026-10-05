@@ -5,7 +5,7 @@ import { env } from "@/env";
  *
  * - 入参 / 出参坐标均为 **GCJ-02**（高德坐标系），与底图坐标系一致
  * - 实测 `restapi.amap.com` 返回 `Access-Control-Allow-Origin: *`，浏览器可直连，无需服务端代理
- * - 未配置 `VITE_AMAP_KEY` 时所有方法**安全降级**（返回 null / 空结果，不抛错）
+ * - 未配置 `NEXT_PUBLIC_AMAP_KEY` 时所有方法**安全降级**（返回 null / 空结果，不抛错）
  * - 高德用字符串 `"1"` / `"0"` 表示成功 / 失败。失败必须**给出可读原因**：
  *   最常见的是 key 平台类型不匹配（`USERKEY_PLAT_NOMATCH` —— 用了「Web端(JS API)」key
  *   去调「Web服务」REST 接口），静默返回空结果会让使用者完全无从排查。
@@ -134,14 +134,14 @@ export function snapCoordinateToGrid([lng, lat]: [number, number], decimals = 4)
 
 /** 是否已配置高德 key（未配置时地名搜索与逆地理编码不可用） */
 export function isAmapApiEnabled(): boolean {
-  return Boolean(env.VITE_AMAP_KEY);
+  return Boolean(env.AMAP_KEY);
 }
 
 /** 把高德的 `info` 错误码翻译成可操作的中文提示 */
 export function describeAmapInfo(info: string): string {
   switch (info) {
     case "INVALID_USER_KEY":
-      return "高德 key 无效，请检查 VITE_AMAP_KEY 是否填写正确";
+      return "高德 key 无效，请检查 NEXT_PUBLIC_AMAP_KEY 是否填写正确";
     case "USERKEY_PLAT_NOMATCH":
       return "高德 key 平台类型不匹配：当前 key 是「Web端(JS API)」，需在高德控制台创建「Web服务」类型的 key";
     case "SERVICE_NOT_AVAILABLE":
@@ -167,7 +167,7 @@ async function fetchAmap<T extends AmapEnvelope>(
   params: Record<string, string>,
   signal?: AbortSignal,
 ): Promise<{ data: T | null; error?: string }> {
-  const key = env.VITE_AMAP_KEY;
+  const key = env.AMAP_KEY;
   // 未配置 key：调用方本就不该发起请求，静默即可
   if (!key) return { data: null };
 

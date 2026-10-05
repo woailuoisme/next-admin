@@ -17,4 +17,7 @@ export const notification = {
   time_hours_ago: "{hours} 小时前",
   time_days_ago: "{days} 天前",
   view: "查看通知",
+  mark_as_read: "标为已读",
+  delete: "删除",
+  open_details: "查看详情",
 };

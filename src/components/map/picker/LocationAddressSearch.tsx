@@ -20,7 +20,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 /**
  * 地名关键字搜索定位
  *
- * 依赖高德 Web 服务 API；未配置 `VITE_AMAP_KEY` 时输入框禁用并给出配置提示，
+ * 依赖高德 Web 服务 API；未配置 `NEXT_PUBLIC_AMAP_KEY` 时输入框禁用并给出配置提示，
  * 以免出现「能输入但永远搜不到」的静默失败。
  * 防护机制：基于 es-toolkit debounce + LRU 缓存 + 在途请求去重 + 会话熔断。
  */
@@ -129,7 +129,7 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
         value={keyword}
         disabled={blocked}
         placeholder={
-          apiEnabled ? "输入地名搜索定位（如：北京南站）" : "配置 VITE_AMAP_KEY 后可地名搜索"
+          apiEnabled ? "输入地名搜索定位（如：北京南站）" : "配置 NEXT_PUBLIC_AMAP_KEY 后可地名搜索"
         }
         onChange={handleKeywordChange}
         onFocus={() => {

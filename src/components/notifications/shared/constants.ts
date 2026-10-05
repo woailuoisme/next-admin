@@ -17,19 +17,19 @@ export const NOTIFICATION_TABS: readonly {
 
 /** 通知严重级别徽章配色：业务状态色统一收敛于此常量表 */
 export const SEVERITY_BADGE_CLASSES: Record<NotificationSeverity, string> = {
-  error: "bg-destructive/10 border-destructive/20",
-  warning: "bg-amber-500/10 border-amber-500/20",
-  success: "bg-emerald-500/10 border-emerald-500/20",
-  info: "bg-sky-500/10 border-sky-500/20",
+  error: "bg-destructive/10 text-destructive dark:bg-destructive/20",
+  warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 dark:bg-amber-500/20",
+  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 dark:bg-emerald-500/20",
+  info: "bg-sky-500/10 text-sky-600 dark:text-sky-400 dark:bg-sky-500/20",
 };
 
 /** 通知图标前景色：业务状态色统一收敛于此常量表 */
 const NOTIFICATION_ICON_CLASSES = {
-  order: "size-4 text-emerald-500",
-  customer: "size-4 text-sky-500",
-  error: "size-4 text-destructive",
-  warning: "size-4 text-amber-500",
-  default: "size-4 text-primary",
+  order: "size-3.5 text-emerald-600 dark:text-emerald-400",
+  customer: "size-3.5 text-sky-600 dark:text-sky-400",
+  error: "size-3.5 text-destructive",
+  warning: "size-3.5 text-amber-600 dark:text-amber-400",
+  default: "size-3.5 text-primary",
 } as const;
 
 /** 按页签 key 解析列表查询过滤条件（与 NOTIFICATION_TABS 声明保持一致） */

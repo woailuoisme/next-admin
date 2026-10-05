@@ -30,7 +30,7 @@ export type LocationPickerProps = {
   /**
    * 是否显示地名搜索框（默认 true）
    *
-   * 依赖高德 Web 服务 API：未配置 `VITE_AMAP_KEY` 时输入框会禁用并提示，而非静默失效。
+   * 依赖高德 Web 服务 API：未配置 `NEXT_PUBLIC_AMAP_KEY` 时输入框会禁用并提示，而非静默失效。
    */
   showAddressSearch?: boolean;
   /** Whether to show the clear/reset button (default: true) */

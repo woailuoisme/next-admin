@@ -1,6 +1,5 @@
 import { isPlainObject, trimEnd } from "es-toolkit";
 import ky from "ky";
-import qs from "qs";
 import { toast } from "sonner";
 
 import { env } from "@/env";
@@ -8,12 +7,29 @@ import { clearAuthSession, getAuthToken } from "@/stores/auth";
 
 export function toSearchParams(params: unknown): string {
   if (!isPlainObject(params)) return "";
-  return qs.stringify(params, {
-    skipNulls: true,
-    arrayFormat: "brackets",
-    filter: (_prefix: string, value: unknown) =>
-      value === "" || value === undefined ? undefined : value,
-  });
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value === null || value === undefined || value === "") continue;
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item !== null && item !== undefined && item !== "") {
+          searchParams.append(`${key}[]`, String(item));
+        }
+      }
+    } else if (isPlainObject(value)) {
+      for (const [subKey, subVal] of Object.entries(value)) {
+        if (subVal !== null && subVal !== undefined && subVal !== "") {
+          searchParams.append(`${key}[${subKey}]`, String(subVal));
+        }
+      }
+    } else {
+      searchParams.set(key, String(value));
+    }
+  }
+
+  return searchParams.toString();
 }
 
 export function resolveApiPrefix(baseUrl?: string): string {
@@ -63,7 +79,7 @@ function handleUnauthorized() {
 }
 
 export const apiClient = ky.create({
-  prefix: resolveApiPrefix(env.VITE_API_BASE_URL),
+  prefix: resolveApiPrefix(env.API_URL),
   retry: 0,
   credentials: "include", // 关键支持：前后端 HttpOnly Cookie 自动携带与凭证安全传输
   hooks: {

@@ -7,9 +7,9 @@ interface SidebarHeaderProps {
 }
 
 export function SidebarHeader({
-  title = "TanStack Admin",
+  title = "Next SN Admin",
   subtitle = "Enterprise Dashboard",
-  logoText = "TS",
+  logoText = "SN",
 }: SidebarHeaderProps) {
   return (
     <BaseSidebarHeader className="border-sidebar-border/60 h-14 justify-center border-b px-3 group-data-[collapsible=icon]:px-0">

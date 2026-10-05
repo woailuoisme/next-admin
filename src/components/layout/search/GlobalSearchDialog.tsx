@@ -16,22 +16,25 @@ import {
 } from "@/components/ui/command";
 import { Kbd } from "@/components/ui/kbd";
 import { useSidebar } from "@/components/ui/sidebar";
-import { m } from "@/i18n";
+import { useTranslations } from "next-intl";
+
 import { usePreferencesStore } from "@/stores/preferences";
 
 import type { GlobalSearchDialogProps } from "./types";
 
-import { getFlatNavItems } from "../sidebar/menu.config";
+import { getFlatNavItems, useSidebarMenuGroups } from "../sidebar/menu.config";
 
 export const GlobalSearchDialog = memo(function GlobalSearchDialog({
   open,
   onOpenChange,
 }: GlobalSearchDialogProps) {
+  const t = useTranslations("search");
   const router = useRouter();
   const { toggleSidebar } = useSidebar();
   const setMode = usePreferencesStore((s) => s.setMode);
 
-  const navItems = useMemo(() => getFlatNavItems(), []);
+  const menuGroups = useSidebarMenuGroups();
+  const navItems = useMemo(() => getFlatNavItems(menuGroups), [menuGroups]);
 
   const handleNavigate = useMemoizedFn((to: string) => {
     onOpenChange(false);
@@ -63,13 +66,13 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
       className="border-border/80 bg-popover/95 top-[12%] max-w-[calc(100%-2rem)] overflow-hidden rounded-2xl! border p-0 shadow-2xl backdrop-blur-md sm:top-[15%] sm:max-w-lg md:max-w-xl lg:max-w-2xl"
     >
       <Command className="rounded-2xl border-0 bg-transparent">
-        <CommandInput placeholder={m.search.placeholder()} className="h-12 text-sm" />
+        <CommandInput placeholder={t("placeholder")} className="h-12 text-sm" />
         <CommandList className="max-h-[min(340px,50vh)] overflow-y-auto px-1 py-1 sm:max-h-[min(440px,65vh)]">
           <CommandEmpty className="text-muted-foreground py-8 text-center text-sm">
-            {m.search.empty()}
+            {t("empty")}
           </CommandEmpty>
 
-          <CommandGroup heading={m.search.group_pages()}>
+          <CommandGroup heading={t("group_pages")}>
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -111,14 +114,14 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
 
           <CommandSeparator className="my-1" />
 
-          <CommandGroup heading={m.search.group_actions()}>
+          <CommandGroup heading={t("group_actions")}>
             <CommandItem
               onSelect={handleToggleSidebar}
               className="group flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
             >
               <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
                 <PanelLeft className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors" />
-                <span className="truncate">{m.search.toggle_sidebar()}</span>
+                <span className="truncate">{t("toggle_sidebar")}</span>
               </div>
               <CommandShortcut className="text-[10px]">⌘B</CommandShortcut>
             </CommandItem>
@@ -128,7 +131,7 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
             >
               <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
                 <Sun className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors" />
-                <span className="truncate">{m.search.theme_light()}</span>
+                <span className="truncate">{t("theme_light")}</span>
               </div>
             </CommandItem>
             <CommandItem
@@ -137,7 +140,7 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
             >
               <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
                 <Moon className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors" />
-                <span className="truncate">{m.search.theme_dark()}</span>
+                <span className="truncate">{t("theme_dark")}</span>
               </div>
             </CommandItem>
           </CommandGroup>
@@ -153,19 +156,19 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
               <Kbd className="border-border/70 bg-background h-4 border px-1 text-[10px] font-medium">
                 ↓
               </Kbd>
-              <span>{m.search.navigate()}</span>
+              <span>{t("navigate")}</span>
             </span>
             <span className="flex items-center gap-1">
               <Kbd className="border-border/70 bg-background h-4 border px-1 text-[10px] font-medium">
                 ↵
               </Kbd>
-              <span>{m.search.select()}</span>
+              <span>{t("select")}</span>
             </span>
             <span className="flex items-center gap-1">
               <Kbd className="border-border/70 bg-background h-4 border px-1 text-[10px] font-medium">
                 esc
               </Kbd>
-              <span>{m.search.close()}</span>
+              <span>{t("close")}</span>
             </span>
           </div>
           <div className="text-muted-foreground/60 flex items-center gap-1 text-[10px]">

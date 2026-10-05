@@ -95,7 +95,7 @@ vi.mock("next/navigation", () => ({
     refresh: vi.fn(),
     prefetch: vi.fn(),
   }),
-  usePathname: () => "/dashboard",
+  usePathname: () => "/overview",
   useSearchParams: () => new URLSearchParams(),
   redirect: vi.fn(),
 }));

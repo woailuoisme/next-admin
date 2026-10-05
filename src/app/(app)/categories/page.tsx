@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { CategoriesPage } from "@/features/categories/pages/CategoriesPage";
 import { categoryQueries } from "@/features/categories/queries";
 import type { CategorySearchParams } from "@/features/categories/types";
-import { getQueryClient } from "@/lib/query-client";
+import { getQueryClient, prefetchWithTimeout } from "@/lib/query-client";
 
 export const metadata: Metadata = {
   title: "分类管理",
@@ -16,11 +16,7 @@ export default async function Page(props: { searchParams: Promise<CategorySearch
   const queryClient = getQueryClient();
 
   // Non-blocking prefetch with graceful offline / build-time fallback
-  try {
-    await queryClient.query(categoryQueries.list());
-  } catch {
-    // Graceful fallback to client-side fetching if backend is offline during build
-  }
+  await prefetchWithTimeout(queryClient.prefetchQuery(categoryQueries.list()));
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

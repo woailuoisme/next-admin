@@ -7,8 +7,8 @@ export function NotificationSkeleton({ count = 4, className }: NotificationSkele
   return (
     <div className={cn("space-y-2.5 p-2", className)} data-testid="notification-skeletons">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="border-border/40 flex items-start gap-3 rounded-lg border p-3">
-          <Skeleton className="size-8 shrink-0 rounded-full" />
+        <div key={i} className="mx-1 flex items-start gap-3 rounded-xl p-3">
+          <Skeleton className="size-7.5 shrink-0 rounded-full" />
           <div className="flex-1 space-y-1.5">
             <Skeleton className="h-3.5 w-3/4" />
             <Skeleton className="h-3 w-full" />

@@ -1,5 +1,6 @@
 export const menu = {
   navigation: "导航",
+  overview: "概览",
   dashboard: "仪表盘",
   catalog: "商品目录",
   products: "商品管理",

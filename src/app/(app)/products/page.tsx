@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { ProductsPage } from "@/features/products/pages/ProductsPage";
 import { productQueries } from "@/features/products/queries";
 import type { ProductSearchParams } from "@/features/products/types";
-import { getQueryClient } from "@/lib/query-client";
+import { getQueryClient, prefetchWithTimeout } from "@/lib/query-client";
 
 export const metadata: Metadata = {
   title: "商品管理",
@@ -16,11 +16,7 @@ export default async function Page(props: { searchParams: Promise<ProductSearchP
   const queryClient = getQueryClient();
 
   // Non-blocking prefetch with graceful offline / build-time fallback
-  try {
-    await queryClient.query(productQueries.list(search));
-  } catch {
-    // Graceful fallback to client-side fetching if backend is offline during build
-  }
+  await prefetchWithTimeout(queryClient.prefetchQuery(productQueries.list(search)));
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

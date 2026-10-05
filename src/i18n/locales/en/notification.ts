@@ -17,4 +17,7 @@ export const notification = {
   time_hours_ago: "{hours}h ago",
   time_days_ago: "{days}d ago",
   view: "View notifications",
+  mark_as_read: "Mark as read",
+  delete: "Delete",
+  open_details: "View details",
 };

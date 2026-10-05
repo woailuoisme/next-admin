@@ -1,10 +1,11 @@
 import { Search } from "lucide-react";
 import { memo } from "react";
 
+import { useTranslations } from "next-intl";
+
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
-import { m } from "@/i18n";
 
 import type { GlobalSearchTriggerProps } from "./types";
 
@@ -13,6 +14,8 @@ export const GlobalSearchTrigger = memo(function GlobalSearchTrigger({
   onMouseEnter,
   className,
 }: GlobalSearchTriggerProps) {
+  const t = useTranslations("search");
+
   return (
     <Button
       variant="outline"
@@ -27,7 +30,7 @@ export const GlobalSearchTrigger = memo(function GlobalSearchTrigger({
     >
       <div className="flex items-center gap-2 overflow-hidden">
         <Search className="text-muted-foreground group-hover:text-foreground size-3.5 shrink-0 transition-colors" />
-        <span className="hidden truncate sm:inline">{m.search.trigger()}</span>
+        <span className="hidden truncate sm:inline">{t("trigger")}</span>
       </div>
       <Kbd className="border-border/80 bg-background/80 text-muted-foreground hidden h-4.5 items-center gap-0.5 rounded border px-1.5 font-mono text-[10px] md:inline-flex">
         <span className="text-xs">⌘</span>K
