@@ -12,8 +12,7 @@ import { JUSTIFY_ALIGN_CLASSES } from "../base";
 const semanticVariants: Record<string, string> = {
   success:
     "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 dark:bg-emerald-500/20",
-  warning:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 dark:bg-amber-500/20",
+  warning: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 dark:bg-amber-500/20",
   info: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400 dark:bg-sky-500/20",
 };
 
@@ -106,10 +105,7 @@ function renderSingleBadge(
               aria-hidden="true"
             />
           )}
-          <span
-            className="relative inline-flex size-1.5 rounded-full bg-current"
-            aria-hidden="true"
-          />
+          <span className="relative inline-flex size-1.5 rounded-full bg-current" aria-hidden="true" />
         </span>
       )}
       {CellIcon && (
@@ -148,8 +144,7 @@ export const BadgeCell = memo(function BadgeCell({
     return <span className="text-muted-foreground/40 text-xs italic">-</span>;
   }
 
-  const visibleItems =
-    typeof maxCount === "number" && maxCount > 0 ? items.slice(0, maxCount) : items;
+  const visibleItems = typeof maxCount === "number" && maxCount > 0 ? items.slice(0, maxCount) : items;
   const hiddenCount = items.length - visibleItems.length;
 
   const content = (

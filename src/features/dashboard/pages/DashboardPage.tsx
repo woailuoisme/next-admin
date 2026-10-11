@@ -101,11 +101,7 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
       </div>
 
       {/* KPI Stats Cards */}
-      <MetricsCards
-        metrics={data.metrics}
-        monthlyTrends={data.monthlyTrends}
-        sparklines={data.sparklines}
-      />
+      <MetricsCards metrics={data.metrics} monthlyTrends={data.monthlyTrends} sparklines={data.sparklines} />
 
       {/* Charts & Tables Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-7">
@@ -114,10 +110,7 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-7">
-        <CategoryDistributionChart
-          data={data.categoryDistribution}
-          className="col-span-full lg:col-span-4"
-        />
+        <CategoryDistributionChart data={data.categoryDistribution} className="col-span-full lg:col-span-4" />
         <div className="col-span-full lg:col-span-3">
           <QuickActions />
         </div>

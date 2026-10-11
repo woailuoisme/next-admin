@@ -23,9 +23,7 @@ export function triggerTestError(): { success: boolean; message: string } {
   }
 
   try {
-    throw new Error(
-      `[GlitchTip Diagnostic] Test exception generated at ${new Date().toISOString()}`,
-    );
+    throw new Error(`[GlitchTip Diagnostic] Test exception generated at ${new Date().toISOString()}`);
   } catch (err) {
     console.error("[GlitchTip Test Error Captured]", err);
     return {

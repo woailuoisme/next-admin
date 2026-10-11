@@ -248,10 +248,7 @@ Location: /{version}/tasks/<task_id>
   "code": "VALIDATION_FAILED",
   "message": "Validation failed",
   "errors": {
-    "team_name": [
-      "The team name must be a string.",
-      "The team name must be at least 1 characters."
-    ],
+    "team_name": ["The team name must be a string.", "The team name must be at least 1 characters."],
     "authorization.role": ["The selected authorization.role is invalid."],
     "users.0.email": ["The users.0.email field is required."],
     "users.2.email": ["The users.2.email must be a valid email address."]

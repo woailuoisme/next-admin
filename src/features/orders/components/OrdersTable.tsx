@@ -73,13 +73,7 @@ function exportOrdersJson(selectedRows: Order[], clearSelection: () => void) {
   clearSelection();
 }
 
-export function OrdersTable({
-  orders,
-  total,
-  loading,
-  onViewOrder,
-  onSelectOrder,
-}: OrdersTableProps) {
+export function OrdersTable({ orders, total, loading, onViewOrder, onSelectOrder }: OrdersTableProps) {
   const columns = useMemo<DataTableColDef<Order>[]>(
     () => [
       col.text<Order>("orderNumber", "Order #", {

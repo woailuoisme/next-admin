@@ -24,11 +24,7 @@ export const LocationMarkerPin = memo(function LocationMarkerPin({
   const pinColor = item.color || "var(--primary)";
 
   return (
-    <MapMarker
-      longitude={item.coordinates[0]}
-      latitude={item.coordinates[1]}
-      onClick={() => onSelect(item)}
-    >
+    <MapMarker longitude={item.coordinates[0]} latitude={item.coordinates[1]} onClick={() => onSelect(item)}>
       <MarkerContent>
         <div
           className={cn(

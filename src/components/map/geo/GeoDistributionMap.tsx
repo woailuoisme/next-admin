@@ -1,6 +1,7 @@
+import { useMemoizedFn } from "ahooks";
 import { memo, useMemo, useState } from "react";
 
-import { Map, MapControls, MapGeoJSON } from "@/components/ui/map";
+import { Map, MapControls, MapGeoJSON, type MapGeoJSONEvent } from "@/components/ui/map";
 import { cn } from "@/lib/utils";
 
 import type { GeoDistributionMapProps } from "./types";
@@ -61,6 +62,46 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
     [basemap, customStyleUrl],
   );
 
+  const fillPaint = useMemo(
+    () => ({
+      "fill-color": fillColorExpression,
+      "fill-opacity": fillOpacity,
+    }),
+    [fillColorExpression, fillOpacity],
+  );
+
+  const linePaint = useMemo(
+    () => ({
+      "line-color": borderColor || MAP_REGION_BORDER,
+      "line-width": borderWidth,
+    }),
+    [borderColor, borderWidth],
+  );
+
+  const fillHoverPaint = useMemo(
+    () => ({
+      "fill-opacity": Math.min(1, fillOpacity + 0.25),
+    }),
+    [fillOpacity],
+  );
+
+  const handleHover = useMemoizedFn((e: MapGeoJSONEvent | null) => {
+    if (!e || !e.feature) {
+      setHoveredInfo(null);
+      return;
+    }
+    const props = (e.feature.properties || {}) as Record<string, unknown>;
+    const name = String(props[labelKey] || props.name || props.title || "Region");
+    const val = props[valueKey] !== undefined ? Number(props[valueKey]) : undefined;
+    setHoveredInfo({ name, value: val, properties: props });
+  });
+
+  const handleClick = useMemoizedFn((e: MapGeoJSONEvent) => {
+    if (e.feature) {
+      onFeatureClick?.(e.feature, (e.feature.properties || {}) as Record<string, unknown>);
+    }
+  });
+
   const hasEmptyData =
     isEmpty ||
     !data ||
@@ -72,12 +113,7 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
   // 独立使用时由下方 wrapper 提供。内层统一 size-full，避免内层固定高度大于
   // 外层裁切框（原为 480 vs 450）导致底部锚定的图例与控件被裁切
   const mapBody = (
-    <div
-      className={cn(
-        "relative size-full overflow-hidden rounded-xl bg-muted/20 select-none",
-        className,
-      )}
-    >
+    <div className={cn("relative size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}>
       {isLoading ? (
         <MapSkeleton height="100%" />
       ) : isError ? (
@@ -89,11 +125,7 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
           actionLabel="Retry"
         />
       ) : hasEmptyData ? (
-        <MapEmptyState
-          height="100%"
-          type="no-data"
-          message="No geographical distribution data available"
-        />
+        <MapEmptyState height="100%" type="no-data" message="No geographical distribution data available" />
       ) : (
         <>
           <Map
@@ -112,43 +144,17 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
               data={data}
               promoteId={promoteId}
               interactive={true}
-              fillPaint={{
-                "fill-color": fillColorExpression,
-                "fill-opacity": fillOpacity,
-              }}
-              linePaint={{
-                "line-color": borderColor || MAP_REGION_BORDER,
-                "line-width": borderWidth,
-              }}
-              fillHoverPaint={{
-                "fill-opacity": Math.min(1, fillOpacity + 0.25),
-              }}
-              onHover={(e) => {
-                if (!e || !e.feature) {
-                  setHoveredInfo(null);
-                  return;
-                }
-                const props = (e.feature.properties || {}) as Record<string, unknown>;
-                const name = String(props[labelKey] || props.name || props.title || "Region");
-                const val = props[valueKey] !== undefined ? Number(props[valueKey]) : undefined;
-                setHoveredInfo({ name, value: val, properties: props });
-              }}
-              onClick={(e) => {
-                if (e.feature) {
-                  onFeatureClick?.(
-                    e.feature,
-                    (e.feature.properties || {}) as Record<string, unknown>,
-                  );
-                }
-              }}
+              fillPaint={fillPaint}
+              linePaint={linePaint}
+              fillHoverPaint={fillHoverPaint}
+              onHover={handleHover}
+              onClick={handleClick}
             />
           </Map>
 
           <GeoDistributionHoverCard info={hoveredInfo} unit={unit} />
 
-          {showLegend ? (
-            <GeoDistributionLegend legendTitle={legendTitle} legendSteps={legendSteps} />
-          ) : null}
+          {showLegend ? <GeoDistributionLegend legendTitle={legendTitle} legendSteps={legendSteps} /> : null}
         </>
       )}
     </div>

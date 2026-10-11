@@ -1,9 +1,9 @@
 import type { SupportedLocale } from "@/i18n/config";
-import type { MessageSchema } from "@/i18n/locales";
+import type zh from "@/messages/zh.json";
 
 declare module "next-intl" {
   interface AppConfig {
-    Messages: MessageSchema;
+    Messages: typeof zh;
     Locale: SupportedLocale;
   }
 }

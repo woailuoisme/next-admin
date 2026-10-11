@@ -18,4 +18,12 @@ export {
   useAuthStore,
   useIsAuthenticated,
 } from "./store";
-export type { AuthSession, AuthState, DemoAccount, LoginCredentials } from "./types";
+export type {
+  AdminRole,
+  AdminUser,
+  AdminUserStatus,
+  AuthSession,
+  AuthState,
+  DemoAccount,
+  LoginCredentials,
+} from "./types";

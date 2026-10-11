@@ -82,13 +82,9 @@ function StackedAvatarGroupInner({
                     status={rem.status}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-foreground truncate text-xs font-medium">
-                      {rem.name || "匿名用户"}
-                    </p>
+                    <p className="text-foreground truncate text-xs font-medium">{rem.name || "匿名用户"}</p>
                     {(rem.role || rem.subtext) && (
-                      <p className="text-muted-foreground truncate text-[11px]">
-                        {rem.role || rem.subtext}
-                      </p>
+                      <p className="text-muted-foreground truncate text-[11px]">{rem.role || rem.subtext}</p>
                     )}
                   </div>
                 </div>

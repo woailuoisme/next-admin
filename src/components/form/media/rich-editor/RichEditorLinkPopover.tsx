@@ -1,6 +1,6 @@
 import type { Editor } from "@tiptap/react";
 
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { Check, Link as LinkIcon, Unlink } from "lucide-react";
 import { type ChangeEvent, type KeyboardEvent, memo, useState } from "react";
 
@@ -19,7 +19,8 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
   editor,
   disabled,
 }: RichEditorLinkPopoverProps) {
-  const [open, { set: setOpen, setFalse: closePopover }] = useBoolean(false);
+  const [open, setOpen] = useState(false);
+  const closePopover = useMemoizedFn(() => setOpen(false));
   const [url, setUrl] = useState("");
 
   const isLinked = editor.isActive("link");
@@ -88,9 +89,7 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
         <div className="text-foreground flex items-center justify-between text-xs font-medium">
           <span>设置超链接</span>
           {isLinked && (
-            <span className="text-muted-foreground max-w-[120px] truncate font-mono text-[10px]">
-              已绑定
-            </span>
+            <span className="text-muted-foreground max-w-[120px] truncate font-mono text-[10px]">已绑定</span>
           )}
         </div>
 

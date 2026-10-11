@@ -1,7 +1,12 @@
-import { useBoolean, useKeyPress } from "ahooks";
+import { useKeyPress, useMemoizedFn } from "ahooks";
+import { useState } from "react";
 
 export function useGlobalSearch() {
-  const [open, { setTrue, setFalse, set, toggle }] = useBoolean(false);
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = useMemoizedFn(() => setOpen(true));
+  const handleClose = useMemoizedFn(() => setOpen(false));
+  const toggle = useMemoizedFn(() => setOpen((prev) => !prev));
 
   useKeyPress(
     ["meta.k", "ctrl.k", "/"],
@@ -23,8 +28,8 @@ export function useGlobalSearch() {
 
   return {
     open,
-    handleOpen: setTrue,
-    handleClose: setFalse,
-    setOpen: set,
+    handleOpen,
+    handleClose,
+    setOpen,
   };
 }

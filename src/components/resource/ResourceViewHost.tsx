@@ -16,10 +16,12 @@ import { ResourceViewPage } from "./ResourceViewPage";
  *
  * 视图内容与详情展示结构 100% 复用，统一标题、面包屑、状态徽章与编辑/返回操作。
  */
+const NOOP = () => {};
+
 export const ResourceViewHost = memo(function ResourceViewHost({
   presentation = "dialog",
   open = false,
-  onOpenChange = () => {},
+  onOpenChange = NOOP,
   title,
   description,
   badge,

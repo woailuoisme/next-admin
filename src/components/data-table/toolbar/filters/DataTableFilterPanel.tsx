@@ -50,8 +50,7 @@ function DataTableFilterPanelInner<TData = any>({
   });
 
   const columnsCount =
-    filterConfig?.columns ??
-    (resolvedFilters.length >= 3 ? 3 : resolvedFilters.length >= 2 ? 2 : 1);
+    filterConfig?.columns ?? (resolvedFilters.length >= 3 ? 3 : resolvedFilters.length >= 2 ? 2 : 1);
   const showQueryBuilder = Boolean(filterConfig?.showQueryBuilder);
 
   // Inline filter body (used by Popover & AboveContent)
@@ -124,12 +123,7 @@ function DataTableFilterPanelInner<TData = any>({
 
   // 3. Popover layout (Default)
   return (
-    <PopoverFilterLayout
-      open={open}
-      onOpenChange={setOpen}
-      trigger={trigger}
-      columnsCount={columnsCount}
-    >
+    <PopoverFilterLayout open={open} onOpenChange={setOpen} trigger={trigger} columnsCount={columnsCount}>
       {filterBody}
     </PopoverFilterLayout>
   );

@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import type { BaseTableSearchParams } from "../core/table-search-schema";
 import type { DataTableFilterModel, DataTableSortItem, DataTableSortModel } from "../core/types";
 
-import { DEFAULT_PAGE_SIZE } from "../core/constants";
+import { DEFAULT_PAGE_SIZE, EMPTY_ARRAY } from "../core/constants";
 
 export type DataTablePaginationMode = "client" | "server";
 
@@ -39,7 +39,7 @@ function parseNextSearchParams<TSearch extends Record<string, any>>(
 }
 
 export interface UseResourceTableOptions<
-  TData extends object = Record<string, unknown>,
+  TData extends object = Record<string, any>,
   TSearch extends BaseTableSearchParams = BaseTableSearchParams,
   TQueryResponse = any,
 > {
@@ -65,7 +65,7 @@ export interface UseResourceTableOptions<
 }
 
 export interface UseResourceTableReturn<
-  TData extends object = Record<string, unknown>,
+  TData extends object = Record<string, any>,
   TSearch extends BaseTableSearchParams = BaseTableSearchParams,
   TQueryResponse = any,
 > {
@@ -110,7 +110,7 @@ export interface UseResourceTableReturn<
  *    供页面优雅实现 KPI 卡片计算与表格挂载，大幅消减特性页面样板代码。
  */
 export function useResourceTable<
-  TData extends object = Record<string, unknown>,
+  TData extends object = Record<string, any>,
   TSearch extends BaseTableSearchParams = BaseTableSearchParams,
   TQueryResponse = any,
 >(
@@ -133,10 +133,7 @@ export function useResourceTable<
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const nextParsedSearch = useMemo(
-    () => parseNextSearchParams<TSearch>(searchParams),
-    [searchParams],
-  );
+  const nextParsedSearch = useMemo(() => parseNextSearchParams<TSearch>(searchParams), [searchParams]);
 
   const search = useMemo(
     () => (propSearch ?? nextParsedSearch ?? EMPTY_SEARCH) as TSearch,
@@ -210,14 +207,14 @@ export function useResourceTable<
   // ==================== 3. Filtering ====================
   const filterModel = useMemo<DataTableFilterModel>(() => {
     return {
-      items: [],
-      quickFilterValues: currentSearch ? [currentSearch] : [],
+      items: EMPTY_ARRAY as unknown as DataTableFilterModel["items"],
+      quickFilterValues: currentSearch ? [currentSearch] : (EMPTY_ARRAY as unknown as string[]),
     };
   }, [currentSearch]);
 
   // ==================== 4. Sorting Handlers ====================
   const sortModel = useMemo<DataTableSortModel>(() => {
-    if (!currentSortBy) return [];
+    if (!currentSortBy) return EMPTY_ARRAY as unknown as DataTableSortModel;
     return [
       {
         field: currentSortBy,
@@ -256,7 +253,7 @@ export function useResourceTable<
   // Extract Rows (Prioritize API.md standard { data: [] } -> legacy { items: [] } -> raw array)
   const rows = useMemo<TData[]>(() => {
     if (staticData) return staticData;
-    if (!resolvedQueryOptions || !query.data) return [];
+    if (!resolvedQueryOptions || !query.data) return EMPTY_ARRAY as unknown as TData[];
     if (selectRows) return selectRows(query.data as TQueryResponse);
     if (Array.isArray(query.data)) return query.data as TData[];
     if (typeof query.data === "object" && query.data !== null) {
@@ -270,7 +267,7 @@ export function useResourceTable<
         return record.items as TData[];
       }
     }
-    return [];
+    return EMPTY_ARRAY as unknown as TData[];
   }, [staticData, resolvedQueryOptions, query.data, selectRows]);
 
   // Extract Total Count (Prioritize API.md standard meta.total -> legacy total -> rows.length)

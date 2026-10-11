@@ -14,7 +14,7 @@ import { DataTableStatusTabs } from "./items/DataTableStatusTabs";
 
 export type { InternalDataTableToolbarProps };
 
-function DataTableToolbarInner<TData = any>(props: InternalDataTableToolbarProps<TData>) {
+function DataTableToolbarInner<TData = unknown>(props: InternalDataTableToolbarProps<TData>) {
   const {
     columns,
     columnVisibility,
@@ -83,9 +83,7 @@ function DataTableToolbarInner<TData = any>(props: InternalDataTableToolbarProps
             />
           )}
 
-          {showDensity && (
-            <DataTableDensityMenu density={density} onDensityChange={onDensityChange} />
-          )}
+          {showDensity && <DataTableDensityMenu density={density} onDensityChange={onDensityChange} />}
 
           {showExport && (
             <DataTableExportMenu
@@ -137,7 +135,7 @@ function DataTableToolbarInner<TData = any>(props: InternalDataTableToolbarProps
 const MemoizedDataTableToolbar = memo(DataTableToolbarInner);
 
 export interface DataTableToolbarComponent {
-  <TData = any>(props: InternalDataTableToolbarProps<TData>): ReactElement | null;
+  <TData = unknown>(props: InternalDataTableToolbarProps<TData>): ReactElement | null;
   QuickFilter: typeof DataTableQuickFilter;
   DensityMenu: typeof DataTableDensityMenu;
   ExportMenu: typeof DataTableExportMenu;

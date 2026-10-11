@@ -2,6 +2,7 @@ import { useMemoizedFn } from "ahooks";
 import { keyBy, orderBy } from "es-toolkit";
 import { useCallback, useState } from "react";
 
+import { EMPTY_ARRAY } from "../core/constants";
 import type { DataTableColDef, DataTableSortModel } from "../core/types";
 
 import { readCellValue } from "../core/utils";
@@ -16,9 +17,7 @@ export function resolveNextSortDirection(
   return existing.sort === "asc" ? "desc" : null;
 }
 
-export interface UseDataTableSortingOptions<
-  TData extends Record<string, any> = Record<string, any>,
-> {
+export interface UseDataTableSortingOptions<TData extends Record<string, any> = Record<string, any>> {
   columns: DataTableColDef<TData>[];
   sortingMode?: "client" | "server";
   sortModel?: DataTableSortModel;
@@ -31,7 +30,7 @@ export function useDataTableSorting<TData extends Record<string, any> = Record<s
   sortModel: controlledSortModel,
   onSortModelChange,
 }: UseDataTableSortingOptions<TData>) {
-  const [internalSortModel, setInternalSortModel] = useState<DataTableSortModel>([]);
+  const [internalSortModel, setInternalSortModel] = useState<DataTableSortModel>(EMPTY_ARRAY);
   const sortModel = controlledSortModel ?? internalSortModel;
 
   const handleSortClick = useMemoizedFn((field: string) => {
@@ -41,7 +40,7 @@ export function useDataTableSorting<TData extends Record<string, any> = Record<s
     }
 
     const direction = resolveNextSortDirection(sortModel, field);
-    const next: DataTableSortModel = direction ? [{ field, sort: direction }] : [];
+    const next: DataTableSortModel = direction ? [{ field, sort: direction }] : EMPTY_ARRAY;
     setInternalSortModel(next);
     onSortModelChange?.(next);
   });

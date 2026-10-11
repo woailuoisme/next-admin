@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemoizedFn } from "ahooks";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 
 import { DashboardPage } from "./DashboardPage";
@@ -12,10 +13,9 @@ export function DashboardContainer() {
     parseAsStringLiteral(DASHBOARD_TIME_RANGES).withDefault("30d"),
   );
 
-  return (
-    <DashboardPage
-      range={range as DashboardTimeRange}
-      onRangeChange={(newRange) => setRange(newRange)}
-    />
-  );
+  const handleRangeChange = useMemoizedFn((newRange: DashboardTimeRange) => {
+    setRange(newRange);
+  });
+
+  return <DashboardPage range={range as DashboardTimeRange} onRangeChange={handleRangeChange} />;
 }

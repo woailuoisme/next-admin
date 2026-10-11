@@ -1,19 +1,8 @@
 import { useMemoizedFn } from "ahooks";
 import { type ChangeEvent, type FocusEvent, memo, useId, useState } from "react";
 
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "@/components/ui/input-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 import { type BaseInputProps, FieldConnector, FieldWrapper, resolveFieldHasError } from "../core";

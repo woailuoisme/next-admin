@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { EMPTY_ARRAY, EMPTY_RECORD } from "../core/constants";
 import type { DataTableColDef, DataTablePinnedColumns } from "../core/types";
 
 export interface UseDataTablePinningOptions<TData> {
@@ -12,19 +13,19 @@ export interface UseDataTablePinningOptions<TData> {
 
 export function useDataTablePinning<TData = any>({
   columns,
-  pinnedColumns = {},
+  pinnedColumns = EMPTY_RECORD,
   columnWidths,
   checkboxSelection = false,
   hasExpandColumn = false,
 }: UseDataTablePinningOptions<TData>) {
   const pinnedLeftFields = useMemo(() => {
-    const fromProp = pinnedColumns.left ?? [];
+    const fromProp = pinnedColumns.left ?? EMPTY_ARRAY;
     const fromCols = columns.filter((col) => col.pinned === "left").map((col) => col.field);
     return Array.from(new Set([...fromProp, ...fromCols]));
   }, [pinnedColumns.left, columns]);
 
   const pinnedRightFields = useMemo(() => {
-    const fromProp = pinnedColumns.right ?? [];
+    const fromProp = pinnedColumns.right ?? EMPTY_ARRAY;
     const fromCols = columns.filter((col) => col.pinned === "right").map((col) => col.field);
     return Array.from(new Set([...fromProp, ...fromCols]));
   }, [pinnedColumns.right, columns]);

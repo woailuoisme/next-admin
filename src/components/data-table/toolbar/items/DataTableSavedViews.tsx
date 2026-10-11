@@ -1,4 +1,4 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { Bookmark, Check, Plus, Trash2 } from "lucide-react";
 import { type FormEvent, memo, useMemo, useState } from "react";
 
@@ -25,7 +25,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
   onDeleteView,
   className,
 }: DataTableSavedViewsProps) {
-  const [open, { set: setOpen }] = useBoolean(false);
+  const [open, setOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newViewName, setNewViewName] = useState("");
 
@@ -56,9 +56,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
           <Bookmark className="size-3.5" />
           <span>{activeView ? activeView.name : "Views"}</span>
           {views.length > 0 && (
-            <span className="bg-muted rounded-full px-1.5 font-mono text-[10px]">
-              {views.length}
-            </span>
+            <span className="bg-muted rounded-full px-1.5 font-mono text-[10px]">{views.length}</span>
           )}
         </Button>
       </PopoverTrigger>
@@ -118,9 +116,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
           {/* Views List */}
           <div className="max-h-56 space-y-1 overflow-y-auto pr-0.5">
             {views.length === 0 ? (
-              <div className="text-muted-foreground/60 py-3 text-center text-xs italic">
-                No saved views
-              </div>
+              <div className="text-muted-foreground/60 py-3 text-center text-xs italic">No saved views</div>
             ) : (
               views.map((v) => {
                 const isActive = v.id === activeViewId;

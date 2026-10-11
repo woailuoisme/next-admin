@@ -65,9 +65,7 @@ export const ProgressStatCard = memo(function ProgressStatCard({
         <StatCardValue value={value} prefix={prefix} suffix={suffix} />
 
         <div className="text-right">
-          <span className="text-foreground font-mono text-sm font-bold tabular-nums">
-            {displayProgress}%
-          </span>
+          <span className="text-foreground font-mono text-sm font-bold tabular-nums">{displayProgress}%</span>
         </div>
       </div>
 

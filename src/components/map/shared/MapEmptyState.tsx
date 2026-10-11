@@ -59,20 +59,10 @@ export const MapEmptyState = memo(function MapEmptyState({
         )}
       </div>
 
-      <h4
-        className={cn(
-          "mt-3 text-sm font-semibold",
-          isError ? "text-destructive" : "text-foreground",
-        )}
-      >
+      <h4 className={cn("mt-3 text-sm font-semibold", isError ? "text-destructive" : "text-foreground")}>
         {resolvedTitle}
       </h4>
-      <p
-        className={cn(
-          "mt-1 max-w-sm text-xs",
-          isError ? "text-destructive/80" : "text-muted-foreground",
-        )}
-      >
+      <p className={cn("mt-1 max-w-sm text-xs", isError ? "text-destructive/80" : "text-muted-foreground")}>
         {resolvedDesc}
       </p>
 

@@ -1,11 +1,15 @@
 import type * as GeoJSON from "geojson";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemoizedFn } from "ahooks";
+import { useMemo, useState } from "react";
 
 import type { Coordinates } from "../shared/types";
 import type { LocationMarkerItem, LocationMarkerMapProps } from "./types";
 
 import { transformCoordinates } from "../utils/coordinates";
+
+const EMPTY_MARKERS: LocationMarkerItem[] = [];
+const DEFAULT_BEIJING_CENTER: Coordinates = [116.4074, 39.9042];
 
 export function useLocationMarkers(props: LocationMarkerMapProps) {
   const sourceCoords = props.coordinateSystem ?? "WGS84";
@@ -13,7 +17,7 @@ export function useLocationMarkers(props: LocationMarkerMapProps) {
   const needsTransform = sourceCoords !== targetCoords;
 
   const data = useMemo(() => {
-    const raw = props.data ?? props.locations ?? [];
+    const raw = props.data ?? props.locations ?? EMPTY_MARKERS;
     if (!needsTransform) return raw;
     return raw.map((item) => ({
       ...item,
@@ -29,8 +33,7 @@ export function useLocationMarkers(props: LocationMarkerMapProps) {
     props.defaultCategory && props.defaultCategory !== "all" ? props.defaultCategory : null,
   );
 
-  const activeSelectedId =
-    controlledSelectedId !== undefined ? controlledSelectedId : internalSelectedId;
+  const activeSelectedId = controlledSelectedId !== undefined ? controlledSelectedId : internalSelectedId;
 
   // Extract unique categories
   const categories = useMemo(() => {
@@ -65,11 +68,9 @@ export function useLocationMarkers(props: LocationMarkerMapProps) {
   // Compute default center from data if not provided
   const computedCenter = useMemo<Coordinates>(() => {
     if (propCenter) {
-      return needsTransform
-        ? transformCoordinates(propCenter, sourceCoords, targetCoords)
-        : propCenter;
+      return needsTransform ? transformCoordinates(propCenter, sourceCoords, targetCoords) : propCenter;
     }
-    if (filteredData.length === 0) return [116.4074, 39.9042]; // Default Beijing if empty
+    if (filteredData.length === 0) return DEFAULT_BEIJING_CENTER; // Default Beijing if empty
 
     let sumLng = 0;
     let sumLat = 0;
@@ -107,15 +108,12 @@ export function useLocationMarkers(props: LocationMarkerMapProps) {
     return data.find((m) => m.id === activeSelectedId) ?? null;
   }, [data, activeSelectedId]);
 
-  const handleSelectMarker = useCallback(
-    (marker: LocationMarkerItem | null) => {
-      if (controlledSelectedId === undefined) {
-        setInternalSelectedId(marker ? marker.id : null);
-      }
-      onMarkerSelect?.(marker);
-    },
-    [controlledSelectedId, onMarkerSelect],
-  );
+  const handleSelectMarker = useMemoizedFn((marker: LocationMarkerItem | null) => {
+    if (controlledSelectedId === undefined) {
+      setInternalSelectedId(marker ? marker.id : null);
+    }
+    onMarkerSelect?.(marker);
+  });
 
   return {
     searchQuery,

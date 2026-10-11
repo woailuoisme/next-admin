@@ -9,8 +9,7 @@ export const EMPTY_CUSTOMER_FILTERS: CustomerFilters = Object.freeze({});
 export const customerKeys = {
   all: ["users"] as const,
   lists: () => [...customerKeys.all, "list"] as const,
-  list: (filters: CustomerFilters = EMPTY_CUSTOMER_FILTERS) =>
-    [...customerKeys.lists(), filters] as const,
+  list: (filters: CustomerFilters = EMPTY_CUSTOMER_FILTERS) => [...customerKeys.lists(), filters] as const,
 };
 
 export const customerQueries = {

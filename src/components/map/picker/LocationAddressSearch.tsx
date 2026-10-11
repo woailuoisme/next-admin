@@ -155,9 +155,7 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
 
       {isOpen && (places.length > 0 || error) ? (
         <div className="border-border/80 bg-popover absolute top-full left-0 z-30 mt-1 max-h-56 w-full min-w-64 overflow-y-auto rounded-md border p-1 shadow-md">
-          {error ? (
-            <p className="text-destructive px-2 py-1.5 text-[11px] leading-snug">{error}</p>
-          ) : null}
+          {error ? <p className="text-destructive px-2 py-1.5 text-[11px] leading-snug">{error}</p> : null}
           {places.map((place) => (
             <button
               key={place.id}
@@ -169,9 +167,7 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
               <span className="min-w-0 flex-1">
                 <span className="text-foreground block truncate font-medium">{place.name}</span>
                 {place.address ? (
-                  <span className="text-muted-foreground block truncate text-[11px]">
-                    {place.address}
-                  </span>
+                  <span className="text-muted-foreground block truncate text-[11px]">{place.address}</span>
                 ) : null}
               </span>
             </button>

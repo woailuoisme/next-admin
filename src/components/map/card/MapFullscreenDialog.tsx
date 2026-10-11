@@ -2,13 +2,7 @@ import type { ReactNode } from "react";
 
 import { memo } from "react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface MapFullscreenDialogProps {
   open: boolean;
@@ -49,9 +43,7 @@ export const MapFullscreenDialog = memo(function MapFullscreenDialog({
               全屏聚焦视图
             </span>
           </DialogTitle>
-          {description ? (
-            <DialogDescription className="text-xs">{description}</DialogDescription>
-          ) : null}
+          {description ? <DialogDescription className="text-xs">{description}</DialogDescription> : null}
         </DialogHeader>
 
         <div

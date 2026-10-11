@@ -2,12 +2,7 @@ import { useMemoizedFn } from "ahooks";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Fragment, memo, useId, useMemo } from "react";
 
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
 
 import { type BaseInputProps, FieldConnector, FieldWrapper, resolveFieldHasError } from "../core";

@@ -2,6 +2,7 @@ import { useLatest, useMemoizedFn } from "ahooks";
 import { difference, union } from "es-toolkit";
 import { useMemo, useState } from "react";
 
+import { EMPTY_ARRAY } from "../core/constants";
 import type { DataTableRowId, DataTableRowSelectionModel } from "../core/types";
 
 export interface UseDataTableSelectionOptions<TData> {
@@ -14,9 +15,7 @@ export interface UseDataTableSelectionOptions<TData> {
   isRowSelectable?: (row: TData) => boolean;
 }
 
-export function useDataTableSelection<
-  TData extends Record<string, unknown> = Record<string, unknown>,
->({
+export function useDataTableSelection<TData extends Record<string, any> = Record<string, any>>({
   rows,
   pagedRows,
   getRowId,
@@ -24,7 +23,7 @@ export function useDataTableSelection<
   onRowSelectionModelChange,
   isRowSelectable,
 }: UseDataTableSelectionOptions<TData>) {
-  const [internalSelection, setInternalSelection] = useState<DataTableRowSelectionModel>([]);
+  const [internalSelection, setInternalSelection] = useState<DataTableRowSelectionModel>(EMPTY_ARRAY);
   const selection = rowSelectionModel ?? internalSelection;
 
   const latestRef = useLatest({
@@ -83,8 +82,8 @@ export function useDataTableSelection<
   });
 
   const clearSelection = useMemoizedFn(() => {
-    setInternalSelection([]);
-    latestRef.current.onRowSelectionModelChange?.([], []);
+    setInternalSelection(EMPTY_ARRAY);
+    latestRef.current.onRowSelectionModelChange?.(EMPTY_ARRAY, EMPTY_ARRAY);
   });
 
   const isAllPageSelected = useMemo(() => {

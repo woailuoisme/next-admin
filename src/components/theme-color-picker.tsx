@@ -1,29 +1,43 @@
 "use client";
 
+import { useMemoizedFn } from "ahooks";
 import { Check, Laptop, Moon, Palette, Sliders, Sparkles, Sun } from "lucide-react";
-import { useState } from "react";
+import { memo, useState } from "react";
+import { cn } from "cn";
 
 import { GlitchTipDiagnostic } from "@/components/glitch-tip-diagnostic";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { RADIUS_OPTIONS, type ThemeColor, usePreferencesStore } from "@/stores/preferences";
 
-export function ThemeColorPicker() {
-  const {
-    theme,
-    setTheme,
-    themes,
-    radius,
-    setRadius,
-    activeThemeMeta,
-    mode,
-    setMode,
-    resolvedMode,
-  } = usePreferencesStore();
+export interface ThemeColorPickerProps {
+  className?: string;
+}
+
+const MODE_OPTIONS = [
+  { mode: "light" as const, label: "浅色", Icon: Sun },
+  { mode: "dark" as const, label: "深色", Icon: Moon },
+  { mode: "auto" as const, label: "系统", Icon: Laptop },
+];
+
+export const ThemeColorPicker = memo(function ThemeColorPicker({ className }: ThemeColorPickerProps) {
+  const { theme, setTheme, themes, radius, setRadius, activeThemeMeta, mode, setMode, resolvedMode } =
+    usePreferencesStore();
 
   const [open, setOpen] = useState(false);
+
+  const handleThemeChange = useMemoizedFn((newTheme: ThemeColor) => {
+    setTheme(newTheme);
+  });
+
+  const handleModeChange = useMemoizedFn((newMode: "light" | "dark" | "auto") => {
+    setMode(newMode);
+  });
+
+  const handleRadiusChange = useMemoizedFn((newRadius: string) => {
+    setRadius(newRadius);
+  });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -33,7 +47,10 @@ export function ThemeColorPicker() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:bg-muted hover:text-foreground relative h-8 w-8 cursor-pointer rounded-lg"
+              className={cn(
+                "text-muted-foreground hover:bg-muted hover:text-foreground relative h-8 w-8 cursor-pointer rounded-lg",
+                className,
+              )}
               aria-label="主题与外观设置"
             >
               <Palette className="h-4 w-4" />
@@ -82,9 +99,7 @@ export function ThemeColorPicker() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => {
-                      setTheme(item.id as ThemeColor);
-                    }}
+                    onClick={() => handleThemeChange(item.id as ThemeColor)}
                     className={cn(
                       "group flex cursor-pointer items-center justify-between gap-2 rounded-lg border p-2 text-left transition-all duration-150",
                       isSelected
@@ -142,54 +157,32 @@ export function ThemeColorPicker() {
               </span>
             </div>
             <div className="grid grid-cols-3 gap-1.5">
-              <button
-                type="button"
-                onClick={() => setMode("light")}
-                className={cn(
-                  "flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-lg border text-[11px] transition-all",
-                  mode === "light"
-                    ? "border-primary bg-primary/10 font-semibold text-primary shadow-xs"
-                    : "border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <Sun className="h-3.5 w-3.5" />
-                <span>浅色</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("dark")}
-                className={cn(
-                  "flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-lg border text-[11px] transition-all",
-                  mode === "dark"
-                    ? "border-primary bg-primary/10 font-semibold text-primary shadow-xs"
-                    : "border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <Moon className="h-3.5 w-3.5" />
-                <span>深色</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("auto")}
-                className={cn(
-                  "flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-lg border text-[11px] transition-all",
-                  mode === "auto"
-                    ? "border-primary bg-primary/10 font-semibold text-primary shadow-xs"
-                    : "border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <Laptop className="h-3.5 w-3.5" />
-                <span>系统</span>
-              </button>
+              {MODE_OPTIONS.map(({ mode: optMode, label, Icon }) => {
+                const isSelected = mode === optMode;
+                return (
+                  <button
+                    key={optMode}
+                    type="button"
+                    onClick={() => handleModeChange(optMode)}
+                    className={cn(
+                      "flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-lg border text-[11px] transition-all",
+                      isSelected
+                        ? "border-primary bg-primary/10 font-semibold text-primary shadow-xs"
+                        : "border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* 3. Radius Adjustment */}
           <div className="border-border/40 space-y-1.5 border-t pt-1">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-[11px] font-medium">
-                界面圆角 (Radius)
-              </span>
+              <span className="text-muted-foreground text-[11px] font-medium">界面圆角 (Radius)</span>
               <span className="text-muted-foreground font-mono text-[10px]">{radius}</span>
             </div>
             <div className="grid grid-cols-5 gap-1">
@@ -199,7 +192,7 @@ export function ThemeColorPicker() {
                   <button
                     key={opt.value}
                     type="button"
-                    onClick={() => setRadius(opt.value)}
+                    onClick={() => handleRadiusChange(opt.value)}
                     className={cn(
                       "flex h-6 cursor-pointer items-center justify-center rounded border font-mono text-[10px] transition-all",
                       isRadiusActive
@@ -229,4 +222,4 @@ export function ThemeColorPicker() {
       </PopoverContent>
     </Popover>
   );
-}
+});

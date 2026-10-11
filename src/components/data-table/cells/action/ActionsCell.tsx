@@ -51,11 +51,7 @@ function ActionsCellInner<TData = unknown>({
         />
       ))}
 
-      <DropdownActionsMenu
-        actions={overflowActions}
-        row={row}
-        moreActionsLabel={moreActionsLabel}
-      />
+      <DropdownActionsMenu actions={overflowActions} row={row} moreActionsLabel={moreActionsLabel} />
     </div>
   );
 }

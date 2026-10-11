@@ -259,10 +259,7 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
   // Selection
   checkboxSelection?: boolean;
   rowSelectionModel?: DataTableRowSelectionModel;
-  onRowSelectionModelChange?: (
-    selection: DataTableRowSelectionModel,
-    selectedRows: TData[],
-  ) => void;
+  onRowSelectionModelChange?: (selection: DataTableRowSelectionModel, selectedRows: TData[]) => void;
   onSelectedRowsChange?: (selectedRows: TData[]) => void;
   isRowSelectable?: (row: TData) => boolean;
 

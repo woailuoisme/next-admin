@@ -18,9 +18,7 @@ export function useMetricSparkline({
   padding = 3,
 }: UseMetricSparklineOptions) {
   return useMemo(() => {
-    const values: number[] = data.map((item) =>
-      typeof item === "number" ? item : Number(item.value) || 0,
-    );
+    const values: number[] = data.map((item) => (typeof item === "number" ? item : Number(item.value) || 0));
 
     if (values.length === 0) {
       return {
@@ -58,8 +56,7 @@ export function useMetricSparkline({
 
     const first = values[0];
     const last = values[values.length - 1];
-    const trend: "up" | "down" | "neutral" =
-      last > first ? "up" : last < first ? "down" : "neutral";
+    const trend: "up" | "down" | "neutral" = last > first ? "up" : last < first ? "down" : "neutral";
 
     const effectiveHeight = viewBoxHeight - padding * 2;
     const range = max > min ? max - min : 1;

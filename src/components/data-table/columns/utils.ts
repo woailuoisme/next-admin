@@ -5,10 +5,7 @@
 /**
  * Resolves a prop that can be either a static value or a function receiving the row.
  */
-export function resolveProp<T, R, F = R>(
-  prop: R | ((row: T) => F) | undefined,
-  row: T,
-): R | F | undefined {
+export function resolveProp<T, R, F = R>(prop: R | ((row: T) => F) | undefined, row: T): R | F | undefined {
   return typeof prop === "function" ? (prop as (row: T) => F)(row) : prop;
 }
 

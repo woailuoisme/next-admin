@@ -1,11 +1,7 @@
 import { cn } from "cn";
 import React from "react";
 
-import type {
-  DataTableColDef,
-  DataTableFilterDefinition,
-  DataTableFilterItem,
-} from "../../../core/types";
+import type { DataTableColDef, DataTableFilterDefinition, DataTableFilterItem } from "../../../core/types";
 
 import { FilterControlItem } from "./FilterControlItem";
 
@@ -33,9 +29,7 @@ export const FilterControlGrid: React.FC<FilterControlGridProps> = ({
 
   if (resolvedFilters.length === 0) {
     return (
-      <p className="text-muted-foreground py-4 text-center text-xs">
-        No filters available for this table.
-      </p>
+      <p className="text-muted-foreground py-4 text-center text-xs">No filters available for this table.</p>
     );
   }
 

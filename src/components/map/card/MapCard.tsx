@@ -1,3 +1,4 @@
+import { useMemoizedFn } from "ahooks";
 import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
 import { memo, useState } from "react";
 
@@ -37,6 +38,7 @@ export const MapCard = memo(function MapCard({
   children,
 }: MapCardProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const openFullscreen = useMemoizedFn(() => setIsFullscreen(true));
   const canFullscreen = fullscreenable !== undefined ? fullscreenable : showFullscreen;
   const resolvedErrorMsg =
     errorMessage || error?.message || (isError ? "Failed to load map data" : undefined);
@@ -48,9 +50,7 @@ export const MapCard = memo(function MapCard({
           <div className="min-w-0 space-y-1">
             <CardTitle className="text-base font-semibold tracking-tight">{title}</CardTitle>
             {description ? (
-              <CardDescription className="text-muted-foreground text-xs">
-                {description}
-              </CardDescription>
+              <CardDescription className="text-muted-foreground text-xs">{description}</CardDescription>
             ) : null}
           </div>
 
@@ -67,7 +67,7 @@ export const MapCard = memo(function MapCard({
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setIsFullscreen(true)}
+                onClick={openFullscreen}
                 disabled={isLoading || isEmpty}
                 className="text-muted-foreground hover:text-foreground size-8"
                 title="全屏聚焦查看"
@@ -92,12 +92,7 @@ export const MapCard = memo(function MapCard({
               </div>
               <p className="text-destructive text-sm font-medium">{resolvedErrorMsg}</p>
               {onRetry ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onRetry}
-                  className="h-8 gap-1.5 text-xs"
-                >
+                <Button variant="outline" size="sm" onClick={onRetry} className="h-8 gap-1.5 text-xs">
                   <RefreshCw className="size-3.5" />
                   重试加载
                 </Button>
@@ -120,9 +115,7 @@ export const MapCard = memo(function MapCard({
             </div>
           )}
 
-          {footerSlot ? (
-            <div className="border-border/40 mt-2 border-t pt-4">{footerSlot}</div>
-          ) : null}
+          {footerSlot ? <div className="border-border/40 mt-2 border-t pt-4">{footerSlot}</div> : null}
         </CardContent>
       </Card>
 

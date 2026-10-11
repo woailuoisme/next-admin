@@ -25,9 +25,7 @@ export function NotFoundComponent() {
       <div className="bg-muted/60 text-muted-foreground mb-4 flex size-16 items-center justify-center rounded-full shadow-xs">
         <FileQuestion aria-hidden="true" className="size-8" />
       </div>
-      <span className="text-primary mb-1 text-sm font-semibold tracking-wider uppercase">
-        404 Not Found
-      </span>
+      <span className="text-primary mb-1 text-sm font-semibold tracking-wider uppercase">404 Not Found</span>
       <h1 className="mb-2 text-2xl font-bold tracking-tight">页面未找到 (Page Not Found)</h1>
       <p className="text-muted-foreground mb-6 max-w-md text-sm">
         抱歉，您访问的页面不存在、已被移动或暂时无法访问。

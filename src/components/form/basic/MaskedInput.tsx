@@ -44,10 +44,7 @@ interface MaskedInputInnerProps {
   hasError?: boolean;
 }
 
-export function formatWithMask(
-  rawInput: string,
-  mask: string,
-): { masked: string; unmasked: string } {
+export function formatWithMask(rawInput: string, mask: string): { masked: string; unmasked: string } {
   let rawChars = "";
   // Extract unmasked characters that could match pattern slots
   for (const ch of rawInput) {
@@ -170,12 +167,7 @@ const MaskedInputInner = memo(function MaskedInputInner({
 
         {clearable && hasValue && !disabled && !readOnly && (
           <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              size="icon-xs"
-              variant="ghost"
-              onClick={handleClear}
-              aria-label="Clear content"
-            >
+            <InputGroupButton size="icon-xs" variant="ghost" onClick={handleClear} aria-label="Clear content">
               <X className="size-3" />
             </InputGroupButton>
           </InputGroupAddon>

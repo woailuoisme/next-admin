@@ -48,25 +48,17 @@ function AvatarCellInner({
 
   if (!name && !subtext) {
     return (
-      <div className={cn("flex items-center", AVATAR_ALIGN_CLASSES[align], className)}>
-        {avatarElement}
-      </div>
+      <div className={cn("flex items-center", AVATAR_ALIGN_CLASSES[align], className)}>{avatarElement}</div>
     );
   }
 
   return (
     <div
-      className={cn(
-        "flex max-w-full min-w-0 items-center gap-2.5",
-        AVATAR_ALIGN_CLASSES[align],
-        className,
-      )}
+      className={cn("flex max-w-full min-w-0 items-center gap-2.5", AVATAR_ALIGN_CLASSES[align], className)}
     >
       {avatarElement}
       <div className="flex min-w-0 flex-col truncate">
-        {name && (
-          <span className="text-foreground truncate text-xs leading-tight font-medium">{name}</span>
-        )}
+        {name && <span className="text-foreground truncate text-xs leading-tight font-medium">{name}</span>}
         {subtext && (
           <span className="text-muted-foreground/80 mt-0.5 truncate text-[11px] leading-normal">
             {subtext}

@@ -824,8 +824,8 @@ export function MapShowcasePage() {
                     <span>设计系统无缝融合</span>
                   </div>
                   <p className="text-muted-foreground mt-1 text-[11px]">
-                    遵循全站 FieldWrapper 规范，支持 Zod 国际化校验报错、ColSpan 栅格排版与受控
-                    TanStack Form 双向绑定。
+                    遵循全站 FieldWrapper 规范，支持 Zod 国际化校验报错、ColSpan 栅格排版与受控 TanStack Form
+                    双向绑定。
                   </p>
                 </div>
               </div>

@@ -1,3 +1,4 @@
+import { useMemoizedFn } from "ahooks";
 import { memo } from "react";
 
 import { cn } from "@/lib/utils";
@@ -10,15 +11,13 @@ export const StatCardActions = memo(function StatCardActions({
   onClick,
   ...props
 }: StatCardActionsProps) {
+  const handleClick = useMemoizedFn((e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    onClick?.(e);
+  });
+
   return (
-    <div
-      className={cn("flex shrink-0 items-center gap-1.5", className)}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick?.(e);
-      }}
-      {...props}
-    >
+    <div className={cn("flex shrink-0 items-center gap-1.5", className)} onClick={handleClick} {...props}>
       {children}
     </div>
   );

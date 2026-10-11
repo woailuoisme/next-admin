@@ -70,15 +70,10 @@ const SwitchInputInner = memo(function SwitchInputInner({
           className="border-input bg-card/20 flex items-center justify-between gap-4 rounded-lg border p-3 select-none"
         >
           <FieldContent className="min-w-0 flex-1 space-y-0.5">
-            <FieldLabel
-              htmlFor={id}
-              className="text-foreground cursor-pointer text-xs font-semibold"
-            >
+            <FieldLabel htmlFor={id} className="text-foreground cursor-pointer text-xs font-semibold">
               {label}
               {required && <span className="text-destructive ml-0.5 font-bold">*</span>}
-              {hint && (
-                <span className="text-muted-foreground ml-2 text-[10px] font-normal">{hint}</span>
-              )}
+              {hint && <span className="text-muted-foreground ml-2 text-[10px] font-normal">{hint}</span>}
             </FieldLabel>
             {(helperText || tooltip) && (
               <FieldDescription className="text-muted-foreground text-[11px] leading-relaxed">
@@ -89,12 +84,7 @@ const SwitchInputInner = memo(function SwitchInputInner({
 
           <div className="flex shrink-0 items-center gap-2">
             {stateLabel && <span className="text-muted-foreground text-xs">{stateLabel}</span>}
-            <Switch
-              id={id}
-              checked={isChecked}
-              onCheckedChange={handleCheckedChange}
-              disabled={disabled}
-            />
+            <Switch id={id} checked={isChecked} onCheckedChange={handleCheckedChange} disabled={disabled} />
           </div>
         </Field>
       </FieldWrapper>
@@ -115,12 +105,7 @@ const SwitchInputInner = memo(function SwitchInputInner({
       hidden={hidden}
     >
       <div className="flex items-center gap-2 pt-1">
-        <Switch
-          id={id}
-          checked={isChecked}
-          onCheckedChange={handleCheckedChange}
-          disabled={disabled}
-        />
+        <Switch id={id} checked={isChecked} onCheckedChange={handleCheckedChange} disabled={disabled} />
         {stateLabel && <span className="text-muted-foreground text-xs">{stateLabel}</span>}
       </div>
     </FieldWrapper>

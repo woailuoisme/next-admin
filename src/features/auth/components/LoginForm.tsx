@@ -94,9 +94,7 @@ export function LoginForm() {
             </div>
             <div className="grid grid-cols-3 gap-1.5">
               {isDemoLoading
-                ? DEMO_SKELETON_KEYS.map((key) => (
-                    <Skeleton key={key} className="h-14 rounded-lg" />
-                  ))
+                ? DEMO_SKELETON_KEYS.map((key) => <Skeleton key={key} className="h-14 rounded-lg" />)
                 : demoAccounts?.map((acc) => (
                     <button
                       key={acc.email}
@@ -109,9 +107,7 @@ export function LoginForm() {
                           : "border-border/60 hover:border-border hover:bg-muted/50",
                       )}
                     >
-                      <span className="text-xs leading-none font-semibold">
-                        {acc.name.split(" ")[0]}
-                      </span>
+                      <span className="text-xs leading-none font-semibold">{acc.name.split(" ")[0]}</span>
                       <Badge variant="outline" className="mt-1 scale-90 px-1 py-0 text-[10px]">
                         {acc.role}
                       </Badge>

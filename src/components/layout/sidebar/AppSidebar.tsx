@@ -40,11 +40,7 @@ export function AppSidebar({ className, customGroups, ...props }: AppSidebarProp
   }, [admin, userRole]);
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className={cn("border-r border-sidebar-border", className)}
-      {...props}
-    >
+    <Sidebar collapsible="icon" className={cn("border-r border-sidebar-border", className)} {...props}>
       <SidebarHeader />
       <NavMain groups={menuGroups} />
       <SidebarFooter>

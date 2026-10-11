@@ -34,10 +34,7 @@ export function useInfolistContext<TRecord = unknown>(): InfolistContextValue<TR
   return (context as InfolistContextValue<TRecord>) ?? EMPTY_CONTEXT;
 }
 
-export function useInfolistFieldValue<T = unknown>(
-  name?: string,
-  explicitValue?: T,
-): T | undefined {
+export function useInfolistFieldValue<T = unknown>(name?: string, explicitValue?: T): T | undefined {
   const { record } = useInfolistContext();
 
   if (explicitValue !== undefined) {

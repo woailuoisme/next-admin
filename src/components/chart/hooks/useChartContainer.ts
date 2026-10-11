@@ -1,5 +1,5 @@
 import { useSize } from "ahooks";
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 
 import { DEFAULT_CHART_HEIGHT } from "../shared/constants";
 
@@ -24,26 +24,15 @@ export function useChartContainer({
   const containerRef = useRef<HTMLDivElement>(null);
   const size = useSize(containerRef);
 
-  const dimensions = useMemo(() => {
-    const measuredWidth = size?.width && size.width > 0 ? size.width : fallbackWidth;
-    const measuredHeight =
-      size?.height && size.height > 0
-        ? size.height
-        : typeof height === "number"
-          ? height
-          : fallbackHeight;
-
-    return {
-      width: measuredWidth,
-      height: measuredHeight,
-      isReady: Boolean(size?.width && size.width > 0),
-    };
-  }, [size?.width, size?.height, fallbackWidth, fallbackHeight, height]);
+  const numericHeight = typeof height === "number" ? height : fallbackHeight;
+  const width = size?.width && size.width > 0 ? size.width : fallbackWidth;
+  const measuredHeight = size?.height && size.height > 0 ? size.height : numericHeight;
+  const isReady = Boolean(size?.width && size.width > 0);
 
   return {
     containerRef,
-    width: dimensions.width,
-    height: dimensions.height,
-    isReady: dimensions.isReady,
+    width,
+    height: measuredHeight,
+    isReady,
   };
 }

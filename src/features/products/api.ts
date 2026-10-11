@@ -5,9 +5,7 @@ import { apiClient, createIdempotencyKey, toSearchParams } from "@/lib/api-clien
 import type { Product, ProductFilters, ProductInput, ProductListResponse } from "./types";
 
 export async function fetchProducts(filters: ProductFilters): Promise<ProductListResponse> {
-  return apiClient
-    .get("products", { searchParams: toSearchParams(filters) })
-    .json<ProductListResponse>();
+  return apiClient.get("products", { searchParams: toSearchParams(filters) }).json<ProductListResponse>();
 }
 
 export async function fetchProductById(id: string): Promise<Product> {
@@ -15,10 +13,7 @@ export async function fetchProductById(id: string): Promise<Product> {
   return res.data;
 }
 
-export async function createProductApi(
-  input: ProductInput,
-  idempotencyKey?: string,
-): Promise<Product> {
+export async function createProductApi(input: ProductInput, idempotencyKey?: string): Promise<Product> {
   const res = await apiClient
     .post("products", {
       json: input,

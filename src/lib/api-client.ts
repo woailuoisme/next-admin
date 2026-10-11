@@ -42,11 +42,7 @@ export function resolveApiPrefix(baseUrl?: string): string {
   }
   const trimmed = trimEnd(baseUrl, "/");
   const withV1 = trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;
-  if (
-    typeof window === "undefined" &&
-    !withV1.startsWith("http://") &&
-    !withV1.startsWith("https://")
-  ) {
+  if (typeof window === "undefined" && !withV1.startsWith("http://") && !withV1.startsWith("https://")) {
     const serverOrigin = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 3000}`;
     return `${trimEnd(serverOrigin, "/")}${withV1.startsWith("/") ? "" : "/"}${withV1}`;
   }
@@ -135,7 +131,9 @@ export async function parseApiError(
 
 export async function getApiErrorMessage(error: unknown, fallback: string): Promise<string> {
   const parsed = await parseApiError(error);
-  return parsed?.message || (error instanceof Error && error.message ? error.message : fallback);
+  if (parsed?.message) return parsed.message;
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
 }
 
 export function handleMutationError(fallback: string): (error: unknown) => Promise<void> {

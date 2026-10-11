@@ -1,13 +1,5 @@
 import { memo } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import type { AreaTrendChartProps } from "./types";
 
@@ -70,9 +62,7 @@ export const AreaTrendChart = memo(function AreaTrendChart(props: AreaTrendChart
             )}
           </defs>
 
-          {showGrid && (
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />
-          )}
+          {showGrid && <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />}
 
           <XAxis
             dataKey={xAxisKey}
@@ -82,12 +72,7 @@ export const AreaTrendChart = memo(function AreaTrendChart(props: AreaTrendChart
             tickFormatter={xAxisFormatter}
           />
 
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={AXIS_TICK_STYLE}
-            tickFormatter={yAxisFormatter}
-          />
+          <YAxis axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} tickFormatter={yAxisFormatter} />
 
           {showTooltip && <Tooltip content={<ChartTooltip valueFormatter={valueFormatter} />} />}
 

@@ -18,9 +18,7 @@ export function SidebarHeader({
           {logoText}
         </div>
         <div className="flex flex-col overflow-hidden leading-none group-data-[collapsible=icon]:hidden">
-          <span className="text-sidebar-foreground text-sm font-semibold tracking-tight">
-            {title}
-          </span>
+          <span className="text-sidebar-foreground text-sm font-semibold tracking-tight">{title}</span>
           <span className="text-muted-foreground mt-0.5 text-[11px]">{subtitle}</span>
         </div>
       </div>

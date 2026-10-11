@@ -1,6 +1,6 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { ChevronDown } from "lucide-react";
-import { memo, type ReactNode } from "react";
+import { memo, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -46,7 +46,7 @@ export const FormSection = memo(function FormSection({
   className,
   children,
 }: FormSectionProps) {
-  const [collapsed, { set: setCollapsed }] = useBoolean(defaultCollapsed);
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   const handleOpenChange = useMemoizedFn((open: boolean) => {
     setCollapsed(!open);
@@ -55,9 +55,7 @@ export const FormSection = memo(function FormSection({
   const hasHeader = Boolean(title || description || icon || action);
 
   const contentNode = (
-    <div className="w-full">
-      {columns ? <FormGrid columns={columns}>{children}</FormGrid> : children}
-    </div>
+    <div className="w-full">{columns ? <FormGrid columns={columns}>{children}</FormGrid> : children}</div>
   );
 
   if (card) {
@@ -107,10 +105,7 @@ export const FormSection = memo(function FormSection({
                       aria-label={collapsed ? "展开区块" : "折叠区块"}
                     >
                       <ChevronDown
-                        className={cn(
-                          "size-4 transition-transform duration-200",
-                          collapsed && "-rotate-90",
-                        )}
+                        className={cn("size-4 transition-transform duration-200", collapsed && "-rotate-90")}
                       />
                     </Button>
                   </CollapsibleTrigger>
@@ -153,9 +148,7 @@ export const FormSection = memo(function FormSection({
                   {title}
                 </h3>
               )}
-              {description && (
-                <p className="text-muted-foreground text-xs leading-relaxed">{description}</p>
-              )}
+              {description && <p className="text-muted-foreground text-xs leading-relaxed">{description}</p>}
             </div>
           </div>
 
@@ -170,10 +163,7 @@ export const FormSection = memo(function FormSection({
                   aria-label={collapsed ? "展开区块" : "折叠区块"}
                 >
                   <ChevronDown
-                    className={cn(
-                      "size-4 transition-transform duration-200",
-                      collapsed && "-rotate-90",
-                    )}
+                    className={cn("size-4 transition-transform duration-200", collapsed && "-rotate-90")}
                   />
                 </Button>
               </CollapsibleTrigger>

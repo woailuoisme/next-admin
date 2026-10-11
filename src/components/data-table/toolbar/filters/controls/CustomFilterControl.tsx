@@ -8,11 +8,7 @@ export interface CustomFilterControlProps {
   onChange: (val: any) => void;
 }
 
-export const CustomFilterControl: React.FC<CustomFilterControlProps> = ({
-  definition,
-  value,
-  onChange,
-}) => {
+export const CustomFilterControl: React.FC<CustomFilterControlProps> = ({ definition, value, onChange }) => {
   return (
     <>
       {definition.render({

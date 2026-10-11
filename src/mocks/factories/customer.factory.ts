@@ -14,8 +14,7 @@ export function createCustomers(count = 50): Customer[] {
     const email = faker.internet.email({ firstName, lastName }).toLowerCase();
     const phone = faker.phone.number({ style: "national" });
     const avatarUrl = faker.image.avatar();
-    const status: CustomerStatus =
-      faker.number.int({ min: 1, max: 100 }) <= 88 ? "active" : "inactive";
+    const status: CustomerStatus = faker.number.int({ min: 1, max: 100 }) <= 88 ? "active" : "inactive";
     const createdAt = faker.date.recent({ days: 180 }).toISOString();
 
     customers.push({

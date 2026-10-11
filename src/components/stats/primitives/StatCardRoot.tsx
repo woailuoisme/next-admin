@@ -51,11 +51,7 @@ export const StatCardRoot = memo(function StatCardRoot({
       {...props}
     >
       <CardContent
-        className={cn(
-          "flex h-full flex-col justify-between",
-          dStyles.cardPadding,
-          dStyles.headerGap,
-        )}
+        className={cn("flex h-full flex-col justify-between", dStyles.cardPadding, dStyles.headerGap)}
       >
         {children}
       </CardContent>

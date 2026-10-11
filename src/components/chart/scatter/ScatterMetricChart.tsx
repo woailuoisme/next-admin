@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import {
   CartesianGrid,
   ReferenceLine,
@@ -24,6 +24,68 @@ import { useScatterMetric } from "./useScatterMetric";
 /** 气泡尺寸范围的默认值（模块级常量，避免每次渲染新建数组） */
 const DEFAULT_Z_RANGE: [number, number] = [50, 450];
 
+interface ScatterTooltipPoint {
+  x: number;
+  y: number;
+  z?: number;
+  name?: string;
+  category?: string;
+  fill?: string;
+}
+
+interface ScatterTooltipContentProps {
+  active?: boolean;
+  payload?: Array<{
+    payload?: ScatterTooltipPoint;
+  }>;
+  xAxisName: string;
+  yAxisName: string;
+  zAxisName: string;
+  xFormatter: (val: number) => string;
+  yFormatter: (val: number) => string;
+  zFormatter: (val: number) => string;
+}
+
+const ScatterTooltipContent = memo(function ScatterTooltipContent({
+  active,
+  payload,
+  xAxisName,
+  yAxisName,
+  zAxisName,
+  xFormatter,
+  yFormatter,
+  zFormatter,
+}: ScatterTooltipContentProps) {
+  if (!active || !payload?.length) return null;
+  const point = payload[0]?.payload;
+  if (!point) return null;
+
+  return (
+    <div className="border-border/60 bg-popover/95 text-popover-foreground rounded-lg border p-2.5 text-xs shadow-md backdrop-blur-xs select-none">
+      <div className="flex items-center gap-2 font-semibold">
+        <span className="size-2.5 rounded-full" style={{ backgroundColor: point.fill || "var(--primary)" }} />
+        <span>{point.name || point.category || "数据点"}</span>
+      </div>
+      <div className="mt-2 space-y-1">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{xAxisName}:</span>
+          <span className="font-mono font-medium">{xFormatter(point.x)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-muted-foreground">{yAxisName}:</span>
+          <span className="font-mono font-medium">{yFormatter(point.y)}</span>
+        </div>
+        {point.z !== undefined && (
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-muted-foreground">{zAxisName}:</span>
+            <span className="text-primary font-mono font-medium">{zFormatter(point.z)}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
 export const ScatterMetricChart = memo(function ScatterMetricChart(props: ScatterMetricChartProps) {
   const {
     xAxisName: rawXName,
@@ -46,53 +108,20 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
   const yAxisName = rawYName || yAxisLabel || "Y";
   const zAxisName = rawZName || zAxisLabel || "权重";
 
-  const referenceLines = [
-    ...(propReferenceLines || []),
-    ...(xReferenceLine !== undefined
-      ? [{ x: xReferenceLine, stroke: "var(--muted-foreground)", strokeDasharray: "3 3" }]
-      : []),
-    ...(yReferenceLine !== undefined
-      ? [{ y: yReferenceLine, stroke: "var(--muted-foreground)", strokeDasharray: "3 3" }]
-      : []),
-  ];
+  const referenceLines = useMemo(
+    () => [
+      ...(propReferenceLines || []),
+      ...(xReferenceLine !== undefined
+        ? [{ x: xReferenceLine, stroke: "var(--muted-foreground)", strokeDasharray: "3 3" }]
+        : []),
+      ...(yReferenceLine !== undefined
+        ? [{ y: yReferenceLine, stroke: "var(--muted-foreground)", strokeDasharray: "3 3" }]
+        : []),
+    ],
+    [propReferenceLines, xReferenceLine, yReferenceLine],
+  );
 
-  const { containerRef, resolvedSeries, xFormatter, yFormatter, zFormatter } =
-    useScatterMetric(props);
-
-  const renderTooltip = (tooltipProps: any) => {
-    const { active, payload } = tooltipProps;
-    if (!active || !payload?.length) return null;
-    const point = payload[0]?.payload;
-    if (!point) return null;
-
-    return (
-      <div className="border-border/60 bg-popover/95 text-popover-foreground rounded-lg border p-2.5 text-xs shadow-md backdrop-blur-xs select-none">
-        <div className="flex items-center gap-2 font-semibold">
-          <span
-            className="size-2.5 rounded-full"
-            style={{ backgroundColor: point.fill || "var(--primary)" }}
-          />
-          <span>{point.name || point.category || "数据点"}</span>
-        </div>
-        <div className="mt-2 space-y-1">
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">{xAxisName}:</span>
-            <span className="font-mono font-medium">{xFormatter(point.x)}</span>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">{yAxisName}:</span>
-            <span className="font-mono font-medium">{yFormatter(point.y)}</span>
-          </div>
-          {point.z !== undefined && (
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">{zAxisName}:</span>
-              <span className="text-primary font-mono font-medium">{zFormatter(point.z)}</span>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  const { containerRef, resolvedSeries, xFormatter, yFormatter, zFormatter } = useScatterMetric(props);
 
   return (
     <div ref={containerRef} className={className} style={{ width: "100%", height }}>
@@ -151,7 +180,16 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
 
           {showTooltip && (
             <Tooltip
-              content={renderTooltip}
+              content={
+                <ScatterTooltipContent
+                  xAxisName={xAxisName}
+                  yAxisName={yAxisName}
+                  zAxisName={zAxisName}
+                  xFormatter={xFormatter}
+                  yFormatter={yFormatter}
+                  zFormatter={zFormatter}
+                />
+              }
               cursor={{ strokeDasharray: "3 3", stroke: "var(--border)" }}
             />
           )}

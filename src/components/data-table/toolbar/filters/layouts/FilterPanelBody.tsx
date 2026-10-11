@@ -64,12 +64,7 @@ export const FilterPanelBody: React.FC<FilterPanelBodyProps> = ({
   return (
     <div data-testid="data-table-filter-panel" className="space-y-4">
       {!hideHeader && (
-        <FilterPanelHeader
-          title={title}
-          activeCount={activeCount}
-          showReset={showReset}
-          onReset={onReset}
-        />
+        <FilterPanelHeader title={title} activeCount={activeCount} showReset={showReset} onReset={onReset} />
       )}
 
       <FilterControlGrid
@@ -92,9 +87,7 @@ export const FilterPanelBody: React.FC<FilterPanelBodyProps> = ({
         />
       )}
 
-      {!hideFooter && (
-        <FilterPanelFooter deferFilters={deferFilters} onClose={onClose} onApply={onApply} />
-      )}
+      {!hideFooter && <FilterPanelFooter deferFilters={deferFilters} onClose={onClose} onApply={onApply} />}
     </div>
   );
 };

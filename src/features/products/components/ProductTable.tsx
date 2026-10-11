@@ -121,16 +121,13 @@ export function ProductTable({
         sortable: true,
         aggregation: "sum",
         renderCell: ({ row }: DataTableRenderCellParams<Product>) => {
-          const margin =
-            row.price > 0 ? Math.round(((row.price - row.costPrice) / row.price) * 100) : 0;
+          const margin = row.price > 0 ? Math.round(((row.price - row.costPrice) / row.price) * 100) : 0;
           return (
             <div className="text-xs">
               <span className="text-foreground font-mono font-bold">${row.price.toFixed(2)}</span>
               <div className="text-muted-foreground flex items-center gap-1 text-[10px]">
                 <span>Cost: ${row.costPrice.toFixed(2)}</span>
-                <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                  ({margin}% margin)
-                </span>
+                <span className="text-chart-2 font-medium">({margin}% margin)</span>
               </div>
             </div>
           );
@@ -150,9 +147,7 @@ export function ProductTable({
           if (row.stock <= 10) {
             return <BadgeCell value={`Low: ${row.stock} left`} variant="warning" dot />;
           }
-          return (
-            <span className="text-muted-foreground font-mono text-xs">{row.stock} in stock</span>
-          );
+          return <span className="text-muted-foreground font-mono text-xs">{row.stock} in stock</span>;
         },
       },
       col.badge<Product>("status", "Status", {

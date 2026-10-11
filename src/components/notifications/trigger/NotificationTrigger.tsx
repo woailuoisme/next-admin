@@ -38,10 +38,7 @@ export const NotificationTrigger = memo(
                 ref={ref}
                 variant="ghost"
                 size="icon"
-                className={cn(
-                  "relative size-8 rounded-full transition-colors hover:bg-accent/80",
-                  className,
-                )}
+                className={cn("relative size-8 rounded-full transition-colors hover:bg-accent/80", className)}
                 aria-label={t("view")}
                 onMouseEnter={handleMouseEnter}
                 onFocus={handleFocus}

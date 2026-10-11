@@ -64,8 +64,8 @@ export function createInitialNotifications(): NotificationItem[] {
       severity: "error",
       read: false,
       createdAt: new Date(now - 28 * 3600 * 1000).toISOString(),
-      actionUrl: "/admin-users",
-      actionLabel: "查看权限",
+      actionUrl: "/overview",
+      actionLabel: "查看详情",
     },
   ];
 }

@@ -40,9 +40,7 @@ function AvatarThumbInner({
 }: AvatarThumbProps) {
   const resolvedFallback =
     fallback ||
-    (typeof name === "string" && name.trim().length > 0
-      ? name.trim().slice(0, 2).toUpperCase()
-      : null);
+    (typeof name === "string" && name.trim().length > 0 ? name.trim().slice(0, 2).toUpperCase() : null);
 
   const seed =
     colorSeed ||

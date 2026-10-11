@@ -1,12 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+const STAT_SKELETON_KEYS = [1, 2, 3, 4] as const;
+const TABLE_ROW_SKELETON_KEYS = [1, 2, 3, 4, 5, 6] as const;
+
 export default function DashboardLoading() {
   return (
-    <div
-      role="status"
-      aria-label="正在加载页面内容"
-      className="flex flex-1 flex-col gap-6 p-4 md:p-6"
-    >
+    <div role="status" aria-label="正在加载页面内容" className="flex flex-1 flex-col gap-6 p-4 md:p-6">
       {/* Header bar skeleton */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
@@ -21,9 +20,9 @@ export default function DashboardLoading() {
 
       {/* Metric/stat cards skeleton grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
+        {STAT_SKELETON_KEYS.map((key) => (
           <div
-            key={i}
+            key={key}
             className="border-border bg-card flex flex-col gap-3 rounded-xl border p-6 shadow-xs"
           >
             <div className="flex items-center justify-between">
@@ -44,8 +43,8 @@ export default function DashboardLoading() {
         </div>
         <div className="space-y-3">
           <Skeleton className="h-10 w-full" />
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full" />
+          {TABLE_ROW_SKELETON_KEYS.map((key) => (
+            <Skeleton key={key} className="h-12 w-full" />
           ))}
         </div>
       </div>

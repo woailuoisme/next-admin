@@ -102,11 +102,7 @@ export const ColorPickerContent = memo(function ColorPickerContent({
             aria-label="选择颜色色盘"
             className="absolute -top-2 -left-2 size-12 cursor-pointer opacity-0 disabled:cursor-not-allowed"
           />
-          <span
-            className="block size-full"
-            style={{ backgroundColor: fallbackColor }}
-            aria-hidden="true"
-          />
+          <span className="block size-full" style={{ backgroundColor: fallbackColor }} aria-hidden="true" />
         </div>
 
         {/* Text Input for HEX code */}
@@ -127,12 +123,7 @@ export const ColorPickerContent = memo(function ColorPickerContent({
       </div>
 
       {/* Presets Grid */}
-      <ColorPalette
-        presets={presets}
-        activeColor={value}
-        onSelect={handleSelectPreset}
-        disabled={disabled}
-      />
+      <ColorPalette presets={presets} activeColor={value} onSelect={handleSelectPreset} disabled={disabled} />
     </div>
   );
 });

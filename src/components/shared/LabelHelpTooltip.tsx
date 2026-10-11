@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 import { HelpCircle } from "lucide-react";
 
@@ -12,7 +12,7 @@ interface LabelHelpTooltipProps {
 /**
  * 字段/条目标签旁的帮助说明 tooltip（form / infolist 共用）
  */
-export function LabelHelpTooltip({ content }: LabelHelpTooltipProps) {
+export const LabelHelpTooltip = memo(function LabelHelpTooltip({ content }: LabelHelpTooltipProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -29,4 +29,4 @@ export function LabelHelpTooltip({ content }: LabelHelpTooltipProps) {
       </TooltipContent>
     </Tooltip>
   );
-}
+});

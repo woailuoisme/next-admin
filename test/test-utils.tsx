@@ -38,11 +38,7 @@ export interface ExtendedRenderOptions extends Omit<RenderOptions, "wrapper"> {
  */
 export function renderWithProviders(
   ui: ReactElement,
-  {
-    queryClient = createTestQueryClient(),
-    locale = "zh",
-    ...renderOptions
-  }: ExtendedRenderOptions = {},
+  { queryClient = createTestQueryClient(), locale = "zh", ...renderOptions }: ExtendedRenderOptions = {},
 ) {
   function Wrapper({ children }: { children: ReactNode }) {
     return (

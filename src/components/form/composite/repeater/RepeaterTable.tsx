@@ -110,8 +110,7 @@ const RepeaterTableRow = memo(function RepeaterTableRow<T>({
   const rendered = renderItem(item, index, handleUpdate, helpers);
 
   // 检查子元素是否为 Fragment 或单个 td，若是则直接平铺渲染，避免生成嵌套的 <td>
-  const isFragmentOrTd =
-    isValidElement(rendered) && (rendered.type === Fragment || rendered.type === "td");
+  const isFragmentOrTd = isValidElement(rendered) && (rendered.type === Fragment || rendered.type === "td");
 
   return (
     <tr
@@ -196,11 +195,7 @@ const RepeaterTableRow = memo(function RepeaterTableRow<T>({
                     <Trash2 className="size-3" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent
-                  align="end"
-                  side="bottom"
-                  className="w-56 space-y-2.5 p-3 text-xs shadow-lg"
-                >
+                <PopoverContent align="end" side="bottom" className="w-56 space-y-2.5 p-3 text-xs shadow-lg">
                   <div className="text-foreground font-medium">确认删除此行？</div>
                   <p className="text-muted-foreground text-[11px]">该行数据将被即刻移除。</p>
                   <div className="flex justify-end gap-1.5 pt-1">
@@ -212,12 +207,7 @@ const RepeaterTableRow = memo(function RepeaterTableRow<T>({
                     >
                       取消
                     </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="xs"
-                      onClick={handleDirectRemove}
-                    >
+                    <Button type="button" variant="destructive" size="xs" onClick={handleDirectRemove}>
                       确认删除
                     </Button>
                   </div>
@@ -298,9 +288,7 @@ export const RepeaterTable = memo(function RepeaterTable<T>({
       <table className="w-full caption-bottom border-collapse text-xs">
         <thead className="border-border/60 bg-muted/40 text-muted-foreground border-b font-medium select-none">
           <tr>
-            {hasReorderCol ? (
-              <th className="border-border/60 w-8 border-r px-2 py-2 text-center" />
-            ) : null}
+            {hasReorderCol ? <th className="border-border/60 w-8 border-r px-2 py-2 text-center" /> : null}
             {headers && headers.length > 0 ? (
               headers.map((col, idx) => (
                 <th

@@ -158,14 +158,10 @@ export function useResourceModalState<TData = unknown, TSearch = unknown>(
     syncWithUrl && nextSearchParams?.has(createKey)
       ? nextSearchParams.get(createKey) === "true"
       : localCreateOpen;
-  const editId =
-    syncWithUrl && nextSearchParams?.has(editKey) ? nextSearchParams.get(editKey) : localEditId;
-  const viewId =
-    syncWithUrl && nextSearchParams?.has(viewKey) ? nextSearchParams.get(viewKey) : localViewId;
+  const editId = syncWithUrl && nextSearchParams?.has(editKey) ? nextSearchParams.get(editKey) : localEditId;
+  const viewId = syncWithUrl && nextSearchParams?.has(viewKey) ? nextSearchParams.get(viewKey) : localViewId;
   const deleteId =
-    syncWithUrl && nextSearchParams?.has(deleteKey)
-      ? nextSearchParams.get(deleteKey)
-      : localDeleteId;
+    syncWithUrl && nextSearchParams?.has(deleteKey) ? nextSearchParams.get(deleteKey) : localDeleteId;
   const isBatchDelete =
     syncWithUrl && nextSearchParams?.has(batchDeleteKey)
       ? nextSearchParams.get(batchDeleteKey) === "true"

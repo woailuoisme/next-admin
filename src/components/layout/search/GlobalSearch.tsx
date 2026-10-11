@@ -29,11 +29,7 @@ export const GlobalSearch = memo(function GlobalSearch({ className }: GlobalSear
 
   return (
     <>
-      <GlobalSearchTrigger
-        onClick={handleOpen}
-        onMouseEnter={handleMouseEnter}
-        className={className}
-      />
+      <GlobalSearchTrigger onClick={handleOpen} onMouseEnter={handleMouseEnter} className={className} />
       {open ? (
         <Suspense fallback={null}>
           <GlobalSearchDialog open={open} onOpenChange={setOpen} />

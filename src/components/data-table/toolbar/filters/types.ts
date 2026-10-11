@@ -14,9 +14,7 @@ export interface DataTableFilterPanelProps<TData = any> {
   data?: TData[];
 }
 
-export interface BaseFilterControlProps<
-  TDef extends DataTableFilterDefinition = DataTableFilterDefinition,
-> {
+export interface BaseFilterControlProps<TDef extends DataTableFilterDefinition = DataTableFilterDefinition> {
   definition: TDef;
   field: string;
   label: string;

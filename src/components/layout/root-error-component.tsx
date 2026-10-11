@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ChevronDown, Home, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { captureException } from "@/integrations/glitchtip";
 import { progress } from "@/lib/progress";
+import { cn } from "@/lib/utils";
 
 export interface ErrorComponentProps {
   error: Error & { digest?: string };
@@ -47,10 +48,14 @@ export function RootErrorComponent({ error, reset, info }: ErrorComponentProps) 
     });
   }, [error, info?.componentStack]);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     reset();
     router.refresh();
-  };
+  }, [reset, router]);
+
+  const toggleDetails = useCallback(() => {
+    setShowDetails((prev) => !prev);
+  }, []);
 
   const errorMessage = getErrorMessage(error);
 
@@ -77,35 +82,32 @@ export function RootErrorComponent({ error, reset, info }: ErrorComponentProps) 
           </Link>
         </Button>
       </div>
-      {process.env.NODE_ENV !== "production" &&
-        (error instanceof Error || info?.componentStack) && (
-          <div className="mt-8 w-full max-w-2xl text-left">
-            <button
-              type="button"
-              aria-expanded={showDetails}
-              aria-controls="error-stack-trace"
-              onClick={() => setShowDetails(!showDetails)}
-              className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1.5 font-mono text-xs transition-colors"
+      {process.env.NODE_ENV !== "production" && (error instanceof Error || info?.componentStack) && (
+        <div className="mt-8 w-full max-w-2xl text-left">
+          <button
+            type="button"
+            aria-expanded={showDetails}
+            aria-controls="error-stack-trace"
+            onClick={toggleDetails}
+            className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1.5 font-mono text-xs transition-colors"
+          >
+            <ChevronDown
+              aria-hidden="true"
+              className={cn("size-3.5 transition-transform duration-200", showDetails && "rotate-180")}
+            />
+            {showDetails ? "隐藏技术详情" : "查看技术详情 (Stack Trace)"}
+          </button>
+          {showDetails && (
+            <pre
+              id="error-stack-trace"
+              className="border-destructive/20 bg-muted/50 text-destructive/90 mt-2 max-h-60 overflow-auto rounded-md border p-4 font-mono text-xs whitespace-pre-wrap"
             >
-              <ChevronDown
-                aria-hidden="true"
-                className={`size-3.5 transition-transform duration-200 ${
-                  showDetails ? "rotate-180" : ""
-                }`}
-              />
-              {showDetails ? "隐藏技术详情" : "查看技术详情 (Stack Trace)"}
-            </button>
-            {showDetails && (
-              <pre
-                id="error-stack-trace"
-                className="border-destructive/20 bg-muted/50 text-destructive/90 mt-2 max-h-60 overflow-auto rounded-md border p-4 font-mono text-xs whitespace-pre-wrap"
-              >
-                {error instanceof Error ? error.stack : String(error)}
-                {info?.componentStack && `\n\nComponent Stack:${info.componentStack}`}
-              </pre>
-            )}
-          </div>
-        )}
+              {error instanceof Error ? error.stack : String(error)}
+              {info?.componentStack && `\n\nComponent Stack:${info.componentStack}`}
+            </pre>
+          )}
+        </div>
+      )}
     </div>
   );
 }

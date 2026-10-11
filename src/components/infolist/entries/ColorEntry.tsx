@@ -36,9 +36,7 @@ export const ColorEntry = React.memo(function ColorEntry({
           title={colorStr}
         />
         {showText && (
-          <span className="text-foreground font-mono text-xs uppercase">
-            {colorStr.toUpperCase()}
-          </span>
+          <span className="text-foreground font-mono text-xs uppercase">{colorStr.toUpperCase()}</span>
         )}
         {copyable && <CopyButton text={colorStr} className="size-5 shrink-0" />}
       </div>

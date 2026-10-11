@@ -41,9 +41,7 @@ export function useGeoDistribution({
 
     if (typeof data === "object" && data && "type" in data && data.type === "FeatureCollection") {
       const fc = data as GeoJSON.FeatureCollection;
-      const values = fc.features
-        .map((f) => Number(f.properties?.[valueKey]))
-        .filter((v) => !Number.isNaN(v));
+      const values = fc.features.map((f) => Number(f.properties?.[valueKey])).filter((v) => !Number.isNaN(v));
 
       if (values.length > 0) {
         minVal = values.reduce((m, v) => (v < m ? v : m), values[0]);

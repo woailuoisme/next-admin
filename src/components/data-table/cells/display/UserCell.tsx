@@ -119,9 +119,7 @@ export const UserCell = memo(function UserCell({
               {name}
             </span>
           )}
-          {verified && (
-            <BadgeCheck className="text-primary size-3.5 shrink-0" aria-label="已官方认证" />
-          )}
+          {verified && <BadgeCheck className="text-primary size-3.5 shrink-0" aria-label="已官方认证" />}
           {badge}
         </div>
         {subtitle && (
@@ -135,11 +133,7 @@ export const UserCell = memo(function UserCell({
                 title="复制副文本"
                 aria-label="复制"
               >
-                {copied ? (
-                  <Check className="size-2.5 text-emerald-500" />
-                ) : (
-                  <Copy className="size-2.5" />
-                )}
+                {copied ? <Check className="size-2.5 text-emerald-500" /> : <Copy className="size-2.5" />}
               </button>
             )}
           </div>

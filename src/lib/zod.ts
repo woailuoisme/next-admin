@@ -15,7 +15,7 @@ const ZOD_LOCALE_MAP: Record<string, () => ZodConfig> = {
  */
 export function setupZodLocale(locale?: string) {
   try {
-    const current = locale ?? (typeof getLocale === "function" ? getLocale() : "zh");
+    const current = locale ?? getLocale();
     const localeFn = ZOD_LOCALE_MAP[current] ?? locales.zhCN;
     z.config(localeFn());
   } catch {

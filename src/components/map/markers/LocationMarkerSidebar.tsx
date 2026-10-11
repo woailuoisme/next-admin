@@ -60,9 +60,7 @@ export const LocationMarkerSidebar = memo(function LocationMarkerSidebar({
                   ) : null}
                 </div>
                 {item.address ? (
-                  <span className="text-muted-foreground line-clamp-1 text-[11px]">
-                    {item.address}
-                  </span>
+                  <span className="text-muted-foreground line-clamp-1 text-[11px]">{item.address}</span>
                 ) : null}
               </button>
             );

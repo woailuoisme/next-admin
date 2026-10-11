@@ -23,9 +23,7 @@ export const InfolistFieldset = React.memo(function InfolistFieldset({
       {...props}
     >
       {legend && (
-        <legend className="text-foreground px-2 text-xs font-semibold tracking-tight">
-          {legend}
-        </legend>
+        <legend className="text-foreground px-2 text-xs font-semibold tracking-tight">{legend}</legend>
       )}
       {description && <p className="text-muted-foreground mb-3 px-1 text-xs">{description}</p>}
       <div className="w-full pt-1.5">

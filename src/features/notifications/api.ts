@@ -4,9 +4,7 @@ import { apiClient } from "@/lib/api-client";
 
 import type { NotificationFilters, NotificationItem, NotificationListResponse } from "./types";
 
-export async function fetchNotifications(
-  filters?: NotificationFilters,
-): Promise<NotificationListResponse> {
+export async function fetchNotifications(filters?: NotificationFilters): Promise<NotificationListResponse> {
   const searchParams = new URLSearchParams();
   if (filters?.category && filters.category !== "all") {
     searchParams.set("category", filters.category);
@@ -19,9 +17,7 @@ export async function fetchNotifications(
 }
 
 export async function markNotificationAsRead(id: string): Promise<NotificationItem> {
-  const res = await apiClient
-    .patch(`notifications/${id}/read`)
-    .json<ApiResponse<NotificationItem>>();
+  const res = await apiClient.patch(`notifications/${id}/read`).json<ApiResponse<NotificationItem>>();
   return res.data;
 }
 

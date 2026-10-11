@@ -331,12 +331,7 @@ export function StatsShowcasePage() {
               </Button>
             ))}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1.5 text-xs"
-            onClick={liveTicker.tick}
-          >
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={liveTicker.tick}>
             <RefreshCw className="h-3.5 w-3.5" />
             Pulse Step
           </Button>
@@ -354,24 +349,15 @@ export function StatsShowcasePage() {
       {/* Primary Navigation Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid h-auto! w-full max-w-2xl grid-cols-2 gap-1 sm:grid-cols-5">
-          <TabsTrigger
-            value="overview"
-            className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
-          >
+          <TabsTrigger value="overview" className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal">
             <Layers className="h-3.5 w-3.5" />
             Overview
           </TabsTrigger>
-          <TabsTrigger
-            value="cards"
-            className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
-          >
+          <TabsTrigger value="cards" className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal">
             <Activity className="h-3.5 w-3.5" />
             Card Matrix
           </TabsTrigger>
-          <TabsTrigger
-            value="trends"
-            className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
-          >
+          <TabsTrigger value="trends" className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal">
             <LineChart className="h-3.5 w-3.5" />
             Trends
           </TabsTrigger>
@@ -382,10 +368,7 @@ export function StatsShowcasePage() {
             <PieChart className="h-3.5 w-3.5" />
             Multi-Dim
           </TabsTrigger>
-          <TabsTrigger
-            value="states"
-            className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
-          >
+          <TabsTrigger value="states" className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal">
             <AlertCircle className="h-3.5 w-3.5" />
             State Lab
           </TabsTrigger>
@@ -403,9 +386,7 @@ export function StatsShowcasePage() {
               prefix="$"
               icon={DollarSign}
               trend={{ value: 18.4, direction: "up", label: "vs last quarter" }}
-              sparklineData={
-                demoState === "empty" ? undefined : [20, 24, 28, 26, 32, 38, 42, 49, 58, 65]
-              }
+              sparklineData={demoState === "empty" ? undefined : [20, 24, 28, 26, 32, 38, 42, 49, 58, 65]}
               isLoading={isLoading}
               theme={isError ? "destructive" : "primary"}
               description="Recognized recurring subscription revenue"
@@ -551,9 +532,7 @@ export function StatsShowcasePage() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card className="shadow-xs">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">
-                  Microservice Request Volume (Top 5)
-                </CardTitle>
+                <CardTitle className="text-base font-semibold">Microservice Request Volume (Top 5)</CardTitle>
                 <CardDescription>Processed queries per minute across active mesh</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
@@ -567,9 +546,7 @@ export function StatsShowcasePage() {
 
             <Card className="shadow-xs">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">
-                  Infrastructure Health Gauges
-                </CardTitle>
+                <CardTitle className="text-base font-semibold">Infrastructure Health Gauges</CardTitle>
                 <CardDescription>Cluster SLA, Memory footprint, and SSD I/O</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-around gap-4 pt-2 sm:flex-row">
@@ -800,8 +777,8 @@ export function StatsShowcasePage() {
                   4. Standalone Micro-Charts (Zero-Dependency SVG Sparklines)
                 </h2>
                 <p className="text-muted-foreground text-xs">
-                  Ultra-lightweight Bezier smoothing with coordinate precision rounding and
-                  sub-millisecond render budget.
+                  Ultra-lightweight Bezier smoothing with coordinate precision rounding and sub-millisecond
+                  render budget.
                 </p>
               </div>
               <Badge variant="outline" className="w-fit font-mono text-[11px]">
@@ -812,9 +789,7 @@ export function StatsShowcasePage() {
 
           <Card className="border-border/60">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">
-                Semantic Theme Palettes & Style Matrix
-              </CardTitle>
+              <CardTitle className="text-sm font-semibold">Semantic Theme Palettes & Style Matrix</CardTitle>
               <CardDescription className="text-xs">
                 Embeddable inside tables, headers, dense KPI grids, or standalone micro-cards.
               </CardDescription>
@@ -862,12 +837,7 @@ export function StatsShowcasePage() {
                         <span className="text-muted-foreground font-mono text-[10px]">Bar</span>
                       </div>
                       <div className="h-10 w-full">
-                        <Sparkline
-                          data={item.data}
-                          theme={item.theme}
-                          type="bar"
-                          className="h-full w-full"
-                        />
+                        <Sparkline data={item.data} theme={item.theme} type="bar" className="h-full w-full" />
                       </div>
                     </div>
                   ))}
@@ -884,8 +854,8 @@ export function StatsShowcasePage() {
                   5. Density Scaling & Anti-Truncation Sparkline Layouts
                 </h2>
                 <p className="text-muted-foreground text-xs">
-                  Interactive density control (compact, default, comfortable) and bottom-docked
-                  sparkline to guarantee 0 text overflow in 4-column grids.
+                  Interactive density control (compact, default, comfortable) and bottom-docked sparkline to
+                  guarantee 0 text overflow in 4-column grids.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -976,9 +946,7 @@ export function StatsShowcasePage() {
         <TabsContent value="trends" className="mt-6 space-y-6">
           <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-foreground text-lg font-semibold">
-                Time-Series Visualization Gallery
-              </h2>
+              <h2 className="text-foreground text-lg font-semibold">Time-Series Visualization Gallery</h2>
               <p className="text-muted-foreground text-xs">
                 Smooth gradients, dual Y-axis support, and memoized tooltips.
               </p>
@@ -1051,9 +1019,7 @@ export function StatsShowcasePage() {
             {/* Composed Chart */}
             <Card className="shadow-xs">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">
-                  Composed Bar + Line Combination
-                </CardTitle>
+                <CardTitle className="text-base font-semibold">Composed Bar + Line Combination</CardTitle>
                 <CardDescription>Cost columns with revenue overlay line</CardDescription>
               </CardHeader>
               <CardContent className="pt-2">
@@ -1084,9 +1050,7 @@ export function StatsShowcasePage() {
             {/* Bar Trend Chart */}
             <Card className="shadow-xs">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">
-                  Comparative Bar Trend Chart
-                </CardTitle>
+                <CardTitle className="text-base font-semibold">Comparative Bar Trend Chart</CardTitle>
                 <CardDescription>Metric comparison by period</CardDescription>
               </CardHeader>
               <CardContent className="pt-2">
@@ -1185,9 +1149,7 @@ export function StatsShowcasePage() {
               <CardTitle className="text-base font-semibold">
                 API Endpoints Performance Ranking (Requests per Minute)
               </CardTitle>
-              <CardDescription>
-                Horizontal bar with percentage scale and inline legends
-              </CardDescription>
+              <CardDescription>Horizontal bar with percentage scale and inline legends</CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
               <HorizontalBarChart
@@ -1204,18 +1166,14 @@ export function StatsShowcasePage() {
         {/* ---------------------------------------------------- */}
         <TabsContent value="states" className="mt-6 space-y-6">
           <div>
-            <h2 className="text-foreground text-lg font-semibold">
-              State Simulation & Resilience Testing
-            </h2>
+            <h2 className="text-foreground text-lg font-semibold">State Simulation & Resilience Testing</h2>
             <p className="text-muted-foreground text-xs">
               Verify how stats components behave across various network and lifecycle conditions.
             </p>
           </div>
 
           <div className="bg-muted/20 flex items-center gap-2 rounded-lg border p-3">
-            <span className="text-foreground mr-2 text-xs font-semibold">
-              Trigger Current State:
-            </span>
+            <span className="text-foreground mr-2 text-xs font-semibold">Trigger Current State:</span>
             {DEMO_STATES.map((st) => (
               <Button
                 key={st}

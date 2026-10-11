@@ -75,8 +75,7 @@ export function FieldConnector<TValue = unknown>({
           const isTouched = field.state.meta.isTouched;
           const errors = field.state.meta.errors;
           const computedError =
-            explicitError ??
-            (isTouched && errors?.length ? extractErrorMessage(errors[0]) : undefined);
+            explicitError ?? (isTouched && errors?.length ? extractErrorMessage(errors[0]) : undefined);
 
           return renderFn({
             value: field.state.value,

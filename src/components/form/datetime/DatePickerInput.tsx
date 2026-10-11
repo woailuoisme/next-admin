@@ -1,7 +1,7 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, X } from "lucide-react";
-import { memo, useId } from "react";
+import { memo, useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -61,7 +61,8 @@ const DatePickerInputInner = memo(function DatePickerInputInner({
   value,
   onChange,
 }: DatePickerInputInnerProps) {
-  const [open, { set: setOpen, setFalse: closePopover }] = useBoolean(false);
+  const [open, setOpen] = useState(false);
+  const closePopover = useMemoizedFn(() => setOpen(false));
   const selectedDate = parseDate(value);
   const hasError = Boolean(computedError);
 

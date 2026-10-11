@@ -58,9 +58,7 @@ export const MultiMetricStatCard = memo(function MultiMetricStatCard({
 
       {/* Primary Focus Metric */}
       <div className="space-y-1">
-        {primaryLabel ? (
-          <p className="text-muted-foreground text-xs font-medium">{primaryLabel}</p>
-        ) : null}
+        {primaryLabel ? <p className="text-muted-foreground text-xs font-medium">{primaryLabel}</p> : null}
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <StatCardValue value={primaryValue} prefix={prefix} suffix={suffix} />
           {primaryTrend ? <TrendTag trend={primaryTrend} /> : null}

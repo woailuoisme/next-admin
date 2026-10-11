@@ -1,22 +1,11 @@
 import { ChevronRight } from "lucide-react";
-import {
-  Fragment,
-  memo,
-  type HTMLAttributes,
-  type MouseEvent,
-  type ReactNode,
-  type Ref,
-} from "react";
+import { memo, type HTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-import type {
-  DataTableColDef,
-  DataTableRenderExpandedRowParams,
-  DataTableRowId,
-} from "../core/types";
+import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableRowId } from "../core/types";
 
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
 import { EMPTY_ARRAY, EMPTY_RECORD, NOOP } from "../core/constants";
@@ -92,15 +81,13 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
   const onRowClick = propOnRowClick ?? ctx?.onRowClick;
 
   const renderExpandedRow = propRenderExpandedRow ?? ctx?.renderExpandedRow;
-  const isExpanded =
-    propIsExpanded ?? (ctx?.expandedRowIds ? ctx.expandedRowIds.includes(rowId) : false);
+  const isExpanded = propIsExpanded ?? (ctx?.expandedRowIds ? ctx.expandedRowIds.includes(rowId) : false);
   const isRowExpandable = propIsRowExpandable ?? ctx?.isRowExpandable;
   const expandOnRowClick = propExpandOnRowClick ?? ctx?.expandOnRowClick ?? false;
   const onToggleExpand = propOnToggleExpand ?? ctx?.toggleRowExpanded;
 
   const canExpand = Boolean(renderExpandedRow && (isRowExpandable ? isRowExpandable(row) : true));
-  const totalColSpan =
-    visibleColumns.length + (checkboxSelection ? 1 : 0) + (renderExpandedRow ? 1 : 0);
+  const totalColSpan = visibleColumns.length + (checkboxSelection ? 1 : 0) + (renderExpandedRow ? 1 : 0);
 
   const handleRowClick = (e: MouseEvent) => {
     if (expandOnRowClick && canExpand) {
@@ -110,7 +97,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
   };
 
   return (
-    <Fragment>
+    <>
       <TableRow
         ref={ref}
         data-state={isSelected ? "selected" : undefined}
@@ -233,9 +220,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
                 })
               ) : (
                 <span>
-                  {formattedValue !== null && formattedValue !== undefined
-                    ? String(formattedValue)
-                    : ""}
+                  {formattedValue !== null && formattedValue !== undefined ? String(formattedValue) : ""}
                 </span>
               )}
             </TableCell>
@@ -259,7 +244,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
           </TableCell>
         </TableRow>
       )}
-    </Fragment>
+    </>
   );
 }
 

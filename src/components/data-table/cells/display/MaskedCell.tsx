@@ -140,9 +140,7 @@ export const MaskedCell = memo(function MaskedCell({
       )}
       data-testid="masked-cell"
     >
-      <span className={cn("select-all", !revealed && "text-muted-foreground")}>
-        {displayedText}
-      </span>
+      <span className={cn("select-all", !revealed && "text-muted-foreground")}>{displayedText}</span>
 
       <div className="flex items-center gap-1 opacity-60 transition-opacity group-hover/masked-cell:opacity-100">
         {allowReveal && (

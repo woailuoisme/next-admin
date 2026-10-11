@@ -55,15 +55,7 @@ export function HeatmapWebGLSourceLayer({
       source: sourceId,
       maxzoom: 19,
       paint: {
-        "heatmap-weight": [
-          "interpolate",
-          ["linear"],
-          ["get", weightProperty],
-          0,
-          0,
-          maxIntensity,
-          1,
-        ],
+        "heatmap-weight": ["interpolate", ["linear"], ["get", weightProperty], 0, 0, maxIntensity, 1],
         "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 9, 2, 15, 3],
         "heatmap-color": colorExpr,
         "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 2, 9, radius, 15, radius * 2],

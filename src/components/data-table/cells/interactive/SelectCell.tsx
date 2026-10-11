@@ -1,15 +1,9 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
-import { memo, startTransition, useOptimistic } from "react";
+import { memo, startTransition, useOptimistic, useState } from "react";
 import { toast } from "sonner";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 import type { SelectCellProps } from "./types";
@@ -28,7 +22,7 @@ function SelectCellInner<TData = unknown, TVal extends string = string>({
   className,
 }: SelectCellProps<TData, TVal>) {
   const [optimisticValue, setOptimistic] = useOptimistic(value, (_curr, next: TVal) => next);
-  const [loading, { setTrue: setLoadingTrue, setFalse: setLoadingFalse }] = useBoolean(false);
+  const [loading, setLoading] = useState(false);
 
   const handleValueChange = useMemoizedFn((nextValue: string) => {
     if (disabled || loading || nextValue === optimisticValue) return;
@@ -38,7 +32,7 @@ function SelectCellInner<TData = unknown, TVal extends string = string>({
       setOptimistic(typedNext);
       if (onCellChange) {
         try {
-          setLoadingTrue();
+          setLoading(true);
           const result = onCellChange(row, typedNext);
           if (result instanceof Promise) {
             await result;
@@ -52,7 +46,7 @@ function SelectCellInner<TData = unknown, TVal extends string = string>({
             toast.error(msg);
           }
         } finally {
-          setLoadingFalse();
+          setLoading(false);
         }
       }
     });
@@ -63,11 +57,7 @@ function SelectCellInner<TData = unknown, TVal extends string = string>({
       className={cn("flex items-center gap-1.5", JUSTIFY_ALIGN_CLASSES[align], className)}
       onClick={(e) => e.stopPropagation()}
     >
-      <Select
-        value={optimisticValue}
-        onValueChange={handleValueChange}
-        disabled={disabled || loading}
-      >
+      <Select value={optimisticValue} onValueChange={handleValueChange} disabled={disabled || loading}>
         <SelectTrigger
           size="sm"
           aria-label="选择值"

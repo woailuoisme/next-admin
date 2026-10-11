@@ -42,9 +42,7 @@ export function LocationPicker({
   customStyleUrl,
   className,
 }: LocationPickerProps) {
-  const [internalValue, setInternalValue] = useState<LocationPickerValue>(
-    controlledValue ?? defaultValue,
-  );
+  const [internalValue, setInternalValue] = useState<LocationPickerValue>(controlledValue ?? defaultValue);
 
   const isControlled = controlledValue !== undefined;
   const currentValue = isControlled ? controlledValue : internalValue;
@@ -273,11 +271,7 @@ export function LocationPicker({
   return (
     <div className={cn("flex flex-col gap-2.5 select-none", className)}>
       {showAddressSearch ? (
-        <LocationAddressSearch
-          disabled={disabled}
-          readOnly={readOnly}
-          onSelect={handlePlaceSelect}
-        />
+        <LocationAddressSearch disabled={disabled} readOnly={readOnly} onSelect={handlePlaceSelect} />
       ) : null}
 
       {/* Map Viewport Area */}
@@ -299,13 +293,7 @@ export function LocationPicker({
         >
           <MapAutoResizer />
           <MapFlyTo target={flyToTarget} />
-          <MapControls
-            position="bottom-right"
-            showZoom
-            showCompass
-            showLocate
-            onLocate={handleLocate}
-          />
+          <MapControls position="bottom-right" showZoom showCompass showLocate onLocate={handleLocate} />
           <MapClickHandler onClick={handleMapPick} disabled={isPickerBlocked} />
 
           {displayPosition ? (
@@ -342,9 +330,7 @@ export function LocationPicker({
         {currentValue || isPickerBlocked ? (
           <div className="border-border/80 bg-background/90 pointer-events-none absolute top-3 left-3 z-10 flex max-w-[calc(100%-1.5rem)] items-center gap-2 rounded-md border px-2.5 py-1 text-xs shadow-xs backdrop-blur-md">
             <LocateFixed className="text-primary size-3.5 shrink-0" />
-            {isPickerBlocked ? (
-              <span className="text-muted-foreground shrink-0">仅查看位置</span>
-            ) : null}
+            {isPickerBlocked ? <span className="text-muted-foreground shrink-0">仅查看位置</span> : null}
             {currentValue?.address ? (
               <span className="text-foreground/80 min-w-0 truncate">{currentValue.address}</span>
             ) : null}

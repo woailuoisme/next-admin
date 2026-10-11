@@ -41,9 +41,7 @@ const SIZE_STYLES = {
   lg: "h-9 text-sm px-4 gap-2.5",
 };
 
-const SegmentedControlInner = memo(function SegmentedControlInner<
-  T extends string | number = string,
->({
+const SegmentedControlInner = memo(function SegmentedControlInner<T extends string | number = string>({
   id,
   value,
   onChange,
@@ -139,9 +137,7 @@ const SegmentedControlInner = memo(function SegmentedControlInner<
       })}
     </div>
   );
-}) as <T extends string | number = string>(
-  props: SegmentedControlInnerProps<T>,
-) => React.ReactElement;
+}) as <T extends string | number = string>(props: SegmentedControlInnerProps<T>) => React.ReactElement;
 
 export function SegmentedControl<T extends string | number = string>({
   name,

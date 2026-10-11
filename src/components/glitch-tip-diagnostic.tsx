@@ -1,9 +1,16 @@
+"use client";
+
 import { Activity, Bug } from "lucide-react";
+import { memo } from "react";
 import { toast } from "sonner";
+import { cn } from "cn";
 
 import { Button } from "@/components/ui/button";
 import { isGlitchTipEnabled, triggerTestError } from "@/integrations/glitchtip";
-import { cn } from "@/lib/utils";
+
+export interface GlitchTipDiagnosticProps {
+  className?: string;
+}
 
 function handleTest() {
   const res = triggerTestError();
@@ -14,11 +21,13 @@ function handleTest() {
   }
 }
 
-export function GlitchTipDiagnostic() {
+export const GlitchTipDiagnostic = memo(function GlitchTipDiagnostic({
+  className,
+}: GlitchTipDiagnosticProps) {
   const isEnabled = isGlitchTipEnabled();
 
   return (
-    <div className="border-border/40 space-y-1.5 border-t pt-2">
+    <div className={cn("border-border/40 space-y-1.5 border-t pt-2", className)}>
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground flex items-center gap-1.5 text-[11px] font-medium">
           <Activity className="text-primary size-3" />
@@ -48,4 +57,4 @@ export function GlitchTipDiagnostic() {
       </Button>
     </div>
   );
-}
+});

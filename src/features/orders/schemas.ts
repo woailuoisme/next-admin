@@ -2,13 +2,7 @@ import { z } from "zod";
 
 import { baseTableSearchSchema } from "@/components/data-table";
 
-export const ORDER_STATUSES = [
-  "pending",
-  "processing",
-  "shipped",
-  "delivered",
-  "cancelled",
-] as const;
+export const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
 
 export const orderStatusSchema = z.enum(ORDER_STATUSES);
 

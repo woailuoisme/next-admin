@@ -54,9 +54,14 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
     toggleSidebar();
   });
 
-  const handleSetTheme = useMemoizedFn((mode: "light" | "dark") => {
+  const handleSetLight = useMemoizedFn(() => {
     onOpenChange(false);
-    setMode(mode);
+    setMode("light");
+  });
+
+  const handleSetDark = useMemoizedFn(() => {
+    onOpenChange(false);
+    setMode("dark");
   });
 
   return (
@@ -68,9 +73,7 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
       <Command className="rounded-2xl border-0 bg-transparent">
         <CommandInput placeholder={t("placeholder")} className="h-12 text-sm" />
         <CommandList className="max-h-[min(340px,50vh)] overflow-y-auto px-1 py-1 sm:max-h-[min(440px,65vh)]">
-          <CommandEmpty className="text-muted-foreground py-8 text-center text-sm">
-            {t("empty")}
-          </CommandEmpty>
+          <CommandEmpty className="text-muted-foreground py-8 text-center text-sm">{t("empty")}</CommandEmpty>
 
           <CommandGroup heading={t("group_pages")}>
             {navItems.map((item) => {
@@ -93,9 +96,7 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
                           <span className="text-muted-foreground/70 shrink-0 text-xs font-normal">
                             {item.parentTitle}
                           </span>
-                          <span className="text-muted-foreground/40 shrink-0 text-xs select-none">
-                            /
-                          </span>
+                          <span className="text-muted-foreground/40 shrink-0 text-xs select-none">/</span>
                         </>
                       )}
                       <span className="text-foreground truncate font-medium">{item.title}</span>
@@ -126,7 +127,7 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
               <CommandShortcut className="text-[10px]">⌘B</CommandShortcut>
             </CommandItem>
             <CommandItem
-              onSelect={() => handleSetTheme("light")}
+              onSelect={handleSetLight}
               className="group flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
             >
               <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
@@ -135,7 +136,7 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
               </div>
             </CommandItem>
             <CommandItem
-              onSelect={() => handleSetTheme("dark")}
+              onSelect={handleSetDark}
               className="group flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
             >
               <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
@@ -150,18 +151,12 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
         <div className="border-border/50 bg-muted/20 text-muted-foreground/80 hidden items-center justify-between border-t px-3.5 py-2 text-[11px] select-none sm:flex">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <Kbd className="border-border/70 bg-background h-4 border px-1 text-[10px] font-medium">
-                ↑
-              </Kbd>
-              <Kbd className="border-border/70 bg-background h-4 border px-1 text-[10px] font-medium">
-                ↓
-              </Kbd>
+              <Kbd className="border-border/70 bg-background h-4 border px-1 text-[10px] font-medium">↑</Kbd>
+              <Kbd className="border-border/70 bg-background h-4 border px-1 text-[10px] font-medium">↓</Kbd>
               <span>{t("navigate")}</span>
             </span>
             <span className="flex items-center gap-1">
-              <Kbd className="border-border/70 bg-background h-4 border px-1 text-[10px] font-medium">
-                ↵
-              </Kbd>
+              <Kbd className="border-border/70 bg-background h-4 border px-1 text-[10px] font-medium">↵</Kbd>
               <span>{t("select")}</span>
             </span>
             <span className="flex items-center gap-1">

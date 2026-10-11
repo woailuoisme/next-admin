@@ -1,13 +1,16 @@
+import { useMemo } from "react";
+
 import type { BaseTableSearchParams } from "../core/table-search-schema";
 import type { DataTableProps } from "../core/types";
 
+import { defaultGetRowId } from "../core/constants";
 import { DataTable } from "../core/data-table";
 import { useResourceTable } from "../hooks/use-resource-table";
 
 export interface ResourceTableProps<
   TData extends Record<string, any> = any,
   TSearch extends BaseTableSearchParams = BaseTableSearchParams,
-  TQueryResponse = any,
+  TQueryResponse = unknown,
 > extends Omit<
   DataTableProps<TData>,
   | "data"
@@ -26,7 +29,7 @@ export interface ResourceTableProps<
   /**
    * Factory function returning TanStack Query options for the active search parameters.
    */
-  queryOptions?: any | ((search: TSearch) => any);
+  queryOptions?: unknown | ((search: TSearch) => unknown);
 
   /**
    * Custom data extractor if API response is not { items, total } or an array.
@@ -67,14 +70,14 @@ export interface ResourceTableProps<
 export function ResourceTable<
   TData extends Record<string, any> = any,
   TSearch extends BaseTableSearchParams = BaseTableSearchParams,
-  TQueryResponse = any,
+  TQueryResponse = unknown,
 >({
   queryOptions,
   selectRows,
   selectTotal,
   data: staticData,
   columns,
-  getRowId = (row: any) => row.id ?? row._id ?? row.key ?? "",
+  getRowId = defaultGetRowId<TData>,
   searchDebounceMs = 300,
   slotProps,
   paginationMode: explicitPaginationMode,
@@ -83,7 +86,7 @@ export function ResourceTable<
   ...dataTableProps
 }: ResourceTableProps<TData, TSearch, TQueryResponse>) {
   const { tableProps } = useResourceTable<TData, TSearch, TQueryResponse>({
-    queryOptions,
+    queryOptions: queryOptions as any,
     selectRows,
     selectTotal,
     data: staticData,
@@ -93,6 +96,17 @@ export function ResourceTable<
     paginationMode: explicitPaginationMode,
   });
 
+  const resolvedSlotProps = useMemo(
+    () => ({
+      ...slotProps,
+      toolbar: {
+        quickFilterPlaceholder: "Search records in view...",
+        ...slotProps?.toolbar,
+      },
+    }),
+    [slotProps],
+  );
+
   return (
     <DataTable<TData>
       {...dataTableProps}
@@ -101,13 +115,7 @@ export function ResourceTable<
       getRowId={getRowId}
       filterModel={dataTableProps.filterModel ?? tableProps.filterModel}
       sortModel={dataTableProps.sortModel ?? tableProps.sortModel}
-      slotProps={{
-        ...slotProps,
-        toolbar: {
-          quickFilterPlaceholder: "Search records in view...",
-          ...slotProps?.toolbar,
-        },
-      }}
+      slotProps={resolvedSlotProps}
     />
   );
 }

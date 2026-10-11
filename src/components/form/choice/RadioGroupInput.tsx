@@ -1,13 +1,7 @@
 import { useMemoizedFn } from "ahooks";
 import { memo, useId } from "react";
 
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 
@@ -15,9 +9,7 @@ import { type BaseInputProps, FieldConnector, FieldWrapper, type SelectOption } 
 
 const EMPTY_OPTIONS: SelectOption<any>[] = [];
 
-export interface RadioGroupInputProps<
-  TValue extends string | number = string,
-> extends BaseInputProps {
+export interface RadioGroupInputProps<TValue extends string | number = string> extends BaseInputProps {
   options: SelectOption<TValue>[];
   value?: TValue;
   defaultValue?: TValue;
@@ -104,14 +96,11 @@ function RadioGroupInputInnerComponent<TValue extends string | number = string>(
                 <Field
                   key={String(option.value)}
                   orientation="horizontal"
-                  onClick={() =>
-                    !disabled && !option.disabled && handleValueChange(String(option.value))
-                  }
+                  onClick={() => !disabled && !option.disabled && handleValueChange(String(option.value))}
                   className={cn(
                     "cursor-pointer items-start gap-3 rounded-lg border border-input bg-card/30 p-3 transition-colors select-none",
                     isSelected && "border-primary/60 bg-primary/5 ring-1 ring-primary/20",
-                    (disabled || option.disabled) &&
-                      "pointer-events-none cursor-not-allowed opacity-50",
+                    (disabled || option.disabled) && "pointer-events-none cursor-not-allowed opacity-50",
                   )}
                 >
                   <RadioGroupItem
@@ -141,11 +130,7 @@ function RadioGroupInputInnerComponent<TValue extends string | number = string>(
             }
 
             return (
-              <Field
-                key={String(option.value)}
-                orientation="horizontal"
-                className="items-center gap-2"
-              >
+              <Field key={String(option.value)} orientation="horizontal" className="items-center gap-2">
                 <RadioGroupItem
                   id={optionId}
                   value={String(option.value)}
@@ -167,9 +152,7 @@ function RadioGroupInputInnerComponent<TValue extends string | number = string>(
   );
 }
 
-const RadioGroupInputInner = memo(RadioGroupInputInnerComponent) as <
-  TValue extends string | number = string,
->(
+const RadioGroupInputInner = memo(RadioGroupInputInnerComponent) as <TValue extends string | number = string>(
   props: RadioGroupInputInnerProps<TValue>,
 ) => React.ReactElement;
 
@@ -232,8 +215,6 @@ function RadioGroupInputComponent<TValue extends string | number = string>({
   );
 }
 
-export const RadioGroupInput = memo(RadioGroupInputComponent) as <
-  TValue extends string | number = string,
->(
+export const RadioGroupInput = memo(RadioGroupInputComponent) as <TValue extends string | number = string>(
   props: RadioGroupInputProps<TValue>,
 ) => React.ReactElement;

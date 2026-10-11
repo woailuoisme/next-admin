@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { memo, useState } from "react";
 
 import { Popover } from "@/components/ui/popover";
@@ -31,16 +31,13 @@ export interface NotificationBellProps {
 
 const EMPTY_ITEMS: NotificationItem[] = [];
 
-export const NotificationBell = memo(function NotificationBell({
-  className,
-}: NotificationBellProps = {}) {
-  const [open, { set: setOpen }] = useBoolean(false);
+export const NotificationBell = memo(function NotificationBell({ className }: NotificationBellProps = {}) {
+  const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<NotificationTabKey>("all");
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { category: filterCategory, unreadOnly: filterUnread } =
-    resolveNotificationTabFilters(activeTab);
+  const { category: filterCategory, unreadOnly: filterUnread } = resolveNotificationTabFilters(activeTab);
 
   // 闭合态：轻量未读数
   const { data: countData } = useUnreadNotificationCount();
@@ -114,11 +111,7 @@ export const NotificationBell = memo(function NotificationBell({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <NotificationTrigger
-        unreadCount={unreadCount}
-        onPrefetch={handlePrefetch}
-        className={className}
-      />
+      <NotificationTrigger unreadCount={unreadCount} onPrefetch={handlePrefetch} className={className} />
       <NotificationPopover
         unreadCount={unreadCount}
         totalCount={totalCount}

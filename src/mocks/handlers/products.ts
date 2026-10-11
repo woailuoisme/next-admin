@@ -19,6 +19,28 @@ import {
 const DEFAULT_PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80";
 
+async function updateProduct(id: string, request: Request): Promise<Response> {
+  await simulateNetwork(request);
+  const chaos = checkChaosError(request);
+  if (chaos) return chaos;
+
+  const body = (await request.json()) as Partial<Product>;
+  const existing = db.product.findFirst({
+    where: { id: { equals: id } },
+  });
+
+  if (!existing) {
+    return jsonError(404, "NOT_FOUND", "Product not found");
+  }
+
+  const updatedProduct = await db.product.update({
+    where: { id: { equals: id } },
+    data: body,
+  });
+
+  return jsonOk(updatedProduct);
+}
+
 export const productsHandlers = [
   http.get("/v1/products", async ({ request }) => {
     await simulateNetwork(request);
@@ -34,13 +56,12 @@ export const productsHandlers = [
     const sortBy = url.searchParams.get("sortBy") ?? "createdAt";
     const sortOrder = url.searchParams.get("sortOrder") ?? "desc";
 
-    const all = db.product.getAll() as unknown as Product[];
+    const all = db.product.getAll();
     let items = [...all];
 
     if (search) {
       items = items.filter(
-        (p) =>
-          p.title.toLowerCase().includes(search) || p.description.toLowerCase().includes(search),
+        (p) => p.title.toLowerCase().includes(search) || p.description.toLowerCase().includes(search),
       );
     }
 
@@ -130,7 +151,7 @@ export const productsHandlers = [
     if (!product) {
       return jsonError(404, "NOT_FOUND", "Product not found");
     }
-    return jsonOk(product as unknown as Product);
+    return jsonOk(product);
   }),
 
   http.post("/v1/products", async ({ request }) => {
@@ -170,58 +191,14 @@ export const productsHandlers = [
       });
     }
 
-    const response = jsonCreated(newProduct as unknown as Product);
+    const response = jsonCreated(newProduct);
     saveIdempotencyRecord(request, rawText, 201, { data: newProduct, ...newProduct });
     return response;
   }),
 
-  http.patch("/v1/products/:id", async ({ params, request }) => {
-    await simulateNetwork(request);
-    const chaos = checkChaosError(request);
-    if (chaos) return chaos;
+  http.patch("/v1/products/:id", async ({ params, request }) => updateProduct(params.id as string, request)),
 
-    const { id } = params;
-    const body = (await request.json()) as Partial<Product>;
-
-    const existing = db.product.findFirst({
-      where: { id: { equals: id as string } },
-    });
-
-    if (!existing) {
-      return jsonError(404, "NOT_FOUND", "Product not found");
-    }
-
-    const updatedProduct = await db.product.update({
-      where: { id: { equals: id as string } },
-      data: body,
-    });
-
-    return jsonOk(updatedProduct as unknown as Product);
-  }),
-
-  http.put("/v1/products/:id", async ({ params, request }) => {
-    await simulateNetwork(request);
-    const chaos = checkChaosError(request);
-    if (chaos) return chaos;
-
-    const { id } = params;
-    const body = (await request.json()) as Partial<Product>;
-
-    const existing = db.product.findFirst({
-      where: { id: { equals: id as string } },
-    });
-
-    if (!existing) {
-      return jsonError(404, "NOT_FOUND", "Product not found");
-    }
-
-    const updatedProduct = await db.product.update({
-      where: { id: { equals: id as string } },
-      data: body,
-    });
-
-    return jsonOk(updatedProduct as unknown as Product);
-  }),
+  http.put("/v1/products/:id", async ({ params, request }) => updateProduct(params.id as string, request)),
 
   http.delete("/v1/products/:id", async ({ params, request }) => {
     await simulateNetwork(request);

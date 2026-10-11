@@ -1,4 +1,3 @@
-import { adminUsersHandlers } from "./admin-users";
 import { authHandlers } from "./auth";
 import { categoriesHandlers } from "./categories";
 import { dashboardHandlers } from "./dashboard";
@@ -14,6 +13,5 @@ export const handlers = [
   ...categoriesHandlers,
   ...ordersHandlers,
   ...usersHandlers,
-  ...adminUsersHandlers,
   ...notificationHandlers,
 ];

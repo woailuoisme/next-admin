@@ -35,9 +35,7 @@ export function useToolbarState<TData = any>(props: InternalDataTableToolbarProp
   const onSaveCurrentView = props.onSaveCurrentView ?? NOOP;
   const onDeleteView = props.onDeleteView;
   const enableSavedViews =
-    props.enableSavedViews ??
-    toolbarProps.enableSavedViews ??
-    Boolean(savedViews && savedViews.length > 0);
+    props.enableSavedViews ?? toolbarProps.enableSavedViews ?? Boolean(savedViews && savedViews.length > 0);
 
   const showQuickFilter = props.showQuickFilter ?? toolbarProps.showQuickFilter ?? true;
   const showColumns = props.showColumns ?? toolbarProps.showColumns ?? true;

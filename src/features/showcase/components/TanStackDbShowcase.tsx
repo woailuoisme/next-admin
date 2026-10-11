@@ -276,10 +276,7 @@ export function TanStackDbShowcase() {
               <CardTitle className="text-base font-semibold">
                 TanStack DB 响应式客户端数据库展示 (Reactive Live Grid)
               </CardTitle>
-              <Badge
-                variant="outline"
-                className="border-primary/20 bg-primary/10 text-primary text-[10px]"
-              >
+              <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary text-[10px]">
                 Beta v0.5
               </Badge>
             </div>
@@ -309,12 +306,7 @@ export function TanStackDbShowcase() {
               {simulateError ? "模拟报错中 (回滚生效)" : "开启模拟报错测试"}
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 gap-1.5 text-xs"
-              onClick={handleAddProduct}
-            >
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={handleAddProduct}>
               <Plus className="h-3.5 w-3.5" />
               添加商品
             </Button>

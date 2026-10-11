@@ -1,6 +1,6 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { Check, ChevronsUpDown, X } from "lucide-react";
-import { memo, useId } from "react";
+import { memo, useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,9 +18,7 @@ import { type BaseInputProps, FieldConnector, FieldWrapper, type SelectOption } 
 
 const EMPTY_OPTIONS: SelectOption<any>[] = [];
 
-export interface ComboboxInputProps<
-  TValue extends string | number = string,
-> extends BaseInputProps {
+export interface ComboboxInputProps<TValue extends string | number = string> extends BaseInputProps {
   options: SelectOption<TValue>[];
   value?: TValue;
   defaultValue?: TValue;
@@ -72,7 +70,8 @@ function ComboboxInputInnerComponent<TValue extends string | number = string>({
   searchPlaceholder,
   emptyText,
 }: ComboboxInputInnerProps<TValue>) {
-  const [open, { set: setOpen, setFalse: closePopover }] = useBoolean(false);
+  const [open, setOpen] = useState(false);
+  const closePopover = useMemoizedFn(() => setOpen(false));
 
   const selectedOption = options.find((opt) => String(opt.value) === String(value));
 
@@ -140,10 +139,7 @@ function ComboboxInputInnerComponent<TValue extends string | number = string>({
                         className="cursor-pointer"
                       >
                         <Check
-                          className={cn(
-                            "mr-2 size-4 shrink-0",
-                            isSelected ? "opacity-100" : "opacity-0",
-                          )}
+                          className={cn("mr-2 size-4 shrink-0", isSelected ? "opacity-100" : "opacity-0")}
                         />
                         {option.icon && <span className="mr-2 shrink-0">{option.icon}</span>}
                         <div className="flex min-w-0 flex-col">
@@ -178,9 +174,7 @@ function ComboboxInputInnerComponent<TValue extends string | number = string>({
   );
 }
 
-const ComboboxInputInner = memo(ComboboxInputInnerComponent) as <
-  TValue extends string | number = string,
->(
+const ComboboxInputInner = memo(ComboboxInputInnerComponent) as <TValue extends string | number = string>(
   props: ComboboxInputInnerProps<TValue>,
 ) => React.ReactElement;
 
@@ -247,8 +241,6 @@ function ComboboxInputComponent<TValue extends string | number = string>({
   );
 }
 
-export const ComboboxInput = memo(ComboboxInputComponent) as <
-  TValue extends string | number = string,
->(
+export const ComboboxInput = memo(ComboboxInputComponent) as <TValue extends string | number = string>(
   props: ComboboxInputProps<TValue>,
 ) => React.ReactElement;

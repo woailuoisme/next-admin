@@ -14,7 +14,7 @@ import {
 import { useBatchMutation } from "@/hooks/use-batch-mutation";
 
 export interface UseResourceManagementOptions<
-  TData extends { id: string | number } = { id: string | number } & Record<string, unknown>,
+  TData extends { id: string | number } = { id: string | number } & Record<string, any>,
   TSearch extends BaseTableSearchParams = BaseTableSearchParams,
   TQueryResponse = any,
 > extends UseResourceTableOptions<TData, TSearch, TQueryResponse> {
@@ -45,7 +45,7 @@ export interface UseResourceManagementOptions<
 }
 
 export interface UseResourceManagementReturn<
-  TData extends { id: string | number } = { id: string | number } & Record<string, unknown>,
+  TData extends { id: string | number } = { id: string | number } & Record<string, any>,
   TSearch extends BaseTableSearchParams = BaseTableSearchParams,
   TQueryResponse = any,
 > extends UseResourceTableReturn<TData, TSearch, TQueryResponse> {
@@ -93,7 +93,7 @@ export interface UseResourceManagementReturn<
  * 3. 错误恢复：集中拦截突变异常并提供 Toast 反馈，彻底消除各个业务页面的样板代码复制。
  */
 export function useResourceManagement<
-  TData extends { id: string | number } = { id: string | number } & Record<string, unknown>,
+  TData extends { id: string | number } = { id: string | number } & Record<string, any>,
   TSearch extends BaseTableSearchParams = BaseTableSearchParams,
   TQueryResponse = any,
 >(
@@ -202,8 +202,7 @@ export function useResourceManagement<
       }
       await onAfterDelete?.();
     } catch (error) {
-      const msg =
-        error instanceof Error ? error.message : `Failed to delete ${entityName.toLowerCase()}`;
+      const msg = error instanceof Error ? error.message : `Failed to delete ${entityName.toLowerCase()}`;
       toast.error(msg);
     } finally {
       setIsSingleDeleting(false);
@@ -249,6 +248,27 @@ export function useResourceManagement<
     return String(activeDeleteItem.id);
   }, [activeDeleteItem, getEntityTitle]);
 
+  const deleteDialogProps = useMemo(
+    () => ({
+      open: modal.isDeleteOpen,
+      onOpenChange: handleDeleteOpenChange,
+      entityName,
+      entityTitle: resolvedEntityTitle,
+      itemCount: modal.deleteCount,
+      onConfirm: handleDeleteConfirm,
+      isPending: isDeleting,
+    }),
+    [
+      modal.isDeleteOpen,
+      handleDeleteOpenChange,
+      entityName,
+      resolvedEntityTitle,
+      modal.deleteCount,
+      handleDeleteConfirm,
+      isDeleting,
+    ],
+  );
+
   return {
     ...table,
     modal,
@@ -262,14 +282,6 @@ export function useResourceManagement<
     handleDeleteOpenChange,
     handleDeleteConfirm,
     handleBatchDelete,
-    deleteDialogProps: {
-      open: modal.isDeleteOpen,
-      onOpenChange: handleDeleteOpenChange,
-      entityName,
-      entityTitle: resolvedEntityTitle,
-      itemCount: modal.deleteCount,
-      onConfirm: handleDeleteConfirm,
-      isPending: isDeleting,
-    },
+    deleteDialogProps,
   };
 }

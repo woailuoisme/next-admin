@@ -46,9 +46,7 @@ export const COLOR_RAMP_PRESETS: Record<HeatmapColorRamp, Array<[number, string]
 /**
  * 构造 MapLibre 热力图密度插值表达式
  */
-export function buildHeatmapColorExpression(
-  stops: Array<[number, string]>,
-): ExpressionSpecification {
+export function buildHeatmapColorExpression(stops: Array<[number, string]>): ExpressionSpecification {
   const expr: unknown[] = ["interpolate", ["linear"], ["heatmap-density"]];
   for (const [stop, color] of stops) {
     expr.push(stop, color);

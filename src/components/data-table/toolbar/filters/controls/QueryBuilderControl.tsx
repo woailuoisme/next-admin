@@ -3,13 +3,7 @@ import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import type {
   DataTableColDef,
@@ -198,10 +192,7 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
                       value={rule.value === undefined ? "" : String(rule.value)}
                       onValueChange={(val) => onUpdateRule(rule.id, { value: val === "true" })}
                     >
-                      <SelectTrigger
-                        className="bg-background h-8 text-xs"
-                        aria-label="Rule boolean value"
-                      >
+                      <SelectTrigger className="bg-background h-8 text-xs" aria-label="Rule boolean value">
                         <SelectValue placeholder="Select..." />
                       </SelectTrigger>
                       <SelectContent>

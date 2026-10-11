@@ -1,3 +1,4 @@
+import { useMemoizedFn } from "ahooks";
 import { memo } from "react";
 import { useTranslations } from "next-intl";
 
@@ -13,10 +14,7 @@ const TAB_TRIGGER_CLASS =
   "relative h-9 rounded-none border-b-2 border-transparent px-3 text-xs font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none";
 
 /** 页签 key → 多语言 key 映射 */
-const TAB_LABEL_KEYS: Record<
-  NotificationTabKey,
-  "tab_all" | "tab_order" | "tab_system" | "tab_unread"
-> = {
+const TAB_LABEL_KEYS: Record<NotificationTabKey, "tab_all" | "tab_order" | "tab_system" | "tab_unread"> = {
   all: "tab_all",
   order: "tab_order",
   system: "tab_system",
@@ -31,13 +29,13 @@ export const NotificationTabs = memo(function NotificationTabs({
 }: NotificationTabsProps) {
   const t = useTranslations("notification");
 
+  const handleValueChange = useMemoizedFn((val: string) => {
+    onTabChange(val as NotificationTabKey);
+  });
+
   return (
     <div className={cn("border-b border-border/40 px-3", className)}>
-      <Tabs
-        value={activeTab}
-        onValueChange={(val) => onTabChange(val as NotificationTabKey)}
-        className="w-full"
-      >
+      <Tabs value={activeTab} onValueChange={handleValueChange} className="w-full">
         <TabsList className="flex h-9 w-full items-center justify-start gap-1 rounded-none bg-transparent p-0">
           {NOTIFICATION_TABS.map(({ key }) => (
             <TabsTrigger key={key} value={key} className={TAB_TRIGGER_CLASS}>

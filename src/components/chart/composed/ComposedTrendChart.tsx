@@ -61,9 +61,7 @@ export const ComposedTrendChart = memo(function ComposedTrendChart(props: Compos
         initialDimension={{ width: DEFAULT_INITIAL_CHART_WIDTH, height }}
       >
         <ComposedChart data={data} margin={chartMargin}>
-          {showGrid && (
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />
-          )}
+          {showGrid && <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />}
 
           <XAxis dataKey={xAxisKey} axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} />
 

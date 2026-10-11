@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-
 import type { AreaTrendChartProps } from "./types";
 
 import { useChartContainer } from "../hooks/useChartContainer";
@@ -23,7 +21,7 @@ export function useAreaTrend(props: AreaTrendChartProps) {
     gradientPrefix: "area-grad-p",
   });
 
-  const secondaryGradId = useMemo(() => `area-grad-s-${gradientId}`, [gradientId]);
+  const secondaryGradId = `area-grad-s-${gradientId}`;
 
   const {
     containerRef,

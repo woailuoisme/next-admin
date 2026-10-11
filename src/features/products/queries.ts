@@ -9,8 +9,7 @@ export const EMPTY_PRODUCT_FILTERS: ProductFilters = Object.freeze({});
 export const productKeys = {
   all: ["products"] as const,
   lists: () => [...productKeys.all, "list"] as const,
-  list: (filters: ProductFilters = EMPTY_PRODUCT_FILTERS) =>
-    [...productKeys.lists(), filters] as const,
+  list: (filters: ProductFilters = EMPTY_PRODUCT_FILTERS) => [...productKeys.lists(), filters] as const,
   details: () => [...productKeys.all, "detail"] as const,
   detail: (id: string) => [...productKeys.details(), id] as const,
 };

@@ -58,9 +58,7 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
               </div>
 
               <div className="ml-2 flex shrink-0 items-center gap-2.5">
-                <span className="text-foreground font-mono font-semibold">
-                  {valueFormatter(item.value)}
-                </span>
+                <span className="text-foreground font-mono font-semibold">{valueFormatter(item.value)}</span>
                 {showPercentage && (
                   <span className="text-muted-foreground w-12 text-right font-mono text-[11px]">
                     {percentageFormatter(item.pct)}

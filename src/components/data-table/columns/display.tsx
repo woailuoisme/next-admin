@@ -608,17 +608,8 @@ export function iconCol<TData = any>(
     labelPosition?: IconCellProps["labelPosition"];
   },
 ): DataTableColDef<TData> {
-  const {
-    headerDescription,
-    iconMap,
-    colorMap,
-    size,
-    tooltip,
-    container,
-    label,
-    labelPosition,
-    ...colDef
-  } = options || {};
+  const { headerDescription, iconMap, colorMap, size, tooltip, container, label, labelPosition, ...colDef } =
+    options || {};
 
   return {
     field,

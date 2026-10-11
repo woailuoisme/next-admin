@@ -1,4 +1,4 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { useMemo, useState } from "react";
 
 import type { DataTableFilterItem, DataTableFilterModel } from "../../../core/types";
@@ -38,7 +38,7 @@ export function useFilterPanelState({
   onFilterModelChange,
   deferFilters = false,
 }: UseFilterPanelStateOptions): UseFilterPanelStateResult {
-  const [open, { set: setOpen }] = useBoolean(false);
+  const [open, setOpen] = useState(false);
 
   // Local draft state for deferred filter commits
   const [draftItems, setDraftItems] = useState<DataTableFilterItem[]>(filterModel.items || []);

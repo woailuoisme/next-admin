@@ -9,6 +9,8 @@ function formatDisplayValue(val: unknown): string {
   return typeof val === "object" && val !== null ? JSON.stringify(val) : String(val ?? "");
 }
 
+const EMPTY_ENTRIES: Array<{ key: string; value: any }> = [];
+
 export const KeyValueEntry = React.memo(function KeyValueEntry({
   name,
   value: explicitValue,
@@ -19,7 +21,7 @@ export const KeyValueEntry = React.memo(function KeyValueEntry({
   const rawValue = useInfolistFieldValue(name, explicitValue);
 
   const entries: Array<{ key: string; value: any }> = React.useMemo(() => {
-    if (!rawValue) return [];
+    if (!rawValue) return EMPTY_ENTRIES;
     if (Array.isArray(rawValue)) {
       return rawValue.map((item) => ({
         key: String(item.key ?? ""),
@@ -32,7 +34,7 @@ export const KeyValueEntry = React.memo(function KeyValueEntry({
         value: v,
       }));
     }
-    return [];
+    return EMPTY_ENTRIES;
   }, [rawValue]);
 
   const renderContent = () => {
@@ -53,12 +55,8 @@ export const KeyValueEntry = React.memo(function KeyValueEntry({
             <tbody className="divide-border/60 divide-y">
               {entries.map(({ key, value }, idx) => (
                 <tr key={idx} className="hover:bg-muted/30 transition-colors">
-                  <td className="text-muted-foreground px-3 py-2 font-mono font-medium break-all">
-                    {key}
-                  </td>
-                  <td className="text-foreground px-3 py-2 break-all">
-                    {formatDisplayValue(value)}
-                  </td>
+                  <td className="text-muted-foreground px-3 py-2 font-mono font-medium break-all">{key}</td>
+                  <td className="text-foreground px-3 py-2 break-all">{formatDisplayValue(value)}</td>
                 </tr>
               ))}
             </tbody>

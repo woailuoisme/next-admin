@@ -66,9 +66,7 @@ export const SparklineCell = memo(function SparklineCell({
   const effectiveHeight = height - paddingY * 2;
 
   const isUp = data[data.length - 1] >= data[0];
-  const autoColorClass = isUp
-    ? "text-emerald-500 dark:text-emerald-400"
-    : "text-rose-500 dark:text-rose-400";
+  const autoColorClass = isUp ? "text-emerald-500 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400";
 
   const resolvedColorClass = color ? "" : autoColorClass;
   const isTooltipOpen = interactive ? hoveredIndex !== null : undefined;
@@ -107,12 +105,7 @@ export const SparklineCell = memo(function SparklineCell({
 
     const barSvg = (
       <div
-        className={cn(
-          "flex items-center",
-          JUSTIFY_ALIGN_CLASSES[align],
-          resolvedColorClass,
-          className,
-        )}
+        className={cn("flex items-center", JUSTIFY_ALIGN_CLASSES[align], resolvedColorClass, className)}
         data-testid="sparkline-bar-cell"
       >
         <svg
@@ -182,12 +175,7 @@ export const SparklineCell = memo(function SparklineCell({
 
   const svgElement = (
     <div
-      className={cn(
-        "flex items-center",
-        JUSTIFY_ALIGN_CLASSES[align],
-        resolvedColorClass,
-        className,
-      )}
+      className={cn("flex items-center", JUSTIFY_ALIGN_CLASSES[align], resolvedColorClass, className)}
       data-testid="sparkline-cell"
     >
       <svg

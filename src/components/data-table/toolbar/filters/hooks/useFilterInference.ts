@@ -1,10 +1,6 @@
 import { useMemo } from "react";
 
-import type {
-  DataTableColDef,
-  DataTableFilterConfig,
-  DataTableFilterDefinition,
-} from "../../../core/types";
+import type { DataTableColDef, DataTableFilterConfig, DataTableFilterDefinition } from "../../../core/types";
 
 export interface UseFilterInferenceOptions<TData = any> {
   columns: DataTableColDef<TData>[];

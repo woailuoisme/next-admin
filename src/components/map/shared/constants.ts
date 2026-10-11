@@ -43,10 +43,4 @@ export const MAP_REGION_BORDER = "#e5e5e5";
  * `--primary` 的 5 级顺序色阶（浅 → 深）
  * Choropleth 填充与图例色块共用同一份，避免两处色值漂移
  */
-export const MAP_PRIMARY_RAMP: readonly string[] = [
-  "#ffecde",
-  "#ffd1b6",
-  "#f8a87d",
-  "#de793e",
-  "#bb4d00",
-];
+export const MAP_PRIMARY_RAMP: readonly string[] = ["#ffecde", "#ffd1b6", "#f8a87d", "#de793e", "#bb4d00"];

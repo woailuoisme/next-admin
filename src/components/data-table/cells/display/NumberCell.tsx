@@ -149,9 +149,7 @@ export const NumberCell = memo(function NumberCell({
 
       <span>{formattedNumber}</span>
 
-      {suffix && (
-        <span className="text-muted-foreground/80 shrink-0 font-sans text-[11px]">{suffix}</span>
-      )}
+      {suffix && <span className="text-muted-foreground/80 shrink-0 font-sans text-[11px]">{suffix}</span>}
     </div>
   );
 
@@ -159,9 +157,7 @@ export const NumberCell = memo(function NumberCell({
     const resolvedDeltaPrefix =
       deltaPrefix !== undefined ? deltaPrefix : typeof delta === "number" && delta > 0 ? "+" : "";
     const deltaText =
-      typeof delta === "number"
-        ? `${resolvedDeltaPrefix}${delta}%`
-        : `${resolvedDeltaPrefix}${delta}`;
+      typeof delta === "number" ? `${resolvedDeltaPrefix}${delta}%` : `${resolvedDeltaPrefix}${delta}`;
 
     return (
       <div className={cn("flex flex-col", AVATAR_ALIGN_CLASSES[align], className)}>
@@ -172,18 +168,12 @@ export const NumberCell = memo(function NumberCell({
             TREND_TEXT_CLASSES[resolvedDeltaType],
           )}
         >
-          {resolvedDeltaType === "increase" && (
-            <ArrowUpRight className="size-3 shrink-0 stroke-[2.5]" />
-          )}
-          {resolvedDeltaType === "decrease" && (
-            <ArrowDownRight className="size-3 shrink-0 stroke-[2.5]" />
-          )}
+          {resolvedDeltaType === "increase" && <ArrowUpRight className="size-3 shrink-0 stroke-[2.5]" />}
+          {resolvedDeltaType === "decrease" && <ArrowDownRight className="size-3 shrink-0 stroke-[2.5]" />}
           {resolvedDeltaType === "neutral" && <Minus className="size-2.5 shrink-0 stroke-[2]" />}
           <span>{deltaText}</span>
           {deltaDescription && (
-            <span className="text-muted-foreground/70 ml-0.5 font-sans font-normal">
-              {deltaDescription}
-            </span>
+            <span className="text-muted-foreground/70 ml-0.5 font-sans font-normal">{deltaDescription}</span>
           )}
         </div>
       </div>

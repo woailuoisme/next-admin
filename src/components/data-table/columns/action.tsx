@@ -10,9 +10,7 @@ import { ActionsCell } from "../cells/action";
  * 操作列构造器 (ActionsColumn)
  * 支持声明式 crud 预置配置以及原生 quickActions/dropdownActions
  */
-export function actionsCol<TData = any>(
-  options: ActionsColOptions<TData> = {},
-): DataTableColDef<TData> {
+export function actionsCol<TData = any>(options: ActionsColOptions<TData> = {}): DataTableColDef<TData> {
   const {
     field = "actions",
     headerName = "操作",

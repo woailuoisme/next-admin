@@ -12,7 +12,7 @@ import type {
  * 完整内部工具栏属性（支持 Props 显式传入或从 Context 自动获取）
  * 展示层开关与筛选项直接继承 DataTableToolbarProps，避免逐项重复声明
  */
-export interface InternalDataTableToolbarProps<TData = any> extends DataTableToolbarProps {
+export interface InternalDataTableToolbarProps<TData = unknown> extends DataTableToolbarProps {
   columns?: DataTableColDef<TData>[];
   columnVisibility?: Record<string, boolean>;
   onColumnVisibilityChange?: (v: Record<string, boolean>) => void;
@@ -70,7 +70,7 @@ export interface DataTableExportMenuProps {
 /**
  * 列可见性管理（ColumnsPanel）控件属性
  */
-export interface DataTableColumnsPanelProps<TData = any> {
+export interface DataTableColumnsPanelProps<TData = unknown> {
   columns: DataTableColDef<TData>[];
   columnVisibility: Record<string, boolean>;
   onColumnVisibilityChange: (newVisibility: Record<string, boolean>) => void;

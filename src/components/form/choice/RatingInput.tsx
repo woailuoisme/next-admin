@@ -1,13 +1,6 @@
 import { useMemoizedFn } from "ahooks";
 import { Star } from "lucide-react";
-import {
-  type ComponentType,
-  type KeyboardEvent,
-  type MouseEvent,
-  memo,
-  useId,
-  useState,
-} from "react";
+import { type ComponentType, type KeyboardEvent, type MouseEvent, memo, useId, useState } from "react";
 
 import { cn } from "@/lib/utils";
 

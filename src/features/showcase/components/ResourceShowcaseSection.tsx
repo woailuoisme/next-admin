@@ -89,9 +89,7 @@ export const ResourceShowcaseSection = memo(function ResourceShowcaseSection() {
       await new Promise((r) => setTimeout(r, 600));
       setCustomer(value as SampleCustomer);
       toast.success(
-        ops.editId
-          ? "Customer details updated successfully!"
-          : "New customer record created successfully!",
+        ops.editId ? "Customer details updated successfully!" : "New customer record created successfully!",
       );
       ops.closeFormDialog();
     },
@@ -139,9 +137,8 @@ return (
               </Badge>
             </div>
             <CardDescription className="mt-1 text-xs">
-              对标 Laravel Filament v5 体系设计。同一套表单和详情视图，支持在居中模态框
-              (Dialog)、右侧滑动抽屉 (Drawer/SlideOver) 与独立路由页面 (Page)
-              三种工业级形态之间零成本无缝切换。
+              对标 Laravel Filament v5 体系设计。同一套表单和详情视图，支持在居中模态框 (Dialog)、右侧滑动抽屉
+              (Drawer/SlideOver) 与独立路由页面 (Page) 三种工业级形态之间零成本无缝切换。
             </CardDescription>
           </div>
 
@@ -177,9 +174,7 @@ return (
           <div className="space-y-1">
             <div className="text-foreground text-sm font-medium">
               当前演示形态：
-              <span className="text-primary ml-1 font-semibold capitalize">
-                {presentation} Mode
-              </span>
+              <span className="text-primary ml-1 font-semibold capitalize">{presentation} Mode</span>
             </div>
             <div className="text-muted-foreground text-xs">
               点击下方操作按钮，直接预览在当前形态下唤起的表单与详情视图：
@@ -271,9 +266,8 @@ return (
             </div>
             <p className="text-muted-foreground text-xs leading-relaxed">
               在生产项目中，Page 模式通常直接映射到独立路由页面（如{" "}
-              <code>/_authenticated/customers/create</code> 或{" "}
-              <code>/_authenticated/customers/$id/edit</code>）。 下方已就地挂载完整的{" "}
-              <code>ResourceFormPage</code> 与 <code>ResourceViewPage</code>{" "}
+              <code>/_authenticated/customers/create</code> 或 <code>/_authenticated/customers/$id/edit</code>
+              ）。 下方已就地挂载完整的 <code>ResourceFormPage</code> 与 <code>ResourceViewPage</code>{" "}
               预览容器，真实展示面包屑导航、返回按钮、表单主体以及底部吸底操作条：
             </p>
           </div>
@@ -286,13 +280,7 @@ return (
               <Code2 className="size-3.5" />
               <span>标准业务集成范例 (Resource Form / View Host)</span>
             </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={handleCopyCode}
-              className="h-6 w-6"
-            >
+            <Button type="button" variant="ghost" size="icon-xs" onClick={handleCopyCode} className="h-6 w-6">
               {copied ? (
                 <Check className={`size-3 ${SHOWCASE_ACCENT_CLASSES.success}`} />
               ) : (
@@ -463,9 +451,7 @@ const ops = useResourceOperations<Customer>({
         <div className="space-y-4">
           <div className="border-border/60 bg-muted/20 grid grid-cols-2 gap-4 rounded-xl border p-4">
             <div>
-              <div className="text-muted-foreground text-[11px] font-medium">
-                Primary Contact Email
-              </div>
+              <div className="text-muted-foreground text-[11px] font-medium">Primary Contact Email</div>
               <div className="text-foreground mt-0.5 text-sm font-semibold">{customer.email}</div>
             </div>
             <div>
@@ -474,24 +460,18 @@ const ops = useResourceOperations<Customer>({
             </div>
             <div>
               <div className="text-muted-foreground text-[11px] font-medium">Subscription Tier</div>
-              <div className="text-foreground mt-0.5 text-sm font-semibold capitalize">
-                {customer.tier}
-              </div>
+              <div className="text-foreground mt-0.5 text-sm font-semibold capitalize">{customer.tier}</div>
             </div>
             <div>
               <div className="text-muted-foreground text-[11px] font-medium">Account Status</div>
-              <div
-                className={`mt-0.5 text-sm font-semibold ${SHOWCASE_ACCENT_CLASSES.successText}`}
-              >
+              <div className={`mt-0.5 text-sm font-semibold ${SHOWCASE_ACCENT_CLASSES.successText}`}>
                 {customer.isActive ? "Operational" : "Suspended"}
               </div>
             </div>
           </div>
 
           <div className="border-border/60 bg-muted/10 space-y-1 rounded-xl border p-4">
-            <div className="text-muted-foreground text-[11px] font-medium">
-              Strategic Account Notes
-            </div>
+            <div className="text-muted-foreground text-[11px] font-medium">Strategic Account Notes</div>
             <p className="text-foreground/90 text-xs leading-relaxed">{customer.notes}</p>
           </div>
         </div>

@@ -48,11 +48,7 @@ export const InfolistTabs = React.memo(function InfolistTabs({
 
       {tabs.map((tab) => (
         <TabsContent key={tab.value} value={tab.value} className="pt-1 focus-visible:outline-none">
-          {tab.columns ? (
-            <InfolistGrid columns={tab.columns}>{tab.children}</InfolistGrid>
-          ) : (
-            tab.children
-          )}
+          {tab.columns ? <InfolistGrid columns={tab.columns}>{tab.children}</InfolistGrid> : tab.children}
         </TabsContent>
       ))}
     </Tabs>

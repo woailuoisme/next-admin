@@ -16,8 +16,7 @@ export const StatCardTrend = memo(function StatCardTrend({
   className,
   ...props
 }: StatCardTrendProps) {
-  const trendConfig =
-    trend ?? (value !== undefined ? { value, direction, label, isPositiveGood } : null);
+  const trendConfig = trend ?? (value !== undefined ? { value, direction, label, isPositiveGood } : null);
   const trendInfo = calculateTrendInfo(trendConfig);
 
   if (!trendInfo) return null;

@@ -75,8 +75,7 @@ const TagsInputInner = memo(function TagsInputInner({
       <div
         className={cn(
           "flex min-h-8 w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-transparent px-2 py-1 shadow-2xs transition-all focus-within:border-ring focus-within:ring-1 focus-within:ring-ring/50",
-          hasError &&
-            "border-destructive focus-within:border-destructive focus-within:ring-destructive/20",
+          hasError && "border-destructive focus-within:border-destructive focus-within:ring-destructive/20",
           disabled && "cursor-not-allowed bg-muted/40 opacity-50",
         )}
       >

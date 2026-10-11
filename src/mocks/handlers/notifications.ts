@@ -1,10 +1,27 @@
 import { orderBy } from "es-toolkit";
 import { http } from "msw";
 
-import type { NotificationItem } from "@/features/notifications";
-
 import { db } from "../db";
 import { checkChaosError, jsonError, jsonNoContent, jsonOk, simulateNetwork } from "../middleware";
+
+async function markAllNotificationsAsRead(request: Request): Promise<Response> {
+  await simulateNetwork(request);
+  const chaos = checkChaosError(request);
+  if (chaos) return chaos;
+
+  const unread = db.notification.findMany({
+    where: { read: { equals: false } },
+  });
+
+  for (const item of unread) {
+    await db.notification.update({
+      where: { id: { equals: item.id } },
+      data: { read: true },
+    });
+  }
+
+  return jsonOk({ count: unread.length }, { success: true, count: unread.length });
+}
 
 export const notificationHandlers = [
   http.get("/v1/notifications", async ({ request }) => {
@@ -16,7 +33,7 @@ export const notificationHandlers = [
     const category = url.searchParams.get("category");
     const unreadOnly = url.searchParams.get("unreadOnly") === "true";
 
-    const allNotifications = db.notification.getAll() as unknown as NotificationItem[];
+    const allNotifications = db.notification.getAll();
     const unreadCount = allNotifications.filter((i) => !i.read).length;
 
     let items = allNotifications;
@@ -68,7 +85,7 @@ export const notificationHandlers = [
       ...updated,
       isRead: updated?.read ?? isRead,
       read: updated?.read ?? isRead,
-    } as unknown as NotificationItem;
+    };
     return jsonOk(result);
   }),
 
@@ -95,46 +112,16 @@ export const notificationHandlers = [
       ...updated,
       isRead: updated?.read ?? true,
       read: updated?.read ?? true,
-    } as unknown as NotificationItem;
+    };
     return jsonOk(result);
   }),
 
   http.post("/v1/notifications/batch-reads", async ({ request }) => {
-    await simulateNetwork(request);
-    const chaos = checkChaosError(request);
-    if (chaos) return chaos;
-
-    const unread = db.notification.findMany({
-      where: { read: { equals: false } },
-    });
-
-    for (const item of unread) {
-      await db.notification.update({
-        where: { id: { equals: item.id } },
-        data: { read: true },
-      });
-    }
-
-    return jsonOk({ count: unread.length }, { success: true, count: unread.length });
+    return markAllNotificationsAsRead(request);
   }),
 
   http.post("/v1/notifications/read-all", async ({ request }) => {
-    await simulateNetwork(request);
-    const chaos = checkChaosError(request);
-    if (chaos) return chaos;
-
-    const unread = db.notification.findMany({
-      where: { read: { equals: false } },
-    });
-
-    for (const item of unread) {
-      await db.notification.update({
-        where: { id: { equals: item.id } },
-        data: { read: true },
-      });
-    }
-
-    return jsonOk({ count: unread.length }, { success: true, count: unread.length });
+    return markAllNotificationsAsRead(request);
   }),
 
   http.delete("/v1/notifications/:id", async ({ params, request }) => {

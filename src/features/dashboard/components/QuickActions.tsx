@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Layers, PackagePlus, ShieldCheck, ShoppingCart } from "lucide-react";
+import { Layers, PackagePlus, ShoppingCart, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,9 +21,9 @@ const QUICK_ACTIONS = [
     label: "Categories",
   },
   {
-    to: "/admin-users",
-    icon: ShieldCheck,
-    label: "Staff & Roles",
+    to: "/users",
+    icon: Users,
+    label: "Customer Base",
   },
 ] as const;
 

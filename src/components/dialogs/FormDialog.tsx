@@ -91,9 +91,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
 
     const currentEntityId =
       entity && typeof entity === "object"
-        ? ((entity as Record<string, unknown>).id ??
-          (entity as Record<string, unknown>)._id ??
-          undefined)
+        ? ((entity as Record<string, unknown>).id ?? (entity as Record<string, unknown>)._id ?? undefined)
         : entity;
     const justOpened = !prevOpenRef.current && open;
     const entityChanged =
@@ -106,10 +104,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
       const currentDefaultValues = defaultValues;
       if (entity && typeof entity === "object") {
         const entityRecord = entity as Record<string, unknown>;
-        const allKeys = new Set([
-          ...Object.keys(currentDefaultValues ?? {}),
-          ...Object.keys(entityRecord),
-        ]);
+        const allKeys = new Set([...Object.keys(currentDefaultValues ?? {}), ...Object.keys(entityRecord)]);
         for (const key of allKeys) {
           const val = entityRecord[key] ?? currentDefaultValues?.[key];
           if (val !== undefined) {
@@ -128,8 +123,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   }, [open, entity, form, defaultValues]);
 
   const resolvedTitle =
-    title ??
-    (isEdit ? (editTitle ?? `Edit ${entityName}`) : (createTitle ?? `Add New ${entityName}`));
+    title ?? (isEdit ? (editTitle ?? `Edit ${entityName}`) : (createTitle ?? `Add New ${entityName}`));
 
   const resolvedSubmitText =
     submitText ??
@@ -164,11 +158,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   ) => (
     // 本组件拥有 <form> 元素（吸底提交按钮位于其内部并依赖原生提交）
     // children 只能是字段内容，严禁再渲染 form / <Form as="form">，否则会嵌套 <form> 导致 hydration 报错
-    <form
-      id={formId}
-      onSubmit={handleFormSubmit}
-      className="flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
+    <form id={formId} onSubmit={handleFormSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-4">
         <FormContext value={formContextValue}>{children}</FormContext>
       </div>
@@ -235,10 +225,8 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
           "flex flex-col gap-0 overflow-hidden p-0 transition-all duration-200",
           isFullscreen
             ? "h-[96vh] max-h-[96vh] w-[98vw] sm:max-w-[98vw]"
-            : cn(
-                "max-h-[calc(100dvh-2.5rem)] sm:max-h-[88vh]",
-                widthClassName || DIALOG_SIZE_CLASSES[size],
-              ),
+            : "max-h-[calc(100dvh-2.5rem)] sm:max-h-[88vh]",
+          !isFullscreen && (widthClassName || DIALOG_SIZE_CLASSES[size]),
           className,
         )}
       >

@@ -3,11 +3,11 @@
 import { useEventListener, useMemoizedFn } from "ahooks";
 import { clamp } from "es-toolkit";
 import { ArrowUp } from "lucide-react";
-import { type CSSProperties, type MouseEvent, type ReactNode, useEffect, useState } from "react";
-
+import { type CSSProperties, type MouseEvent, type ReactNode, memo, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { cn } from "cn";
+
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 
 export interface BackToTopProps {
   /**
@@ -82,6 +82,13 @@ export interface BackToTopProps {
 const SVG_RADIUS = 15.5;
 const CIRCUMFERENCE = 2 * Math.PI * SVG_RADIUS;
 
+function resolveTargetEl(
+  target?: () => HTMLElement | Window | Document | null,
+): HTMLElement | Window | Document | null {
+  if (typeof window === "undefined") return null;
+  return target?.() ?? window;
+}
+
 function getScrollMetrics(targetEl: HTMLElement | Window | Document | null) {
   if (!targetEl) {
     return { scrollTop: 0, scrollHeight: 0, clientHeight: 0 };
@@ -114,11 +121,7 @@ function getScrollMetrics(targetEl: HTMLElement | Window | Document | null) {
   };
 }
 
-function scrollToTop(
-  targetEl: HTMLElement | Window | Document | null,
-  top: number,
-  smooth: boolean,
-) {
+function scrollToTop(targetEl: HTMLElement | Window | Document | null, top: number, smooth: boolean) {
   if (!targetEl) return;
   const behavior: ScrollBehavior = smooth ? "smooth" : "auto";
 
@@ -143,7 +146,7 @@ function scrollToTop(
   }
 }
 
-export function BackToTop({
+export const BackToTop = memo(function BackToTop({
   threshold = 300,
   target,
   showProgress = true,
@@ -161,13 +164,8 @@ export function BackToTop({
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  const resolveTarget = useMemoizedFn((): HTMLElement | Window | Document | null => {
-    if (typeof window === "undefined") return null;
-    return target?.() ?? window;
-  });
-
   const updateScroll = useMemoizedFn(() => {
-    const targetEl = resolveTarget();
+    const targetEl = resolveTargetEl(target);
     const { scrollTop, scrollHeight, clientHeight } = getScrollMetrics(targetEl);
 
     setVisible(scrollTop >= threshold);
@@ -186,7 +184,7 @@ export function BackToTop({
   const handleClick = useMemoizedFn((e: MouseEvent<HTMLButtonElement>) => {
     onClick?.(e);
     if (e.defaultPrevented) return;
-    scrollToTop(resolveTarget(), top, smooth);
+    scrollToTop(resolveTargetEl(target), top, smooth);
   });
 
   if (!visible) {
@@ -272,4 +270,4 @@ export function BackToTop({
   }
 
   return buttonElement;
-}
+});

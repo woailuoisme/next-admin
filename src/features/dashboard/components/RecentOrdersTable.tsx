@@ -13,14 +13,10 @@ interface RecentOrdersTableProps {
   isLoading?: boolean;
 }
 
-const STATUS_CONFIG: Record<
-  OrderStatus,
-  { label: string; className?: string; variant?: "destructive" }
-> = {
+const STATUS_CONFIG: Record<OrderStatus, { label: string; className?: string; variant?: "destructive" }> = {
   delivered: {
     label: "Delivered",
-    className:
-      "border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-medium",
+    className: "border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-medium",
   },
   shipped: {
     label: "Shipped",
@@ -66,10 +62,7 @@ export function RecentOrdersTable({ orders = [], isLoading = false }: RecentOrde
         <CardContent className="p-0">
           <div className="divide-border/50 divide-y">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={`recent-orders-skeleton-${i}`}
-                className="flex items-center justify-between p-4"
-              >
+              <div key={`recent-orders-skeleton-${i}`} className="flex items-center justify-between p-4">
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
                     <Skeleton className="h-4 w-24" />

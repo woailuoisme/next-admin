@@ -1,26 +1,28 @@
-import { useBoolean } from "ahooks";
+"use client";
+
+import { useMemoizedFn } from "ahooks";
 import { Check, Copy } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { type MouseEvent, memo, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { cn } from "cn";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 
-interface CopyButtonProps {
+export interface CopyButtonProps {
   text: string;
   className?: string;
   title?: string;
   successMessage?: string;
 }
 
-export function CopyButton({
+export const CopyButton = memo(function CopyButton({
   text,
   className,
   title = "Copy to clipboard",
   successMessage = "Copied to clipboard!",
 }: CopyButtonProps) {
-  const [copied, { setTrue: setCopiedTrue, setFalse: setCopiedFalse }] = useBoolean(false);
+  const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -31,22 +33,22 @@ export function CopyButton({
     };
   }, []);
 
-  const handleCopy = async (e: React.MouseEvent) => {
+  const handleCopy = useMemoizedFn(async (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
     try {
       await navigator.clipboard.writeText(text);
-      setCopiedTrue();
+      setCopied(true);
       toast.success(successMessage);
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
-        setCopiedFalse();
+        setCopied(false);
       }, 1500);
     } catch (err) {
       console.error("Failed to copy text", err);
       toast.error("Failed to copy to clipboard");
     }
-  };
+  });
 
   return (
     <Tooltip>
@@ -75,4 +77,4 @@ export function CopyButton({
       </TooltipContent>
     </Tooltip>
   );
-}
+});

@@ -96,9 +96,7 @@ export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaug
             <>
               <span>{clampedValue}</span>
               {unit && (
-                <span className={cn("ml-0.5 font-normal", isCompact ? "text-sm" : "text-xl")}>
-                  {unit}
-                </span>
+                <span className={cn("ml-0.5 font-normal", isCompact ? "text-sm" : "text-xl")}>{unit}</span>
               )}
             </>
           )}

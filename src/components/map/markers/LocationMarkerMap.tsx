@@ -4,7 +4,7 @@ import { memo, useDeferredValue, useMemo } from "react";
 import { Map, MapControls } from "@/components/ui/map";
 import { cn } from "@/lib/utils";
 
-import type { LocationMarkerMapProps } from "./types";
+import type { LocationMarkerItem, LocationMarkerMapProps } from "./types";
 
 import { MapCard } from "../card/MapCard";
 import { resolveBasemapConfig } from "../presets/basemaps";
@@ -18,6 +18,8 @@ import { LocationMarkerPin } from "./LocationMarkerPin";
 import { LocationMarkerSearchOverlay } from "./LocationMarkerSearchOverlay";
 import { LocationMarkerSidebar } from "./LocationMarkerSidebar";
 import { useLocationMarkers } from "./useLocationMarkers";
+
+const EMPTY_MARKERS: LocationMarkerItem[] = [];
 
 export const LocationMarkerMap = memo(function LocationMarkerMap(props: LocationMarkerMapProps) {
   const {
@@ -61,7 +63,7 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const rawItems = useMemo(
-    () => props.data ?? props.locations ?? [],
+    () => props.data ?? props.locations ?? EMPTY_MARKERS,
     [props.data, props.locations],
   );
 
@@ -87,10 +89,7 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
   // 内层统一 size-full，避免内层固定高度大于外层裁切框导致搜索浮层/控件被裁
   const mapBody = (
     <div
-      className={cn(
-        "relative flex size-full overflow-hidden rounded-xl bg-muted/20 select-none",
-        className,
-      )}
+      className={cn("relative flex size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}
     >
       {isLoading ? (
         <MapSkeleton height="100%" />

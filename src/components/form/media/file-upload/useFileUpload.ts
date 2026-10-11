@@ -1,5 +1,5 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
-import { type ChangeEvent, type DragEvent, useEffect, useRef } from "react";
+import { useMemoizedFn } from "ahooks";
+import { type ChangeEvent, type DragEvent, useEffect, useRef, useState } from "react";
 
 import type { FileUploadItem } from "./types";
 
@@ -33,7 +33,9 @@ export function useFileUpload({
 }: UseFileUploadOptions) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const blobUrlsRef = useRef<Set<string>>(new Set());
-  const [isDragging, { setTrue: setDraggingTrue, setFalse: setDraggingFalse }] = useBoolean(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const setDraggingTrue = useMemoizedFn(() => setIsDragging(true));
+  const setDraggingFalse = useMemoizedFn(() => setIsDragging(false));
 
   // Revoke created blob URLs on unmount to prevent browser memory leaks
   useEffect(() => {
@@ -49,9 +51,7 @@ export function useFileUpload({
   const items = normalizeToItems(value);
 
   const canUploadMore =
-    !disabled &&
-    !readOnly &&
-    (mode === "avatar" ? items.length === 0 : !multiple || items.length < maxFiles);
+    !disabled && !readOnly && (mode === "avatar" ? items.length === 0 : !multiple || items.length < maxFiles);
 
   const triggerUploadFiles = useMemoizedFn(async (files: File[]) => {
     if (disabled || readOnly || files.length === 0) return;

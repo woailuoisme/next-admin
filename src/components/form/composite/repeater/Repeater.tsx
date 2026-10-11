@@ -107,9 +107,7 @@ const RepeaterInner = memo(function RepeaterInner<T>({
           {items.length > 0 ? (
             <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
               <span>{items.length} 项</span>
-              {maxItems !== undefined ? (
-                <span className="text-muted-foreground/80">/ {maxItems}</span>
-              ) : null}
+              {maxItems !== undefined ? <span className="text-muted-foreground/80">/ {maxItems}</span> : null}
             </Badge>
           ) : null}
         </div>
@@ -320,8 +318,8 @@ export const Repeater = memo(function Repeater<T = unknown>({
       onBlur={controlledOnBlur}
       error={error}
     >
-      {({ value = [], onChange, error: computedError }) => {
-        const items = Array.isArray(value) ? value : [];
+      {({ value = DEFAULT_EMPTY_ARRAY as T[], onChange, error: computedError }) => {
+        const items = Array.isArray(value) ? value : (DEFAULT_EMPTY_ARRAY as T[]);
 
         return (
           <FieldWrapper

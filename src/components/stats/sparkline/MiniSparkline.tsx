@@ -7,7 +7,7 @@ import type { SparklineProps } from "./types";
 import { getStatTheme } from "../shared/theme";
 import { useSparklinePath } from "./useSparklinePath";
 
-const DEFAULT_COLOR = "var(--primary, #3b82f6)";
+const DEFAULT_COLOR = "var(--primary)";
 
 export const MiniSparkline = memo(function MiniSparkline({
   data,

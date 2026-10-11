@@ -1,7 +1,7 @@
 import { chunk, orderBy, round, sumBy } from "es-toolkit";
 import { http } from "msw";
 
-import type { Order, OrderStatus } from "@/features/orders";
+import type { OrderStatus } from "@/features/orders";
 
 import { db } from "../db";
 import { checkChaosError, jsonError, jsonOk, jsonPaginated, simulateNetwork } from "../middleware";
@@ -18,7 +18,7 @@ export const ordersHandlers = [
     const page = Number.parseInt(url.searchParams.get("page") ?? "1", 10);
     const pageSize = Number.parseInt(url.searchParams.get("pageSize") ?? "20", 10);
 
-    const all = db.order.getAll() as unknown as Order[];
+    const all = db.order.getAll();
     let items = [...all];
 
     if (status && status !== "all") {
@@ -37,9 +37,7 @@ export const ordersHandlers = [
     items = orderBy(items, [(o) => o.createdAt], ["desc"]);
 
     const total = items.length;
-    const pendingCount = items.filter(
-      (o) => o.status === "pending" || o.status === "processing",
-    ).length;
+    const pendingCount = items.filter((o) => o.status === "pending" || o.status === "processing").length;
     const deliveredCount = items.filter((o) => o.status === "delivered").length;
     const avgOrderValue = total > 0 ? round(sumBy(items, (o) => o.total ?? 0) / total, 2) : 0;
 
@@ -104,7 +102,7 @@ export const ordersHandlers = [
       return jsonError(404, "NOT_FOUND", "Order not found");
     }
 
-    return jsonOk(order as unknown as Order);
+    return jsonOk(order);
   }),
 
   http.patch("/v1/orders/:id/status", async ({ params, request }) => {
@@ -132,6 +130,6 @@ export const ordersHandlers = [
       data: { status: body.status },
     });
 
-    return jsonOk(updated as unknown as Order);
+    return jsonOk(updated);
   }),
 ];

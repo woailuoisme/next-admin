@@ -95,14 +95,10 @@ export function parseTweakcnCss(cssText: string): ParsedTheme {
   }
 
   // Extract primary and accent for swatch preview
-  const primaryColor =
-    lightVars["--primary"] || darkVars["--primary"] || "oklch(0.6171 0.1375 39.0427)";
+  const primaryColor = lightVars["--primary"] || darkVars["--primary"] || "oklch(0.6171 0.1375 39.0427)";
 
   const accentColor =
-    lightVars["--accent"] ||
-    lightVars["--chart-2"] ||
-    darkVars["--accent"] ||
-    "oklch(0.9245 0.0138 92.9892)";
+    lightVars["--accent"] || lightVars["--chart-2"] || darkVars["--accent"] || "oklch(0.9245 0.0138 92.9892)";
 
   // Extract radius if specified
   const radius = lightVars["--radius"] || darkVars["--radius"];
@@ -123,12 +119,6 @@ function formatVars(vars: Record<string, string>, indent = "  "): string {
     .join("\n");
 }
 
-function formatBlock(vars: Record<string, string>): string {
-  return Object.entries(vars)
-    .map(([key, val]) => `  ${key}: ${val};`)
-    .join("\n");
-}
-
 function normalizeVars(rawVars: Record<string, string> = {}): Record<string, string> {
   const res: Record<string, string> = {};
   for (const [key, val] of Object.entries(rawVars)) {
@@ -141,10 +131,7 @@ function normalizeVars(rawVars: Record<string, string> = {}): Record<string, str
 /**
  * Builds standard scoped CSS rules for injecting a custom Tweakcn theme into the DOM
  */
-export function buildCustomThemeStyleSheet(
-  parsed: ParsedTheme,
-  selector = '[data-theme="custom"]',
-): string {
+export function buildCustomThemeStyleSheet(parsed: ParsedTheme, selector = '[data-theme="custom"]'): string {
   const lightTokens = formatVars(parsed.lightVars, "  ");
   const darkTokens = formatVars(parsed.darkVars, "    ");
 
@@ -170,11 +157,11 @@ export function formatTweakcnExport(
 @custom-variant dark (&:is(.dark *));
 
 :root {
-${formatBlock(lightMerged)}
+${formatVars(lightMerged)}
 }
 
 .dark {
-${formatBlock(darkMerged)}
+${formatVars(darkMerged)}
 }
 `;
 }
@@ -194,17 +181,12 @@ export function parseTweakcnRegistryJson(registryItem: ShadcnThemeRegistryItem):
     Object.assign(darkVars, lightVars);
   }
 
-  const primaryColor =
-    lightVars["--primary"] || darkVars["--primary"] || "oklch(0.6171 0.1375 39.0427)";
+  const primaryColor = lightVars["--primary"] || darkVars["--primary"] || "oklch(0.6171 0.1375 39.0427)";
 
   const accentColor =
-    lightVars["--accent"] ||
-    lightVars["--chart-2"] ||
-    darkVars["--accent"] ||
-    "oklch(0.9245 0.0138 92.9892)";
+    lightVars["--accent"] || lightVars["--chart-2"] || darkVars["--accent"] || "oklch(0.9245 0.0138 92.9892)";
 
-  const radius =
-    lightVars["--radius"] || darkVars["--radius"] || registryItem.cssVars.theme?.radius;
+  const radius = lightVars["--radius"] || darkVars["--radius"] || registryItem.cssVars.theme?.radius;
 
   return {
     name: registryItem.name,

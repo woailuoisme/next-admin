@@ -13,13 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
@@ -216,10 +210,7 @@ export const DataTablePagination = memo(function DataTablePagination({
                     e.preventDefault();
                     if (page > 1) handlePageChange(page - 1);
                   }}
-                  className={cn(
-                    "cursor-pointer text-xs",
-                    page <= 1 && "pointer-events-none opacity-40",
-                  )}
+                  className={cn("cursor-pointer text-xs", page <= 1 && "pointer-events-none opacity-40")}
                 />
               </PaginationItem>
 

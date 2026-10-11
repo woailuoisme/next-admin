@@ -1,11 +1,4 @@
-import {
-  File,
-  FileArchive,
-  FileCode,
-  FileSpreadsheet,
-  FileText,
-  Image as ImageIcon,
-} from "lucide-react";
+import { File, FileArchive, FileCode, FileSpreadsheet, FileText, Image as ImageIcon } from "lucide-react";
 
 import type { FileUploadItem } from "./types";
 

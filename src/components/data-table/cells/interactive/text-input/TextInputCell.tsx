@@ -1,4 +1,4 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { isNil } from "es-toolkit";
 import { memo, useState } from "react";
 import { toast } from "sonner";
@@ -26,11 +26,11 @@ function TextInputCellInner<TData = unknown>({
   className,
 }: TextInputCellProps<TData>) {
   const initialVal = !isNil(value) ? String(value) : "";
-  const [isEditing, { setTrue: startEdit, setFalse: stopEdit }] = useBoolean(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [currentVal, setCurrentVal] = useState(initialVal);
   const [savedVal, setSavedVal] = useState(initialVal);
   const [prevValue, setPrevValue] = useState(value);
-  const [loading, { setTrue: setLoadingTrue, setFalse: setLoadingFalse }] = useBoolean(false);
+  const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | undefined>();
 
   if (value !== prevValue) {
@@ -71,7 +71,7 @@ function TextInputCellInner<TData = unknown>({
     if (disabled || loading) return;
     if (currentVal === savedVal) {
       setErrorMsg(undefined);
-      stopEdit();
+      setIsEditing(false);
       return;
     }
 
@@ -82,13 +82,13 @@ function TextInputCellInner<TData = unknown>({
     }
 
     setErrorMsg(undefined);
-    stopEdit();
+    setIsEditing(false);
     const previous = savedVal;
     setSavedVal(currentVal);
 
     if (onCellChange) {
       try {
-        setLoadingTrue();
+        setLoading(true);
         const result = onCellChange(row, currentVal);
         if (result instanceof Promise) {
           await result;
@@ -105,7 +105,7 @@ function TextInputCellInner<TData = unknown>({
           toast.error(msg);
         }
       } finally {
-        setLoadingFalse();
+        setLoading(false);
       }
     }
   });
@@ -113,12 +113,12 @@ function TextInputCellInner<TData = unknown>({
   const cancelChange = useMemoizedFn(() => {
     setErrorMsg(undefined);
     setCurrentVal(savedVal);
-    stopEdit();
+    setIsEditing(false);
   });
 
   const handleStartEdit = useMemoizedFn(() => {
     setErrorMsg(undefined);
-    startEdit();
+    setIsEditing(true);
   });
 
   if (isEditing && !disabled) {

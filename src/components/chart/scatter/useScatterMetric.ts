@@ -29,7 +29,7 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
     if (propSeries && propSeries.length > 0) {
       return propSeries.map((s, idx) => ({
         ...s,
-        data: s.data.map((point: any) => ({
+        data: s.data.map((point: Record<string, unknown>) => ({
           ...point,
           x: Number(point[xAxisKey] ?? point.x ?? 0),
           y: Number(point[yAxisKey] ?? point.y ?? 0),
@@ -51,7 +51,7 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
     }
 
     if (data && data.length > 0) {
-      const normalizedPoints: ScatterPoint[] = data.map((point: any) => ({
+      const normalizedPoints: ScatterPoint[] = data.map((point: Record<string, unknown>) => ({
         ...point,
         x: Number(point[xAxisKey] ?? point.x ?? 0),
         y: Number(point[yAxisKey] ?? point.y ?? 0),

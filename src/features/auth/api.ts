@@ -1,14 +1,11 @@
-import type { AdminUser } from "@/features/admin-users";
 import type { ApiResponse } from "@/types";
 
 import { apiClient } from "@/lib/api-client";
 
-import type { AuthSession, DemoAccount, LoginCredentials } from "./types";
+import type { AdminUser, AuthSession, DemoAccount, LoginCredentials } from "./types";
 
 export async function loginApi(credentials: LoginCredentials): Promise<AuthSession> {
-  const res = await apiClient
-    .post("auth/login", { json: credentials })
-    .json<ApiResponse<AuthSession>>();
+  const res = await apiClient.post("auth/login", { json: credentials }).json<ApiResponse<AuthSession>>();
   return res.data;
 }
 

@@ -76,9 +76,7 @@ export const IconEntry = React.memo(function IconEntry({
   return (
     <EntryWrapper {...wrapperProps}>
       <div className="inline-flex items-center gap-2">
-        {ResolvedIcon && (
-          <ResolvedIcon className={cn("size-4 shrink-0", iconColorClasses[resolvedColor])} />
-        )}
+        {ResolvedIcon && <ResolvedIcon className={cn("size-4 shrink-0", iconColorClasses[resolvedColor])} />}
         {getIconEntryLabel(text, rawValue, valStr)}
       </div>
     </EntryWrapper>

@@ -1,14 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import * as React from "react";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +25,10 @@ export const InfolistSection = React.memo(function InfolistSection({
 }: InfolistSectionProps) {
   const [collapsed, setCollapsed] = React.useState(defaultCollapsed);
 
+  const handleOpenChange = React.useCallback((open: boolean) => {
+    setCollapsed(!open);
+  }, []);
+
   const hasHeader = Boolean(title || description || icon || action);
 
   const contentNode = (
@@ -42,11 +39,7 @@ export const InfolistSection = React.memo(function InfolistSection({
 
   if (card) {
     return (
-      <Collapsible
-        open={!collapsed}
-        onOpenChange={(open) => setCollapsed(!open)}
-        className="w-full"
-      >
+      <Collapsible open={!collapsed} onOpenChange={handleOpenChange} className="w-full">
         <Card
           className={cn(
             "w-full border-border bg-card text-left shadow-2xs transition-all duration-200",

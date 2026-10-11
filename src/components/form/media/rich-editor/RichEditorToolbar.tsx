@@ -140,11 +140,7 @@ interface ToolbarActionItemProps {
   disabled?: boolean;
 }
 
-const ToolbarActionItem = memo(function ToolbarActionItem({
-  btn,
-  editor,
-  disabled,
-}: ToolbarActionItemProps) {
+const ToolbarActionItem = memo(function ToolbarActionItem({ btn, editor, disabled }: ToolbarActionItemProps) {
   const handleClick = useMemoizedFn(() => {
     btn.action(editor);
   });
@@ -205,9 +201,7 @@ export const RichEditorToolbar = memo(function RichEditorToolbar({
       {hasBlock && hasInsert && <ToolbarDivider />}
 
       {/* Insert group (Link Popover + Horizontal Rule) */}
-      {toolbarButtons.includes("link") && (
-        <RichEditorLinkPopover editor={editor} disabled={disabled} />
-      )}
+      {toolbarButtons.includes("link") && <RichEditorLinkPopover editor={editor} disabled={disabled} />}
 
       {toolbarButtons.includes("horizontalRule") && (
         <RichEditorToolbarItem

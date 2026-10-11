@@ -22,12 +22,7 @@ export const MetricRow = memo(function MetricRow({ item }: MetricRowProps) {
           {item.suffix}
         </span>
         {item.trend ? (
-          <span
-            className={cn(
-              "font-mono text-[10px]",
-              isNegative ? "text-destructive" : "text-chart-2",
-            )}
-          >
+          <span className={cn("font-mono text-[10px]", isNegative ? "text-destructive" : "text-chart-2")}>
             {item.trend.value}
           </span>
         ) : null}

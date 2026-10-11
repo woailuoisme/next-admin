@@ -101,12 +101,11 @@ function DataTableBodyInner<TData extends Record<string, any> = Record<string, a
   const expandOnRowClick = props.expandOnRowClick ?? ctx?.expandOnRowClick;
   const onToggleExpand = props.toggleRowExpanded ?? props.onToggleExpand ?? ctx?.toggleRowExpanded;
 
-  const totalColSpan =
-    visibleColumns.length + (checkboxSelection ? 1 : 0) + (renderExpandedRow ? 1 : 0);
+  const totalColSpan = visibleColumns.length + (checkboxSelection ? 1 : 0) + (renderExpandedRow ? 1 : 0);
 
   // O(1) set lookup for row selection & expansion memoization
   const selectionSet = useMemo(() => new Set(selection), [selection]);
-  const expandedSet = useMemo(() => new Set(expandedRowIds ?? []), [expandedRowIds]);
+  const expandedSet = useMemo(() => new Set(expandedRowIds ?? EMPTY_ARRAY), [expandedRowIds]);
 
   // 虚拟化与非虚拟化两条渲染路径共享的行属性，避免维护两份 prop 列表
   const sharedRowProps = {
@@ -163,9 +162,7 @@ function DataTableBodyInner<TData extends Record<string, any> = Record<string, a
           const totalSize = rowVirtualizer.getTotalSize();
           const startSpacerHeight = virtualItems[0]?.start ?? 0;
           const endSpacerHeight =
-            virtualItems.length > 0
-              ? totalSize - (virtualItems[virtualItems.length - 1]?.end ?? 0)
-              : 0;
+            virtualItems.length > 0 ? totalSize - (virtualItems[virtualItems.length - 1]?.end ?? 0) : 0;
 
           return (
             <>

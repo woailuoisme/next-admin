@@ -1,13 +1,8 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { ArrowUpSquare, Eye, EyeOff, X } from "lucide-react";
 import { type ChangeEvent, type KeyboardEvent, memo, useId, useState } from "react";
 
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { cn } from "@/lib/utils";
 
 import {
@@ -62,7 +57,8 @@ const PasswordInputInner = memo(function PasswordInputInner({
   autoComplete = "current-password",
   hasError,
 }: PasswordInputInnerProps) {
-  const [visible, { toggle: toggleVisible }] = useBoolean(false);
+  const [visible, setVisible] = useState(false);
+  const toggleVisible = useMemoizedFn(() => setVisible((prev) => !prev));
   const [capsLockActive, setCapsLockActive] = useState(false);
   const [localValue, setLocalValue] = useState(value ?? "");
   const [prevValue, setPrevValue] = useState(value);

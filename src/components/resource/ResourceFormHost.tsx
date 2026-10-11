@@ -16,10 +16,12 @@ import { ResourceFormPage } from "./ResourceFormPage";
  *
  * 内部表单内容与业务逻辑 100% 复用，底栏吸底操作栏与未保存拦截完全一致。
  */
+const NOOP = () => {};
+
 export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<string, unknown>>({
   presentation = "dialog",
   open = false,
-  onOpenChange = () => {},
+  onOpenChange = NOOP,
   mode,
   entity,
   entityName = "Record",

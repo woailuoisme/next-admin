@@ -54,9 +54,7 @@ export const ProgressCell = memo(function ProgressCell({
     const totalPercentage = Math.min(100, Math.round((totalVal / effectiveMax) * 100));
 
     const targetPct =
-      typeof target === "number"
-        ? Math.min(100, Math.max(0, (target / effectiveMax) * 100))
-        : undefined;
+      typeof target === "number" ? Math.min(100, Math.max(0, (target / effectiveMax) * 100)) : undefined;
 
     const stackedContent = (
       <div
@@ -81,10 +79,7 @@ export const ProgressCell = memo(function ProgressCell({
                 <div
                   key={idx}
                   style={{ width: `${segPct}%` }}
-                  className={cn(
-                    "h-full transition-all",
-                    seg.color || seg.className || "bg-primary",
-                  )}
+                  className={cn("h-full transition-all", seg.color || seg.className || "bg-primary")}
                 />
               );
             })}
@@ -114,10 +109,7 @@ export const ProgressCell = memo(function ProgressCell({
             {segments.map((seg, idx) => {
               const pct = Math.round((seg.value / (effectiveMax || 1)) * 100);
               return (
-                <div
-                  key={idx}
-                  className="text-muted-foreground flex items-center gap-1.5 text-[10px]"
-                >
+                <div key={idx} className="text-muted-foreground flex items-center gap-1.5 text-[10px]">
                   <span
                     className={cn(
                       "size-1.5 shrink-0 rounded-full",
@@ -152,8 +144,7 @@ export const ProgressCell = memo(function ProgressCell({
 
   const indicatorColorClass = getIndicatorColorClass(colorByValue, percentage);
 
-  const targetPct =
-    typeof target === "number" ? Math.min(100, Math.max(0, (target / max) * 100)) : undefined;
+  const targetPct = typeof target === "number" ? Math.min(100, Math.max(0, (target / max) * 100)) : undefined;
 
   const content = (
     <div
@@ -166,11 +157,7 @@ export const ProgressCell = memo(function ProgressCell({
       <div className="relative min-w-[50px] flex-1">
         <Progress
           value={percentage}
-          className={cn(
-            heightClasses[size],
-            "overflow-hidden rounded-full bg-muted/80",
-            indicatorColorClass,
-          )}
+          className={cn(heightClasses[size], "overflow-hidden rounded-full bg-muted/80", indicatorColorClass)}
         />
         <TargetMarker percentage={targetPct} />
       </div>
@@ -193,9 +180,7 @@ export const ProgressCell = memo(function ProgressCell({
           {safeValue} / {max} ({percentage}%)
         </p>
         {typeof target === "number" && (
-          <p className="text-muted-foreground mt-0.5 text-[10px]">
-            {targetLabel || `目标线: ${target}%`}
-          </p>
+          <p className="text-muted-foreground mt-0.5 text-[10px]">{targetLabel || `目标线: ${target}%`}</p>
         )}
       </TooltipContent>
     </Tooltip>

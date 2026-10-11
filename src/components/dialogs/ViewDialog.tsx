@@ -192,10 +192,8 @@ export const ViewDialog = memo(function ViewDialog({
           "flex flex-col gap-0 overflow-hidden p-0 transition-all duration-200",
           isFullscreen
             ? "h-[96vh] max-h-[96vh] w-[98vw] sm:max-w-[98vw]"
-            : cn(
-                "max-h-[calc(100dvh-2.5rem)] sm:max-h-[88vh]",
-                widthClassName || DIALOG_SIZE_CLASSES[size],
-              ),
+            : "max-h-[calc(100dvh-2.5rem)] sm:max-h-[88vh]",
+          !isFullscreen && (widthClassName || DIALOG_SIZE_CLASSES[size]),
           className,
         )}
       >

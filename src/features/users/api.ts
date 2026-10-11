@@ -15,12 +15,7 @@ export async function fetchCustomers(filters: CustomerFilters = {}): Promise<Cus
   return res.data;
 }
 
-export async function toggleCustomerStatusApi(
-  id: string,
-  status: "active" | "inactive",
-): Promise<Customer> {
-  const res = await apiClient
-    .patch(`users/${id}/status`, { json: { status } })
-    .json<ApiResponse<Customer>>();
+export async function toggleCustomerStatusApi(id: string, status: "active" | "inactive"): Promise<Customer> {
+  const res = await apiClient.patch(`users/${id}/status`, { json: { status } }).json<ApiResponse<Customer>>();
   return res.data;
 }

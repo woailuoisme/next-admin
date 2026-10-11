@@ -83,7 +83,5 @@ export const FormGrid = memo(function FormGrid({
           columns.xl && responsiveColsMap.xl[columns.xl],
         );
 
-  return (
-    <div className={cn("grid w-full", gridColsClass, gapClasses[gap], className)}>{children}</div>
-  );
+  return <div className={cn("grid w-full", gridColsClass, gapClasses[gap], className)}>{children}</div>;
 });

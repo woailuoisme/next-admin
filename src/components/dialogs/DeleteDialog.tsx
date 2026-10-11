@@ -53,9 +53,7 @@ export const DeleteDialog = memo(function DeleteDialog({
   const isActionPending = isPending || internalPending;
 
   const targetKeyword =
-    typeof requireConfirmKeyword === "string"
-      ? requireConfirmKeyword
-      : (confirmKeyword ?? "DELETE");
+    typeof requireConfirmKeyword === "string" ? requireConfirmKeyword : (confirmKeyword ?? "DELETE");
 
   const hasKeywordRequirement = Boolean(requireConfirmKeyword);
 
@@ -63,8 +61,7 @@ export const DeleteDialog = memo(function DeleteDialog({
     ? confirmInput.trim().toUpperCase() === targetKeyword.trim().toUpperCase()
     : true;
 
-  const resolvedTitle =
-    title ?? (isBatch ? `Delete ${itemCount} ${entityName}s?` : `Delete ${entityName}?`);
+  const resolvedTitle = title ?? (isBatch ? `Delete ${itemCount} ${entityName}s?` : `Delete ${entityName}?`);
 
   const resolvedDescription =
     description ??
@@ -78,16 +75,14 @@ export const DeleteDialog = memo(function DeleteDialog({
       </>
     ) : entityTitle ? (
       <>
-        Are you sure you want to delete{" "}
-        <span className="text-foreground font-semibold">"{entityTitle}"</span>? This action cannot
-        be undone.
+        Are you sure you want to delete <span className="text-foreground font-semibold">"{entityTitle}"</span>
+        ? This action cannot be undone.
       </>
     ) : (
       `Are you sure you want to delete this ${entityName.toLowerCase()}? This action cannot be undone.`
     ));
 
-  const resolvedConfirmText =
-    confirmText ?? (isBatch ? `Delete ${itemCount} Items` : `Delete ${entityName}`);
+  const resolvedConfirmText = confirmText ?? (isBatch ? `Delete ${itemCount} Items` : `Delete ${entityName}`);
 
   const handleConfirm = useMemoizedFn(async () => {
     if (!isKeywordMatched) return;
@@ -135,8 +130,7 @@ export const DeleteDialog = memo(function DeleteDialog({
         {hasKeywordRequirement ? (
           <div className="space-y-1.5 pt-1 pb-2">
             <Label className="text-muted-foreground text-xs">
-              Please type{" "}
-              <span className="text-foreground font-mono font-bold">{targetKeyword}</span> to
+              Please type <span className="text-foreground font-mono font-bold">{targetKeyword}</span> to
               confirm deletion:
             </Label>
             <Input

@@ -42,9 +42,7 @@ export const IconCell = memo(function IconCell({
     }
   } else if (isNil(value)) {
     if (DefaultIcon) {
-      iconNode = (
-        <DefaultIcon className={cn(sizeClasses[size], "shrink-0 text-muted-foreground")} />
-      );
+      iconNode = <DefaultIcon className={cn(sizeClasses[size], "shrink-0 text-muted-foreground")} />;
     } else {
       iconNode = <Minus className={cn(sizeClasses[size], "shrink-0 text-muted-foreground/40")} />;
     }
@@ -58,9 +56,7 @@ export const IconCell = memo(function IconCell({
         const opt = mapped as IconCellOption;
         const IconComponent = opt.icon;
         iconNode = (
-          <IconComponent
-            className={cn(sizeClasses[size], opt.color || "text-foreground", "shrink-0")}
-          />
+          <IconComponent className={cn(sizeClasses[size], opt.color || "text-foreground", "shrink-0")} />
         );
         if (opt.label) {
           if (!extractedLabel) extractedLabel = opt.label;
@@ -73,9 +69,7 @@ export const IconCell = memo(function IconCell({
         iconNode = <IconComponent className={cn(sizeClasses[size], "shrink-0 text-foreground")} />;
       }
     } else if (DefaultIcon) {
-      iconNode = (
-        <DefaultIcon className={cn(sizeClasses[size], "shrink-0 text-muted-foreground")} />
-      );
+      iconNode = <DefaultIcon className={cn(sizeClasses[size], "shrink-0 text-muted-foreground")} />;
     } else {
       iconNode = <Minus className={cn(sizeClasses[size], "shrink-0 text-muted-foreground/40")} />;
     }
@@ -104,9 +98,7 @@ export const IconCell = memo(function IconCell({
       )}
     >
       {wrappedIcon}
-      {extractedLabel && (
-        <span className="text-foreground/80 text-xs font-medium">{extractedLabel}</span>
-      )}
+      {extractedLabel && <span className="text-foreground/80 text-xs font-medium">{extractedLabel}</span>}
     </div>
   );
 

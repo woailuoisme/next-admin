@@ -1,6 +1,7 @@
 import { useMemoizedFn } from "ahooks";
 import { useMemo, useState } from "react";
 
+import { EMPTY_ARRAY } from "../core/constants";
 import type { DataTableRowId } from "../core/types";
 
 export interface UseDataTableExpansionOptions {
@@ -12,7 +13,7 @@ export interface UseDataTableExpansionOptions {
 
 export function useDataTableExpansion({
   expandedRowIds: controlledExpandedIds,
-  defaultExpandedRowIds = [],
+  defaultExpandedRowIds = EMPTY_ARRAY,
   onExpandedRowsChange,
   singleExpand = false,
 }: UseDataTableExpansionOptions = {}) {

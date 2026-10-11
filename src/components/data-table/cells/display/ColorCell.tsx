@@ -1,7 +1,7 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { isNil } from "es-toolkit";
 import { Check, Copy } from "lucide-react";
-import { memo, useEffect } from "react";
+import { memo, useEffect, useState } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -25,19 +25,19 @@ export const ColorCell = memo(function ColorCell({
   align = "left",
   className,
 }: ColorCellProps) {
-  const [copied, { setTrue: setCopiedTrue, setFalse: setCopiedFalse }] = useBoolean(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!copied) return;
-    const timer = setTimeout(setCopiedFalse, 1500);
+    const timer = setTimeout(() => setCopied(false), 1500);
     return () => clearTimeout(timer);
-  }, [copied, setCopiedFalse]);
+  }, [copied]);
 
   const handleCopy = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();
     if (!value || copied) return;
-    navigator.clipboard?.writeText(value);
-    setCopiedTrue();
+    navigator.clipboard?.writeText(value).catch(() => {});
+    setCopied(true);
   });
 
   if (isNil(value) || value === "") {
@@ -52,9 +52,7 @@ export const ColorCell = memo(function ColorCell({
   const showChecker = checkerboard && isAlpha;
 
   return (
-    <div
-      className={cn("flex items-center gap-2 select-none", JUSTIFY_ALIGN_CLASSES[align], className)}
-    >
+    <div className={cn("flex items-center gap-2 select-none", JUSTIFY_ALIGN_CLASSES[align], className)}>
       <span
         className={cn(
           "relative size-4 shrink-0 overflow-hidden border border-border/80 shadow-2xs",

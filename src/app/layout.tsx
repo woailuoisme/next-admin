@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
 import { AppProviders } from "@/components/providers/app-providers";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -16,9 +16,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${process.env.PORT || "3500"}`,
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${process.env.PORT || "3500"}`),
   title: {
     default: "Next SN Admin",
     template: "%s | Next SN Admin",
@@ -27,14 +25,13 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const locale = await getLocale();
-  const messages = await getMessages();
+  const [locale, messages] = await Promise.all([getLocale(), getMessages()]);
 
   return (
     <html
       lang={locale}
       suppressHydrationWarning
-      className={cn("h-full", "antialiased", "font-sans", inter.variable)}
+      className={cn("h-full font-sans antialiased", inter.variable)}
     >
       <body className="flex min-h-full flex-col font-sans">
         <NextIntlClientProvider locale={locale} messages={messages}>

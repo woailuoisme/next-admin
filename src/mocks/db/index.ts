@@ -1,4 +1,4 @@
-import type { AdminRole, AdminUser } from "@/features/admin-users";
+import type { AdminRole, AdminUser } from "@/features/auth";
 import type { Category } from "@/features/categories";
 import type { NotificationItem } from "@/features/notifications";
 import type { Order, OrderItem, OrderStatus } from "@/features/orders";

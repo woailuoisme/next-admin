@@ -33,8 +33,7 @@ export function useComposedTrend(props: ComposedTrendChartProps) {
     height,
   });
 
-  const hasRightAxis =
-    bars.some((b) => b.yAxisId === "right") || lines.some((l) => l.yAxisId === "right");
+  const hasRightAxis = bars.some((b) => b.yAxisId === "right") || lines.some((l) => l.yAxisId === "right");
 
   const leftAxisFormatter = useMemoizedFn((val: number) => {
     if (propLeftAxisFormatter) return propLeftAxisFormatter(val);

@@ -55,9 +55,7 @@ export function InlineEditInput({
       className={cn("relative flex min-w-[120px] items-center gap-1", className)}
       onClick={(e) => e.stopPropagation()}
     >
-      {prefix && (
-        <span className="text-muted-foreground flex shrink-0 items-center text-xs">{prefix}</span>
-      )}
+      {prefix && <span className="text-muted-foreground flex shrink-0 items-center text-xs">{prefix}</span>}
       <div className="relative flex-1">
         <Input
           ref={inputRef}
@@ -85,9 +83,7 @@ export function InlineEditInput({
           </div>
         )}
       </div>
-      {suffix && (
-        <span className="text-muted-foreground flex shrink-0 items-center text-xs">{suffix}</span>
-      )}
+      {suffix && <span className="text-muted-foreground flex shrink-0 items-center text-xs">{suffix}</span>}
       <button
         type="button"
         onMouseDown={(e) => {
@@ -96,9 +92,7 @@ export function InlineEditInput({
         }}
         className={cn(
           "cursor-pointer p-1 transition-colors",
-          error
-            ? "cursor-not-allowed text-muted-foreground/40"
-            : "text-primary hover:text-primary/80",
+          error ? "cursor-not-allowed text-muted-foreground/40" : "text-primary hover:text-primary/80",
         )}
         disabled={Boolean(error)}
         title="确认 (Enter)"

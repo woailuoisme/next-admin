@@ -1,7 +1,7 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { isNil } from "es-toolkit";
 import { Check, Copy } from "lucide-react";
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ export const DataListRow = memo(function DataListRow({
   span,
   className,
 }: DataListItemType) {
-  const [copied, { setTrue: setCopiedTrue, setFalse: setCopiedFalse }] = useBoolean(false);
+  const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -47,19 +47,21 @@ export const DataListRow = memo(function DataListRow({
       return;
     }
 
-    try {
-      navigator.clipboard.writeText(String(value));
-      setCopiedTrue();
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-      timerRef.current = setTimeout(() => {
-        setCopiedFalse();
-        timerRef.current = null;
-      }, 1500);
-    } catch {
-      // Ignore clipboard access errors
-    }
+    navigator.clipboard
+      .writeText(String(value))
+      .then(() => {
+        setCopied(true);
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
+        timerRef.current = setTimeout(() => {
+          setCopied(false);
+          timerRef.current = null;
+        }, 1500);
+      })
+      .catch(() => {
+        // Ignore clipboard access errors
+      });
   });
 
   const displayValue = !isNil(value) && value !== "" ? value : "—";
@@ -72,9 +74,7 @@ export const DataListRow = memo(function DataListRow({
         className,
       )}
     >
-      <span className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
-        {label}
-      </span>
+      <span className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">{label}</span>
       <div className="flex items-center justify-between gap-2">
         <div className="text-foreground text-sm font-semibold break-words">
           {badge && typeof displayValue === "string" ? (

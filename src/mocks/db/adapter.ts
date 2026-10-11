@@ -12,10 +12,7 @@ export interface LegacyQuery<T> {
 
 export type QueryPredicate<T> = ((query: Query<T>) => Query<unknown>) | Query<T> | LegacyQuery<T>;
 
-export function matchesWhere(
-  record: Record<string, unknown>,
-  where: Record<string, unknown>,
-): boolean {
+export function matchesWhere(record: Record<string, unknown>, where: Record<string, unknown>): boolean {
   for (const [key, condition] of Object.entries(where)) {
     const val = record[key];
     if (condition && typeof condition === "object") {

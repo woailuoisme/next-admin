@@ -2,13 +2,7 @@ import { useMemoizedFn } from "ahooks";
 import { memo, useId } from "react";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
 import { type BaseInputProps, FieldConnector, FieldWrapper, type SelectOption } from "../core";
@@ -102,14 +96,11 @@ const CheckboxGroupInner = memo(function CheckboxGroupInner({
               <Field
                 key={String(option.value)}
                 orientation="horizontal"
-                onClick={() =>
-                  !disabled && !option.disabled && handleToggle(option.value, !isChecked)
-                }
+                onClick={() => !disabled && !option.disabled && handleToggle(option.value, !isChecked)}
                 className={cn(
                   "cursor-pointer items-start gap-3 rounded-lg border border-input bg-card/30 p-3 transition-colors select-none",
                   isChecked && "border-primary/50 bg-primary/5 ring-1 ring-primary/20",
-                  (disabled || option.disabled) &&
-                    "pointer-events-none cursor-not-allowed opacity-50",
+                  (disabled || option.disabled) && "pointer-events-none cursor-not-allowed opacity-50",
                 )}
               >
                 <Checkbox
@@ -137,11 +128,7 @@ const CheckboxGroupInner = memo(function CheckboxGroupInner({
           }
 
           return (
-            <Field
-              key={String(option.value)}
-              orientation="horizontal"
-              className="items-center gap-2"
-            >
+            <Field key={String(option.value)} orientation="horizontal" className="items-center gap-2">
               <Checkbox
                 id={optionId}
                 checked={isChecked}
@@ -278,10 +265,7 @@ const CheckboxInputInner = memo(function CheckboxInputInner({
           className="mt-0.5 rounded-sm"
         />
         <FieldContent className="space-y-0.5">
-          <FieldLabel
-            htmlFor={id}
-            className="text-foreground cursor-pointer text-xs font-medium select-none"
-          >
+          <FieldLabel htmlFor={id} className="text-foreground cursor-pointer text-xs font-medium select-none">
             {label}
             {required && <span className="text-destructive ml-0.5 font-bold">*</span>}
             {hint && <span className="text-muted-foreground ml-2 text-[10px]">{hint}</span>}

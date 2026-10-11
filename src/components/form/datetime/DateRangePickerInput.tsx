@@ -1,9 +1,9 @@
 import type { DateRange } from "react-day-picker";
 
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, X } from "lucide-react";
-import { memo, useId } from "react";
+import { memo, useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -59,7 +59,7 @@ const DateRangePickerInputInner = memo(function DateRangePickerInputInner({
   value,
   onChange,
 }: DateRangePickerInputInnerProps) {
-  const [open, { set: setOpen }] = useBoolean(false);
+  const [open, setOpen] = useState(false);
 
   const fromDate = parseDate(value?.from);
   const toDate = parseDate(value?.to);
@@ -124,12 +124,7 @@ const DateRangePickerInputInner = memo(function DateRangePickerInputInner({
           </PopoverTrigger>
 
           <PopoverContent className="w-auto rounded-xl p-0" align="start">
-            <Calendar
-              mode="range"
-              numberOfMonths={2}
-              selected={rangeSelected}
-              onSelect={handleSelect}
-            />
+            <Calendar mode="range" numberOfMonths={2} selected={rangeSelected} onSelect={handleSelect} />
           </PopoverContent>
         </Popover>
 

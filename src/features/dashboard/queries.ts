@@ -6,8 +6,7 @@ import { fetchDashboardSummary } from "./api";
 
 export const dashboardKeys = {
   all: ["dashboard"] as const,
-  summary: (range?: DashboardTimeRange) =>
-    [...dashboardKeys.all, "summary", range ?? "30d"] as const,
+  summary: (range?: DashboardTimeRange) => [...dashboardKeys.all, "summary", range ?? "30d"] as const,
 };
 
 export const dashboardQueries = {

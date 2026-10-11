@@ -111,8 +111,7 @@ export const KeyValueRow = memo(function KeyValueRow({
             list={hasSuggestions ? datalistId : undefined}
             className={cn(
               "h-9 w-full rounded-none border-0 bg-transparent px-3 py-1.5 font-mono text-xs text-foreground shadow-none outline-hidden transition-colors placeholder:text-muted-foreground/50 focus-visible:bg-muted/20 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50",
-              row.isDuplicate &&
-                "bg-destructive/5 pr-7 text-destructive focus-visible:bg-destructive/10",
+              row.isDuplicate && "bg-destructive/5 pr-7 text-destructive focus-visible:bg-destructive/10",
             )}
           />
           {hasSuggestions ? (

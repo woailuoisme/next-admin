@@ -1,23 +1,12 @@
 import { ArrowUpDown, FilterX, Loader2, RotateCcw } from "lucide-react";
-import {
-  type CSSProperties,
-  isValidElement,
-  memo,
-  type ReactElement,
-  type ReactNode,
-  useMemo,
-} from "react";
+import { type CSSProperties, isValidElement, memo, type ReactElement, type ReactNode, useMemo } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 import type { DataTableColDef, DataTableSlots } from "../core/types";
-import type {
-  TableEmptyStateConfig,
-  TableEmptyStateContext,
-  TableEmptyStateProps,
-} from "../empty-state";
+import type { TableEmptyStateConfig, TableEmptyStateContext, TableEmptyStateProps } from "../empty-state";
 
 import { EMPTY_ARRAY, EMPTY_RECORD } from "../core/constants";
 import { TableEmptyState } from "../empty-state";
@@ -58,11 +47,7 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
       {rows.map((_, rowIndex) => {
         const rowKey = `skeleton-row-${rowIndex}`;
         return (
-          <TableRow
-            key={rowKey}
-            className={cn("hover:bg-transparent", densityRowClass)}
-            aria-hidden="true"
-          >
+          <TableRow key={rowKey} className={cn("hover:bg-transparent", densityRowClass)} aria-hidden="true">
             {checkboxSelection && (
               <TableCell
                 className={cn(
@@ -98,10 +83,8 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
               const isPinnedLeft = pinnedLeftFields.includes(col.field);
               const isPinnedRight = pinnedRightFields.includes(col.field);
               const isLastPinnedLeft =
-                pinnedLeftFields.length > 0 &&
-                pinnedLeftFields[pinnedLeftFields.length - 1] === col.field;
-              const isFirstPinnedRight =
-                pinnedRightFields.length > 0 && pinnedRightFields[0] === col.field;
+                pinnedLeftFields.length > 0 && pinnedLeftFields[pinnedLeftFields.length - 1] === col.field;
+              const isFirstPinnedRight = pinnedRightFields.length > 0 && pinnedRightFields[0] === col.field;
 
               const actualWidth = columnWidths[col.field] ?? col.width;
               const style: CSSProperties = {
@@ -123,8 +106,7 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
                     "px-4 py-2",
                     isPinnedLeft && "sticky z-10 bg-card",
                     isPinnedRight && "sticky z-10 bg-card",
-                    isLastPinnedLeft &&
-                      "border-r border-border/80 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.05)]",
+                    isLastPinnedLeft && "border-r border-border/80 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.05)]",
                     isFirstPinnedRight &&
                       "border-l border-border/80 shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.05)]",
                     col.align === "right" && "text-right",
@@ -273,8 +255,7 @@ export const DataTableEmptyOverlay = memo(function DataTableEmptyOverlay({
     content = emptyState;
   } else if (emptyState && typeof emptyState === "object") {
     const baseConfig = emptyState as TableEmptyStateConfig;
-    const config =
-      isFiltered && baseConfig.filtered ? { ...baseConfig, ...baseConfig.filtered } : baseConfig;
+    const config = isFiltered && baseConfig.filtered ? { ...baseConfig, ...baseConfig.filtered } : baseConfig;
 
     const actions = config.actions ?? resetActions;
 

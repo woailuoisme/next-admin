@@ -5,17 +5,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-import type { DataTableColDef, DataTableSortModel } from "../core/types";
+import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableSortModel } from "../core/types";
 
 import { JUSTIFY_ALIGN_CLASSES } from "../cells/base";
 import { EMPTY_ARRAY, EMPTY_RECORD, NOOP } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/data-table-context";
 
-export interface DataTableHeaderProps<TData = any> {
+export interface DataTableHeaderProps<TData = unknown> {
   visibleColumns?: DataTableColDef<TData>[];
   checkboxSelection?: boolean;
   hasExpandColumn?: boolean;
-  renderExpandedRow?: (params: any) => ReactNode;
+  renderExpandedRow?: (params: DataTableRenderExpandedRowParams<TData>) => ReactNode;
   isAllPageSelected?: boolean;
   isSomePageSelected?: boolean;
   onSelectAll?: (checked: boolean) => void;
@@ -29,7 +29,7 @@ export interface DataTableHeaderProps<TData = any> {
   onResizeStart?: (field: string, initialWidth: number, e: MouseEvent) => void;
 }
 
-function DataTableHeaderInner<TData = any>(props: DataTableHeaderProps<TData>) {
+function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData>) {
   const ctx = useOptionalDataTableContext<TData>();
 
   const visibleColumns = props.visibleColumns ?? ctx?.visibleColumns ?? EMPTY_ARRAY;
@@ -147,11 +147,7 @@ function DataTableHeaderInner<TData = any>(props: DataTableHeaderProps<TData>) {
                 )}
                 onClick={() => sortable && onSortClick(field)}
               >
-                {renderHeader ? (
-                  renderHeader({ colDef: col, headerName })
-                ) : (
-                  <span>{headerName}</span>
-                )}
+                {renderHeader ? renderHeader({ colDef: col, headerName }) : <span>{headerName}</span>}
 
                 {/* Sort Indicator */}
                 {sortable && (
@@ -187,6 +183,6 @@ function DataTableHeaderInner<TData = any>(props: DataTableHeaderProps<TData>) {
   );
 }
 
-export const DataTableHeader = memo(DataTableHeaderInner) as <TData = any>(
+export const DataTableHeader = memo(DataTableHeaderInner) as <TData = unknown>(
   props: DataTableHeaderProps<TData>,
 ) => ReactElement | null;

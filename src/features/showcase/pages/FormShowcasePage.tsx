@@ -213,8 +213,7 @@ const DEFAULT_VALUES: ShowcaseFormValues = {
     { sku: "SKU-9901", description: "Edge Gateway Server", quantity: 2, unitPrice: 1200 },
     { sku: "SKU-9902", description: "Optical Transceiver 100G", quantity: 4, unitPrice: 350 },
   ],
-  avatarUrl:
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+  avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
   attachments: [
     "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80",
   ],
@@ -440,12 +439,7 @@ export function FormShowcasePage() {
                 label="Leave Range (DateRangePicker)"
                 colSpan={1}
               />
-              <TimePickerInput
-                form={form}
-                name="dailyCheckinTime"
-                label="Daily Standup Time"
-                colSpan={1}
-              />
+              <TimePickerInput form={form} name="dailyCheckinTime" label="Daily Standup Time" colSpan={1} />
             </FormGrid>
           </FormSection>
         ),
@@ -462,12 +456,7 @@ export function FormShowcasePage() {
               description="Color picker with preset palette, tags chips, and KeyValue dictionary editor."
             >
               <FormGrid columns={{ sm: 1, md: 2 }}>
-                <ColorPickerInput
-                  form={form}
-                  name="accentColor"
-                  label="Accent Brand Color"
-                  colSpan={1}
-                />
+                <ColorPickerInput form={form} name="accentColor" label="Accent Brand Color" colSpan={1} />
                 <TagsInput
                   form={form}
                   name="tags"
@@ -487,13 +476,7 @@ export function FormShowcasePage() {
                   valuePlaceholder="Config Value"
                   keyLabel="Environment Key"
                   valueLabel="Configuration Value"
-                  keySuggestions={[
-                    "NODE_ENV",
-                    "API_BASE_URL",
-                    "DATABASE_URL",
-                    "REDIS_PORT",
-                    "AUTH_SECRET",
-                  ]}
+                  keySuggestions={["NODE_ENV", "API_BASE_URL", "DATABASE_URL", "REDIS_PORT", "AUTH_SECRET"]}
                   enableRawMode
                   masked
                 />
@@ -558,15 +541,12 @@ export function FormShowcasePage() {
                 confirmDelete
                 renderSummary={(items) => {
                   const total = items.reduce(
-                    (sum, item) =>
-                      sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
+                    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
                     0,
                   );
                   return (
                     <div className="flex items-center justify-between px-2 text-xs font-semibold">
-                      <span className="text-muted-foreground">
-                        Line Items Count: {items.length}
-                      </span>
+                      <span className="text-muted-foreground">Line Items Count: {items.length}</span>
                       <span className="text-foreground">
                         Estimated Total:{" "}
                         <span className="text-primary font-mono">${total.toLocaleString()}</span>
@@ -882,12 +862,10 @@ export function FormShowcasePage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-16">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Filament v5 Form Fields & Layouts Showcase
-        </h1>
+        <h1 className="text-2xl font-bold tracking-tight">Filament v5 Form Fields & Layouts Showcase</h1>
         <p className="text-muted-foreground mt-1 text-xs">
-          Comprehensive gallery demonstrating all 20+ input controls, segmented toggles, array
-          repeaters, key-value maps, geographic location pickers, and layout containers.
+          Comprehensive gallery demonstrating all 20+ input controls, segmented toggles, array repeaters,
+          key-value maps, geographic location pickers, and layout containers.
         </p>
       </div>
 

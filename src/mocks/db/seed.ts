@@ -34,8 +34,8 @@ export async function seedDatabase(seed = 2026): Promise<MockDatabase> {
 /**
  * Reset the mock database with a given deterministic seed.
  */
-export async function resetDatabase(seed = 2026): Promise<MockDatabase> {
-  return await seedDatabase(seed);
+export function resetDatabase(seed = 2026): Promise<MockDatabase> {
+  return seedDatabase(seed);
 }
 
 /**
@@ -63,6 +63,5 @@ await seedDatabase();
 
 // Devtools helper attached to window for manual testing in browser console
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-  (window as unknown as { __resetMockDb?: () => Promise<MockDatabase> }).__resetMockDb =
-    resetDatabase;
+  (window as unknown as { __resetMockDb?: () => Promise<MockDatabase> }).__resetMockDb = resetDatabase;
 }

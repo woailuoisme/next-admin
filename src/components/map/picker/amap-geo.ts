@@ -81,11 +81,7 @@ export class LruCache<K, V> {
 }
 
 /** 致命错误码：触发后自动开启会话级熔断，避免继续向高德刷无意义请求 */
-const FATAL_CIRCUIT_INFOS = new Set([
-  "INVALID_USER_KEY",
-  "USERKEY_PLAT_NOMATCH",
-  "DAILY_QUERY_OVER_LIMIT",
-]);
+const FATAL_CIRCUIT_INFOS = new Set(["INVALID_USER_KEY", "USERKEY_PLAT_NOMATCH", "DAILY_QUERY_OVER_LIMIT"]);
 
 /** 模块内单例缓存与在途请求去重池 */
 const searchCache = new LruCache<string, AmapSearchResult>(100);
@@ -213,10 +209,7 @@ function toLocationParam([lng, lat]: [number, number]): string {
  * 逆地理编码：GCJ-02 坐标 → 结构化地址
  * 包含：4 位网格坐标化缓存、在途去重与熔断保护
  */
-export async function reverseGeocode(
-  lngLat: [number, number],
-  signal?: AbortSignal,
-): Promise<string | null> {
+export async function reverseGeocode(lngLat: [number, number], signal?: AbortSignal): Promise<string | null> {
   if (isCircuitTripped) return null;
 
   const gridKey = snapCoordinateToGrid(lngLat, 4);
@@ -259,10 +252,7 @@ export async function reverseGeocode(
  * 关键字搜索：地名 → 候选点位（GCJ-02）
  * 包含：LRU 内存缓存、在途去重与熔断保护
  */
-export async function searchPlaces(
-  keyword: string,
-  signal?: AbortSignal,
-): Promise<AmapSearchResult> {
+export async function searchPlaces(keyword: string, signal?: AbortSignal): Promise<AmapSearchResult> {
   const trimmed = keyword.trim().toLowerCase();
   if (!trimmed) return { places: [] };
 

@@ -12,10 +12,13 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
+import type { NavSubItem } from "../types";
 import type { NavMainCollapsibleProps } from "./types";
 
 import { NavBadge } from "./NavBadge";
 import { isPathActive } from "./utils";
+
+const EMPTY_SUB_ITEMS: NavSubItem[] = [];
 
 export const NavMainCollapsible = memo(function NavMainCollapsible({
   item,
@@ -23,14 +26,10 @@ export const NavMainCollapsible = memo(function NavMainCollapsible({
   isChildActive,
 }: NavMainCollapsibleProps) {
   const Icon = item.icon;
-  const subItems = item.items || [];
+  const subItems = item.items ?? EMPTY_SUB_ITEMS;
 
   return (
-    <Collapsible
-      asChild
-      defaultOpen={isChildActive || item.defaultOpen}
-      className="group/collapsible"
-    >
+    <Collapsible asChild defaultOpen={isChildActive || item.defaultOpen} className="group/collapsible">
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuButton isActive={isChildActive} tooltip={item.title} className="font-medium">

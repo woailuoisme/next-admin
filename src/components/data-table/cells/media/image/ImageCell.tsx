@@ -70,13 +70,7 @@ function ImageCellInner({
   // Fallback empty view when no images provided
   if (images.length === 0) {
     return (
-      <div
-        className={cn(
-          "flex items-center text-muted-foreground/40",
-          TEXT_ALIGN_CLASSES[align],
-          className,
-        )}
-      >
+      <div className={cn("flex items-center text-muted-foreground/40", TEXT_ALIGN_CLASSES[align], className)}>
         {fallback || (
           <div
             className={cn(

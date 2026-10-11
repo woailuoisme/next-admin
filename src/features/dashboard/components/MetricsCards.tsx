@@ -21,12 +21,7 @@ const currencyFormatter = new Intl.NumberFormat(undefined, {
 
 const integerFormatter = new Intl.NumberFormat(undefined);
 
-export function MetricsCards({
-  metrics,
-  monthlyTrends,
-  sparklines,
-  isLoading = false,
-}: MetricsCardsProps) {
+export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = false }: MetricsCardsProps) {
   if (isLoading || !metrics) {
     return <StatsGrid columns={4} isLoading />;
   }
@@ -35,17 +30,12 @@ export function MetricsCards({
 
   const revenueSparkline = useMemo(
     () =>
-      sparkRevenue?.length
-        ? sparkRevenue
-        : (monthlyTrends?.map((t) => t.revenue) ?? EMPTY_NUMBER_ARRAY),
+      sparkRevenue?.length ? sparkRevenue : (monthlyTrends?.map((t) => t.revenue) ?? EMPTY_NUMBER_ARRAY),
     [sparkRevenue, monthlyTrends],
   );
 
   const ordersSparkline = useMemo(
-    () =>
-      sparkOrders?.length
-        ? sparkOrders
-        : (monthlyTrends?.map((t) => t.orders) ?? EMPTY_NUMBER_ARRAY),
+    () => (sparkOrders?.length ? sparkOrders : (monthlyTrends?.map((t) => t.orders) ?? EMPTY_NUMBER_ARRAY)),
     [sparkOrders, monthlyTrends],
   );
 

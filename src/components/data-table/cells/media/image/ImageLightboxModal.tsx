@@ -86,9 +86,7 @@ function ImageLightboxModalInner({
                     size="icon"
                     aria-label="上一张图片"
                     className="bg-background/60 text-foreground hover:bg-background/90 absolute top-1/2 left-2 -translate-y-1/2 rounded-full backdrop-blur-xs"
-                    onClick={() =>
-                      setCurrentIndex((prev) => (prev > 0 ? prev - 1 : activeImages.length - 1))
-                    }
+                    onClick={() => setCurrentIndex((prev) => (prev > 0 ? prev - 1 : activeImages.length - 1))}
                   >
                     <ChevronLeft className="size-5" />
                   </Button>
@@ -98,9 +96,7 @@ function ImageLightboxModalInner({
                     size="icon"
                     aria-label="下一张图片"
                     className="bg-background/60 text-foreground hover:bg-background/90 absolute top-1/2 right-2 -translate-y-1/2 rounded-full backdrop-blur-xs"
-                    onClick={() =>
-                      setCurrentIndex((prev) => (prev < activeImages.length - 1 ? prev + 1 : 0))
-                    }
+                    onClick={() => setCurrentIndex((prev) => (prev < activeImages.length - 1 ? prev + 1 : 0))}
                   >
                     <ChevronRight className="size-5" />
                   </Button>

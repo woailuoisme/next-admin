@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 import type {
   DataTableDensity,
+  DataTableFilterModel,
   DataTablePaginationModel,
   DataTableProps,
   DataTableRowSelectionModel,
@@ -35,6 +36,7 @@ import {
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_SIZE_OPTIONS,
   defaultGetRowId,
+  EMPTY_ARRAY,
   EMPTY_RECORD,
 } from "./constants";
 import { type DataTableContextValue, DataTableProvider } from "./data-table-context";
@@ -137,7 +139,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   resetFiltersText = "Reset filters",
   loadingText = "Loading records...",
 }: DataTableProps<TData>) {
-  const rows = data ?? rawRows ?? [];
+  const rows = data ?? rawRows ?? (EMPTY_ARRAY as unknown as TData[]);
 
   // ==================== Resolved Expansion Options ====================
   const renderExpandedRow = propRenderExpandedRow ?? expansionProps?.renderExpandedRow;
@@ -169,8 +171,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   // ==================== Column Normalization ====================
   const normalizedColumns = useMemo(() => {
     return columns.map((col) => {
-      const isActionCol =
-        col.field === "actions" || col.field === "__actions" || col.field === "__actions__";
+      const isActionCol = col.field === "actions" || col.field === "__actions" || col.field === "__actions__";
       return {
         ...col,
         sortable: col.sortable ?? !isActionCol,
@@ -231,12 +232,10 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     onSearchChange?.(val);
   });
 
-  const isFiltered = Boolean(
-    quickFilterText.trim() || (filterModel.items && filterModel.items.length > 0),
-  );
+  const isFiltered = Boolean(quickFilterText.trim() || (filterModel.items && filterModel.items.length > 0));
 
   const handleResetFilters = useMemoizedFn(() => {
-    handleFilterModelChange({ items: [] });
+    handleFilterModelChange({ items: EMPTY_ARRAY as unknown as DataTableFilterModel["items"] });
     handleQuickFilterChange("");
   });
 
@@ -285,13 +284,11 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   // ==================== Pagination State ====================
   const [internalPagination, setInternalPagination] = useState<DataTablePaginationModel>({
     page: page ?? initialPaginationModel?.page ?? pagination?.page ?? 1,
-    pageSize:
-      pageSize ?? initialPaginationModel?.pageSize ?? pagination?.pageSize ?? DEFAULT_PAGE_SIZE,
+    pageSize: pageSize ?? initialPaginationModel?.pageSize ?? pagination?.pageSize ?? DEFAULT_PAGE_SIZE,
   });
 
   const effectivePage = page ?? controlledPaginationModel?.page ?? internalPagination.page;
-  const effectivePageSize =
-    pageSize ?? controlledPaginationModel?.pageSize ?? internalPagination.pageSize;
+  const effectivePageSize = pageSize ?? controlledPaginationModel?.pageSize ?? internalPagination.pageSize;
 
   const paginationModel = useMemo(
     () => ({ page: effectivePage, pageSize: effectivePageSize }),
@@ -321,12 +318,10 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   }, [processedRows, paginationMode, paginationModel]);
 
   // ==================== Selection State (useDataTableSelection) ====================
-  const handleSelectionChange = useMemoizedFn(
-    (model: DataTableRowSelectionModel, selected: TData[]) => {
-      onRowSelectionModelChange?.(model, selected);
-      onSelectedRowsChange?.(selected);
-    },
-  );
+  const handleSelectionChange = useMemoizedFn((model: DataTableRowSelectionModel, selected: TData[]) => {
+    onRowSelectionModelChange?.(model, selected);
+    onSelectedRowsChange?.(selected);
+  });
 
   const {
     selection,

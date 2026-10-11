@@ -9,7 +9,6 @@ const PROTECTED_PREFIXES = [
   "/categories",
   "/orders",
   "/users",
-  "/admin-users",
   "/showcase",
 ];
 

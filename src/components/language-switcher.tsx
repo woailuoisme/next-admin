@@ -1,8 +1,11 @@
 "use client";
 
+import { useMemoizedFn } from "ahooks";
 import { Check, Languages } from "lucide-react";
+import { memo } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { cn } from "cn";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,21 +19,25 @@ import {
 import { setUserLocale, type SupportedLocale } from "@/i18n";
 import { setupZodLocale } from "@/lib/zod";
 
-const LOCALE_OPTIONS: { code: SupportedLocale; name: string; nativeName: string }[] = [
+export interface LanguageSwitcherProps {
+  className?: string;
+}
+
+const LOCALE_OPTIONS = [
   { code: "zh", name: "Simplified Chinese", nativeName: "简体中文" },
   { code: "en", name: "English", nativeName: "English (US)" },
-];
+] as const satisfies readonly { code: SupportedLocale; name: string; nativeName: string }[];
 
-export function LanguageSwitcher() {
+export const LanguageSwitcher = memo(function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const currentLocale = useLocale() as SupportedLocale;
   const router = useRouter();
 
-  const handleLocaleChange = (locale: SupportedLocale) => {
+  const handleLocaleChange = useMemoizedFn((locale: SupportedLocale) => {
     if (locale === currentLocale) return;
     setUserLocale(locale);
     setupZodLocale(locale);
     router.refresh();
-  };
+  });
 
   return (
     <DropdownMenu>
@@ -38,7 +45,7 @@ export function LanguageSwitcher() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground hover:text-foreground size-9"
+          className={cn("text-muted-foreground hover:text-foreground size-9", className)}
           aria-label="Change language"
           title="Change language"
         >
@@ -70,4 +77,4 @@ export function LanguageSwitcher() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});

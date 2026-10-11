@@ -1,12 +1,4 @@
-import {
-  AlertOctagon,
-  AlertTriangle,
-  CheckCircle2,
-  HelpCircle,
-  Info,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { AlertOctagon, AlertTriangle, CheckCircle2, HelpCircle, Info, Sparkles, X } from "lucide-react";
 import * as React from "react";
 
 import { COL_SPAN_CLASSES } from "@/components/shared/grid";
@@ -79,8 +71,7 @@ function renderCalloutIcon(
   if (icon === false) return null;
   if (React.isValidElement(icon)) return icon;
 
-  const IconComp =
-    (icon as React.ComponentType<{ className?: string }> | undefined) ?? defaultIcons[color];
+  const IconComp = (icon as React.ComponentType<{ className?: string }> | undefined) ?? defaultIcons[color];
   return <IconComp className={cn("size-4 shrink-0", iconClass)} />;
 }
 
@@ -91,12 +82,7 @@ interface CalloutActionButtonProps {
   className?: string;
 }
 
-function CalloutActionButton({
-  action,
-  defaultVariant,
-  defaultClass,
-  className,
-}: CalloutActionButtonProps) {
+function CalloutActionButton({ action, defaultVariant, defaultClass, className }: CalloutActionButtonProps) {
   const variant = action.variant ?? defaultVariant;
   const isDefaultVariant = variant === "default";
 
@@ -140,140 +126,134 @@ function CalloutActionButton({
   );
 }
 
-export const InfolistCallout = React.forwardRef<HTMLDivElement, CalloutProps>(
-  function InfolistCallout(
-    {
-      color = "info",
-      title,
-      description,
-      icon,
-      compact = false,
-      dismissible = false,
-      onDismiss,
-      actions,
-      colSpan,
-      className,
-      children,
-      ...props
-    },
-    ref,
-  ) {
-    const [dismissed, setDismissed] = React.useState(false);
+export const InfolistCallout = React.forwardRef<HTMLDivElement, CalloutProps>(function InfolistCallout(
+  {
+    color = "info",
+    title,
+    description,
+    icon,
+    compact = false,
+    dismissible = false,
+    onDismiss,
+    actions,
+    colSpan,
+    className,
+    children,
+    ...props
+  },
+  ref,
+) {
+  const [dismissed, setDismissed] = React.useState(false);
 
-    if (dismissed) return null;
+  if (dismissed) return null;
 
-    const styles = calloutColorStyles[color] || calloutColorStyles.info;
+  const styles = calloutColorStyles[color] || calloutColorStyles.info;
 
-    const handleDismiss = () => {
-      setDismissed(true);
-      onDismiss?.();
-    };
+  const handleDismiss = () => {
+    setDismissed(true);
+    onDismiss?.();
+  };
 
-    const iconComponent = renderCalloutIcon(icon, color, styles.icon);
+  const iconComponent = renderCalloutIcon(icon, color, styles.icon);
 
-    if (compact) {
-      return (
-        <div
-          ref={ref}
-          role="status"
-          className={cn(
-            "relative flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs transition-colors",
-            colSpan ? COL_SPAN_CLASSES[colSpan] : "w-full",
-            styles.container,
-            className,
-          )}
-          {...props}
-        >
-          <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            {iconComponent}
-            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-              {title && <span className={cn("font-semibold", styles.title)}>{title}</span>}
-              {description && <span className="text-muted-foreground">{description}</span>}
-              {children}
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
-            {actions?.map((action, idx) => (
-              <CalloutActionButton
-                key={idx}
-                action={action}
-                defaultVariant="outline"
-                className="h-6 px-2 text-[11px]"
-              />
-            ))}
-
-            {dismissible && (
-              <button
-                type="button"
-                onClick={handleDismiss}
-                className="text-muted-foreground hover:text-foreground cursor-pointer rounded-sm p-0.5 transition-colors"
-                aria-label="关闭提示"
-              >
-                <X className="size-3.5" />
-              </button>
-            )}
-          </div>
-        </div>
-      );
-    }
-
+  if (compact) {
     return (
       <div
         ref={ref}
         role="status"
         className={cn(
-          "relative flex gap-3.5 rounded-xl border p-4 text-sm transition-colors",
+          "relative flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs transition-colors",
           colSpan ? COL_SPAN_CLASSES[colSpan] : "w-full",
           styles.container,
           className,
         )}
         {...props}
       >
-        {iconComponent && <div className="mt-0.5 shrink-0">{iconComponent}</div>}
-
-        <div className="min-w-0 flex-1 space-y-1.5">
-          {title && (
-            <h5 className={cn("leading-none font-semibold tracking-tight", styles.title)}>
-              {title}
-            </h5>
-          )}
-
-          {(description || children) && (
-            <div className="text-muted-foreground text-xs leading-relaxed break-words">
-              {description}
-              {children}
-            </div>
-          )}
-
-          {actions && actions.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              {actions.map((action, idx) => (
-                <CalloutActionButton
-                  key={idx}
-                  action={action}
-                  defaultVariant="default"
-                  defaultClass={styles.actionDefault}
-                  className="h-7 text-xs"
-                />
-              ))}
-            </div>
-          )}
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          {iconComponent}
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+            {title && <span className={cn("font-semibold", styles.title)}>{title}</span>}
+            {description && <span className="text-muted-foreground">{description}</span>}
+            {children}
+          </div>
         </div>
 
-        {dismissible && (
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="text-muted-foreground hover:text-foreground absolute top-3.5 right-3.5 cursor-pointer rounded-sm p-1 transition-colors"
-            aria-label="关闭提示"
-          >
-            <X className="size-4" />
-          </button>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {actions?.map((action, idx) => (
+            <CalloutActionButton
+              key={idx}
+              action={action}
+              defaultVariant="outline"
+              className="h-6 px-2 text-[11px]"
+            />
+          ))}
+
+          {dismissible && (
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="text-muted-foreground hover:text-foreground cursor-pointer rounded-sm p-0.5 transition-colors"
+              aria-label="关闭提示"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </div>
       </div>
     );
-  },
-);
+  }
+
+  return (
+    <div
+      ref={ref}
+      role="status"
+      className={cn(
+        "relative flex gap-3.5 rounded-xl border p-4 text-sm transition-colors",
+        colSpan ? COL_SPAN_CLASSES[colSpan] : "w-full",
+        styles.container,
+        className,
+      )}
+      {...props}
+    >
+      {iconComponent && <div className="mt-0.5 shrink-0">{iconComponent}</div>}
+
+      <div className="min-w-0 flex-1 space-y-1.5">
+        {title && <h5 className={cn("leading-none font-semibold tracking-tight", styles.title)}>{title}</h5>}
+
+        {(description || children) && (
+          <div className="text-muted-foreground text-xs leading-relaxed break-words">
+            {description}
+            {children}
+          </div>
+        )}
+
+        {actions && actions.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            {actions.map((action, idx) => (
+              <CalloutActionButton
+                key={idx}
+                action={action}
+                defaultVariant="default"
+                defaultClass={styles.actionDefault}
+                className="h-7 text-xs"
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {dismissible && (
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className="text-muted-foreground hover:text-foreground absolute top-3.5 right-3.5 cursor-pointer rounded-sm p-1 transition-colors"
+          aria-label="关闭提示"
+        >
+          <X className="size-4" />
+        </button>
+      )}
+    </div>
+  );
+});
 
 InfolistCallout.displayName = "InfolistCallout";

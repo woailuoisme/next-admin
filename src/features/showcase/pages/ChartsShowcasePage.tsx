@@ -546,17 +546,11 @@ export function ChartsShowcasePage() {
       {/* Main Showcase Tabs */}
       <Tabs defaultValue="all" className="space-y-6">
         <TabsList className="bg-muted/70 grid h-auto! w-full grid-cols-2 gap-1 border p-1 sm:grid-cols-3 xl:grid-cols-5">
-          <TabsTrigger
-            value="all"
-            className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
-          >
+          <TabsTrigger value="all" className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal">
             <SlidersHorizontal className="h-3.5 w-3.5" />
             全景图表 (Overview)
           </TabsTrigger>
-          <TabsTrigger
-            value="trends"
-            className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
-          >
+          <TabsTrigger value="trends" className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal">
             <TrendingUp className="h-3.5 w-3.5" />
             趋势与混合 (Trend & Composed)
           </TabsTrigger>
@@ -567,10 +561,7 @@ export function ChartsShowcasePage() {
             <PieChartIcon className="h-3.5 w-3.5" />
             分布与排名 (Distribution)
           </TabsTrigger>
-          <TabsTrigger
-            value="gauges"
-            className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
-          >
+          <TabsTrigger value="gauges" className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal">
             <Gauge className="h-3.5 w-3.5" />
             度量与仪表盘 (Gauges & Radar)
           </TabsTrigger>

@@ -15,8 +15,7 @@ interface QuickActionButtonProps<TData> {
 
 function QuickActionButtonInner<TData>({ action, row }: QuickActionButtonProps<TData>) {
   const Icon = action.icon;
-  const isDisabled =
-    typeof action.disabled === "function" ? action.disabled(row) : !!action.disabled;
+  const isDisabled = typeof action.disabled === "function" ? action.disabled(row) : !!action.disabled;
 
   const labelText = typeof action.label === "string" ? action.label : undefined;
   const tooltipContent = action.tooltip || labelText;
@@ -49,10 +48,7 @@ function QuickActionButtonInner<TData>({ action, row }: QuickActionButtonProps<T
       <Tooltip>
         <TooltipTrigger asChild>
           {isDisabled ? (
-            <span
-              className="inline-flex cursor-not-allowed focus-visible:outline-none"
-              tabIndex={0}
-            >
+            <span className="inline-flex cursor-not-allowed focus-visible:outline-none" tabIndex={0}>
               {button}
             </span>
           ) : (

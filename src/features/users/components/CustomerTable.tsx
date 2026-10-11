@@ -58,12 +58,7 @@ export interface CustomerTableProps {
   onToggleCustomerStatus?: (customer: Customer) => void;
 }
 
-export function CustomerTable({
-  customers,
-  loading,
-  total,
-  onToggleCustomerStatus,
-}: CustomerTableProps) {
+export function CustomerTable({ customers, loading, total, onToggleCustomerStatus }: CustomerTableProps) {
   const queryClient = useQueryClient();
 
   const { mutateBatchAsync: suspendBatch, isPending: isSuspending } = useBatchMutation<Customer>({
@@ -141,25 +136,23 @@ export function CustomerTable({
     [handleToggleStatus],
   );
 
-  const renderBatchActions = useMemoizedFn(
-    (selectedRows: Customer[], clearSelection: () => void) => (
-      <div className="flex items-center gap-2">
-        <Button
-          variant="destructive"
-          size="sm"
-          className="h-7 gap-1 rounded-full text-xs"
-          disabled={isSuspending}
-          onClick={async () => {
-            await suspendBatch(selectedRows);
-            clearSelection();
-          }}
-        >
-          <Ban className="size-3.5" />
-          <span>Suspend ({selectedRows.length})</span>
-        </Button>
-      </div>
-    ),
-  );
+  const renderBatchActions = useMemoizedFn((selectedRows: Customer[], clearSelection: () => void) => (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="destructive"
+        size="sm"
+        className="h-7 gap-1 rounded-full text-xs"
+        disabled={isSuspending}
+        onClick={async () => {
+          await suspendBatch(selectedRows);
+          clearSelection();
+        }}
+      >
+        <Ban className="size-3.5" />
+        <span>Suspend ({selectedRows.length})</span>
+      </Button>
+    </div>
+  ));
 
   return (
     <ResourceTable<Customer>

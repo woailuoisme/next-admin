@@ -71,10 +71,7 @@ export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
 
       {vehicle?.speed !== undefined ? (
         <div className="hidden items-center gap-1 sm:flex">
-          <Badge
-            variant="outline"
-            className="border-primary/20 bg-primary/10 text-primary text-[11px]"
-          >
+          <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary text-[11px]">
             {vehicle.speed} km/h
           </Badge>
         </div>

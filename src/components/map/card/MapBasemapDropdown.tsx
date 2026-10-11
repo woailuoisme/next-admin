@@ -23,8 +23,7 @@ export const MapBasemapDropdown = memo(function MapBasemapDropdown({
   basemap,
   onBasemapChange,
 }: MapBasemapDropdownProps) {
-  const activeBasemapLabel =
-    BASEMAP_OPTIONS.find((b) => b.value === basemap)?.label ?? "标准矢量底图";
+  const activeBasemapLabel = BASEMAP_OPTIONS.find((b) => b.value === basemap)?.label ?? "标准矢量底图";
 
   return (
     <DropdownMenu>
@@ -55,9 +54,7 @@ export const MapBasemapDropdown = memo(function MapBasemapDropdown({
               {basemap === opt.value ? <span className="bg-primary size-1.5 rounded-full" /> : null}
             </div>
             {opt.description ? (
-              <span className="text-muted-foreground text-[10px] font-normal">
-                {opt.description}
-              </span>
+              <span className="text-muted-foreground text-[10px] font-normal">{opt.description}</span>
             ) : null}
           </DropdownMenuItem>
         ))}

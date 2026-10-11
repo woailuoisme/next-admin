@@ -1,4 +1,4 @@
-import { useBoolean, useDebounceFn, useMemoizedFn } from "ahooks";
+import { useDebounceFn, useMemoizedFn } from "ahooks";
 import { Eye, EyeOff, X } from "lucide-react";
 import { type ChangeEvent, type ReactNode, memo, useId, useState } from "react";
 
@@ -78,7 +78,8 @@ const TextInputInner = memo(function TextInputInner({
   hasError,
   debounceMs,
 }: TextInputInnerProps) {
-  const [showPassword, { toggle: togglePassword }] = useBoolean(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePassword = useMemoizedFn(() => setShowPassword((prev) => !prev));
   const [localValue, setLocalValue] = useState(value);
   const [prevValue, setPrevValue] = useState(value);
 
@@ -122,10 +123,7 @@ const TextInputInner = memo(function TextInputInner({
   const currentEffectiveType = isPassword ? (showPassword ? "text" : "password") : baseType;
   const hasValue = localValue != null && localValue !== "";
   const hasAdornments =
-    Boolean(prefix) ||
-    Boolean(suffix) ||
-    (clearable && hasValue && !disabled && !readOnly) ||
-    isPassword;
+    Boolean(prefix) || Boolean(suffix) || (clearable && hasValue && !disabled && !readOnly) || isPassword;
 
   if (hasAdornments) {
     return (
@@ -161,12 +159,7 @@ const TextInputInner = memo(function TextInputInner({
 
         {clearable && hasValue && !disabled && !readOnly && (
           <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              size="icon-xs"
-              variant="ghost"
-              onClick={handleClear}
-              aria-label="清除内容"
-            >
+            <InputGroupButton size="icon-xs" variant="ghost" onClick={handleClear} aria-label="清除内容">
               <X className="size-3" />
             </InputGroupButton>
           </InputGroupAddon>

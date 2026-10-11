@@ -4,11 +4,7 @@ export { deleteProductApi } from "./api";
 export { ProductFormDialog } from "./components/ProductFormDialog";
 export { ProductMetricsCards } from "./components/ProductMetricsCards";
 export { ProductTable } from "./components/ProductTable";
-export {
-  useCreateProductMutation,
-  useDeleteProductMutation,
-  useUpdateProductMutation,
-} from "./hooks";
+export { useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation } from "./hooks";
 export { getProductsCollection, useProductsCollection } from "./collection";
 export { computeProductStats, ProductsPage, type ProductsPageProps } from "./pages/ProductsPage";
 export { EMPTY_PRODUCT_FILTERS, productKeys, productQueries } from "./queries";

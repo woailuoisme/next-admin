@@ -19,6 +19,10 @@ import { transformCoordinates } from "../utils/coordinates";
 import { COLOR_RAMP_PRESETS } from "./colorRamps";
 import { HeatmapLegend } from "./HeatmapLegend";
 import { HeatmapWebGLSourceLayer } from "./HeatmapWebGLSourceLayer";
+import type { HeatmapPoint } from "./types";
+
+const EMPTY_POINTS: HeatmapPoint[] = [];
+const DEFAULT_BEIJING_CENTER: Coordinates = [116.4074, 39.9042];
 
 export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapProps) {
   const {
@@ -45,7 +49,7 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapPro
     onRetry,
   } = props;
 
-  const rawData = useMemo(() => props.data ?? props.points ?? [], [props.data, props.points]);
+  const rawData = useMemo(() => props.data ?? props.points ?? EMPTY_POINTS, [props.data, props.points]);
 
   const sourceCoords = coordinateSystem;
   const targetCoords = basemap === "amap" ? "GCJ02" : "WGS84";
@@ -63,11 +67,9 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapPro
   // Calculate center
   const computedCenter = useMemo<Coordinates>(() => {
     if (propCenter) {
-      return needsTransform
-        ? transformCoordinates(propCenter, sourceCoords, targetCoords)
-        : propCenter;
+      return needsTransform ? transformCoordinates(propCenter, sourceCoords, targetCoords) : propCenter;
     }
-    if (normalizedPoints.length === 0) return [116.4074, 39.9042];
+    if (normalizedPoints.length === 0) return DEFAULT_BEIJING_CENTER;
 
     let sumLng = 0;
     let sumLat = 0;
@@ -115,10 +117,7 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapPro
   // 内层统一 size-full，避免内层固定高度大于外层裁切框导致底部锚定元素被裁
   const mapBody = (
     <div
-      className={cn(
-        "relative flex size-full overflow-hidden rounded-xl bg-muted/20 select-none",
-        className,
-      )}
+      className={cn("relative flex size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}
     >
       {isLoading ? (
         <MapSkeleton height="100%" />

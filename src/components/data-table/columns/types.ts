@@ -1,12 +1,9 @@
 import type { ActionItem } from "../cells/action/types";
 import type { DataTableColDef } from "../core/types";
 
-export type OmitRender<T> = Omit<
-  DataTableColDef<T>,
-  "field" | "headerName" | "renderCell" | "description"
->;
+export type OmitRender<T> = Omit<DataTableColDef<T>, "field" | "headerName" | "renderCell" | "description">;
 
-export interface CrudActionsConfig<T = any> {
+export interface CrudActionsConfig<T = unknown> {
   /** 查看操作回调 */
   onView?: (row: T) => void;
   /** 编辑操作回调 */
@@ -29,7 +26,7 @@ export interface CrudActionsConfig<T = any> {
   isDeleteDisabled?: boolean | ((row: T) => boolean);
 }
 
-export type ActionsColOptions<T = any> = Omit<
+export type ActionsColOptions<T = unknown> = Omit<
   DataTableColDef<T>,
   "field" | "headerName" | "renderCell"
 > & {

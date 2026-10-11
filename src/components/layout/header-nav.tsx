@@ -40,9 +40,7 @@ export const HeaderNav = memo(function HeaderNav() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage className="text-foreground text-xs font-medium">
-                {pageTitle}
-              </BreadcrumbPage>
+              <BreadcrumbPage className="text-foreground text-xs font-medium">{pageTitle}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>

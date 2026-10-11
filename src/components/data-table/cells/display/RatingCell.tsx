@@ -49,8 +49,7 @@ export const RatingCell = memo(function RatingCell({
   const clampedValue = Math.max(0, Math.min(value, max));
   const starSizeClass = starSizes[size];
   const IconComp = iconComponents[iconType] || Star;
-  const resolvedActiveColor =
-    color || activeColor || defaultIconColors[iconType] || defaultIconColors.star;
+  const resolvedActiveColor = color || activeColor || defaultIconColors[iconType] || defaultIconColors.star;
 
   return (
     <div

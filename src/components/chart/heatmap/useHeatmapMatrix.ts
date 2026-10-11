@@ -34,15 +34,16 @@ export function useHeatmapMatrix({
   yLabels,
 }: UseHeatmapMatrixOptions) {
   return useMemo(() => {
-    const getX = (item: any): string | number => item[xKey] ?? item.x ?? "";
-    const getY = (item: any): string => String(item[yKey] ?? item.y ?? "");
-    const getValue = (item: any): number => Number(item[valueKey] ?? item.value ?? 0);
+    const getX = (item: HeatmapCell): string | number => {
+      const val = item[xKey] ?? item.x;
+      return typeof val === "number" || typeof val === "string" ? val : "";
+    };
+    const getY = (item: HeatmapCell): string => String(item[yKey] ?? item.y ?? "");
+    const getValue = (item: HeatmapCell): number => Number(item[valueKey] ?? item.value ?? 0);
 
-    const computedXLabels =
-      xLabels && xLabels.length > 0 ? xLabels : Array.from(new Set(data.map(getX)));
+    const computedXLabels = xLabels && xLabels.length > 0 ? xLabels : Array.from(new Set(data.map(getX)));
 
-    const computedYLabels =
-      yLabels && yLabels.length > 0 ? yLabels : Array.from(new Set(data.map(getY)));
+    const computedYLabels = yLabels && yLabels.length > 0 ? yLabels : Array.from(new Set(data.map(getY)));
 
     let min = Number.POSITIVE_INFINITY;
     let max = Number.NEGATIVE_INFINITY;
@@ -73,8 +74,7 @@ export function useHeatmapMatrix({
         const key = `${String(x)}__${y}`;
         const raw = cellLookup.get(key);
         const value = raw?.value ?? 0;
-        const ratio =
-          range > 0 ? Math.max(0, Math.min(1, (value - min) / range)) : value > 0 ? 1 : 0;
+        const ratio = range > 0 ? Math.max(0, Math.min(1, (value - min) / range)) : value > 0 ? 1 : 0;
         const level = value === 0 ? 0 : Math.min(4, Math.max(1, Math.ceil(ratio * 4)));
 
         return {

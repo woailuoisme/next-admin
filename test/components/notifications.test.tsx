@@ -33,9 +33,7 @@ describe("Notification Components", () => {
   describe("NotificationItemRow", () => {
     it("renders unread item with indicator dot and title", () => {
       const handleItemClick = vi.fn();
-      renderWithProviders(
-        <NotificationItemRow item={mockItemUnread} onItemClick={handleItemClick} />,
-      );
+      renderWithProviders(<NotificationItemRow item={mockItemUnread} onItemClick={handleItemClick} />);
 
       expect(screen.getByText("新订单待发货 #ORD-2026-9042")).toBeInTheDocument();
       expect(screen.getByTestId("notification-unread-dot")).toBeInTheDocument();
@@ -68,11 +66,7 @@ describe("Notification Components", () => {
       const handleDelete = vi.fn();
 
       renderWithProviders(
-        <NotificationItemRow
-          item={mockItemRead}
-          onItemClick={handleItemClick}
-          onDelete={handleDelete}
-        />,
+        <NotificationItemRow item={mockItemRead} onItemClick={handleItemClick} onDelete={handleDelete} />,
       );
 
       const deleteBtn = screen.getByRole("button", { name: /删除|delete/i });

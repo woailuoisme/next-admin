@@ -27,9 +27,7 @@ export async function createCategoryApi(
 }
 
 export async function updateCategoryApi(id: string, data: Partial<Category>): Promise<Category> {
-  const res = await apiClient
-    .patch(`categories/${id}`, { json: data })
-    .json<ApiResponse<Category>>();
+  const res = await apiClient.patch(`categories/${id}`, { json: data }).json<ApiResponse<Category>>();
   return res.data;
 }
 

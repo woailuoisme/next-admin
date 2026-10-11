@@ -36,11 +36,7 @@ export function calculateTrendInfo(trend?: StatCardTrendData | null): TrendInfoR
   const isSuccess = (dir === "up" && isGood) || (dir === "down" && !isGood);
   const isDanger = (dir === "down" && isGood) || (dir === "up" && !isGood);
 
-  const colorClass = isSuccess
-    ? SUCCESS_COLOR_CLASS
-    : isDanger
-      ? DANGER_COLOR_CLASS
-      : NEUTRAL_COLOR_CLASS;
+  const colorClass = isSuccess ? SUCCESS_COLOR_CLASS : isDanger ? DANGER_COLOR_CLASS : NEUTRAL_COLOR_CLASS;
 
   const displayValue = typeof trend.value === "number" ? `${trend.value}%` : trend.value;
 

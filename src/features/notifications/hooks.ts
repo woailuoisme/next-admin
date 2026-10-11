@@ -39,18 +39,15 @@ export function useMarkAsReadMutation() {
       });
 
       // Optimistically set read = true
-      queryClient.setQueriesData<NotificationListResponse>(
-        { queryKey: NOTIFICATIONS_QUERY_KEY },
-        (old) => {
-          if (!old) return old;
-          const wasUnread = old.items.find((item) => item.id === id && !item.read);
-          return {
-            ...old,
-            unreadCount: wasUnread ? Math.max(0, old.unreadCount - 1) : old.unreadCount,
-            items: old.items.map((item) => (item.id === id ? { ...item, read: true } : item)),
-          };
-        },
-      );
+      queryClient.setQueriesData<NotificationListResponse>({ queryKey: NOTIFICATIONS_QUERY_KEY }, (old) => {
+        if (!old) return old;
+        const wasUnread = old.items.find((item) => item.id === id && !item.read);
+        return {
+          ...old,
+          unreadCount: wasUnread ? Math.max(0, old.unreadCount - 1) : old.unreadCount,
+          items: old.items.map((item) => (item.id === id ? { ...item, read: true } : item)),
+        };
+      });
 
       return { previousQueries };
     },
@@ -79,17 +76,14 @@ export function useMarkAllAsReadMutation() {
         queryKey: NOTIFICATIONS_QUERY_KEY,
       });
 
-      queryClient.setQueriesData<NotificationListResponse>(
-        { queryKey: NOTIFICATIONS_QUERY_KEY },
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            unreadCount: 0,
-            items: old.items.map((item) => ({ ...item, read: true })),
-          };
-        },
-      );
+      queryClient.setQueriesData<NotificationListResponse>({ queryKey: NOTIFICATIONS_QUERY_KEY }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          unreadCount: 0,
+          items: old.items.map((item) => ({ ...item, read: true })),
+        };
+      });
 
       return { previousQueries };
     },
@@ -145,8 +139,7 @@ export function useRealtimeNotifications(options: RealtimeNotificationsOptions =
   const userId = admin?.id;
   const { isConnected } = useCentrifuge();
 
-  const targetChannel =
-    options.channel ?? (userId ? `user:${userId}:notifications` : "notifications");
+  const targetChannel = options.channel ?? (userId ? `user:${userId}:notifications` : "notifications");
 
   useSubscription<NotificationItem | { notification: NotificationItem }>(
     targetChannel,
@@ -160,21 +153,18 @@ export function useRealtimeNotifications(options: RealtimeNotificationsOptions =
       if (!item || !item.id) return;
 
       // Optimistically prepend to all notification query lists in TanStack Query cache
-      queryClient.setQueriesData<NotificationListResponse>(
-        { queryKey: NOTIFICATIONS_QUERY_KEY },
-        (old) => {
-          if (!old) return old;
-          const exists = old.items.some((existing) => existing.id === item.id);
-          if (exists) return old;
+      queryClient.setQueriesData<NotificationListResponse>({ queryKey: NOTIFICATIONS_QUERY_KEY }, (old) => {
+        if (!old) return old;
+        const exists = old.items.some((existing) => existing.id === item.id);
+        if (exists) return old;
 
-          return {
-            ...old,
-            total: old.total + 1,
-            unreadCount: item.read ? old.unreadCount : old.unreadCount + 1,
-            items: [item, ...old.items],
-          };
-        },
-      );
+        return {
+          ...old,
+          total: old.total + 1,
+          unreadCount: item.read ? old.unreadCount : old.unreadCount + 1,
+          items: [item, ...old.items],
+        };
+      });
 
       if (options.enableToast !== false) {
         const toastOptions = {

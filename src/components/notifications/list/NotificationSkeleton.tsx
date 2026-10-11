@@ -1,9 +1,14 @@
+import { memo } from "react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 import type { NotificationSkeletonProps } from "./types";
 
-export function NotificationSkeleton({ count = 4, className }: NotificationSkeletonProps) {
+export const NotificationSkeleton = memo(function NotificationSkeleton({
+  count = 4,
+  className,
+}: NotificationSkeletonProps) {
   return (
     <div className={cn("space-y-2.5 p-2", className)} data-testid="notification-skeletons">
       {Array.from({ length: count }).map((_, i) => (
@@ -18,4 +23,4 @@ export function NotificationSkeleton({ count = 4, className }: NotificationSkele
       ))}
     </div>
   );
-}
+});

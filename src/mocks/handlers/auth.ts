@@ -1,7 +1,7 @@
 import { capitalize } from "es-toolkit";
 import { http } from "msw";
 
-import type { AdminUser } from "@/features/admin-users";
+import type { AdminUser } from "@/features/auth";
 
 import { db } from "../db";
 import { checkChaosError, jsonError, jsonNoContent, jsonOk, simulateNetwork } from "../middleware";

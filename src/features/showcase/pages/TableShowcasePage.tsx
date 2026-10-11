@@ -178,12 +178,7 @@ const INITIAL_DATA: ShowcaseItem[] = Array.from({ length: 48 }, (_, i) => {
     [5, 8, 12, 19, 15, 28, 35],
   ];
 
-  const userStatuses: ("online" | "offline" | "busy" | "away")[] = [
-    "online",
-    "away",
-    "busy",
-    "offline",
-  ];
+  const userStatuses: ("online" | "offline" | "busy" | "away")[] = ["online", "away", "busy", "offline"];
   const isUnassigned = i % 8 === 0;
 
   return {
@@ -344,9 +339,7 @@ export function TableShowcasePage() {
   const [showQueryBuilder, setShowQueryBuilder] = useState<boolean>(true);
   const [showActiveFiltersPills, setShowActiveFiltersPills] = useState<boolean>(true);
   const [columnsCount, setColumnsCount] = useState<1 | 2 | 3 | 4>(2);
-  const [paginationVariant, setPaginationVariant] = useState<"capsule" | "shadcn" | "simple">(
-    "capsule",
-  );
+  const [paginationVariant, setPaginationVariant] = useState<"capsule" | "shadcn" | "simple">("capsule");
 
   const updateItem = useMemoizedFn((id: string, patch: Partial<ShowcaseItem>) => {
     setData((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
@@ -430,8 +423,7 @@ export function TableShowcasePage() {
                 </span>
               </p>
               <p className="flex justify-between">
-                <span>Quality Rating:</span>{" "}
-                <span className="text-foreground">⭐ {row.rating} / 5.0</span>
+                <span>Quality Rating:</span> <span className="text-foreground">⭐ {row.rating} / 5.0</span>
               </p>
             </div>
             <div className="pt-1">
@@ -448,9 +440,7 @@ export function TableShowcasePage() {
 
           {/* Column 2: API Keys & Integration */}
           <div className="border-border/50 bg-background/50 space-y-2 rounded-lg border p-3.5">
-            <span className="text-foreground text-xs font-semibold">
-              Integration & API Credentials
-            </span>
+            <span className="text-foreground text-xs font-semibold">Integration & API Credentials</span>
             <div className="space-y-1.5">
               <p className="text-muted-foreground text-[11px]">Live Webhook Key</p>
               <div className="border-border/60 bg-muted/30 flex items-center gap-1.5 rounded-md border px-2 py-1 font-mono text-[11px]">
@@ -496,9 +486,7 @@ export function TableShowcasePage() {
                   <p className="text-foreground leading-none font-medium">
                     {row.author.name ?? "Unassigned"}
                   </p>
-                  <p className="text-muted-foreground text-[11px]">
-                    {row.author.subtitle ?? "Team Member"}
-                  </p>
+                  <p className="text-muted-foreground text-[11px]">{row.author.subtitle ?? "Team Member"}</p>
                 </div>
               </div>
             </div>
@@ -523,10 +511,7 @@ export function TableShowcasePage() {
     },
   );
 
-  const isAllSelected = useMemo(
-    () => data.length > 0 && data.every((item) => item.isSelected),
-    [data],
-  );
+  const isAllSelected = useMemo(() => data.length > 0 && data.every((item) => item.isSelected), [data]);
   const isSomeSelected = useMemo(
     () => data.some((item) => item.isSelected) && !isAllSelected,
     [data, isAllSelected],
@@ -599,8 +584,7 @@ export function TableShowcasePage() {
         variantMap: STATUS_VARIANT_MAP,
         pulse: (row) => row.status === "active",
         density: "compact",
-        onBadgeClick: (row, statusVal) =>
-          toast.info(`Filter applied for status: ${statusVal} (${row.id})`),
+        onBadgeClick: (row, statusVal) => toast.info(`Filter applied for status: ${statusVal} (${row.id})`),
       }),
       badgeCol<ShowcaseItem>("tags", "Tags (Multi-Badge)", {
         width: 160,
@@ -628,19 +612,15 @@ export function TableShowcasePage() {
         allowCopy: true,
         autoHideDuration: 5,
       }),
-      selectCol<ShowcaseItem, "admin" | "editor" | "superadmin" | "viewer">(
-        "role",
-        "Role (SelectCol)",
-        {
-          width: 140,
-          options: ROLE_OPTIONS,
-          onCellChange: async (row, nextRole) => {
-            await delay(300);
-            updateItem(row.id, { role: nextRole });
-            toast.success(`Role for ${row.id} changed to ${nextRole}`);
-          },
+      selectCol<ShowcaseItem, "admin" | "editor" | "superadmin" | "viewer">("role", "Role (SelectCol)", {
+        width: 140,
+        options: ROLE_OPTIONS,
+        onCellChange: async (row, nextRole) => {
+          await delay(300);
+          updateItem(row.id, { role: nextRole });
+          toast.success(`Role for ${row.id} changed to ${nextRole}`);
         },
-      ),
+      }),
       colorCol<ShowcaseItem>("color", "Color (ColorCol)", {
         width: 130,
         copyable: true,
@@ -727,9 +707,8 @@ export function TableShowcasePage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Filament v5 Table Columns Showcase</h1>
         <p className="text-muted-foreground mt-1 text-xs">
-          Live gallery demonstrating 15 table column types alongside Filament v5 Capsule segmented
-          pagination and multi-layout Filter systems (Popover, Slide-over Sheet, Above Content,
-          Deferred filters).
+          Live gallery demonstrating 15 table column types alongside Filament v5 Capsule segmented pagination
+          and multi-layout Filter systems (Popover, Slide-over Sheet, Above Content, Deferred filters).
         </p>
       </div>
 
@@ -813,10 +792,7 @@ export function TableShowcasePage() {
             className="h-8 gap-1.5 text-xs"
           >
             <span>Filter Pills:</span>
-            <Badge
-              variant={showActiveFiltersPills ? "default" : "secondary"}
-              className="text-[10px]"
-            >
+            <Badge variant={showActiveFiltersPills ? "default" : "secondary"} className="text-[10px]">
               {showActiveFiltersPills ? "Shown" : "Hidden"}
             </Badge>
           </Button>
@@ -862,9 +838,8 @@ export function TableShowcasePage() {
             Interactive DataTable with Filament v5 Features
           </CardTitle>
           <CardDescription className="text-xs">
-            Try toggling the filter drawer or above-content inline panel, applying ternary filters,
-            assembling dynamic rules in Query Builder, and navigating through pages with capsule
-            pagination.
+            Try toggling the filter drawer or above-content inline panel, applying ternary filters, assembling
+            dynamic rules in Query Builder, and navigating through pages with capsule pagination.
           </CardDescription>
         </CardHeader>
         <CardContent className="max-w-full min-w-0 overflow-hidden p-0">
@@ -900,8 +875,8 @@ export function TableShowcasePage() {
                 Enterprise Master-Detail & Saved Views Architecture (Linear & Airtable Pattern)
               </CardTitle>
               <CardDescription className="text-xs">
-                Nested row expansion with smooth animations, accordion toggle, and row click mode,
-                integrated with status segmented tabs and saved views management.
+                Nested row expansion with smooth animations, accordion toggle, and row click mode, integrated
+                with status segmented tabs and saved views management.
               </CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -953,12 +928,10 @@ export function TableShowcasePage() {
       {/* Filament v5 Tables Empty State Architecture Showcase */}
       <Card className="border-border/60">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">
-            Filament v5 Tables Empty State Architecture
-          </CardTitle>
+          <CardTitle className="text-sm font-semibold">Filament v5 Tables Empty State Architecture</CardTitle>
           <CardDescription className="text-xs">
-            Pure UI Kit container and integrated DataTable overlay with dual typography, badge
-            icons, action buttons, and semantic colors.
+            Pure UI Kit container and integrated DataTable overlay with dual typography, badge icons, action
+            buttons, and semantic colors.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-0">
@@ -1024,8 +997,7 @@ export function TableShowcasePage() {
                   DataTable with Empty State Simulation
                 </h4>
                 <p className="text-muted-foreground text-[11px]">
-                  Toggle empty dataset to preview integrated DataTable empty overlay with custom
-                  actions.
+                  Toggle empty dataset to preview integrated DataTable empty overlay with custom actions.
                 </p>
               </div>
               <Button
@@ -1048,8 +1020,7 @@ export function TableShowcasePage() {
                   emptyState={{
                     iconColor: "primary",
                     heading: "No showcase records found",
-                    description:
-                      "Get started by generating synthetic records or resetting query params.",
+                    description: "Get started by generating synthetic records or resetting query params.",
                     actions: [
                       {
                         label: "Restore Records",

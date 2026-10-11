@@ -24,22 +24,18 @@ export const MetricSparkline = memo(function MetricSparkline({
   const viewBoxWidth = 100;
   const viewBoxHeight = 32;
 
-  const { linePath, areaPath, trend, minPoint, maxPoint, lastPoint, first, last } =
-    useMetricSparkline({
-      data,
-      curve,
-      viewBoxWidth,
-      viewBoxHeight,
-      padding: 3,
-    });
+  const { linePath, areaPath, trend, minPoint, maxPoint, lastPoint, first, last } = useMetricSparkline({
+    data,
+    curve,
+    viewBoxWidth,
+    viewBoxHeight,
+    padding: 3,
+  });
 
   if (!linePath) {
     return (
       <div
-        className={cn(
-          "inline-flex items-center justify-center text-xs text-muted-foreground",
-          className,
-        )}
+        className={cn("inline-flex items-center justify-center text-xs text-muted-foreground", className)}
         style={{ width, height }}
       >
         -

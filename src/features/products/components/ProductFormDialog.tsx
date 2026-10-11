@@ -194,14 +194,7 @@ export function ProductFormDialog({
           icon={<DollarSign className="size-4" />}
           columns={3}
         >
-          <NumberInput
-            name="price"
-            label={t("price_label")}
-            step={0.01}
-            min={0.01}
-            required
-            prefix="$"
-          />
+          <NumberInput name="price" label={t("price_label")} step={0.01} min={0.01} required prefix="$" />
 
           <NumberInput
             name="costPrice"
@@ -223,13 +216,7 @@ export function ProductFormDialog({
             prefix={<Package className="size-3.5" />}
           />
 
-          <SelectInput
-            name="status"
-            label={t("status_label")}
-            required
-            colSpan={3}
-            options={statusOptions}
-          />
+          <SelectInput name="status" label={t("status_label")} required colSpan={3} options={statusOptions} />
         </FormSection>
       </div>
     </FormDialog>

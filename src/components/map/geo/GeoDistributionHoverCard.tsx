@@ -22,9 +22,7 @@ export const GeoDistributionHoverCard = memo(function GeoDistributionHoverCard({
       <p className="text-foreground text-xs font-semibold">{info.name}</p>
       {info.value !== undefined ? (
         <div className="mt-1 flex items-baseline gap-1.5">
-          <span className="text-primary font-mono text-lg font-bold">
-            {info.value.toLocaleString()}
-          </span>
+          <span className="text-primary font-mono text-lg font-bold">{info.value.toLocaleString()}</span>
           {unit ? <span className="text-muted-foreground text-xs">{unit}</span> : null}
         </div>
       ) : null}

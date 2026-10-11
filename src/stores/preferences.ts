@@ -105,11 +105,7 @@ function getSystemTheme(): "light" | "dark" {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-function applyThemeDom(
-  color: ThemeColor,
-  currentMode: ThemeMode,
-  currentRadius: string,
-): "light" | "dark" {
+function applyThemeDom(color: ThemeColor, currentMode: ThemeMode, currentRadius: string): "light" | "dark" {
   const effectiveMode = currentMode === "auto" ? getSystemTheme() : currentMode;
 
   if (typeof document !== "undefined") {
@@ -147,7 +143,7 @@ function getInitialMode(): ThemeMode {
 function getInitialRadius(): string {
   if (typeof window === "undefined") return "0.45rem";
   const stored = window.localStorage.getItem(THEME_RADIUS_STORAGE_KEY);
-  return stored || "0.45rem";
+  return stored ?? "0.45rem";
 }
 
 export interface PreferencesState {
@@ -184,7 +180,7 @@ export const usePreferencesStore = create<PreferencesState>()((set, get) => ({
   setTheme: (newTheme: ThemeColor) => {
     const state = get();
     const meta = THEME_CONFIG_MAP.get(newTheme);
-    const targetRadius = meta?.defaultRadius || state.radius;
+    const targetRadius = meta?.defaultRadius ?? state.radius;
 
     if (typeof window !== "undefined") {
       window.localStorage.setItem(THEME_COLOR_STORAGE_KEY, newTheme);

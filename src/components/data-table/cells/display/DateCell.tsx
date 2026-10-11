@@ -59,13 +59,7 @@ export const DateCell = memo(function DateCell({
     const secondaryText = isRelativePrimary ? customFormatted : relativeString;
 
     return (
-      <div
-        className={cn(
-          "flex max-w-full flex-col leading-tight",
-          AVATAR_ALIGN_CLASSES[align],
-          className,
-        )}
-      >
+      <div className={cn("flex max-w-full flex-col leading-tight", AVATAR_ALIGN_CLASSES[align], className)}>
         <div
           className={cn(
             "flex items-center gap-1 text-xs",
@@ -128,9 +122,7 @@ export const DateCell = memo(function DateCell({
         </span>
       )}
       {isOverdue && (
-        <span className="bg-destructive/10 text-destructive rounded-xs px-1 font-sans text-[10px]">
-          逾期
-        </span>
+        <span className="bg-destructive/10 text-destructive rounded-xs px-1 font-sans text-[10px]">逾期</span>
       )}
     </div>
   );
@@ -142,13 +134,9 @@ export const DateCell = memo(function DateCell({
       </TooltipTrigger>
       <TooltipContent side="top" className="font-mono text-xs">
         <p>{exactFormatted}</p>
-        {relative && (
-          <p className="text-muted-foreground mt-0.5 text-[10px]">格式化: {customFormatted}</p>
-        )}
+        {relative && <p className="text-muted-foreground mt-0.5 text-[10px]">格式化: {customFormatted}</p>}
         {timezone && <p className="text-muted-foreground mt-0.5 text-[10px]">时区: {timezone}</p>}
-        {isOverdue && (
-          <p className="text-destructive mt-0.5 text-[10px] font-semibold">此记录已逾期</p>
-        )}
+        {isOverdue && <p className="text-destructive mt-0.5 text-[10px] font-semibold">此记录已逾期</p>}
       </TooltipContent>
     </Tooltip>
   );

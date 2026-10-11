@@ -9,9 +9,7 @@ interface LocationMarkerPopupProps {
   item: LocationMarkerItem;
 }
 
-export const LocationMarkerPopup = memo(function LocationMarkerPopup({
-  item,
-}: LocationMarkerPopupProps) {
+export const LocationMarkerPopup = memo(function LocationMarkerPopup({ item }: LocationMarkerPopupProps) {
   // 卡片外观（底色 / 描边 / 圆角 / 阴影 / 12px 内边距）由 ui/map 的 MarkerPopup 容器自带
   // （`bg-popover ... rounded-md border p-3 shadow-md`），此处只负责内容排版。
   // 若在此再加一层卡片样式，会与容器形成「双层边框 + 双阴影」。
@@ -22,11 +20,7 @@ export const LocationMarkerPopup = memo(function LocationMarkerPopup({
         {item.status ? (
           <Badge
             variant={
-              item.status === "active"
-                ? "default"
-                : item.status === "warning"
-                  ? "secondary"
-                  : "outline"
+              item.status === "active" ? "default" : item.status === "warning" ? "secondary" : "outline"
             }
             className="shrink-0 text-[10px]"
           >

@@ -96,15 +96,11 @@ export const StatCardSkeleton = memo(function StatCardSkeleton({
       data-sparkline-layout={resolvedSparklineLayout}
       className={cn("gap-0 overflow-hidden border border-border/60 py-0", className)}
     >
-      <CardContent
-        className={cn("flex flex-col justify-between", dStyles.cardPadding, dStyles.headerGap)}
-      >
+      <CardContent className={cn("flex flex-col justify-between", dStyles.cardPadding, dStyles.headerGap)}>
         <div className="flex items-center justify-between">
           <Skeleton className={cn(resolvedDensity === "compact" ? "h-3.5 w-20" : "h-4 w-24")} />
           <Skeleton
-            className={cn(
-              resolvedDensity === "compact" ? "h-6 w-6 rounded-md" : "h-8 w-8 rounded-lg",
-            )}
+            className={cn(resolvedDensity === "compact" ? "h-6 w-6 rounded-md" : "h-8 w-8 rounded-lg")}
           />
         </div>
         <div className={cn(resolvedDensity === "compact" ? "space-y-1" : "space-y-2")}>
@@ -112,9 +108,7 @@ export const StatCardSkeleton = memo(function StatCardSkeleton({
           <Skeleton className="h-3.5 w-16" />
         </div>
         {hasSparkline ? (
-          <Skeleton
-            className={cn("mt-1.5 w-full", resolvedDensity === "compact" ? "h-6" : "h-8")}
-          />
+          <Skeleton className={cn("mt-1.5 w-full", resolvedDensity === "compact" ? "h-6" : "h-8")} />
         ) : null}
       </CardContent>
     </Card>

@@ -2,17 +2,18 @@
 
 import { useMemoizedFn } from "ahooks";
 import { Moon, Sun } from "lucide-react";
+import { memo } from "react";
+import { cn } from "cn";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { usePreferencesStore } from "@/stores/preferences";
 
 export interface ThemeToggleProps {
   className?: string;
 }
 
-export function ThemeToggle({ className }: ThemeToggleProps) {
+export const ThemeToggle = memo(function ThemeToggle({ className }: ThemeToggleProps) {
   const mode = usePreferencesStore((s) => s.mode);
   const setMode = usePreferencesStore((s) => s.setMode);
   const resolvedMode = usePreferencesStore((s) => s.resolvedMode);
@@ -62,6 +63,6 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       </TooltipContent>
     </Tooltip>
   );
-}
+});
 
 export default ThemeToggle;

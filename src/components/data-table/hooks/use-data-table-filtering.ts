@@ -2,6 +2,7 @@ import { useMemoizedFn } from "ahooks";
 import { keyBy } from "es-toolkit";
 import { useMemo, useState } from "react";
 
+import { EMPTY_ARRAY } from "../core/constants";
 import type { DataTableColDef, DataTableFilterItem, DataTableFilterModel } from "../core/types";
 
 import { readCellValue } from "../core/utils";
@@ -15,7 +16,7 @@ export interface UseDataTableFilteringOptions<TData> {
   onFilterModelChange?: (model: DataTableFilterModel) => void;
 }
 
-export function useDataTableFiltering<TData = Record<string, unknown>>({
+export function useDataTableFiltering<TData = Record<string, any>>({
   rows,
   columns,
   visibleColumns,
@@ -24,8 +25,8 @@ export function useDataTableFiltering<TData = Record<string, unknown>>({
   onFilterModelChange,
 }: UseDataTableFilteringOptions<TData>) {
   const [internalFilterModel, setInternalFilterModel] = useState<DataTableFilterModel>({
-    items: [],
-    quickFilterValues: [],
+    items: EMPTY_ARRAY,
+    quickFilterValues: EMPTY_ARRAY,
   });
   const filterModel = controlledFilterModel ?? internalFilterModel;
   const [quickFilterText, setQuickFilterText] = useState("");
@@ -109,10 +110,7 @@ export function useDataTableFiltering<TData = Record<string, unknown>>({
               if (typeof val === "boolean") {
                 return val === (lowerItemValue === "true" || lowerItemValue === "1");
               }
-              if (
-                typeof val === "number" &&
-                (lowerItemValue === "true" || lowerItemValue === "false")
-              ) {
+              if (typeof val === "number" && (lowerItemValue === "true" || lowerItemValue === "false")) {
                 return (val === 1) === (lowerItemValue === "true");
               }
               return String(val ?? "").toLowerCase() === lowerItemValue;
@@ -121,10 +119,7 @@ export function useDataTableFiltering<TData = Record<string, unknown>>({
               if (typeof val === "boolean") {
                 return val !== (lowerItemValue === "true" || lowerItemValue === "1");
               }
-              if (
-                typeof val === "number" &&
-                (lowerItemValue === "true" || lowerItemValue === "false")
-              ) {
+              if (typeof val === "number" && (lowerItemValue === "true" || lowerItemValue === "false")) {
                 return (val === 1) !== (lowerItemValue === "true");
               }
               return String(val ?? "").toLowerCase() !== lowerItemValue;
@@ -161,6 +156,6 @@ export function useDataTableFiltering<TData = Record<string, unknown>>({
     filteredRows,
     handleFilterModelChange,
     handleQuickFilterChange,
-    quickFilterTokens: filterModel.quickFilterValues ?? [],
+    quickFilterTokens: filterModel.quickFilterValues ?? EMPTY_ARRAY,
   };
 }

@@ -87,9 +87,7 @@ export const PasswordStrengthMeter = memo(function PasswordStrengthMeter({
           />
         ))}
         {showScoreLabel && (
-          <span className="text-muted-foreground min-w-10 text-right text-[11px] font-medium">
-            {label}
-          </span>
+          <span className="text-muted-foreground min-w-10 text-right text-[11px] font-medium">{label}</span>
         )}
       </div>
 

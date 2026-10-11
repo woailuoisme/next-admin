@@ -57,7 +57,5 @@ export function defaultComposedValueFormatter(val: number): string {
   if (typeof val !== "number" || Number.isNaN(val)) {
     return String(val ?? 0);
   }
-  return Math.abs(val) <= 100 && String(val).includes(".")
-    ? `${val.toFixed(1)}%`
-    : val.toLocaleString();
+  return Math.abs(val) <= 100 && String(val).includes(".") ? `${val.toFixed(1)}%` : val.toLocaleString();
 }

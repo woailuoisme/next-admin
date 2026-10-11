@@ -1,10 +1,6 @@
 import React from "react";
 
-import type {
-  DataTableColDef,
-  DataTableFilterDefinition,
-  DataTableFilterItem,
-} from "../../../core/types";
+import type { DataTableColDef, DataTableFilterDefinition, DataTableFilterItem } from "../../../core/types";
 
 import { CustomFilterControl } from "./CustomFilterControl";
 import { SelectFilterControl } from "./SelectFilterControl";
@@ -29,8 +25,7 @@ export const FilterControlItem: React.FC<FilterControlItemProps> = ({
   onTernaryChange,
   onCustomChange,
 }) => {
-  const filterField =
-    definition.field ?? definition.name ?? definition.columnField ?? `filter-${index}`;
+  const filterField = definition.field ?? definition.name ?? definition.columnField ?? `filter-${index}`;
   const col = filterableColumns.find((c) => c.field === filterField);
   const labelText = definition.label ?? col?.headerName ?? filterField;
 

@@ -29,8 +29,7 @@ export const BarTrendChart = memo(function BarTrendChart(props: BarTrendChartPro
     className,
   } = props;
 
-  const { containerRef, activeStroke, valueFormatter, xAxisFormatter, yAxisFormatter } =
-    useBarTrend(props);
+  const { containerRef, activeStroke, valueFormatter, xAxisFormatter, yAxisFormatter } = useBarTrend(props);
 
   return (
     <div ref={containerRef} className={className} style={{ width: "100%", height }}>
@@ -42,9 +41,7 @@ export const BarTrendChart = memo(function BarTrendChart(props: BarTrendChartPro
         initialDimension={{ width: DEFAULT_INITIAL_CHART_WIDTH, height }}
       >
         <BarChart data={data} margin={DEFAULT_CHART_MARGIN}>
-          {showGrid && (
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />
-          )}
+          {showGrid && <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />}
 
           <XAxis
             dataKey={xAxisKey}
@@ -54,12 +51,7 @@ export const BarTrendChart = memo(function BarTrendChart(props: BarTrendChartPro
             tickFormatter={xAxisFormatter}
           />
 
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={AXIS_TICK_STYLE}
-            tickFormatter={yAxisFormatter}
-          />
+          <YAxis axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} tickFormatter={yAxisFormatter} />
 
           {showTooltip && <Tooltip content={<ChartTooltip valueFormatter={valueFormatter} />} />}
 

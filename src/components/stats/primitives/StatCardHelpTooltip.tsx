@@ -1,3 +1,4 @@
+import { useMemoizedFn } from "ahooks";
 import { HelpCircle } from "lucide-react";
 import { memo } from "react";
 
@@ -10,6 +11,18 @@ export const StatCardHelpTooltip = memo(function StatCardHelpTooltip({
   description,
   className,
 }: StatCardHelpTooltipProps) {
+  const handleClick = useMemoizedFn((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  const handleKeyDown = useMemoizedFn((e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+
   if (!description) return null;
 
   return (
@@ -24,16 +37,8 @@ export const StatCardHelpTooltip = memo(function StatCardHelpTooltip({
               className,
             )}
             aria-label={description}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                e.stopPropagation();
-              }
-            }}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
           >
             <HelpCircle className="h-3.5 w-3.5" />
             <span className="sr-only">{description}</span>

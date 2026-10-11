@@ -20,9 +20,7 @@ export function useFunnelConversion(props: FunnelConversionChartProps) {
       const conversionRate = Math.round((item.value / initialValue) * 1000) / 10;
       const stepRate = Math.round((item.value / prevValue) * 1000) / 10;
       const dropoffRate =
-        index === 0
-          ? 0
-          : Math.max(0, Math.round(((prevValue - item.value) / prevValue) * 1000) / 10);
+        index === 0 ? 0 : Math.max(0, Math.round(((prevValue - item.value) / prevValue) * 1000) / 10);
 
       const color = item.fill || CHART_PALETTE[index % CHART_PALETTE.length] || "var(--chart-1)";
 

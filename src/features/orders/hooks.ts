@@ -13,8 +13,7 @@ import { orderKeys } from "./queries";
 export function useUpdateOrderStatusMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
-      updateOrderStatusApi(id, status),
+    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) => updateOrderStatusApi(id, status),
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
       queryClient.invalidateQueries({ queryKey: dashboardKeys.all });

@@ -49,10 +49,7 @@ export const SheetFilterLayout: React.FC<SheetFilterLayoutProps> = ({
             <div className="flex items-center gap-2">
               <SheetTitle className="text-base font-semibold">{sheetTitle}</SheetTitle>
               {activeCount > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="bg-primary/10 text-primary font-mono text-[10px]"
-                >
+                <Badge variant="secondary" className="bg-primary/10 text-primary font-mono text-[10px]">
                   {activeCount} active
                 </Badge>
               )}
@@ -68,9 +65,7 @@ export const SheetFilterLayout: React.FC<SheetFilterLayoutProps> = ({
               </Button>
             )}
           </div>
-          <SheetDescription className="text-muted-foreground text-xs">
-            {sheetDescription}
-          </SheetDescription>
+          <SheetDescription className="text-muted-foreground text-xs">{sheetDescription}</SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 py-4">{children}</div>

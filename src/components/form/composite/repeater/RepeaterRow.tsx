@@ -178,11 +178,7 @@ export const RepeaterRow = memo(function RepeaterRow<T>({
                 aria-label={isCollapsed ? `展开 ${titleStr}` : `折叠 ${titleStr}`}
                 className="text-muted-foreground hover:bg-muted/80 hover:text-foreground cursor-pointer rounded p-1 transition-colors"
               >
-                {isCollapsed ? (
-                  <ChevronDown className="size-3.5" />
-                ) : (
-                  <ChevronUp className="size-3.5" />
-                )}
+                {isCollapsed ? <ChevronDown className="size-3.5" /> : <ChevronUp className="size-3.5" />}
               </button>
             ) : null}
 
@@ -261,9 +257,7 @@ export const RepeaterRow = memo(function RepeaterRow<T>({
                     className="w-56 space-y-2.5 p-3 text-xs shadow-lg"
                   >
                     <div className="text-foreground font-medium">确认删除此项？</div>
-                    <p className="text-muted-foreground text-[11px]">
-                      该条目及其填写的表单内容将被移除。
-                    </p>
+                    <p className="text-muted-foreground text-[11px]">该条目及其填写的表单内容将被移除。</p>
                     <div className="flex justify-end gap-1.5 pt-1">
                       <Button
                         type="button"
@@ -273,12 +267,7 @@ export const RepeaterRow = memo(function RepeaterRow<T>({
                       >
                         取消
                       </Button>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="xs"
-                        onClick={handleDirectRemove}
-                      >
+                      <Button type="button" variant="destructive" size="xs" onClick={handleDirectRemove}>
                         确认删除
                       </Button>
                     </div>

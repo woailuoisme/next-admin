@@ -16,11 +16,7 @@ export interface MapFlyToProps {
  * 每次 `target` **引用**变化都会触发一次 flyTo —— 调用方只要传入新数组，
  * 即可对同一坐标重复定位（例如重复点「确认」）。
  */
-export const MapFlyTo = memo(function MapFlyTo({
-  target,
-  minZoom = 13,
-  duration = 1200,
-}: MapFlyToProps) {
+export const MapFlyTo = memo(function MapFlyTo({ target, minZoom = 13, duration = 1200 }: MapFlyToProps) {
   const { map } = useMap();
 
   useEffect(() => {

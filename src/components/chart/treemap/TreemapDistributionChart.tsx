@@ -25,7 +25,7 @@ interface CustomContentProps {
   valueFormatter?: ValueFormatter;
 }
 
-const CustomTreemapNode = (props: CustomContentProps) => {
+const CustomTreemapNode = memo(function CustomTreemapNode(props: CustomContentProps) {
   const {
     x = 0,
     y = 0,
@@ -84,7 +84,56 @@ const CustomTreemapNode = (props: CustomContentProps) => {
       )}
     </g>
   );
-};
+});
+
+interface TreemapTooltipItem {
+  name: string;
+  value: number;
+  color?: string;
+  percent?: number;
+}
+
+interface TreemapTooltipContentProps {
+  active?: boolean;
+  payload?: Array<{
+    payload?: TreemapTooltipItem;
+  }>;
+  total: number;
+  valueFormatter: ValueFormatter;
+}
+
+const TreemapTooltipContent = memo(function TreemapTooltipContent({
+  active,
+  payload,
+  total,
+  valueFormatter,
+}: TreemapTooltipContentProps) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0]?.payload;
+  if (!item) return null;
+
+  const itemValue = Number(item.value) || 0;
+  const percent = item.percent ?? (total > 0 ? (itemValue / total) * 100 : 0);
+
+  return (
+    <div className="border-border/50 bg-background/95 rounded-lg border px-3 py-2 text-xs shadow-xl backdrop-blur-md">
+      <div className="text-foreground flex items-center gap-2 font-medium">
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{
+            backgroundColor: item.color || "var(--chart-1)",
+          }}
+        />
+        <span>{item.name}</span>
+      </div>
+      <div className="mt-1 flex items-baseline gap-2">
+        <span className="text-muted-foreground">数值:</span>
+        <span className="text-foreground font-semibold tabular-nums">{valueFormatter(itemValue)}</span>
+        <span className="text-muted-foreground text-xs">({percent.toFixed(1)}%)</span>
+      </div>
+    </div>
+  );
+});
 
 export const TreemapDistributionChart = memo(function TreemapDistributionChart({
   data,
@@ -119,37 +168,7 @@ export const TreemapDistributionChart = memo(function TreemapDistributionChart({
           content={<CustomTreemapNode valueFormatter={valueFormatter} />}
         >
           {showTooltip && (
-            <Tooltip
-              content={({ active, payload }) => {
-                if (!active || !payload?.length) return null;
-                const item = payload[0]?.payload;
-                if (!item) return null;
-
-                const itemValue = Number(item.value) || 0;
-                const percent = item.percent ?? (total > 0 ? (itemValue / total) * 100 : 0);
-
-                return (
-                  <div className="border-border/50 bg-background/95 rounded-lg border px-3 py-2 text-xs shadow-xl backdrop-blur-md">
-                    <div className="text-foreground flex items-center gap-2 font-medium">
-                      <span
-                        className="h-2 w-2 rounded-full"
-                        style={{
-                          backgroundColor: item.color || "var(--chart-1)",
-                        }}
-                      />
-                      <span>{item.name}</span>
-                    </div>
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <span className="text-muted-foreground">数值:</span>
-                      <span className="text-foreground font-semibold tabular-nums">
-                        {valueFormatter(itemValue)}
-                      </span>
-                      <span className="text-muted-foreground text-xs">({percent.toFixed(1)}%)</span>
-                    </div>
-                  </div>
-                );
-              }}
-            />
+            <Tooltip content={<TreemapTooltipContent total={total} valueFormatter={valueFormatter} />} />
           )}
         </Treemap>
       </ResponsiveContainer>

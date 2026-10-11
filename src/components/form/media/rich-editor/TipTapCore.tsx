@@ -126,9 +126,7 @@ export const TipTapCore = memo(function TipTapCore({
       )}
     >
       {/* Toolbar (对标 Filament v5 RichEditor 工具栏) */}
-      {!readOnly && (
-        <RichEditorToolbar editor={editor} toolbarButtons={toolbarButtons} disabled={disabled} />
-      )}
+      {!readOnly && <RichEditorToolbar editor={editor} toolbarButtons={toolbarButtons} disabled={disabled} />}
 
       {/* TipTap Content Area */}
       <div

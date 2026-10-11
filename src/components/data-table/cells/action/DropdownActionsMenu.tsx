@@ -50,8 +50,7 @@ function DropdownActionsMenuInner<TData>({
           }
 
           const Icon = action.icon;
-          const isDisabled =
-            typeof action.disabled === "function" ? action.disabled(row) : !!action.disabled;
+          const isDisabled = typeof action.disabled === "function" ? action.disabled(row) : !!action.disabled;
 
           return (
             <DropdownMenuItem
@@ -71,6 +70,4 @@ function DropdownActionsMenuInner<TData>({
   );
 }
 
-export const DropdownActionsMenu = memo(
-  DropdownActionsMenuInner,
-) as typeof DropdownActionsMenuInner;
+export const DropdownActionsMenu = memo(DropdownActionsMenuInner) as typeof DropdownActionsMenuInner;

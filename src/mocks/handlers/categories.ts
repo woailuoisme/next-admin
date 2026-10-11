@@ -14,13 +14,34 @@ import {
   simulateNetwork,
 } from "../middleware";
 
+async function updateCategory(id: string, request: Request): Promise<Response> {
+  await simulateNetwork(request);
+  const chaos = checkChaosError(request);
+  if (chaos) return chaos;
+
+  const body = (await request.json()) as Partial<Category>;
+  const existing = db.category.findFirst({
+    where: { id: { equals: id } },
+  });
+  if (!existing) {
+    return jsonError(404, "NOT_FOUND", "Category not found");
+  }
+
+  const updatedCategory = await db.category.update({
+    where: { id: { equals: id } },
+    data: body,
+  });
+
+  return jsonOk(updatedCategory);
+}
+
 export const categoriesHandlers = [
   http.get("/v1/categories", async ({ request }) => {
     await simulateNetwork(request);
     const chaos = checkChaosError(request);
     if (chaos) return chaos;
 
-    const categories = db.category.getAll() as unknown as Category[];
+    const categories = db.category.getAll();
     return jsonOk(categories);
   }),
 
@@ -47,55 +68,17 @@ export const categoriesHandlers = [
       productCount: 0,
     });
 
-    const response = jsonCreated(newCategory as unknown as Category);
+    const response = jsonCreated(newCategory);
     saveIdempotencyRecord(request, rawText, 201, { data: newCategory, ...newCategory });
     return response;
   }),
 
   http.patch("/v1/categories/:id", async ({ params, request }) => {
-    await simulateNetwork(request);
-    const chaos = checkChaosError(request);
-    if (chaos) return chaos;
-
-    const { id } = params;
-    const body = (await request.json()) as Partial<Category>;
-
-    const existing = db.category.findFirst({
-      where: { id: { equals: id as string } },
-    });
-    if (!existing) {
-      return jsonError(404, "NOT_FOUND", "Category not found");
-    }
-
-    const updatedCategory = await db.category.update({
-      where: { id: { equals: id as string } },
-      data: body,
-    });
-
-    return jsonOk(updatedCategory as unknown as Category);
+    return updateCategory(params.id as string, request);
   }),
 
   http.put("/v1/categories/:id", async ({ params, request }) => {
-    await simulateNetwork(request);
-    const chaos = checkChaosError(request);
-    if (chaos) return chaos;
-
-    const { id } = params;
-    const body = (await request.json()) as Partial<Category>;
-
-    const existing = db.category.findFirst({
-      where: { id: { equals: id as string } },
-    });
-    if (!existing) {
-      return jsonError(404, "NOT_FOUND", "Category not found");
-    }
-
-    const updatedCategory = await db.category.update({
-      where: { id: { equals: id as string } },
-      data: body,
-    });
-
-    return jsonOk(updatedCategory as unknown as Category);
+    return updateCategory(params.id as string, request);
   }),
 
   http.delete("/v1/categories/:id", async ({ params, request }) => {

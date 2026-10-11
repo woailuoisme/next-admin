@@ -14,6 +14,5 @@ export const NOOP = (): void => {};
 
 /** 默认行主键解析：依次回退 id / _id / key */
 export function defaultGetRowId<TData extends Record<string, any>>(row: TData): DataTableRowId {
-  const record = row as Record<string, unknown>;
-  return (record.id ?? record._id ?? record.key ?? "") as DataTableRowId;
+  return (row.id ?? row._id ?? row.key ?? "") as DataTableRowId;
 }

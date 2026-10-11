@@ -7,12 +7,7 @@ import type { RouteTrackingMapProps } from "./types";
 
 import { MapCard } from "../card/MapCard";
 import { resolveBasemapConfig } from "../presets/basemaps";
-import {
-  EMPTY_STOPS,
-  MAP_NO_ATTRIBUTION,
-  MAP_PRIMARY,
-  MAP_PRIMARY_SOFT,
-} from "../shared/constants";
+import { EMPTY_STOPS, MAP_NO_ATTRIBUTION, MAP_PRIMARY, MAP_PRIMARY_SOFT } from "../shared/constants";
 import { MapAutoResizer } from "../shared/MapAutoResizer";
 import { MapEmptyState } from "../shared/MapEmptyState";
 import { MapSkeleton } from "../shared/MapSkeleton";
@@ -21,6 +16,8 @@ import { RoutePlaybackScrubber } from "./RoutePlaybackScrubber";
 import { StopMarker } from "./StopMarker";
 import { useRouteTracking } from "./useRouteTracking";
 import { VehicleMarker } from "./VehicleMarker";
+
+const DEFAULT_BEIJING_CENTER: [number, number] = [116.4074, 39.9042];
 
 export const RouteTrackingMap = memo(function RouteTrackingMap({
   coordinateSystem = "WGS84",
@@ -86,7 +83,7 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
     if (normalizedCoordinates.length > 0) {
       return normalizedCoordinates[0];
     }
-    return [116.4074, 39.9042];
+    return DEFAULT_BEIJING_CENTER;
   }, [center, normalizedCoordinates, needsTransform, sourceCoords, targetCoords]);
 
   const basemapConfig = useMemo(
@@ -99,12 +96,7 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
   // 高度交由外层容器决定（卡片取 MapCard.height、全屏取 fullscreenHeight、独立使用取 wrapper），
   // 内层统一 size-full，避免内层固定高度大于外层裁切框导致底部锚定元素被裁
   const mapBody = (
-    <div
-      className={cn(
-        "relative size-full overflow-hidden rounded-xl bg-muted/20 select-none",
-        className,
-      )}
-    >
+    <div className={cn("relative size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}>
       {isLoading ? (
         <MapSkeleton height="100%" />
       ) : isError ? (
@@ -166,9 +158,7 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
       <MapCard
         height={height}
         title={cardProps.title || "Route & Vehicle Tracking"}
-        description={
-          cardProps.description || "Real-time trajectory, stops and milestone monitoring"
-        }
+        description={cardProps.description || "Real-time trajectory, stops and milestone monitoring"}
         collapsible={cardProps.collapsible}
         fullscreenable={cardProps.fullscreenable}
         isLoading={isLoading}

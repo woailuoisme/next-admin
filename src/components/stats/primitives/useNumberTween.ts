@@ -28,8 +28,7 @@ export function useNumberTween(
 
   // Check prefers-reduced-motion
   const prefersReducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
   const isDirect = !enabled || Boolean(prefersReducedMotion) || duration <= 0;
 

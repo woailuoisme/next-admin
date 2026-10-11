@@ -2,10 +2,7 @@ import { createTranslator } from "next-intl";
 
 import { DICTIONARY, getUserLocale } from "@/i18n";
 
-export function formatRelativeTime(
-  dateStr: string,
-  t?: (key: any, values?: any) => string,
-): string {
+export function formatRelativeTime(dateStr: string, t?: (key: any, values?: any) => string): string {
   const translator =
     t ??
     (() => {

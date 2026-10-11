@@ -1,4 +1,4 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { Columns3 } from "lucide-react";
 import { memo, useMemo, useState, type ReactElement } from "react";
 
@@ -11,12 +11,12 @@ import type { DataTableColumnsPanelProps } from "../types";
 
 export type { DataTableColumnsPanelProps };
 
-function DataTableColumnsPanelInner<TData = any>({
+function DataTableColumnsPanelInner<TData = unknown>({
   columns,
   columnVisibility,
   onColumnVisibilityChange,
 }: DataTableColumnsPanelProps<TData>) {
-  const [open, { set: setOpen }] = useBoolean(false);
+  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const toggleableColumns = useMemo(() => {
@@ -61,9 +61,8 @@ function DataTableColumnsPanelInner<TData = any>({
   });
 
   const visibleCount = useMemo(() => {
-    return toggleableColumns.filter(
-      (col: DataTableColDef<TData>) => columnVisibility[col.field] !== false,
-    ).length;
+    return toggleableColumns.filter((col: DataTableColDef<TData>) => columnVisibility[col.field] !== false)
+      .length;
   }, [toggleableColumns, columnVisibility]);
 
   return (
@@ -139,6 +138,6 @@ function DataTableColumnsPanelInner<TData = any>({
   );
 }
 
-export const DataTableColumnsPanel = memo(DataTableColumnsPanelInner) as <TData = any>(
+export const DataTableColumnsPanel = memo(DataTableColumnsPanelInner) as <TData = unknown>(
   props: DataTableColumnsPanelProps<TData>,
 ) => ReactElement | null;

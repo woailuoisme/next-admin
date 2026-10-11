@@ -21,6 +21,8 @@ export interface ArcTopologyNode {
   count: number;
 }
 
+const EMPTY_NODES: ArcTopologyNode[] = [];
+
 export function useArcTopology({
   arcs,
   center = DEFAULT_MAP_CENTER,
@@ -47,7 +49,7 @@ export function useArcTopology({
 
   // Extract unique city/terminal nodes from arcs
   const uniqueNodes = useMemo<ArcTopologyNode[]>(() => {
-    if (!showNodeMarkers || !normalizedArcs) return [];
+    if (!showNodeMarkers || !normalizedArcs) return EMPTY_NODES;
     const map = new Map<string, ArcTopologyNode>();
 
     for (const arc of normalizedArcs) {

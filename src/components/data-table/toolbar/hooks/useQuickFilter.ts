@@ -8,11 +8,7 @@ export interface UseQuickFilterOptions {
   debounceWait?: number;
 }
 
-export function useQuickFilter({
-  value = "",
-  onChange,
-  debounceWait = 250,
-}: UseQuickFilterOptions = {}) {
+export function useQuickFilter({ value = "", onChange, debounceWait = 250 }: UseQuickFilterOptions = {}) {
   const [localSearch, setLocalSearch] = useState(value);
   const [prevQuickFilter, setPrevQuickFilter] = useState(value);
 

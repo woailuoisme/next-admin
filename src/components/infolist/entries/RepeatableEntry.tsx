@@ -23,6 +23,8 @@ const tableGridColClasses = {
   4: "grid-cols-4",
 };
 
+const EMPTY_ITEMS: unknown[] = [];
+
 interface RepeatableCardItemProps {
   title?: React.ReactNode;
   collapsible?: boolean;
@@ -38,11 +40,15 @@ function RepeatableCardItem({
 }: RepeatableCardItemProps) {
   const [collapsed, setCollapsed] = React.useState(defaultCollapsed);
 
+  const toggleCollapsed = React.useCallback(() => {
+    setCollapsed((prev) => !prev);
+  }, []);
+
   return (
     <div className="border-border bg-card overflow-hidden rounded-xl border shadow-2xs transition-all">
       {title && (
         <div
-          onClick={() => collapsible && setCollapsed((prev) => !prev)}
+          onClick={collapsible ? toggleCollapsed : undefined}
           className={cn(
             "flex items-center justify-between border-b border-border/60 bg-muted/40 px-4 py-2.5 text-xs font-semibold select-none",
             collapsible ? "cursor-pointer transition-colors hover:bg-muted/60" : "",
@@ -55,11 +61,7 @@ function RepeatableCardItem({
               className="text-muted-foreground hover:text-foreground rounded-sm p-0.5"
               aria-label={collapsed ? "展开" : "收起"}
             >
-              {collapsed ? (
-                <ChevronRight className="size-3.5" />
-              ) : (
-                <ChevronDown className="size-3.5" />
-              )}
+              {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
             </button>
           )}
         </div>
@@ -86,10 +88,7 @@ export function RepeatableEntry<T = any>({
 }: RepeatableEntryProps<T>) {
   const rawValue = useInfolistFieldValue<T[]>(name, explicitValue ?? undefined);
 
-  const items = React.useMemo(() => {
-    if (Array.isArray(rawValue)) return rawValue;
-    return [];
-  }, [rawValue]);
+  const items = Array.isArray(rawValue) ? rawValue : (EMPTY_ITEMS as T[]);
 
   const renderContent = () => {
     if (items.length === 0) {
@@ -111,9 +110,7 @@ export function RepeatableEntry<T = any>({
           <div className="min-w-[540px]">
             {tableHeaders && tableHeaders.length > 0 && (
               <div className="border-border bg-muted/50 text-muted-foreground flex items-center gap-4 border-b px-3 py-2 text-xs font-semibold select-none">
-                {itemTitle && (
-                  <div className={cn("shrink-0", resolvedTitleWidth)}>{tableHeaders[0]}</div>
-                )}
+                {itemTitle && <div className={cn("shrink-0", resolvedTitleWidth)}>{tableHeaders[0]}</div>}
                 <div className="min-w-0 flex-1">
                   <div className={cn("grid gap-2", tableGridColClasses[gridCols] ?? "grid-cols-3")}>
                     {tableHeaders.slice(itemTitle ? 1 : 0).map((header, hIdx) => (
@@ -136,9 +133,7 @@ export function RepeatableEntry<T = any>({
                         resolvedTitleWidth,
                       )}
                       title={
-                        typeof itemTitle(item, idx) === "string"
-                          ? String(itemTitle(item, idx))
-                          : undefined
+                        typeof itemTitle(item, idx) === "string" ? String(itemTitle(item, idx)) : undefined
                       }
                     >
                       {itemTitle(item, idx)}

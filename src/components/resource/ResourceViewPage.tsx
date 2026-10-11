@@ -66,10 +66,7 @@ export const ResourceViewPage = memo(function ResourceViewPage({
       )}
 
       <div
-        className={cn(
-          "flex items-center justify-between border-t border-border/70 pt-4",
-          footerClassName,
-        )}
+        className={cn("flex items-center justify-between border-t border-border/70 pt-4", footerClassName)}
       >
         <Button
           type="button"

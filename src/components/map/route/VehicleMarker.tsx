@@ -10,10 +10,7 @@ interface VehicleMarkerProps {
   progress: number;
 }
 
-export const VehicleMarker = memo(function VehicleMarker({
-  vehicle,
-  progress,
-}: VehicleMarkerProps) {
+export const VehicleMarker = memo(function VehicleMarker({ vehicle, progress }: VehicleMarkerProps) {
   return (
     <RouteMarker at="progress">
       <MarkerContent>
@@ -30,9 +27,7 @@ export const VehicleMarker = memo(function VehicleMarker({
             <Truck className="size-4" />
           </div>
           <div>
-            <h4 className="text-sm leading-tight font-semibold">
-              {vehicle?.name || "Vehicle in transit"}
-            </h4>
+            <h4 className="text-sm leading-tight font-semibold">{vehicle?.name || "Vehicle in transit"}</h4>
             {vehicle?.licensePlate ? (
               <p className="text-muted-foreground text-xs">{vehicle.licensePlate}</p>
             ) : null}

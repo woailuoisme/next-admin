@@ -30,11 +30,9 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
   const isInternalTextChangeRef = useRef(false);
 
   // 统一解析辅助方法，避免多处重复解构与调用
-  const parseCurrent = useMemoizedFn(
-    (rawText: string = text, targetFormat: KeyValueRawFormat = format) => {
-      return rawToRows(rawText, targetFormat);
-    },
-  );
+  const parseCurrent = useMemoizedFn((rawText: string = text, targetFormat: KeyValueRawFormat = format) => {
+    return rawToRows(rawText, targetFormat);
+  });
 
   // 当格式切换时转换内容
   const handleFormatChange = useMemoizedFn((nextFormat: KeyValueRawFormat) => {

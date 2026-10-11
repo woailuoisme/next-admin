@@ -30,6 +30,16 @@ export interface SparklinePathResult {
   bars: BarGeometry[];
 }
 
+const EMPTY_SPARKLINE_RESULT: SparklinePathResult = {
+  values: [],
+  isEmpty: true,
+  min: 0,
+  max: 0,
+  linePath: "",
+  areaPath: "",
+  bars: [],
+};
+
 function round(val: number): number {
   return Math.round(val * 10) / 10;
 }
@@ -43,15 +53,7 @@ export function useSparklinePath({
 }: UseSparklinePathOptions): SparklinePathResult {
   return useMemo(() => {
     if (!data || data.length === 0) {
-      return {
-        values: [],
-        isEmpty: true,
-        min: 0,
-        max: 0,
-        linePath: "",
-        areaPath: "",
-        bars: [],
-      };
+      return EMPTY_SPARKLINE_RESULT;
     }
 
     const values = data.map((item) => (typeof item === "number" ? item : item.value));

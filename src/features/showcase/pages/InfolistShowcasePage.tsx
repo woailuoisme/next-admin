@@ -36,8 +36,7 @@ const sampleUserData = {
   reputation: 98.6,
   joinedAt: "2024-03-15T09:30:00Z",
   themeColor: "#6366f1",
-  avatar:
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+  avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
   portfolio: [
     "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=300&auto=format&fit=crop&q=80",
     "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=300&auto=format&fit=crop&q=80",
@@ -83,9 +82,7 @@ const sampleUserData = {
 export function InfolistShowcasePage() {
   const [orientation, setOrientation] = React.useState<"vertical" | "horizontal">("vertical");
   const [dense, setDense] = React.useState(false);
-  const [repeatableVariant, setRepeatableVariant] = React.useState<"card" | "grid" | "table">(
-    "card",
-  );
+  const [repeatableVariant, setRepeatableVariant] = React.useState<"card" | "grid" | "table">("card");
 
   return (
     <div className="space-y-8 pb-16">
@@ -149,9 +146,7 @@ export function InfolistShowcasePage() {
         <CardContent className="space-y-4 pt-6">
           {/* Compact Mode Row */}
           <div className="space-y-2">
-            <span className="text-muted-foreground text-xs font-semibold">
-              紧凑单行模式 (compact=true)
-            </span>
+            <span className="text-muted-foreground text-xs font-semibold">紧凑单行模式 (compact=true)</span>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <InfolistCallout
                 compact
@@ -276,17 +271,12 @@ export function InfolistShowcasePage() {
             </div>
           </div>
           <CardDescription className="text-xs">
-            基于 InfolistContext 自动解析 name 属性路径，支持 Text, Badge, Currency, Image, Color,
-            Code, KeyValue, Repeatable 等全谱系条目。
+            基于 InfolistContext 自动解析 name 属性路径，支持 Text, Badge, Currency, Image, Color, Code,
+            KeyValue, Repeatable 等全谱系条目。
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
-          <Infolist
-            record={sampleUserData}
-            orientation={orientation}
-            dense={dense}
-            className="space-y-6"
-          >
+          <Infolist record={sampleUserData} orientation={orientation} dense={dense} className="space-y-6">
             {/* Top Section: User Profile & Status */}
             <InfolistSection
               title="用户主体与基本档案"
@@ -294,12 +284,7 @@ export function InfolistShowcasePage() {
               icon={<User className="size-4" />}
               columns={{ sm: 1, md: 2, lg: 4 }}
             >
-              <TextEntry
-                name="id"
-                label="用户唯一识别码"
-                copyable
-                tooltip="不可变更的系统唯一主键 UUID"
-              />
+              <TextEntry name="id" label="用户唯一识别码" copyable tooltip="不可变更的系统唯一主键 UUID" />
               <TextEntry name="name" label="真实全名" helperText="由身份提供商 SSO 自动同步" />
               <TextEntry name="email" label="企业电子邮箱" format="email" copyable />
               <TextEntry name="phone" label="手机联系方式" format="phone" />
@@ -325,13 +310,7 @@ export function InfolistShowcasePage() {
                 decimals={2}
                 tooltip="支持实时提现与抵扣订单"
               />
-              <TextEntry
-                name="reputation"
-                label="信誉得分指数"
-                format="number"
-                decimals={1}
-                suffix="/ 100"
-              />
+              <TextEntry name="reputation" label="信誉得分指数" format="number" decimals={1} suffix="/ 100" />
               <TextEntry name="joinedAt" label="系统入驻时间" format="date" />
               <ColorEntry name="themeColor" label="品牌偏好主色" showText copyable />
               <ImageEntry name="avatar" label="用户个人头像" shape="circular" size="md" lightbox />
@@ -352,11 +331,7 @@ export function InfolistShowcasePage() {
               columns={{ sm: 1, md: 2 }}
             >
               <KeyValueEntry name="metadata" label="组织元数据清单 (List 模式)" variant="list" />
-              <KeyValueEntry
-                name="systemConfig"
-                label="底层系统参数 (Table 模式)"
-                variant="table"
-              />
+              <KeyValueEntry name="systemConfig" label="底层系统参数 (Table 模式)" variant="table" />
             </InfolistFieldset>
 
             {/* Raw JSON Code Block */}
@@ -367,12 +342,7 @@ export function InfolistShowcasePage() {
               collapsible
               defaultCollapsed
             >
-              <CodeEntry
-                name="systemConfig"
-                label="运行时环境描述符 (JSON)"
-                language="json"
-                copyable
-              />
+              <CodeEntry name="systemConfig" label="运行时环境描述符 (JSON)" language="json" copyable />
             </InfolistSection>
 
             {/* Repeatable Entry: Orders */}

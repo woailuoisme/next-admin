@@ -28,8 +28,7 @@ export function useCreateCategoryMutation() {
 export function useUpdateCategoryMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Category> }) =>
-      updateCategoryApi(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<Category> }) => updateCategoryApi(id, data),
     onSuccess: (cat) => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.all });
       toast.success(toastMessages.updated(cat.name));

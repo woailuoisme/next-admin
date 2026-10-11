@@ -43,10 +43,7 @@ export const CodeEntry = React.memo(function CodeEntry({
           {copyable && <CopyButton text={displayCode} className="size-5" />}
         </div>
         <pre
-          className={cn(
-            "overflow-auto p-3 font-mono text-xs leading-relaxed text-foreground/90",
-            maxHeight,
-          )}
+          className={cn("overflow-auto p-3 font-mono text-xs leading-relaxed text-foreground/90", maxHeight)}
         >
           <code>{displayCode}</code>
         </pre>

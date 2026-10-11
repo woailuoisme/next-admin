@@ -12,10 +12,13 @@ import {
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
+import type { NavSubItem } from "../types";
 import type { NavMainDropdownProps } from "./types";
 
 import { NavBadge } from "./NavBadge";
 import { isPathActive } from "./utils";
+
+const EMPTY_SUB_ITEMS: NavSubItem[] = [];
 
 export const NavMainDropdown = memo(function NavMainDropdown({
   item,
@@ -23,7 +26,7 @@ export const NavMainDropdown = memo(function NavMainDropdown({
   isChildActive,
 }: NavMainDropdownProps) {
   const Icon = item.icon;
-  const subItems = item.items || [];
+  const subItems = item.items ?? EMPTY_SUB_ITEMS;
 
   return (
     <SidebarMenuItem>
@@ -34,8 +37,7 @@ export const NavMainDropdown = memo(function NavMainDropdown({
             tooltip={item.title}
             className={cn(
               "cursor-pointer font-medium transition-colors",
-              isChildActive &&
-                "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-xs",
+              isChildActive && "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-xs",
             )}
           >
             <Icon className="size-4" />

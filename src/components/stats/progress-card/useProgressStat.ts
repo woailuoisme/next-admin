@@ -66,8 +66,7 @@ export function useProgressStat({
     let pacingInfo: PacingInfo | null = null;
     if (pacingStatus || pacingLabel) {
       const status: PacingStatus =
-        pacingStatus ??
-        (displayProgress >= 100 ? "ahead" : displayProgress >= 80 ? "on_track" : "behind");
+        pacingStatus ?? (displayProgress >= 100 ? "ahead" : displayProgress >= 80 ? "on_track" : "behind");
 
       pacingInfo = {
         status,

@@ -55,11 +55,7 @@ export const AvatarUploader = memo(function AvatarUploader({
       >
         {currentAvatar ? (
           <>
-            <img
-              src={currentAvatar.url}
-              alt={currentAvatar.name}
-              className="size-full object-cover"
-            />
+            <img src={currentAvatar.url} alt={currentAvatar.name} className="size-full object-cover" />
             {/* Hover Overlay */}
             {!disabled && !readOnly && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
@@ -84,13 +80,7 @@ export const AvatarUploader = memo(function AvatarUploader({
 
       {currentAvatar && !disabled && !readOnly && (
         <div className="flex flex-col gap-1.5">
-          <Button
-            type="button"
-            variant="outline"
-            size="xs"
-            onClick={onChooseFile}
-            className="h-7 text-xs"
-          >
+          <Button type="button" variant="outline" size="xs" onClick={onChooseFile} className="h-7 text-xs">
             Replace
           </Button>
           <Button

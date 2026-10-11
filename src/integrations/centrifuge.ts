@@ -8,8 +8,7 @@ let centrifugeInstance: Centrifuge | null = null;
 export function getCentrifuge(): Centrifuge | null {
   if (typeof window === "undefined") return null;
   if (!centrifugeInstance) {
-    const wsUrl =
-      process.env.NEXT_PUBLIC_CENTRIFUGE_WS_URL || "ws://localhost:8000/connection/websocket";
+    const wsUrl = process.env.NEXT_PUBLIC_CENTRIFUGE_WS_URL ?? "ws://localhost:8000/connection/websocket";
     try {
       centrifugeInstance = new Centrifuge(wsUrl);
     } catch (e) {
@@ -59,7 +58,7 @@ export function useSubscription<T = unknown>(
     if (!client) return;
 
     try {
-      const sub = client.getSubscription(channel) || client.newSubscription(channel);
+      const sub = client.getSubscription(channel) ?? client.newSubscription(channel);
       const handler = (ctx: PublicationContext) => {
         onPublicationRef.current({ data: ctx.data as T });
       };

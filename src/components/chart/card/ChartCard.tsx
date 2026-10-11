@@ -1,15 +1,9 @@
 import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
-import { memo, useMemo, useRef, useState } from "react";
+import { memo, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +11,8 @@ import type { ChartCardProps, ChartPeriodOption } from "./types";
 
 import { ChartEmptyState } from "../shared/ChartEmptyState";
 import { ChartSkeleton } from "../shared/ChartSkeleton";
+
+const EMPTY_PERIODS: ChartPeriodOption[] = [];
 
 export const ChartCard = memo(function ChartCard({
   title,
@@ -38,12 +34,11 @@ export const ChartCard = memo(function ChartCard({
   showFullscreen = false,
   fullscreenHeight = 500,
 }: ChartCardProps) {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Normalize periods to ChartPeriodOption[]
   const normalizedPeriods = useMemo<ChartPeriodOption[]>(() => {
-    if (!periods?.length) return [];
+    if (!periods?.length) return EMPTY_PERIODS;
     return periods.map((p) => (typeof p === "string" ? { label: p, value: p } : p));
   }, [periods]);
 
@@ -56,9 +51,7 @@ export const ChartCard = memo(function ChartCard({
           <div className="min-w-0 space-y-1">
             <CardTitle className="text-base font-semibold tracking-tight">{title}</CardTitle>
             {description && (
-              <CardDescription className="text-muted-foreground text-xs">
-                {description}
-              </CardDescription>
+              <CardDescription className="text-muted-foreground text-xs">{description}</CardDescription>
             )}
           </div>
 
@@ -112,12 +105,7 @@ export const ChartCard = memo(function ChartCard({
               </div>
               <p className="text-destructive text-sm font-medium">{errorMessage}</p>
               {onRetry && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onRetry}
-                  className="h-8 gap-1.5 text-xs"
-                >
+                <Button variant="outline" size="sm" onClick={onRetry} className="h-8 gap-1.5 text-xs">
                   <RefreshCw className="size-3.5" />
                   重试
                 </Button>
@@ -126,7 +114,7 @@ export const ChartCard = memo(function ChartCard({
           ) : isEmpty ? (
             <ChartEmptyState message={emptyMessage} height={height} />
           ) : (
-            <div ref={chartContainerRef} className="w-full min-w-0" style={{ height }}>
+            <div className="w-full min-w-0" style={{ height }}>
               {children}
             </div>
           )}
@@ -144,13 +132,11 @@ export const ChartCard = memo(function ChartCard({
             <DialogHeader className="pb-2">
               <DialogTitle className="text-lg font-semibold tracking-tight">{title}</DialogTitle>
               {description && (
-                <DialogDescription className="text-muted-foreground text-xs">
-                  {description}
-                </DialogDescription>
+                <DialogDescription className="text-muted-foreground text-xs">{description}</DialogDescription>
               )}
             </DialogHeader>
             <div className="w-full min-w-0 pt-2" style={{ height: fullscreenHeight }}>
-              {children}
+              {isFullscreen ? children : null}
             </div>
           </DialogContent>
         </Dialog>

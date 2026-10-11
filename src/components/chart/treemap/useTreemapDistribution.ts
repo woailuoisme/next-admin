@@ -7,18 +7,18 @@ interface UseTreemapDistributionOptions {
   colorPalette?: string[];
 }
 
+const DEFAULT_TREEMAP_PALETTE = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--primary)",
+];
+
 export function useTreemapDistribution({ data, colorPalette }: UseTreemapDistributionOptions) {
   return useMemo(() => {
-    const defaultPalette = [
-      "var(--chart-1)",
-      "var(--chart-2)",
-      "var(--chart-3)",
-      "var(--chart-4)",
-      "var(--chart-5)",
-      "var(--primary)",
-    ];
-
-    const palette = colorPalette && colorPalette.length > 0 ? colorPalette : defaultPalette;
+    const palette = colorPalette && colorPalette.length > 0 ? colorPalette : DEFAULT_TREEMAP_PALETTE;
 
     let total = 0;
     function sumNode(node: TreemapItem): number {

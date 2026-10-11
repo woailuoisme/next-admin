@@ -55,9 +55,7 @@ function DataTableStatusTabsInner<TData = any>({
                 <span
                   className={cn(
                     "rounded-full px-1.5 py-0.5 font-mono text-[10px] leading-none transition-colors",
-                    isActive
-                      ? "bg-primary/10 font-semibold text-primary"
-                      : "bg-muted text-muted-foreground",
+                    isActive ? "bg-primary/10 font-semibold text-primary" : "bg-muted text-muted-foreground",
                   )}
                 >
                   {tab.badge}

@@ -1,8 +1,6 @@
 import { chunk, orderBy } from "es-toolkit";
 import { http } from "msw";
 
-import type { Customer } from "@/features/users";
-
 import { db } from "../db";
 import { checkChaosError, jsonError, jsonOk, jsonPaginated, simulateNetwork } from "../middleware";
 
@@ -19,7 +17,7 @@ export const usersHandlers = [
     const page = Number.parseInt(url.searchParams.get("page") ?? "1", 10);
     const pageSize = Number.parseInt(url.searchParams.get("pageSize") ?? "20", 10);
 
-    const all = db.customer.getAll() as unknown as Customer[];
+    const all = db.customer.getAll();
     let items = [...all];
 
     if (search) {
@@ -77,6 +75,6 @@ export const usersHandlers = [
       data: { status: body.status },
     });
 
-    return jsonOk(updated as unknown as Customer);
+    return jsonOk(updated);
   }),
 ];

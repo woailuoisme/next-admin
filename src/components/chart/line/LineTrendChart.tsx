@@ -61,9 +61,7 @@ export const LineTrendChart = memo(function LineTrendChart(props: LineTrendChart
         initialDimension={{ width: DEFAULT_INITIAL_CHART_WIDTH, height }}
       >
         <LineChart data={data} margin={DEFAULT_CHART_MARGIN}>
-          {showGrid && (
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />
-          )}
+          {showGrid && <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />}
 
           <XAxis
             dataKey={xAxisKey}
@@ -73,12 +71,7 @@ export const LineTrendChart = memo(function LineTrendChart(props: LineTrendChart
             tickFormatter={xAxisFormatter}
           />
 
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={AXIS_TICK_STYLE}
-            tickFormatter={yAxisFormatter}
-          />
+          <YAxis axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} tickFormatter={yAxisFormatter} />
 
           {showTooltip && <Tooltip content={<ChartTooltip valueFormatter={valueFormatter} />} />}
 

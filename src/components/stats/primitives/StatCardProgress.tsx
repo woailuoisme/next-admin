@@ -65,8 +65,7 @@ export const StatCardProgress = memo(function StatCardProgress({
 
   const trendInfo = calculateTrendInfo(trend);
 
-  const targetDisplay =
-    typeof targetValue === "number" ? targetValue.toLocaleString() : targetValue;
+  const targetDisplay = typeof targetValue === "number" ? targetValue.toLocaleString() : targetValue;
   const DirIcon = trendInfo ? TREND_DIR_ICONS[trendInfo.dir] : null;
 
   return (
@@ -74,10 +73,7 @@ export const StatCardProgress = memo(function StatCardProgress({
       {/* Track & Filled Bar */}
       <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
         <div
-          className={cn(
-            "h-full rounded-full transition-all duration-500 ease-out",
-            themeConfig.accentBar,
-          )}
+          className={cn("h-full rounded-full transition-all duration-500 ease-out", themeConfig.accentBar)}
           style={{ width: `${calculatedProgress}%` }}
         />
       </div>

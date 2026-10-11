@@ -144,9 +144,7 @@ const KeyValueInputInner = memo(function KeyValueInputInner({
 
   const duplicateKeySet = useMemo(() => findDuplicateKeys(rows), [rows]);
   const hasDuplicates = duplicateKeySet.size > 0;
-  const isAddAllowed = Boolean(
-    canAdd && !disabled && (maxItems === undefined || rows.length < maxItems),
-  );
+  const isAddAllowed = Boolean(canAdd && !disabled && (maxItems === undefined || rows.length < maxItems));
 
   const rowIds = useMemo(() => rows.map((r) => r._id), [rows]);
 

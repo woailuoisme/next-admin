@@ -30,10 +30,7 @@ export const PopoverFilterLayout: React.FC<PopoverFilterLayoutProps> = ({
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className={cn("border-border/70 p-4 shadow-xl", popoverWidthClass)}
-      >
+      <PopoverContent align="start" className={cn("border-border/70 p-4 shadow-xl", popoverWidthClass)}>
         {children}
       </PopoverContent>
     </Popover>

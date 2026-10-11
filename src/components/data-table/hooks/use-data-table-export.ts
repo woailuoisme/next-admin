@@ -87,11 +87,7 @@ export function useDataTableExport<TData = any>({
       )
       .join("\n");
 
-    downloadBlob(
-      `\uFEFF${headers}\n${body}`,
-      `${stripExtension(fileName)}.csv`,
-      "text/csv;charset=utf-8;",
-    );
+    downloadBlob(`\uFEFF${headers}\n${body}`, `${stripExtension(fileName)}.csv`, "text/csv;charset=utf-8;");
   });
 
   const handleExportJson = useMemoizedFn(() => {
@@ -111,11 +107,7 @@ export function useDataTableExport<TData = any>({
       return obj;
     });
 
-    downloadBlob(
-      JSON.stringify(data, null, 2),
-      `${stripExtension(fileName)}.json`,
-      "application/json",
-    );
+    downloadBlob(JSON.stringify(data, null, 2), `${stripExtension(fileName)}.json`, "application/json");
   });
 
   const handlePrint = useMemoizedFn(() => {

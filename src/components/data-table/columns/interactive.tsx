@@ -222,10 +222,7 @@ export function checkboxCol<TData = any>(
       (headerCheckbox
         ? () =>
             typeof headerCheckbox === "boolean" ? (
-              <div
-                className="flex items-center justify-center"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                 <Checkbox
                   checked={isAllChecked ? true : isIndeterminate ? "indeterminate" : false}
                   onCheckedChange={(checked) => onHeaderCheckboxChange?.(Boolean(checked))}

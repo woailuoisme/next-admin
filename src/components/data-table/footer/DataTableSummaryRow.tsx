@@ -9,14 +9,14 @@ import type { DataTableColDef } from "../core/types";
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
 import { readCellValue } from "../core/utils";
 
-export interface DataTableSummaryRowProps<TData = any> {
+export interface DataTableSummaryRowProps<TData = unknown> {
   columns: DataTableColDef<TData>[];
   rows: TData[];
   checkboxSelection?: boolean;
   hasExpandColumn?: boolean;
 }
 
-function DataTableSummaryRowInner<TData = any>({
+function DataTableSummaryRowInner<TData = unknown>({
   columns,
   rows,
   checkboxSelection,
@@ -25,9 +25,7 @@ function DataTableSummaryRowInner<TData = any>({
   return (
     <TableRow className="hover:bg-muted/30 border-0 bg-transparent font-semibold">
       {checkboxSelection && (
-        <TableCell className="text-muted-foreground w-10 text-center font-mono text-[10px]">
-          Σ
-        </TableCell>
+        <TableCell className="text-muted-foreground w-10 text-center font-mono text-[10px]">Σ</TableCell>
       )}
       {hasExpandColumn && <TableCell className="w-9 p-0" />}
 
@@ -53,10 +51,10 @@ function DataTableSummaryRowInner<TData = any>({
         const values = rows.map((r) => readCellValue(r, col));
         const nums = values.filter((v): v is number => typeof v === "number" && !Number.isNaN(v));
 
-        let displayValue: any = null;
+        let displayValue: React.ReactNode = null;
 
         if (typeof aggregation === "function") {
-          displayValue = aggregation(values, rows);
+          displayValue = aggregation(values, rows as unknown[]) as React.ReactNode;
         } else if (aggregation === "sum") {
           const total = sumBy(nums, (n) => n);
           displayValue = round(total, 2).toLocaleString();
@@ -72,10 +70,7 @@ function DataTableSummaryRowInner<TData = any>({
         }
 
         return (
-          <TableCell
-            key={colKey}
-            className={cn("font-mono text-xs", TEXT_ALIGN_CLASSES[align ?? "left"])}
-          >
+          <TableCell key={colKey} className={cn("font-mono text-xs", TEXT_ALIGN_CLASSES[align ?? "left"])}>
             <span className="text-muted-foreground mr-1 text-[11px] font-normal">
               {typeof aggregation === "string" ? `${aggregation}:` : ""}
             </span>
@@ -87,6 +82,6 @@ function DataTableSummaryRowInner<TData = any>({
   );
 }
 
-export const DataTableSummaryRow = memo(DataTableSummaryRowInner) as <TData = any>(
+export const DataTableSummaryRow = memo(DataTableSummaryRowInner) as <TData = unknown>(
   props: DataTableSummaryRowProps<TData>,
 ) => ReactElement | null;

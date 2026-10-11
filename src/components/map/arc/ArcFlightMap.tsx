@@ -1,6 +1,7 @@
+import { useMemoizedFn } from "ahooks";
 import { memo, useMemo, useState } from "react";
 
-import { Map, MapArc, MapControls } from "@/components/ui/map";
+import { Map, MapArc, type MapArcEvent, MapControls } from "@/components/ui/map";
 import { cn } from "@/lib/utils";
 
 import type { ArcFlightMapProps, FlightArcItem } from "./types";
@@ -78,15 +79,20 @@ export const ArcFlightMap = memo(function ArcFlightMap({
 
   const hasEmptyData = isEmpty || !normalizedArcs || normalizedArcs.length === 0;
 
+  const handleArcClick = useMemoizedFn((e: MapArcEvent<FlightArcItem>) => {
+    onArcClick?.(e.arc);
+  });
+
+  const handleArcHover = useMemoizedFn((e: MapArcEvent<FlightArcItem> | null) => {
+    const arc = e?.arc ?? null;
+    setHoveredArc(arc);
+    onArcHover?.(arc);
+  });
+
   // 高度交由外层容器决定（卡片取 MapCard.height、全屏取 fullscreenHeight、独立使用取 wrapper），
   // 内层统一 size-full，避免内层固定高度大于外层裁切框导致底部锚定元素被裁
   const mapBody = (
-    <div
-      className={cn(
-        "relative size-full overflow-hidden rounded-xl bg-muted/20 select-none",
-        className,
-      )}
-    >
+    <div className={cn("relative size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}>
       {isLoading ? (
         <MapSkeleton height="100%" />
       ) : isError ? (
@@ -98,11 +104,7 @@ export const ArcFlightMap = memo(function ArcFlightMap({
           actionLabel="Retry"
         />
       ) : hasEmptyData ? (
-        <MapEmptyState
-          height="100%"
-          type="no-data"
-          message="No flight or topology routes available"
-        />
+        <MapEmptyState height="100%" type="no-data" message="No flight or topology routes available" />
       ) : (
         <>
           <Map
@@ -123,14 +125,8 @@ export const ArcFlightMap = memo(function ArcFlightMap({
               samples={samples}
               paint={arcPaint}
               hoverPaint={arcHoverPaint}
-              onClick={(e) => {
-                onArcClick?.(e.arc);
-              }}
-              onHover={(e) => {
-                const arc = e?.arc ?? null;
-                setHoveredArc(arc);
-                onArcHover?.(arc);
-              }}
+              onClick={handleArcClick}
+              onHover={handleArcHover}
             />
 
             {uniqueNodes.map((node) => (

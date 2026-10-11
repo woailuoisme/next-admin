@@ -19,15 +19,18 @@ export interface OrdersPageProps {
 
 export function OrdersPage({ search = {}, onSelectOrder }: OrdersPageProps) {
   // Centralized Resource Management (Query, URL state, Drawer modal)
-  const { rows, total, isLoading, rawResponse, modal, handleViewOpenChange } =
-    useResourceManagement<Order, OrderFilters, OrderListResponse>({
-      search,
-      queryOptions: orderQueries.list,
-      modalKeys: {
-        viewKey: "orderId",
-      },
-      onOpenView: onSelectOrder,
-    });
+  const { rows, total, isLoading, rawResponse, modal, handleViewOpenChange } = useResourceManagement<
+    Order,
+    OrderFilters,
+    OrderListResponse
+  >({
+    search,
+    queryOptions: orderQueries.list,
+    modalKeys: {
+      viewKey: "orderId",
+    },
+    onOpenView: onSelectOrder,
+  });
 
   // Calculate order summary statistics for KPI cards (prefer server-computed global summary)
   const orderStats = useMemo(
@@ -58,11 +61,7 @@ export function OrdersPage({ search = {}, onSelectOrder }: OrdersPageProps) {
       />
 
       {/* Singleton Order Details Sheet */}
-      <OrderDetailsSheet
-        orderId={modal.viewId}
-        open={modal.isViewOpen}
-        onOpenChange={handleViewOpenChange}
-      />
+      <OrderDetailsSheet orderId={modal.viewId} open={modal.isViewOpen} onOpenChange={handleViewOpenChange} />
     </div>
   );
 }

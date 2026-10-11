@@ -7,10 +7,7 @@ import type { ApiPaginationMeta } from "@/types";
  * 检查当前是否处于单元测试环境 (Vitest)
  */
 export function isTestEnv(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    (process.env.NODE_ENV === "test" || process.env.VITEST === "true")
-  );
+  return typeof process !== "undefined" && (process.env.NODE_ENV === "test" || process.env.VITEST === "true");
 }
 
 /**

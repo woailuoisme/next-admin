@@ -30,10 +30,7 @@ export const ChartSkeleton = memo(function ChartSkeleton({
         <div className="flex h-full w-full flex-col justify-end pb-2">
           <div className="flex flex-1 items-end justify-between gap-3 px-4 pb-3">
             {BAR_HEIGHT_PERCENTAGES.map((pct, i) => (
-              <div
-                key={`bar-${pct}-${i}`}
-                className="flex h-full flex-1 flex-col items-center justify-end"
-              >
+              <div key={`bar-${pct}-${i}`} className="flex h-full flex-1 flex-col items-center justify-end">
                 <Skeleton
                   className="w-full rounded-t-sm transition-all duration-300"
                   style={{ height: `${pct}%` }}

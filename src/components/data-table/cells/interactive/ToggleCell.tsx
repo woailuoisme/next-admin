@@ -1,6 +1,6 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
-import { memo, startTransition, useOptimistic } from "react";
+import { memo, startTransition, useOptimistic, useState } from "react";
 import { toast } from "sonner";
 
 import { Switch } from "@/components/ui/switch";
@@ -23,11 +23,8 @@ function ToggleCellInner<TData = unknown>({
   className,
 }: ToggleCellProps<TData>) {
   const handler = onCellChange || onToggle;
-  const [optimisticChecked, setOptimistic] = useOptimistic(
-    checked,
-    (_current, next: boolean) => next,
-  );
-  const [loading, { setTrue: setLoadingTrue, setFalse: setLoadingFalse }] = useBoolean(false);
+  const [optimisticChecked, setOptimistic] = useOptimistic(checked, (_current, next: boolean) => next);
+  const [loading, setLoading] = useState(false);
 
   const handleCheckedChange = useMemoizedFn(async (nextChecked: boolean) => {
     if (disabled || readOnly || loading) return;
@@ -36,7 +33,7 @@ function ToggleCellInner<TData = unknown>({
       setOptimistic(nextChecked);
       if (handler) {
         try {
-          setLoadingTrue();
+          setLoading(true);
           const result = handler(row, nextChecked);
           if (result instanceof Promise) {
             await result;
@@ -50,7 +47,7 @@ function ToggleCellInner<TData = unknown>({
             toast.error(msg);
           }
         } finally {
-          setLoadingFalse();
+          setLoading(false);
         }
       }
     });

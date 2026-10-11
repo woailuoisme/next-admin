@@ -48,12 +48,7 @@ export const EntryWrapper = React.memo(function EntryWrapper({
       )}
     >
       {(label || hint) && (
-        <div
-          className={cn(
-            "flex items-center justify-between gap-2",
-            isInline && "sm:w-1/3 sm:shrink-0",
-          )}
-        >
+        <div className={cn("flex items-center justify-between gap-2", isInline && "sm:w-1/3 sm:shrink-0")}>
           <div className="flex items-center gap-1.5">
             {label && (
               <span

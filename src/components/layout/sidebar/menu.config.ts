@@ -52,15 +52,8 @@ export function getSidebarMenuGroups(tMenu?: (key: any) => string): NavGroup[] {
         },
         {
           title: t("users"),
+          to: "/users",
           icon: Users,
-          items: [
-            { title: t("customers"), to: "/users" },
-            {
-              title: t("staff"),
-              to: "/admin-users",
-              roles: ["superadmin", "admin"],
-            },
-          ],
         },
       ],
     },

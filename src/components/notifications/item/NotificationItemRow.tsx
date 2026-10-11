@@ -47,6 +47,10 @@ export const NotificationItemRow = memo(function NotificationItemRow({
     onItemClick(item);
   });
 
+  const handleToolbarClick = useMemoizedFn((e: React.MouseEvent) => {
+    e.stopPropagation();
+  });
+
   return (
     <div
       role="button"
@@ -98,9 +102,7 @@ export const NotificationItemRow = memo(function NotificationItemRow({
           </span>
         </div>
 
-        <p className="text-muted-foreground line-clamp-2 text-[11px] leading-relaxed">
-          {item.description}
-        </p>
+        <p className="text-muted-foreground line-clamp-2 text-[11px] leading-relaxed">{item.description}</p>
 
         {/* 实体轻量标签入口 */}
         {item.actionLabel && (
@@ -119,7 +121,7 @@ export const NotificationItemRow = memo(function NotificationItemRow({
       {/* 悬停微型工具栏 (Hover Actions Toolbar) */}
       <div
         className="border-border/50 bg-popover/95 absolute top-2.5 right-2.5 z-10 hidden items-center gap-0.5 rounded-md border p-0.5 shadow-xs backdrop-blur-md transition-all group-hover:flex"
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleToolbarClick}
       >
         {!item.read && onMarkAsRead && (
           <Tooltip>

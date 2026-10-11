@@ -5,13 +5,7 @@ import { Clock, Loader2 } from "lucide-react";
 import { DataList, ViewDialog } from "@/components/dialogs";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
 import type { OrderStatus } from "../types";

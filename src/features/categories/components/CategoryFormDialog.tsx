@@ -29,11 +29,7 @@ function generateSlug(val: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-export function CategoryFormDialog({
-  open,
-  onOpenChange,
-  categoryToEdit,
-}: CategoryFormDialogProps) {
+export function CategoryFormDialog({ open, onOpenChange, categoryToEdit }: CategoryFormDialogProps) {
   const createMutation = useCreateCategoryMutation();
   const updateMutation = useUpdateCategoryMutation();
 

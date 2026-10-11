@@ -73,9 +73,7 @@ export const LiveStatCard = memo(function LiveStatCard({
                   )}
                 />
               ) : null}
-              <span
-                className={cn("relative inline-flex h-2 w-2 rounded-full", statusCfg.dotClass)}
-              />
+              <span className={cn("relative inline-flex h-2 w-2 rounded-full", statusCfg.dotClass)} />
             </span>
             <span>{statusText || statusCfg.defaultText}</span>
           </span>
@@ -97,12 +95,7 @@ export const LiveStatCard = memo(function LiveStatCard({
 
         {hasSparkline && sparklineData ? (
           <div className="w-24 shrink-0">
-            <MiniSparkline
-              data={sparklineData}
-              color={themeConfig.strokeColor}
-              height={28}
-              className="h-7"
-            />
+            <MiniSparkline data={sparklineData} color={themeConfig.strokeColor} height={28} className="h-7" />
           </div>
         ) : null}
       </div>

@@ -3,13 +3,13 @@ import { memo, type ReactElement, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 
-export interface DataTableBatchActionBarProps<TData = any> {
+export interface DataTableBatchActionBarProps<TData = unknown> {
   selectedRows: TData[];
   onClearSelection: () => void;
   batchActions?: (selectedRows: TData[], clearSelection: () => void) => ReactNode;
 }
 
-function DataTableBatchActionBarInner<TData = any>({
+function DataTableBatchActionBarInner<TData = unknown>({
   selectedRows,
   onClearSelection,
   batchActions,
@@ -26,9 +26,7 @@ function DataTableBatchActionBarInner<TData = any>({
       <div className="bg-border h-4 w-px" />
 
       {batchActions && (
-        <div className="flex items-center gap-2">
-          {batchActions(selectedRows, onClearSelection)}
-        </div>
+        <div className="flex items-center gap-2">{batchActions(selectedRows, onClearSelection)}</div>
       )}
 
       <Button
@@ -44,6 +42,6 @@ function DataTableBatchActionBarInner<TData = any>({
   );
 }
 
-export const DataTableBatchActionBar = memo(DataTableBatchActionBarInner) as <TData = any>(
+export const DataTableBatchActionBar = memo(DataTableBatchActionBarInner) as <TData = unknown>(
   props: DataTableBatchActionBarProps<TData>,
 ) => ReactElement | null;

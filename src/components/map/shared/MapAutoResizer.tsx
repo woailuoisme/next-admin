@@ -12,9 +12,7 @@ export interface MapAutoResizerProps {
  * container size changes (Sidebar collapse, Tabs switch, ResizablePanels, Dialog open)
  * and invokes map.resize() to prevent canvas distortion and tile white-screen.
  */
-export const MapAutoResizer = memo(function MapAutoResizer({
-  debounceMs = 50,
-}: MapAutoResizerProps) {
+export const MapAutoResizer = memo(function MapAutoResizer({ debounceMs = 50 }: MapAutoResizerProps) {
   const { map, isLoaded } = useMap();
 
   useEffect(() => {

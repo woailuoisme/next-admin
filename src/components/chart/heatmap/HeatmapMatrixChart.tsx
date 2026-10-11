@@ -7,6 +7,14 @@ import type { HeatmapMatrixChartProps } from "./types";
 import { formatNumber } from "../shared/formatters";
 import { type ComputedHeatmapCell, useHeatmapMatrix } from "./useHeatmapMatrix";
 
+// SVG layout geometry constants
+const LABEL_LEFT_WIDTH = 48;
+const LABEL_TOP_HEIGHT = 24;
+const CELL_GAP = 3;
+const CELL_RADIUS = 3;
+const VIEW_BOX_WIDTH = 800;
+const LEGEND_STEP_RATIOS = [0.1, 0.3, 0.55, 0.8, 1] as const;
+
 export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
   data,
   xKey,
@@ -50,26 +58,19 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
         ? "var(--chart-2)"
         : "var(--primary)";
 
-  // SVG layout geometry
-  const labelLeftWidth = 48;
-  const labelTopHeight = 24;
-  const gap = 3;
-  const cellRadius = 3;
-
   const numCols = computedXLabels.length || 1;
   const numRows = computedYLabels.length || 1;
 
   // ViewBox dimensions
-  const viewBoxWidth = 800;
-  const availableWidth = viewBoxWidth - labelLeftWidth - 10;
-  const availableHeight = height - labelTopHeight - (showLegend ? 36 : 10);
+  const availableWidth = VIEW_BOX_WIDTH - LABEL_LEFT_WIDTH - 10;
+  const availableHeight = height - LABEL_TOP_HEIGHT - (showLegend ? 36 : 10);
 
-  const cellWidth = Math.max(12, (availableWidth - (numCols - 1) * gap) / numCols);
-  const cellHeight = Math.max(12, (availableHeight - (numRows - 1) * gap) / numRows);
+  const cellWidth = Math.max(12, (availableWidth - (numCols - 1) * CELL_GAP) / numCols);
+  const cellHeight = Math.max(12, (availableHeight - (numRows - 1) * CELL_GAP) / numRows);
 
-  const actualSvgWidth = labelLeftWidth + numCols * cellWidth + (numCols - 1) * gap + 10;
+  const actualSvgWidth = LABEL_LEFT_WIDTH + numCols * cellWidth + (numCols - 1) * CELL_GAP + 10;
   const actualSvgHeight =
-    labelTopHeight + numRows * cellHeight + (numRows - 1) * gap + (showLegend ? 36 : 10);
+    LABEL_TOP_HEIGHT + numRows * cellHeight + (numRows - 1) * CELL_GAP + (showLegend ? 36 : 10);
 
   return (
     <div className={cn("relative w-full overflow-hidden select-none", className)}>
@@ -87,12 +88,12 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
 
           if (!shouldShow) return null;
 
-          const xPos = labelLeftWidth + colIndex * (cellWidth + gap) + cellWidth / 2;
+          const xPos = LABEL_LEFT_WIDTH + colIndex * (cellWidth + CELL_GAP) + cellWidth / 2;
           return (
             <text
               key={`x-label-${xVal}-${colIndex}`}
               x={xPos}
-              y={labelTopHeight - 8}
+              y={LABEL_TOP_HEIGHT - 8}
               textAnchor="middle"
               className="fill-muted-foreground font-mono text-[11px] tracking-tight"
             >
@@ -103,11 +104,11 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
 
         {/* Y Axis Labels (Left) */}
         {rows.map((row, rowIndex) => {
-          const yPos = labelTopHeight + rowIndex * (cellHeight + gap) + cellHeight / 2 + 4;
+          const yPos = LABEL_TOP_HEIGHT + rowIndex * (cellHeight + CELL_GAP) + cellHeight / 2 + 4;
           return (
             <text
               key={`y-label-${row.y}-${rowIndex}`}
-              x={labelLeftWidth - 8}
+              x={LABEL_LEFT_WIDTH - 8}
               y={yPos}
               textAnchor="end"
               className="fill-muted-foreground text-[11px] font-medium"
@@ -120,8 +121,8 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
         {/* Matrix Cells */}
         {rows.map((row, rowIndex) =>
           row.cells.map((cell, colIndex) => {
-            const xPos = labelLeftWidth + colIndex * (cellWidth + gap);
-            const yPos = labelTopHeight + rowIndex * (cellHeight + gap);
+            const xPos = LABEL_LEFT_WIDTH + colIndex * (cellWidth + CELL_GAP);
+            const yPos = LABEL_TOP_HEIGHT + rowIndex * (cellHeight + CELL_GAP);
 
             const isZero = cell.value === 0;
             const opacity = isZero ? 0.08 : 0.2 + cell.ratio * 0.8;
@@ -134,7 +135,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
                   y={yPos}
                   width={cellWidth}
                   height={cellHeight}
-                  rx={cellRadius}
+                  rx={CELL_RADIUS}
                   fill={themeColor}
                   opacity={opacity}
                   stroke={isHovered ? "var(--foreground)" : "transparent"}
@@ -158,11 +159,11 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
 
         {/* Bottom Legend */}
         {showLegend && (
-          <g transform={`translate(${labelLeftWidth}, ${actualSvgHeight - 20})`}>
+          <g transform={`translate(${LABEL_LEFT_WIDTH}, ${actualSvgHeight - 20})`}>
             <text x={0} y={9} className="fill-muted-foreground text-[10px] font-medium">
               {legendTitle}: 低 ({formatNumber(min)})
             </text>
-            {[0.1, 0.3, 0.55, 0.8, 1].map((stepRatio, idx) => (
+            {LEGEND_STEP_RATIOS.map((stepRatio, idx) => (
               <rect
                 key={`legend-step-${idx}`}
                 x={95 + idx * 16}
@@ -174,11 +175,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
                 opacity={stepRatio === 0.1 ? 0.1 : stepRatio}
               />
             ))}
-            <text
-              x={95 + 5 * 16 + 8}
-              y={9}
-              className="fill-muted-foreground text-[10px] font-medium"
-            >
+            <text x={95 + 5 * 16 + 8} y={9} className="fill-muted-foreground text-[10px] font-medium">
               高 ({formatNumber(max)})
             </text>
           </g>

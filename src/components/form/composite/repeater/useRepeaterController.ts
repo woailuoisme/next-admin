@@ -1,10 +1,4 @@
-import {
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
+import { type DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useMemoizedFn } from "ahooks";
 import { useMemo, useState } from "react";
@@ -89,9 +83,7 @@ export function useRepeaterController<T>({
       const key = resolveItemKey(item, index);
       if (key) {
         const isDefault =
-          typeof defaultCollapsed === "function"
-            ? defaultCollapsed(item, index)
-            : Boolean(defaultCollapsed);
+          typeof defaultCollapsed === "function" ? defaultCollapsed(item, index) : Boolean(defaultCollapsed);
         initial[key] = isDefault;
       }
     });

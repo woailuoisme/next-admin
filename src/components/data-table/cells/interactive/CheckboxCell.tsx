@@ -1,6 +1,6 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
-import { memo, startTransition, useOptimistic } from "react";
+import { memo, startTransition, useOptimistic, useState } from "react";
 import { toast } from "sonner";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,7 +21,7 @@ function CheckboxCellInner<TData = unknown>({
   className,
 }: CheckboxCellProps<TData>) {
   const [optimisticChecked, setOptimistic] = useOptimistic(checked, (_curr, next: boolean) => next);
-  const [loading, { setTrue: setLoadingTrue, setFalse: setLoadingFalse }] = useBoolean(false);
+  const [loading, setLoading] = useState(false);
 
   const handleCheckedChange = useMemoizedFn((val: boolean | "indeterminate") => {
     if (disabled || loading) return;
@@ -31,7 +31,7 @@ function CheckboxCellInner<TData = unknown>({
       setOptimistic(nextChecked);
       if (onCellChange) {
         try {
-          setLoadingTrue();
+          setLoading(true);
           const result = onCellChange(row, nextChecked);
           if (result instanceof Promise) {
             await result;
@@ -45,7 +45,7 @@ function CheckboxCellInner<TData = unknown>({
             toast.error(msg);
           }
         } finally {
-          setLoadingFalse();
+          setLoading(false);
         }
       }
     });

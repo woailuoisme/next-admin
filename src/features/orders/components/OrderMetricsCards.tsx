@@ -29,12 +29,7 @@ export function OrderMetricsCards({
   sparklineLayout = "inline",
 }: OrderMetricsCardsProps) {
   return (
-    <StatsGrid
-      columns={4}
-      isLoading={isLoading}
-      density={density}
-      sparklineLayout={sparklineLayout}
-    >
+    <StatsGrid columns={4} isLoading={isLoading} density={density} sparklineLayout={sparklineLayout}>
       <StatCard
         title="平台总订单数"
         value={stats.total.toLocaleString()}

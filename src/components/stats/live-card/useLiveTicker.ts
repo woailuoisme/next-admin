@@ -1,4 +1,4 @@
-import { useBoolean, useInterval, useMemoizedFn } from "ahooks";
+import { useInterval, useMemoizedFn } from "ahooks";
 import { clamp } from "es-toolkit";
 import { useState } from "react";
 
@@ -58,25 +58,29 @@ export function useLiveTicker({
   const [value, setValue] = useState<number>(initialValue);
   const [sparklineData, setSparklineData] = useState<number[]>(initialData);
   const [lastUpdated, setLastUpdated] = useState<string>("刚刚");
-  const [isRunning, { toggle, setTrue: start, setFalse: stop }] = useBoolean(autoStart);
+  const [isRunning, setIsRunning] = useState<boolean>(autoStart);
+  const toggle = useMemoizedFn(() => setIsRunning((prev) => !prev));
+  const start = useMemoizedFn(() => setIsRunning(true));
+  const stop = useMemoizedFn(() => setIsRunning(false));
 
   const tick = useMemoizedFn(() => {
-    let delta: number;
-    if (volatility !== undefined) {
-      const range = value * volatility;
-      delta = Math.round((Math.random() * 2 - 1) * range);
-    } else {
-      delta = Math.floor(Math.random() * (maxJitter - minJitter + 1)) + minJitter;
-    }
+    setValue((prevValue) => {
+      let delta: number;
+      if (volatility !== undefined) {
+        const range = prevValue * volatility;
+        delta = Math.round((Math.random() * 2 - 1) * range);
+      } else {
+        delta = Math.floor(Math.random() * (maxJitter - minJitter + 1)) + minJitter;
+      }
 
-    const nextValue = clamp(value + delta, min, max);
+      const nextValue = clamp(prevValue + delta, min, max);
 
-    setValue(nextValue);
-    setSparklineData((prev) => {
-      const nextBuffer = [...prev, nextValue];
-      return nextBuffer.length > bufferSize
-        ? nextBuffer.slice(nextBuffer.length - bufferSize)
-        : nextBuffer;
+      setSparklineData((prev) => {
+        const nextBuffer = [...prev, nextValue];
+        return nextBuffer.length > bufferSize ? nextBuffer.slice(nextBuffer.length - bufferSize) : nextBuffer;
+      });
+
+      return nextValue;
     });
 
     const now = new Date();

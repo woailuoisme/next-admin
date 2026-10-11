@@ -21,9 +21,7 @@ export function createLazyChart<P extends { height?: number | string; className?
     const height = props.height ?? defaultHeight;
 
     return (
-      <Suspense
-        fallback={<ChartSkeleton height={height} variant={variant} className={props.className} />}
-      >
+      <Suspense fallback={<ChartSkeleton height={height} variant={variant} className={props.className} />}>
         <LazyComponent {...props} />
       </Suspense>
     );

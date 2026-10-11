@@ -48,10 +48,7 @@ export const DonutDistributionChart = memo(function DonutDistributionChart(
   return (
     <div
       ref={containerRef}
-      className={cn(
-        "flex w-full flex-col items-center justify-between gap-6 md:flex-row",
-        className,
-      )}
+      className={cn("flex w-full flex-col items-center justify-between gap-6 md:flex-row", className)}
       style={{ minHeight: height }}
     >
       {/* Donut chart with centered text */}
@@ -102,16 +99,11 @@ export const DonutDistributionChart = memo(function DonutDistributionChart(
               className="hover:bg-muted/40 flex items-center justify-between rounded-md px-2 py-1 text-xs transition-colors"
             >
               <div className="flex min-w-0 items-center gap-2">
-                <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
                 <span className="text-foreground truncate font-medium">{item.name}</span>
               </div>
               <div className="flex shrink-0 items-center gap-3">
-                <span className="text-muted-foreground font-mono">
-                  {valueFormatter(item.value)}
-                </span>
+                <span className="text-muted-foreground font-mono">{valueFormatter(item.value)}</span>
                 <span className="text-foreground w-12 text-right font-mono font-medium">
                   {item.percentage.toFixed(1)}%
                 </span>

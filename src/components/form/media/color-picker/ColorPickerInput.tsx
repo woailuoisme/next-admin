@@ -1,17 +1,13 @@
-import { useBoolean, useMemoizedFn } from "ahooks";
+import { useMemoizedFn } from "ahooks";
 import { X } from "lucide-react";
-import { memo, useId } from "react";
+import { memo, useId, useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { FieldConnector, FieldWrapper } from "../../core";
 import { ColorPickerContent } from "./ColorPickerContent";
 import { ColorTrigger } from "./ColorTrigger";
-import {
-  type ColorPickerInnerProps,
-  type ColorPickerInputProps,
-  DEFAULT_COLOR_PRESETS,
-} from "./types";
+import { type ColorPickerInnerProps, type ColorPickerInputProps, DEFAULT_COLOR_PRESETS } from "./types";
 
 const ColorPickerInputInner = memo(function ColorPickerInputInner({
   id,
@@ -25,7 +21,7 @@ const ColorPickerInputInner = memo(function ColorPickerInputInner({
   showEyeDropper = true,
   computedError,
 }: ColorPickerInnerProps) {
-  const [open, { set: setOpen }] = useBoolean(false);
+  const [open, setOpen] = useState(false);
 
   const handleClear = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();

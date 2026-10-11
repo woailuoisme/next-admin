@@ -35,8 +35,7 @@ export const FileItemCard = memo(function FileItemCard({
   onPreview,
   onRemove,
 }: FileItemCardProps) {
-  const isImage =
-    file.type?.startsWith("image/") || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(file.name);
+  const isImage = file.type?.startsWith("image/") || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(file.name);
 
   const handlePreview = useMemoizedFn(() => {
     onPreview(file.url);

@@ -13,7 +13,7 @@ import type {
   TableEmptyStateContext,
 } from "./types";
 
-export interface DataTableContextValue<TData = any> {
+export interface DataTableContextValue<TData = unknown> {
   // Column metadata & layout
   columns: DataTableColDef<TData>[];
   visibleColumns: DataTableColDef<TData>[];
@@ -56,7 +56,7 @@ export interface DataTableContextValue<TData = any> {
   handleSortClick: (field: string) => void;
 }
 
-const DataTableContext = createContext<DataTableContextValue | null>(null);
+const DataTableContext = createContext<DataTableContextValue<any> | null>(null);
 
 export interface DataTableProviderProps<TData = any> {
   value: DataTableContextValue<TData>;
@@ -67,16 +67,14 @@ export function DataTableProvider<TData = any>({ value, children }: DataTablePro
   return <DataTableContext value={value}>{children}</DataTableContext>;
 }
 
-export function useDataTableContext<TData = any>(): DataTableContextValue<TData> {
+export function useDataTableContext<TData = unknown>(): DataTableContextValue<TData> {
   const context = useContext(DataTableContext);
   if (!context) {
-    throw new Error(
-      "useDataTableContext must be used within a DataTable component or DataTableProvider.",
-    );
+    throw new Error("useDataTableContext must be used within a DataTable component or DataTableProvider.");
   }
   return context as DataTableContextValue<TData>;
 }
 
-export function useOptionalDataTableContext<TData = any>(): DataTableContextValue<TData> | null {
+export function useOptionalDataTableContext<TData = unknown>(): DataTableContextValue<TData> | null {
   return useContext(DataTableContext) as DataTableContextValue<TData> | null;
 }
