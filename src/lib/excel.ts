@@ -44,7 +44,7 @@ export async function exportToExcel<TData = any>({
     }
 
     const workbook = new Workbook();
-    workbook.creator = "next-sn-admin";
+    workbook.creator = "next-admin";
     workbook.created = new Date();
 
     const worksheet = workbook.addWorksheet(sheetName, {

@@ -2,8 +2,8 @@ services:
   app:
     build:
       context: .
-    image: next-sn-admin:latest
-    container_name: next-sn-admin
+    image: next-admin:latest
+    container_name: next-admin
     pull_policy: build
     ports:
       - "${PORT:-3500}:${PORT:-3500}"
