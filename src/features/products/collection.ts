@@ -26,7 +26,7 @@ export function getProductsCollection(queryClient: QueryClient): Collection<Prod
           return res.items;
         },
         getKey: (p: Product) => p.id,
-        queryClient,
+        queryClient: queryClient as never,
         onInsert: async ({ transaction }) => {
           await Promise.all(
             transaction.mutations.map(async (m) => {
@@ -52,7 +52,7 @@ export function getProductsCollection(queryClient: QueryClient): Collection<Prod
           );
         },
       }),
-    );
+    ) as unknown as Collection<Product, string>;
     productsCollectionCache.set(queryClient, collection);
   }
   return collection;

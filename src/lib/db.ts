@@ -44,9 +44,9 @@ export function createQueryCollection<T extends object, TKey extends string | nu
   return createCollection(
     queryCollectionOptions({
       ...options,
-      queryClient: client,
-    }),
-  );
+      queryClient: client as never,
+    } as any),
+  ) as unknown as Collection<T, TKey>;
 }
 
 export {

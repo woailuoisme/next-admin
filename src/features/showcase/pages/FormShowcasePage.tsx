@@ -22,6 +22,10 @@ import {
   type BasemapPreset,
   CheckboxGroup,
   CheckboxInput,
+  CascaderInput,
+  type CascaderOption,
+  TreeSelectInput,
+  type TreeSelectNode,
   ColorPickerInput,
   ComboboxInput,
   type CoordinateSystem,
@@ -75,6 +79,11 @@ export interface ShowcaseFormValues {
   allowMarketing: boolean;
   deviceType: string;
   interests: (string | number)[];
+  region: (string | number)[];
+  category: (string | number)[];
+  orgDepartment: string;
+  permissionNodes: (string | number)[];
+  asyncProjectNode: string;
   // Date & Time
   joinDate: string;
   vacationRange: { from?: Date; to?: Date };
@@ -145,6 +154,146 @@ const INTEREST_OPTIONS = [
   { label: "DevOps & Cloud", value: "devops" },
 ];
 
+const REGION_OPTIONS: CascaderOption[] = [
+  {
+    value: "zhejiang",
+    label: "浙江省",
+    children: [
+      {
+        value: "hangzhou",
+        label: "杭州市",
+        children: [
+          { value: "xihu", label: "西湖区" },
+          { value: "binjiang", label: "滨江区" },
+          { value: "yuhang", label: "余杭区" },
+        ],
+      },
+      {
+        value: "ningbo",
+        label: "宁波市",
+        children: [
+          { value: "haishu", label: "海曙区" },
+          { value: "yinzhou", label: "鄞州区" },
+        ],
+      },
+    ],
+  },
+  {
+    value: "jiangsu",
+    label: "江苏省",
+    children: [
+      {
+        value: "nanjing",
+        label: "南京市",
+        children: [
+          { value: "xuanwu", label: "玄武区" },
+          { value: "gulou", label: "鼓楼区" },
+        ],
+      },
+      {
+        value: "suzhou",
+        label: "苏州市",
+        children: [
+          { value: "gusu", label: "姑苏区" },
+          { value: "wuzhong", label: "吴中区" },
+        ],
+      },
+    ],
+  },
+  {
+    value: "guangdong",
+    label: "广东省",
+    children: [
+      {
+        value: "guangzhou",
+        label: "广州市",
+        children: [
+          { value: "tianhe", label: "天河区" },
+          { value: "yuexiu", label: "越秀区" },
+        ],
+      },
+      {
+        value: "shenzhen",
+        label: "深圳市",
+        children: [
+          { value: "nanshan", label: "南山区" },
+          { value: "futian", label: "福田区" },
+        ],
+      },
+    ],
+  },
+];
+
+const ORG_TREE_DATA: TreeSelectNode[] = [
+  {
+    value: "headquarters",
+    label: "集团总部",
+    children: [
+      {
+        value: "rd_center",
+        label: "全球研发中心",
+        children: [
+          { value: "fe_arch", label: "前端架构组" },
+          { value: "be_core", label: "基础平台组" },
+          { value: "ai_lab", label: "AI 智能实验室" },
+        ],
+      },
+      {
+        value: "design_center",
+        label: "体验设计中心",
+        children: [
+          { value: "ux_design", label: "交互设计团队" },
+          { value: "brand_design", label: "视觉品牌创意团队" },
+        ],
+      },
+      {
+        value: "business_center",
+        label: "商业化运营部",
+        children: [
+          { value: "global_sales", label: "全球大客户销售部" },
+          { value: "customer_success", label: "客户成功服务团队" },
+        ],
+      },
+    ],
+  },
+];
+
+const PERMISSION_TREE_DATA: TreeSelectNode[] = [
+  {
+    value: "sys_root",
+    label: "系统全量权限",
+    children: [
+      {
+        value: "user_mgmt",
+        label: "用户与账户管理",
+        children: [
+          { value: "user_create", label: "创建用户" },
+          { value: "user_edit", label: "编辑用户详情" },
+          { value: "user_delete", label: "注销/删除账号" },
+          { value: "user_export", label: "导出用户列表" },
+        ],
+      },
+      {
+        value: "role_perm",
+        label: "角色与访问控制",
+        children: [
+          { value: "role_assign", label: "分配角色" },
+          { value: "audit_log", label: "查看安全审计日志" },
+          { value: "mfa_reset", label: "重置二要素校验" },
+        ],
+      },
+      {
+        value: "infra_setting",
+        label: "基础设施与网关配置",
+        children: [
+          { value: "gateway_rule", label: "更新 API 网关流控规则" },
+          { value: "secret_rotate", label: "密钥轮换管理" },
+        ],
+      },
+    ],
+  },
+];
+
 const TAG_SUGGESTIONS = ["GraphQL", "Docker", "Tailwind", "Rust"];
 
 const BASEMAP_SELECT_OPTIONS: Array<{ label: string; value: BasemapPreset }> = [
@@ -196,6 +345,11 @@ const DEFAULT_VALUES: ShowcaseFormValues = {
   allowMarketing: false,
   deviceType: "desktop",
   interests: ["tech", "ai"],
+  region: ["zhejiang", "hangzhou", "xihu"],
+  category: [],
+  orgDepartment: "fe_arch",
+  permissionNodes: ["user_create", "user_edit"],
+  asyncProjectNode: "",
   joinDate: "2026-03-01",
   vacationRange: {},
   dailyCheckinTime: "09:30",
@@ -246,6 +400,137 @@ export function FormShowcasePage() {
   const [showSearch, setShowSearch] = useState(true);
   const [showCoordsInput, setShowCoordsInput] = useState(true);
   const [isLocationDisabled, setIsLocationDisabled] = useState(false);
+
+  // 异步品类级联数据源状态
+  const [asyncCategoryOptions, setAsyncCategoryOptions] = useState<CascaderOption[]>([
+    {
+      value: "digital",
+      label: "数码 3C",
+      isLeaf: false,
+    },
+    {
+      value: "clothing",
+      label: "服饰箱包",
+      isLeaf: false,
+    },
+    {
+      value: "home",
+      label: "居家生活",
+      isLeaf: false,
+    },
+  ]);
+
+  const handleLoadCategoryData = useMemoizedFn(async (selectedOptions: CascaderOption[]) => {
+    const targetOption = selectedOptions[selectedOptions.length - 1];
+    if (!targetOption) return;
+
+    // 模拟网络请求延迟
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    if (targetOption.value === "digital") {
+      targetOption.children = [
+        {
+          value: "phones",
+          label: "智能手机",
+          children: [
+            { value: "flagship", label: "旗舰影像手机" },
+            { value: "foldable", label: "折叠屏手机" },
+          ],
+        },
+        {
+          value: "laptops",
+          label: "轻薄笔记本",
+          children: [
+            { value: "ultrabook", label: "轻薄商务本" },
+            { value: "gaming", label: "高性能游戏本" },
+          ],
+        },
+      ];
+    } else if (targetOption.value === "clothing") {
+      targetOption.children = [
+        {
+          value: "menswear",
+          label: "精品男装",
+          children: [
+            { value: "jackets", label: "冲锋夹克" },
+            { value: "shirts", label: "商务衬衫" },
+          ],
+        },
+        {
+          value: "womenswear",
+          label: "时尚女装",
+          children: [
+            { value: "dresses", label: "连身裙" },
+            { value: "coats", label: "风衣外套" },
+          ],
+        },
+      ];
+    } else if (targetOption.value === "home") {
+      targetOption.children = [
+        {
+          value: "furniture",
+          label: "品质家具",
+          children: [
+            { value: "sofa", label: "人体工学沙发" },
+            { value: "bed", label: "实木大床" },
+          ],
+        },
+        {
+          value: "appliances",
+          label: "智能家电",
+          children: [
+            { value: "robot", label: "扫地机器人" },
+            { value: "purifier", label: "空气净化器" },
+          ],
+        },
+      ];
+    }
+
+    setAsyncCategoryOptions([...asyncCategoryOptions]);
+  });
+
+  // 异步树形微服务/组件节点数据源状态
+  const [asyncProjectTreeData, setAsyncProjectTreeData] = useState<TreeSelectNode[]>([
+    {
+      value: "cloud_infra",
+      label: "云基础设施架构",
+      isLeaf: false,
+    },
+    {
+      value: "data_engine",
+      label: "数据智能与流批中台",
+      isLeaf: false,
+    },
+    {
+      value: "security_mesh",
+      label: "企业零信任安全网格",
+      isLeaf: false,
+    },
+  ]);
+
+  const handleLoadProjectNodeData = useMemoizedFn(async (node: TreeSelectNode) => {
+    // 模拟网络请求延迟
+    await new Promise((resolve) => setTimeout(resolve, 750));
+
+    if (node.value === "cloud_infra") {
+      node.children = [
+        { value: "k8s_prod", label: "Kubernetes 核心生产集群 (us-west-1)", isLeaf: true },
+        { value: "serverless_gateway", label: "Serverless 边缘流量网关", isLeaf: true },
+      ];
+    } else if (node.value === "data_engine") {
+      node.children = [
+        { value: "flink_stream", label: "Flink 毫秒级实时流计算引擎", isLeaf: true },
+        { value: "vector_db", label: "PgVector 混合语义知识库", isLeaf: true },
+      ];
+    } else if (node.value === "security_mesh") {
+      node.children = [
+        { value: "waf_guard", label: "WAF 智能实时威胁阻断系统", isLeaf: true },
+        { value: "mtls_cert", label: "mTLS 双向零信任证书管理链", isLeaf: true },
+      ];
+    }
+
+    setAsyncProjectTreeData([...asyncProjectTreeData]);
+  });
 
   const form = useForm({
     defaultValues: DEFAULT_VALUES,
@@ -412,6 +697,85 @@ export function FormShowcasePage() {
                   />
                 </div>
               </div>
+            </FormSection>
+
+            <FormSection
+              title="Cascader (级联选择器)"
+              description="多列联动视口，支持静态行政区划、异步 loadData 按需加载子级、跨层级路径搜索与表单校验联动。"
+            >
+              <FormGrid columns={{ sm: 1, md: 2 }}>
+                <CascaderInput
+                  form={form}
+                  name="region"
+                  label="行政区划 (静态 3 级 + 路径搜索 + 清除)"
+                  placeholder="请选择省市区..."
+                  options={REGION_OPTIONS}
+                  showSearch
+                  clearable
+                  colSpan={1}
+                  helperText="支持点击逐级展开或在输入框中实时模糊匹配路径并一键选中。"
+                />
+                <CascaderInput
+                  form={form}
+                  name="category"
+                  label="商品品类 (异步动态加载 loadData + changeOnSelect)"
+                  placeholder="请选择商品品类..."
+                  options={asyncCategoryOptions}
+                  loadData={handleLoadCategoryData}
+                  changeOnSelect
+                  colSpan={1}
+                  helperText="支持 isLeaf: false 动态按需请求子级品类，且允许选中任意一级类目。"
+                />
+              </FormGrid>
+            </FormSection>
+
+            <FormSection
+              title="TreeSelect (树选择组件)"
+              description="基于 Ant Design 与 shadcn 令牌构建的企业级下拉树，涵盖组织架构单选、权限勾选树 (SHOW_PARENT / SHOW_CHILD)、树形连接线 (treeLine)、异步加载 (loadData) 与标签折叠。"
+            >
+              <FormGrid columns={{ sm: 1, md: 3 }}>
+                <TreeSelectInput
+                  form={form}
+                  name="orgDepartment"
+                  label="组织架构 (单选 + 树形导引线 treeLine + 搜索)"
+                  placeholder="请选择所属部门..."
+                  treeData={ORG_TREE_DATA}
+                  treeLine
+                  showIcon
+                  showSearch
+                  clearable
+                  treeDefaultExpandAll
+                  colSpan={1}
+                  helperText="支持搜索过滤高亮、展开/折叠、自定义图标与层级辅助虚线。"
+                />
+                <TreeSelectInput
+                  form={form}
+                  name="permissionNodes"
+                  label="权限清单 (复选框 treeCheckable + SHOW_PARENT)"
+                  placeholder="请勾选分配权限..."
+                  treeData={PERMISSION_TREE_DATA}
+                  treeCheckable
+                  showCheckedStrategy="SHOW_PARENT"
+                  showSearch
+                  clearable
+                  maxTagCount={2}
+                  colSpan={1}
+                  helperText="父子节点双向级联选择，支持半选 indeterminate 状态与 +N 标签折叠悬浮查看。"
+                />
+                <TreeSelectInput
+                  form={form}
+                  name="asyncProjectNode"
+                  label="云资源架构 (异步 loadData + 叶子选择限制)"
+                  placeholder="选择目标计算或引擎节点..."
+                  treeData={asyncProjectTreeData}
+                  loadData={handleLoadProjectNodeData}
+                  onlyLeafSelectable
+                  showSearch
+                  clearable
+                  colSpan={1}
+                  helperText="点击展开时动态加载微服务节点（附带加载动画），且仅叶子节点可被选中。"
+                />
+              </FormGrid>
             </FormSection>
           </div>
         ),
@@ -856,7 +1220,18 @@ export function FormShowcasePage() {
         ),
       },
     ],
-    [form, activeBasemap, activeCRS, showSearch, showCoordsInput, isLocationDisabled],
+    [
+      form,
+      activeBasemap,
+      activeCRS,
+      showSearch,
+      showCoordsInput,
+      isLocationDisabled,
+      asyncCategoryOptions,
+      handleLoadCategoryData,
+      asyncProjectTreeData,
+      handleLoadProjectNodeData,
+    ],
   );
 
   return (
