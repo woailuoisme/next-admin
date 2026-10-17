@@ -13,3 +13,5 @@ ast-grep = "latest"
 rg = "latest"
 fd = "latest"
 sd = "latest"
+
+gitleaks = "latest"

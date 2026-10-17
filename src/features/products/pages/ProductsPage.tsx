@@ -9,12 +9,9 @@ import { DeleteDialog } from "@/components/dialogs";
 import { Button } from "@/components/ui/button";
 import { categoryKeys } from "@/features/categories/queries";
 import { dashboardKeys } from "@/features/dashboard/queries";
-import { useLiveQuery } from "@/lib/db";
-
 import type { Product, ProductFilters, ProductListResponse } from "../types";
 
 import { deleteProductApi } from "../api";
-import { useProductsCollection } from "../collection";
 import { ProductFormDialog } from "../components/ProductFormDialog";
 import { ProductMetricsCards } from "../components/ProductMetricsCards";
 import { ProductTable } from "../components/ProductTable";
@@ -37,8 +34,6 @@ export function ProductsPage({
   onEditProduct,
   onDeleteProduct,
 }: ProductsPageProps) {
-  const productsCollection = useProductsCollection();
-
   // Unified Deep Resource Management Module
   const resource = useResourceManagement<Product, ProductFilters, ProductListResponse>({
     entityName: "Product",
@@ -55,23 +50,12 @@ export function ProductsPage({
     getEntityTitle: (p) => p?.title,
     deleteMutationFn: (id) => deleteProductApi(id),
     invalidateQueryKeys: [productKeys.all, dashboardKeys.all, categoryKeys.all],
-    onBeforeItemDelete: (item) => {
-      try {
-        productsCollection.delete(String(item.id));
-      } catch {
-        // ignore if not present in reactive local collection
-      }
-    },
   });
 
-  // Reactive live query powered by TanStack DB differential dataflow
-  const { data: liveProducts } = useLiveQuery((q) => q.from({ p: productsCollection }));
-
-  // Calculate product statistics for KPI cards (reactive live data from TanStack DB)
-  const displayRows = liveProducts && liveProducts.length > 0 ? liveProducts : resource.rows;
+  // Calculate product statistics for KPI cards
   const productStats = useMemo(
-    () => computeProductStats(displayRows, resource.total, resource.rawResponse?.summary),
-    [resource.rawResponse?.summary, resource.total, displayRows],
+    () => computeProductStats(resource.rows, resource.total, resource.rawResponse?.summary),
+    [resource.rawResponse?.summary, resource.total, resource.rows],
   );
 
   return (

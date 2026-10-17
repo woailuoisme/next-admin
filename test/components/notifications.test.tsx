@@ -5,7 +5,7 @@ import { NotificationPopover } from "@/components/notifications/popover/Notifica
 import { Popover } from "@/components/ui/popover";
 import type { NotificationItem } from "@/features/notifications";
 
-import { renderWithProviders, screen, userEvent } from "test/test-utils";
+import { fireEvent, renderWithProviders, screen } from "test/test-utils";
 
 const mockItemUnread: NotificationItem = {
   id: "notif-1",
@@ -40,8 +40,7 @@ describe("Notification Components", () => {
       expect(screen.getByText("查看订单")).toBeInTheDocument();
     });
 
-    it("triggers onMarkAsRead when clicking the mark-as-read action button", async () => {
-      const user = userEvent.setup();
+    it("triggers onMarkAsRead when clicking the mark-as-read action button", () => {
       const handleItemClick = vi.fn();
       const handleMarkAsRead = vi.fn();
 
@@ -54,14 +53,13 @@ describe("Notification Components", () => {
       );
 
       const markReadBtn = screen.getByRole("button", { name: /标为已读|mark as read/i });
-      await user.click(markReadBtn);
+      fireEvent.click(markReadBtn);
 
       expect(handleMarkAsRead).toHaveBeenCalledWith("notif-1");
       expect(handleItemClick).not.toHaveBeenCalled();
     });
 
-    it("triggers onDelete when clicking the delete button", async () => {
-      const user = userEvent.setup();
+    it("triggers onDelete when clicking the delete button", () => {
       const handleItemClick = vi.fn();
       const handleDelete = vi.fn();
 
@@ -70,7 +68,7 @@ describe("Notification Components", () => {
       );
 
       const deleteBtn = screen.getByRole("button", { name: /删除|delete/i });
-      await user.click(deleteBtn);
+      fireEvent.click(deleteBtn);
 
       expect(handleDelete).toHaveBeenCalledWith("notif-2");
       expect(handleItemClick).not.toHaveBeenCalled();

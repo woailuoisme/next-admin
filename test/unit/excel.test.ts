@@ -39,7 +39,7 @@ describe("exportToExcel unit tests", () => {
         fileName: "test-report",
         sheetName: "Users",
       }),
-    ).resolves.not.toThrow();
+    ).resolves.toBeUndefined();
 
     appendSpy.mockRestore();
     removeSpy.mockRestore();
