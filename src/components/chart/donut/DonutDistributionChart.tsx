@@ -42,12 +42,10 @@ export const DonutDistributionChart = memo(function DonutDistributionChart(
 ) {
   const { innerRadius = 60, outerRadius = 85, height = 260, showLegend = true, className } = props;
 
-  const { containerRef, enrichedData, centerLabel, displayCenterValue, valueFormatter } =
-    useDonutDistribution(props);
+  const { enrichedData, centerLabel, displayCenterValue, valueFormatter } = useDonutDistribution(props);
 
   return (
     <div
-      ref={containerRef}
       className={cn("flex w-full flex-col items-center justify-between gap-6 md:flex-row", className)}
       style={{ minHeight: height }}
     >

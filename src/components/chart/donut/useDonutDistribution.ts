@@ -3,7 +3,6 @@ import { useMemo } from "react";
 
 import type { DonutDistributionChartProps, EnrichedDonutSliceData } from "./types";
 
-import { useChartContainer } from "../hooks/useChartContainer";
 import { useChartFormatters } from "../hooks/useChartFormatters";
 import { EMPTY_DATA } from "../shared/constants";
 import { CHART_PALETTE } from "../shared/theme";
@@ -12,21 +11,7 @@ import { CHART_PALETTE } from "../shared/theme";
  * 聚合环图数据：计算总量、按调色板着色并派生出百分比
  */
 export function useDonutDistribution(props: DonutDistributionChartProps) {
-  const {
-    data = EMPTY_DATA,
-    centerLabel = "总计",
-    centerValue,
-    valueFormatter: propValueFormatter,
-    height = 260,
-  } = props;
-
-  const {
-    containerRef,
-    width,
-    height: chartHeight,
-  } = useChartContainer({
-    height,
-  });
+  const { data = EMPTY_DATA, centerLabel = "总计", centerValue, valueFormatter: propValueFormatter } = props;
 
   const { valueFormatter } = useChartFormatters({
     valueFormatter: propValueFormatter,
@@ -50,10 +35,6 @@ export function useDonutDistribution(props: DonutDistributionChartProps) {
   const displayCenterValue = centerValue ?? valueFormatter(total);
 
   return {
-    containerRef,
-    width,
-    chartHeight,
-    total,
     enrichedData,
     centerLabel,
     displayCenterValue,

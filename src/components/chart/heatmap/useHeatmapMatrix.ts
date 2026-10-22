@@ -47,7 +47,6 @@ export function useHeatmapMatrix({
 
     let min = Number.POSITIVE_INFINITY;
     let max = Number.NEGATIVE_INFINITY;
-    let total = 0;
 
     const cellLookup = new Map<string, HeatmapCell>();
 
@@ -59,7 +58,6 @@ export function useHeatmapMatrix({
       cellLookup.set(key, { ...item, x: xVal, y: yVal, value: val });
       if (val < min) min = val;
       if (val > max) max = val;
-      total += val;
     }
 
     if (min === Number.POSITIVE_INFINITY) {
@@ -90,17 +88,12 @@ export function useHeatmapMatrix({
       return { y, cells };
     });
 
-    const count = data.length;
-    const average = count > 0 ? total / count : 0;
-
     return {
       xLabels: computedXLabels,
       yLabels: computedYLabels,
       rows,
       min,
       max,
-      total,
-      average,
     };
   }, [data, xKey, yKey, valueKey, xLabels, yLabels]);
 }

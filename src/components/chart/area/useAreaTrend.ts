@@ -1,6 +1,5 @@
 import type { AreaTrendChartProps } from "./types";
 
-import { useChartContainer } from "../hooks/useChartContainer";
 import { useChartFormatters } from "../hooks/useChartFormatters";
 import { useChartTheme } from "../hooks/useChartTheme";
 
@@ -8,27 +7,15 @@ export function useAreaTrend(props: AreaTrendChartProps) {
   const {
     theme = "primary",
     color,
-    height = 300,
     valueFormatter: propValueFormatter,
     xAxisFormatter: propXAxisFormatter,
     yAxisFormatter: propYAxisFormatter,
-    secondaryDataKey,
   } = props;
 
-  const { themeConfig, activeStroke, gradientId } = useChartTheme({
+  const { activeStroke, gradientId } = useChartTheme({
     theme,
     color,
     gradientPrefix: "area-grad-p",
-  });
-
-  const secondaryGradId = `area-grad-s-${gradientId}`;
-
-  const {
-    containerRef,
-    width,
-    height: chartHeight,
-  } = useChartContainer({
-    height,
   });
 
   const { valueFormatter, xAxisFormatter, yAxisFormatter } = useChartFormatters({
@@ -38,14 +25,9 @@ export function useAreaTrend(props: AreaTrendChartProps) {
   });
 
   return {
-    containerRef,
-    width,
-    chartHeight,
-    themeConfig,
     activeStroke,
     gradientId,
-    secondaryGradId,
-    hasSecondary: Boolean(secondaryDataKey),
+    secondaryGradId: `area-grad-s-${gradientId}`,
     valueFormatter,
     xAxisFormatter,
     yAxisFormatter,

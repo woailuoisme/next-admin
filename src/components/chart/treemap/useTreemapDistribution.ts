@@ -58,7 +58,6 @@ export function useTreemapDistribution({ data, colorPalette }: UseTreemapDistrib
     return {
       total,
       enrichedData,
-      palette,
     };
   }, [data, colorPalette]);
 }

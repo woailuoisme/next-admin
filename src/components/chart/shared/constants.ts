@@ -6,9 +6,7 @@
 /** 通用空数组引用，用作图表数据类 props 的兜底默认值（避免每次渲染新建数组） */
 export const EMPTY_DATA: never[] = [];
 
-export const DEFAULT_CHART_HEIGHT = 280;
 export const DEFAULT_ANIMATION_DURATION = 600;
-export const DEFAULT_ANIMATION_EASING = "ease-out";
 
 /** 响应式容器的首帧占位宽度，避免 SSR/首屏测量前的 0 宽闪烁 */
 export const DEFAULT_INITIAL_CHART_WIDTH = 500;
@@ -59,20 +57,6 @@ export const DEFAULT_CHART_MARGIN = {
   right: 12,
   left: -12,
   bottom: 0,
-} as const;
-
-export const DEFAULT_DONUT_MARGIN = {
-  top: 0,
-  right: 0,
-  left: 0,
-  bottom: 0,
-} as const;
-
-export const DEFAULT_RADAR_MARGIN = {
-  top: 16,
-  right: 16,
-  left: 16,
-  bottom: 16,
 } as const;
 
 export const DEFAULT_RADAR_CHART_MARGIN = {

@@ -33,10 +33,10 @@ export const RadarMetricChart = memo(function RadarMetricChart(props: RadarMetri
     className,
   } = props;
 
-  const { containerRef, normalizedSeries, valueFormatter } = useRadarMetric(props);
+  const { normalizedSeries, valueFormatter } = useRadarMetric(props);
 
   return (
-    <div ref={containerRef} className={className} style={{ width: "100%", height }}>
+    <div className={className} style={{ width: "100%", height }}>
       <ResponsiveContainer
         width="100%"
         height="100%"

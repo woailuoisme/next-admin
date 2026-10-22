@@ -2,7 +2,6 @@ import { useMemo } from "react";
 
 import type { LineTrendChartProps } from "./types";
 
-import { useChartContainer } from "../hooks/useChartContainer";
 import { useChartFormatters } from "../hooks/useChartFormatters";
 import { useChartTheme } from "../hooks/useChartTheme";
 import { CHART_PALETTE } from "../shared/theme";
@@ -14,7 +13,6 @@ export function useLineTrend(props: LineTrendChartProps) {
     seriesName = "数值",
     theme = "primary",
     color,
-    height = 300,
     referenceValue,
     referenceLabel,
     valueFormatter: propValueFormatter,
@@ -22,17 +20,9 @@ export function useLineTrend(props: LineTrendChartProps) {
     yAxisFormatter: propYAxisFormatter,
   } = props;
 
-  const { themeConfig, activeStroke } = useChartTheme({
+  const { activeStroke } = useChartTheme({
     theme,
     color,
-  });
-
-  const {
-    containerRef,
-    width,
-    height: chartHeight,
-  } = useChartContainer({
-    height,
   });
 
   const { valueFormatter, xAxisFormatter, yAxisFormatter } = useChartFormatters({
@@ -66,11 +56,6 @@ export function useLineTrend(props: LineTrendChartProps) {
       : undefined;
 
   return {
-    containerRef,
-    width,
-    chartHeight,
-    themeConfig,
-    activeStroke,
     normalizedSeries,
     formattedReferenceLabel,
     valueFormatter,

@@ -42,17 +42,11 @@ export const LineTrendChart = memo(function LineTrendChart(props: LineTrendChart
     className,
   } = props;
 
-  const {
-    containerRef,
-    normalizedSeries,
-    formattedReferenceLabel,
-    valueFormatter,
-    xAxisFormatter,
-    yAxisFormatter,
-  } = useLineTrend(props);
+  const { normalizedSeries, formattedReferenceLabel, valueFormatter, xAxisFormatter, yAxisFormatter } =
+    useLineTrend(props);
 
   return (
-    <div ref={containerRef} className={className} style={{ width: "100%", height }}>
+    <div className={className} style={{ width: "100%", height }}>
       <ResponsiveContainer
         width="100%"
         height="100%"

@@ -40,7 +40,6 @@ export const ComposedTrendChart = memo(function ComposedTrendChart(props: Compos
   } = props;
 
   const {
-    containerRef,
     hasRightAxis,
     normalizedBars,
     normalizedLines,
@@ -52,7 +51,7 @@ export const ComposedTrendChart = memo(function ComposedTrendChart(props: Compos
   const chartMargin = hasRightAxis ? DEFAULT_COMPOSED_MARGIN_WITH_RIGHT : DEFAULT_COMPOSED_MARGIN;
 
   return (
-    <div ref={containerRef} className={className} style={{ width: "100%", height }}>
+    <div className={className} style={{ width: "100%", height }}>
       <ResponsiveContainer
         width="100%"
         height="100%"

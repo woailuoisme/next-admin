@@ -2,13 +2,11 @@ import { useMemo } from "react";
 
 import type { FunnelConversionChartProps, FunnelItemWithRates } from "./types";
 
-import { useChartContainer } from "../hooks/useChartContainer";
 import { formatNumber } from "../shared/formatters";
 import { CHART_PALETTE } from "../shared/theme";
 
 export function useFunnelConversion(props: FunnelConversionChartProps) {
   const { data, valueFormatter: customFormatter } = props;
-  const { containerRef } = useChartContainer();
 
   const processedData = useMemo<FunnelItemWithRates[]>(() => {
     if (!data || data.length === 0) return [];
@@ -37,7 +35,6 @@ export function useFunnelConversion(props: FunnelConversionChartProps) {
   const valueFormatter = customFormatter ?? formatNumber;
 
   return {
-    containerRef,
     processedData,
     valueFormatter,
   };

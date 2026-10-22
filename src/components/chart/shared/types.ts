@@ -18,16 +18,6 @@ export interface ChartReferenceLine {
     | "end";
 }
 
-export interface ChartReferenceArea {
-  y1?: number;
-  y2?: number;
-  x1?: string | number;
-  x2?: string | number;
-  label?: string;
-  fill?: string;
-  fillOpacity?: number;
-}
-
 export interface ChartBrushConfig {
   dataKey?: string;
   height?: number;

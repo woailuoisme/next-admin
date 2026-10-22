@@ -29,18 +29,11 @@ export const AreaTrendChart = memo(function AreaTrendChart(props: AreaTrendChart
     className,
   } = props;
 
-  const {
-    containerRef,
-    activeStroke,
-    gradientId,
-    secondaryGradId,
-    valueFormatter,
-    xAxisFormatter,
-    yAxisFormatter,
-  } = useAreaTrend(props);
+  const { activeStroke, gradientId, secondaryGradId, valueFormatter, xAxisFormatter, yAxisFormatter } =
+    useAreaTrend(props);
 
   return (
-    <div ref={containerRef} className={className} style={{ width: "100%", height }}>
+    <div className={className} style={{ width: "100%", height }}>
       <ResponsiveContainer
         width="100%"
         height="100%"

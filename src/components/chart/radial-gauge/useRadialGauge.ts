@@ -8,7 +8,7 @@ import { useChartTheme } from "../hooks/useChartTheme";
 export function useRadialGauge(props: RadialGaugeChartProps) {
   const { value, min = 0, max = 100, theme = "primary", color, height = 240, thresholds } = props;
 
-  const { themeConfig, activeStroke } = useChartTheme({
+  const { activeStroke } = useChartTheme({
     theme,
     color,
   });
@@ -42,9 +42,7 @@ export function useRadialGauge(props: RadialGaugeChartProps) {
   const strokeDashoffset = arcLength - (percentage / 100) * arcLength;
 
   return {
-    themeConfig,
     clampedValue,
-    percentage,
     activeColor,
     size,
     isCompact,

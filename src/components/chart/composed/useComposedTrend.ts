@@ -3,7 +3,6 @@ import { useMemo } from "react";
 
 import type { ComposedTrendChartProps } from "./types";
 
-import { useChartContainer } from "../hooks/useChartContainer";
 import { EMPTY_DATA } from "../shared/constants";
 import {
   defaultAxisNumberFormatter,
@@ -19,19 +18,10 @@ export function useComposedTrend(props: ComposedTrendChartProps) {
   const {
     bars = EMPTY_DATA,
     lines = EMPTY_DATA,
-    height = 320,
     leftAxisFormatter: propLeftAxisFormatter,
     rightAxisFormatter: propRightAxisFormatter,
     valueFormatter: propValueFormatter,
   } = props;
-
-  const {
-    containerRef,
-    width,
-    height: chartHeight,
-  } = useChartContainer({
-    height,
-  });
 
   const hasRightAxis = bars.some((b) => b.yAxisId === "right") || lines.some((l) => l.yAxisId === "right");
 
@@ -72,9 +62,6 @@ export function useComposedTrend(props: ComposedTrendChartProps) {
   );
 
   return {
-    containerRef,
-    width,
-    chartHeight,
     hasRightAxis,
     normalizedBars,
     normalizedLines,

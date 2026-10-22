@@ -79,10 +79,10 @@ export const WaterfallFinancialChart = memo(function WaterfallFinancialChart(
 ) {
   const { height = 320, showGrid = true, showTooltip = true, className } = props;
 
-  const { containerRef, processedData, valueFormatter } = useWaterfallFinancial(props);
+  const { processedData, valueFormatter } = useWaterfallFinancial(props);
 
   return (
-    <div ref={containerRef} className={className} style={{ width: "100%", height }}>
+    <div className={className} style={{ width: "100%", height }}>
       <ResponsiveContainer
         width="100%"
         height="100%"

@@ -22,12 +22,8 @@ export function useMetricSparkline({
 
     if (values.length === 0) {
       return {
-        values: [],
-        points: [],
         linePath: "",
         areaPath: "",
-        min: 0,
-        max: 0,
         first: 0,
         last: 0,
         trend: "neutral" as const,
@@ -100,12 +96,8 @@ export function useMetricSparkline({
     const lastPoint = points[points.length - 1] ?? null;
 
     return {
-      values,
-      points,
       linePath,
       areaPath,
-      min,
-      max,
       first,
       last,
       trend,

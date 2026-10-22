@@ -20,7 +20,7 @@ export function useHorizontalBar(props: HorizontalBarChartProps) {
     theme = "primary",
   } = props;
 
-  const { themeConfig, activeStroke } = useChartTheme({
+  const { activeStroke } = useChartTheme({
     theme,
   });
 
@@ -57,8 +57,6 @@ export function useHorizontalBar(props: HorizontalBarChartProps) {
   }, [data, maxItems, activeStroke]);
 
   return {
-    themeConfig,
-    activeStroke,
     items,
     hasData: items.length > 0,
     valueFormatter,

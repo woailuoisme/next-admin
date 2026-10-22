@@ -2,7 +2,6 @@ import { useMemo } from "react";
 
 import type { ScatterMetricChartProps, ScatterPoint, ScatterSeries } from "./types";
 
-import { useChartContainer } from "../hooks/useChartContainer";
 import { formatNumber } from "../shared/formatters";
 import { CHART_PALETTE } from "../shared/theme";
 
@@ -22,8 +21,6 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
     yValueFormatter,
     zValueFormatter,
   } = props;
-
-  const { containerRef } = useChartContainer();
 
   const resolvedSeries = useMemo<ScatterSeries[]>(() => {
     if (propSeries && propSeries.length > 0) {
@@ -103,7 +100,6 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
   const zFormatter = customZFormatter ?? zValueFormatter ?? formatNumber;
 
   return {
-    containerRef,
     resolvedSeries,
     xFormatter,
     yFormatter,

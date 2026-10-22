@@ -7,12 +7,10 @@ import type {
   WaterfallProcessedItem,
 } from "./types";
 
-import { useChartContainer } from "../hooks/useChartContainer";
 import { formatNumber } from "../shared/formatters";
 
 export function useWaterfallFinancial(props: WaterfallFinancialChartProps) {
   const { data, valueFormatter: customFormatter } = props;
-  const { containerRef } = useChartContainer();
 
   const processedData = useMemo<WaterfallProcessedItem[]>(() => {
     if (!data || data.length === 0) return [];
@@ -80,7 +78,6 @@ export function useWaterfallFinancial(props: WaterfallFinancialChartProps) {
   const valueFormatter = customFormatter ?? formatNumber;
 
   return {
-    containerRef,
     processedData,
     valueFormatter,
   };

@@ -60,10 +60,10 @@ const FunnelTooltipContent = memo(function FunnelTooltipContent({
 export const FunnelConversionChart = memo(function FunnelConversionChart(props: FunnelConversionChartProps) {
   const { height = 320, showTooltip = true, showLabels = true, showRates = true, className } = props;
 
-  const { containerRef, processedData, valueFormatter } = useFunnelConversion(props);
+  const { processedData, valueFormatter } = useFunnelConversion(props);
 
   return (
-    <div ref={containerRef} className={className} style={{ width: "100%", height }}>
+    <div className={className} style={{ width: "100%", height }}>
       <ResponsiveContainer
         width="100%"
         height="100%"

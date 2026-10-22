@@ -121,10 +121,10 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
     [propReferenceLines, xReferenceLine, yReferenceLine],
   );
 
-  const { containerRef, resolvedSeries, xFormatter, yFormatter, zFormatter } = useScatterMetric(props);
+  const { resolvedSeries, xFormatter, yFormatter, zFormatter } = useScatterMetric(props);
 
   return (
-    <div ref={containerRef} className={className} style={{ width: "100%", height }}>
+    <div className={className} style={{ width: "100%", height }}>
       <ResponsiveContainer
         width="100%"
         height="100%"

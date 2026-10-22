@@ -29,10 +29,10 @@ export const BarTrendChart = memo(function BarTrendChart(props: BarTrendChartPro
     className,
   } = props;
 
-  const { containerRef, activeStroke, valueFormatter, xAxisFormatter, yAxisFormatter } = useBarTrend(props);
+  const { activeStroke, valueFormatter, xAxisFormatter, yAxisFormatter } = useBarTrend(props);
 
   return (
-    <div ref={containerRef} className={className} style={{ width: "100%", height }}>
+    <div className={className} style={{ width: "100%", height }}>
       <ResponsiveContainer
         width="100%"
         height="100%"

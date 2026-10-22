@@ -11,7 +11,7 @@ export interface UseChartThemeOptions {
 }
 
 /**
- * Hook to derive stable chart theme colors and unique gradient IDs
+ * Hook to derive a stable chart stroke color and a unique gradient ID
  */
 export function useChartTheme({
   theme = "primary",
@@ -20,15 +20,9 @@ export function useChartTheme({
 }: UseChartThemeOptions = {}) {
   const rawId = useId();
   const gradientId = `${gradientPrefix}-${rawId.replace(/:/g, "")}`;
-  const themeConfig = getChartTheme(theme);
-
-  const activeStroke = color || themeConfig.strokeColor;
-  const activeFill = color || themeConfig.fillColor;
 
   return {
-    themeConfig,
-    activeStroke,
-    activeFill,
+    activeStroke: color || getChartTheme(theme).strokeColor,
     gradientId,
   };
 }
