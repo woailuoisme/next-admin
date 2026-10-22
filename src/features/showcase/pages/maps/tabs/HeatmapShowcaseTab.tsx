@@ -3,23 +3,11 @@ import { type HeatmapColorRamp, GeoHeatmapMap } from "@/components/map";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_HEATMAP_POINTS } from "../constants";
+import type { DemoStateProps } from "../types";
 
-interface HeatmapShowcaseTabProps {
-  isLoading: boolean;
-  isEmpty: boolean;
-  isError: boolean;
-  onRetry: () => void;
-}
+const HEATMAP_RAMPS: readonly HeatmapColorRamp[] = ["thermal", "viridis", "spectral", "plasma", "mono"];
 
-const HEATMAP_RAMPS: readonly HeatmapColorRamp[] = [
-  "thermal",
-  "viridis",
-  "spectral",
-  "plasma",
-  "mono",
-] as const;
-
-export function HeatmapShowcaseTab({ isLoading, isEmpty, isError, onRetry }: HeatmapShowcaseTabProps) {
+export function HeatmapShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
   const [heatmapRamp, setHeatmapRamp] = useState<HeatmapColorRamp>("thermal");
 
   return (

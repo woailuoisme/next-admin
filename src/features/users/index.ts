@@ -7,7 +7,6 @@ export { customerKeys, customerQueries, EMPTY_CUSTOMER_FILTERS } from "./queries
 export {
   CUSTOMER_STATUS_OPTIONS,
   CUSTOMER_STATUSES,
-  customerFilterSchema,
   customerSearchSchema,
   customerStatusSchema,
 } from "./schemas";

@@ -18,7 +18,7 @@ export type SparklineType = "area" | "bar";
  */
 export interface SparklineProps {
   /** Array of raw numeric values or objects with a numeric `value` property */
-  data: (number | SparklinePoint)[] | readonly (number | SparklinePoint)[] | readonly number[];
+  data: readonly (number | SparklinePoint)[];
   /** Color accent theme (maps to shared theme tokens) */
   theme?: StatCardTheme;
   /** Main stroke / fill color (Hex, RGB, HSL, or CSS variable). Overrides theme strokeColor */

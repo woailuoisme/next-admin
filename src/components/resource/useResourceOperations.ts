@@ -98,52 +98,40 @@ export function useResourceOperations<TData = unknown, TSearch = unknown>(
     router.push(targetPath);
   });
 
+  /** page 模式跳转目标路由；无可用路由时保持静止（不回退弹窗） */
+  const dispatch = (presentation: ResourcePresentation, targetPath: string | null, openModal: () => void) => {
+    if (presentation !== "page") {
+      openModal();
+    } else if (targetPath) {
+      executeNavigation(targetPath);
+    }
+  };
+
+  const createPath = pagePaths?.create
+    ? pagePaths.create(basePath ?? "")
+    : basePath
+      ? `${basePath}/create`
+      : null;
+
   const openCreate = useMemoizedFn(() => {
     onCreate?.();
-    if (createPresentation === "page") {
-      const target = pagePaths?.create
-        ? pagePaths.create(basePath ?? "")
-        : basePath
-          ? `${basePath}/create`
-          : null;
-      if (target) {
-        executeNavigation(target);
-      }
-    } else {
-      modalState.openCreate();
-    }
+    dispatch(createPresentation, createPath, modalState.openCreate);
   });
 
   const openEdit = useMemoizedFn((id: string) => {
     onEdit?.(id);
-    if (editPresentation === "page") {
-      const target = pagePaths?.edit
-        ? pagePaths.edit(basePath ?? "", id)
-        : basePath
-          ? `${basePath}/${id}/edit`
-          : null;
-      if (target) {
-        executeNavigation(target);
-      }
-    } else {
-      modalState.openEdit(id);
-    }
+    const path = pagePaths?.edit
+      ? pagePaths.edit(basePath ?? "", id)
+      : basePath
+        ? `${basePath}/${id}/edit`
+        : null;
+    dispatch(editPresentation, path, () => modalState.openEdit(id));
   });
 
   const openView = useMemoizedFn((id: string) => {
     onView?.(id);
-    if (viewPresentation === "page") {
-      const target = pagePaths?.view
-        ? pagePaths.view(basePath ?? "", id)
-        : basePath
-          ? `${basePath}/${id}`
-          : null;
-      if (target) {
-        executeNavigation(target);
-      }
-    } else {
-      modalState.openView(id);
-    }
+    const path = pagePaths?.view ? pagePaths.view(basePath ?? "", id) : basePath ? `${basePath}/${id}` : null;
+    dispatch(viewPresentation, path, () => modalState.openView(id));
   });
 
   return {

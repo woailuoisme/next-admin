@@ -22,25 +22,23 @@ const currencyFormatter = new Intl.NumberFormat(undefined, {
 const integerFormatter = new Intl.NumberFormat(undefined);
 
 export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = false }: MetricsCardsProps) {
-  if (isLoading || !metrics) {
-    return <StatsGrid columns={4} isLoading />;
-  }
-  const sparkRevenue = sparklines?.revenue;
-  const sparkOrders = sparklines?.orders;
+  // hooks 必须先于提前返回：本组件可能从 loading 骨架态原地切换到数据态
+  const revenueSparkline = useMemo(() => {
+    const spark = sparklines?.revenue;
+    return spark?.length ? spark : (monthlyTrends?.map((t) => t.revenue) ?? EMPTY_NUMBER_ARRAY);
+  }, [sparklines, monthlyTrends]);
 
-  const revenueSparkline = useMemo(
-    () =>
-      sparkRevenue?.length ? sparkRevenue : (monthlyTrends?.map((t) => t.revenue) ?? EMPTY_NUMBER_ARRAY),
-    [sparkRevenue, monthlyTrends],
-  );
-
-  const ordersSparkline = useMemo(
-    () => (sparkOrders?.length ? sparkOrders : (monthlyTrends?.map((t) => t.orders) ?? EMPTY_NUMBER_ARRAY)),
-    [sparkOrders, monthlyTrends],
-  );
+  const ordersSparkline = useMemo(() => {
+    const spark = sparklines?.orders;
+    return spark?.length ? spark : (monthlyTrends?.map((t) => t.orders) ?? EMPTY_NUMBER_ARRAY);
+  }, [sparklines, monthlyTrends]);
 
   const productsSparkline = sparklines?.products ?? EMPTY_NUMBER_ARRAY;
   const customersSparkline = sparklines?.customers ?? EMPTY_NUMBER_ARRAY;
+
+  if (isLoading || !metrics) {
+    return <StatsGrid columns={4} isLoading />;
+  }
 
   return (
     <StatsGrid columns={4} isLoading={isLoading}>

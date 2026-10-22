@@ -6,6 +6,7 @@ import {
   col,
   type DataTableColDef,
   type DataTableFilterDefinition,
+  downloadBlob,
   ResourceTable,
 } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
@@ -62,14 +63,11 @@ const getOrderRowId = (row: Order) => row.id;
 const getItemsQuantity = (row: Order) => sumBy(row.items, (item) => item.quantity);
 
 function exportOrdersJson(selectedRows: Order[], clearSelection: () => void) {
-  const json = JSON.stringify(selectedRows, null, 2);
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `selected-orders-${selectedRows.length}.json`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadBlob(
+    JSON.stringify(selectedRows, null, 2),
+    `selected-orders-${selectedRows.length}.json`,
+    "application/json",
+  );
   clearSelection();
 }
 

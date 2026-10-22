@@ -159,7 +159,6 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
         height={height}
         title={cardProps.title || "Route & Vehicle Tracking"}
         description={cardProps.description || "Real-time trajectory, stops and milestone monitoring"}
-        collapsible={cardProps.collapsible}
         fullscreenable={cardProps.fullscreenable}
         isLoading={isLoading}
         isError={isError}

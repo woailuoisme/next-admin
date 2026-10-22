@@ -7,14 +7,7 @@ export { ProductTable } from "./components/ProductTable";
 export { useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation } from "./hooks";
 export { computeProductStats, ProductsPage, type ProductsPageProps } from "./pages/ProductsPage";
 export { EMPTY_PRODUCT_FILTERS, productKeys, productQueries } from "./queries";
-export {
-  PRODUCT_STATUS_OPTIONS,
-  PRODUCT_STATUSES,
-  productFilterSchema,
-  productInputSchema,
-  productSearchSchema,
-  productStatusSchema,
-} from "./schemas";
+export { PRODUCT_STATUSES, productInputSchema, productSearchSchema, productStatusSchema } from "./schemas";
 export type {
   Product,
   ProductFilters,

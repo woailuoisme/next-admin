@@ -11,9 +11,9 @@ import { resolveBasemapConfig } from "../presets/basemaps";
 import { MAP_NO_ATTRIBUTION } from "../shared/constants";
 import { MapAutoResizer } from "../shared/MapAutoResizer";
 import { MapEmptyState } from "../shared/MapEmptyState";
+import { MapFlyTo } from "../shared/MapFlyTo";
 import { MapSkeleton } from "../shared/MapSkeleton";
 import { LocationMarkerClusterView } from "./LocationMarkerClusterView";
-import { LocationMarkerFlyTo } from "./LocationMarkerFlyTo";
 import { LocationMarkerPin } from "./LocationMarkerPin";
 import { LocationMarkerSearchOverlay } from "./LocationMarkerSearchOverlay";
 import { LocationMarkerSidebar } from "./LocationMarkerSidebar";
@@ -116,7 +116,7 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
               className="size-full"
             >
               <MapAutoResizer />
-              <LocationMarkerFlyTo target={selectedMarker ? selectedMarker.coordinates : null} />
+              <MapFlyTo target={selectedMarker?.coordinates ?? null} minZoom={13} />
               <MapControls position="bottom-right" showZoom showCompass showLocate />
 
               {isCanvasTier ? (
@@ -182,7 +182,6 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
         height={height}
         title={cardProps.title || "Location Network Map"}
         description={cardProps.description || "Geographical distribution and site details"}
-        collapsible={cardProps.collapsible}
         fullscreenable={cardProps.fullscreenable}
         isLoading={isLoading}
         isError={isError}

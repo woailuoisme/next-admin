@@ -38,6 +38,7 @@ export const NotificationBell = memo(function NotificationBell({ className }: No
   const queryClient = useQueryClient();
 
   const { category: filterCategory, unreadOnly: filterUnread } = resolveNotificationTabFilters(activeTab);
+  const filters = { category: filterCategory, unreadOnly: filterUnread };
 
   // 闭合态：轻量未读数
   const { data: countData } = useUnreadNotificationCount();
@@ -46,13 +47,7 @@ export const NotificationBell = memo(function NotificationBell({ className }: No
   useRealtimeNotifications();
 
   // 展开态：按需拉取详情列表
-  const { data: listData, isLoading } = useNotifications(
-    {
-      category: filterCategory,
-      unreadOnly: filterUnread,
-    },
-    { enabled: open },
-  );
+  const { data: listData, isLoading } = useNotifications(filters, { enabled: open });
 
   const markAsReadMutation = useMarkAsReadMutation();
   const markAllAsReadMutation = useMarkAllAsReadMutation();
@@ -66,10 +61,6 @@ export const NotificationBell = memo(function NotificationBell({ className }: No
 
   // 鼠标悬停预拉取
   const handlePrefetch = useMemoizedFn(() => {
-    const filters = {
-      category: filterCategory,
-      unreadOnly: filterUnread,
-    };
     void queryClient
       .query({
         queryKey: notificationKeys.list(filters),

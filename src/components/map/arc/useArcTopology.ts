@@ -50,36 +50,21 @@ export function useArcTopology({
   // Extract unique city/terminal nodes from arcs
   const uniqueNodes = useMemo<ArcTopologyNode[]>(() => {
     if (!showNodeMarkers || !normalizedArcs) return EMPTY_NODES;
-    const map = new Map<string, ArcTopologyNode>();
+    const nodes = new Map<string, ArcTopologyNode>();
+
+    const addNode = (coordinates: Coordinates, name?: string, fallbackName = "Origin") => {
+      const key = `${coordinates[0]},${coordinates[1]}`;
+      const node = nodes.get(key);
+      if (node) node.count += 1;
+      else nodes.set(key, { name: name || fallbackName, coordinates, count: 1 });
+    };
 
     for (const arc of normalizedArcs) {
-      const fromKey = `${arc.from[0]},${arc.from[1]}`;
-      const toKey = `${arc.to[0]},${arc.to[1]}`;
-
-      const existingFrom = map.get(fromKey);
-      if (existingFrom) {
-        existingFrom.count += 1;
-      } else {
-        map.set(fromKey, {
-          name: arc.fromName || "Origin",
-          coordinates: arc.from,
-          count: 1,
-        });
-      }
-
-      const existingTo = map.get(toKey);
-      if (existingTo) {
-        existingTo.count += 1;
-      } else {
-        map.set(toKey, {
-          name: arc.toName || "Destination",
-          coordinates: arc.to,
-          count: 1,
-        });
-      }
+      addNode(arc.from, arc.fromName, "Origin");
+      addNode(arc.to, arc.toName, "Destination");
     }
 
-    return Array.from(map.values());
+    return Array.from(nodes.values());
   }, [normalizedArcs, showNodeMarkers]);
 
   return {

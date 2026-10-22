@@ -36,5 +36,3 @@ export const orderSearchSchema = baseTableSearchSchema.extend({
 });
 
 export type OrderSearchParams = z.infer<typeof orderSearchSchema>;
-export const orderFilterSchema = orderSearchSchema;
-export type OrderFilterParams = OrderSearchParams;

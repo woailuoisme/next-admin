@@ -1,7 +1,7 @@
 import { Download } from "lucide-react";
 import { useMemo } from "react";
 
-import { col, type DataTableColDef, ResourceTable } from "@/components/data-table";
+import { col, type DataTableColDef, downloadBlob, ResourceTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 
 import type { Category } from "../types";
@@ -31,14 +31,11 @@ const SLOT_PROPS = {
 const getCategoryRowId = (c: Category) => c.id;
 
 function exportCategoriesJson(selectedRows: Category[], clearSelection: () => void) {
-  const json = JSON.stringify(selectedRows, null, 2);
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `categories-${selectedRows.length}.json`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadBlob(
+    JSON.stringify(selectedRows, null, 2),
+    `categories-${selectedRows.length}.json`,
+    "application/json",
+  );
   clearSelection();
 }
 

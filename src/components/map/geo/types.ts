@@ -1,6 +1,4 @@
-import type { ReactNode } from "react";
-
-import type { MapCommonProps, MapFeedbackProps } from "../shared/types";
+import type { MapCardSlotProps, MapCommonProps, MapFeedbackProps } from "../shared/types";
 
 export type ChoroplethColorScheme = "primary" | "emerald" | "amber" | "rose" | "violet";
 
@@ -31,10 +29,5 @@ export type GeoDistributionMapProps = MapCommonProps &
     /** Feature click handler */
     onFeatureClick?: (feature: GeoJSON.Feature, properties: Record<string, unknown>) => void;
     /** Card container wrapper props */
-    cardProps?: {
-      title?: ReactNode;
-      description?: ReactNode;
-      collapsible?: boolean;
-      fullscreenable?: boolean;
-    };
+    cardProps?: MapCardSlotProps;
   };

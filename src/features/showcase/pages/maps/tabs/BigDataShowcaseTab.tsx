@@ -3,17 +3,11 @@ import { LocationMarkerMap } from "@/components/map";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_DENSE_LOCATIONS } from "../constants";
+import type { DemoStateProps } from "../types";
 
-interface BigDataShowcaseTabProps {
-  isLoading: boolean;
-  isEmpty: boolean;
-  isError: boolean;
-  onRetry: () => void;
-}
+const BIG_DATA_MODES: readonly ("auto" | "dom" | "canvas")[] = ["auto", "dom", "canvas"];
 
-const BIG_DATA_MODES: readonly ("auto" | "dom" | "canvas")[] = ["auto", "dom", "canvas"] as const;
-
-export function BigDataShowcaseTab({ isLoading, isEmpty, isError, onRetry }: BigDataShowcaseTabProps) {
+export function BigDataShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
   const [bigDataRenderMode, setBigDataRenderMode] = useState<"auto" | "dom" | "canvas">("auto");
 
   return (

@@ -1,7 +1,6 @@
 // Presets & config
 export {
   BASEMAP_OPTIONS,
-  BASEMAP_PRESETS,
   BASEMAP_STYLES,
   BLANK_MAP_STYLE,
   AMAP_MAP_STYLE,

@@ -122,7 +122,6 @@ export function useLocationMarkers(props: LocationMarkerMapProps) {
     setSelectedCategory,
     categories,
     filteredData,
-    filteredLocations: filteredData,
     geojsonData,
     computedCenter,
     selectedMarker,

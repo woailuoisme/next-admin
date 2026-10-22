@@ -36,6 +36,45 @@ export interface CardsTabProps {
   liveTicker: ReturnType<typeof useLiveTicker>;
 }
 
+type SparklineItem = (typeof SPARKLINE_AREA_ITEMS)[number];
+
+/** 单个色板矩阵（Area / Bar 两份布局仅差标题与图形类型） */
+function SparklineMatrix({
+  title,
+  label,
+  type,
+  items,
+}: {
+  title: string;
+  label: string;
+  type: "area" | "bar";
+  items: readonly SparklineItem[];
+}) {
+  return (
+    <div>
+      <span className="text-muted-foreground mb-3 block text-xs font-semibold tracking-wider uppercase">
+        {title}
+      </span>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {items.map((item) => (
+          <div
+            key={item.theme}
+            className="border-border/50 bg-card/60 flex flex-col justify-between space-y-2 rounded-xl border p-3"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-foreground text-xs font-medium">{item.name}</span>
+              <span className="text-muted-foreground font-mono text-[10px]">{label}</span>
+            </div>
+            <div className="h-10 w-full">
+              <Sparkline data={item.data} theme={item.theme} type={type} className="h-full w-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function CardsTab({ liveTicker }: CardsTabProps) {
   const [cardDensity, setCardDensity] = useState<StatDensity>("compact");
   const [cardSparklineLayout, setCardSparklineLayout] = useState<SparklineLayout>("inline");
@@ -246,49 +285,18 @@ export function CardsTab({ liveTicker }: CardsTabProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div>
-            <span className="text-muted-foreground mb-3 block text-xs font-semibold tracking-wider uppercase">
-              Area Gradient Smoothing
-            </span>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              {SPARKLINE_AREA_ITEMS.map((item) => (
-                <div
-                  key={item.theme}
-                  className="border-border/50 bg-card/60 flex flex-col justify-between space-y-2 rounded-xl border p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-foreground text-xs font-medium">{item.name}</span>
-                    <span className="text-muted-foreground font-mono text-[10px]">Area</span>
-                  </div>
-                  <div className="h-10 w-full">
-                    <Sparkline data={item.data} theme={item.theme} type="area" className="h-full w-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <span className="text-muted-foreground mb-3 block text-xs font-semibold tracking-wider uppercase">
-              Categorical Bar Histograms
-            </span>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              {SPARKLINE_BAR_ITEMS.map((item) => (
-                <div
-                  key={item.theme}
-                  className="border-border/50 bg-card/60 flex flex-col justify-between space-y-2 rounded-xl border p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-foreground text-xs font-medium">{item.name}</span>
-                    <span className="text-muted-foreground font-mono text-[10px]">Bar</span>
-                  </div>
-                  <div className="h-10 w-full">
-                    <Sparkline data={item.data} theme={item.theme} type="bar" className="h-full w-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <SparklineMatrix
+            title="Area Gradient Smoothing"
+            label="Area"
+            type="area"
+            items={SPARKLINE_AREA_ITEMS}
+          />
+          <SparklineMatrix
+            title="Categorical Bar Histograms"
+            label="Bar"
+            type="bar"
+            items={SPARKLINE_BAR_ITEMS}
+          />
         </CardContent>
       </Card>
 

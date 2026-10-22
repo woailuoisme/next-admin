@@ -6,14 +6,16 @@ import type { CategoryIconResult, NotificationTabKey } from "./types";
 
 export const NOTIFICATION_TABS: readonly {
   key: NotificationTabKey;
+  /** 页签文案的多语言 key */
+  labelKey: "tab_all" | "tab_unread" | "tab_order" | "tab_system";
   category?: NotificationCategory;
   unreadOnly?: boolean;
 }[] = [
-  { key: "all" },
-  { key: "unread", unreadOnly: true },
-  { key: "order", category: "order" },
-  { key: "system", category: "system" },
-] as const;
+  { key: "all", labelKey: "tab_all" },
+  { key: "unread", labelKey: "tab_unread", unreadOnly: true },
+  { key: "order", labelKey: "tab_order", category: "order" },
+  { key: "system", labelKey: "tab_system", category: "system" },
+];
 
 /** 通知严重级别徽章配色：业务状态色统一收敛于此常量表 */
 export const SEVERITY_BADGE_CLASSES: Record<NotificationSeverity, string> = {

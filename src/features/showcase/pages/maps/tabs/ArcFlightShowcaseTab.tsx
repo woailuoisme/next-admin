@@ -1,15 +1,9 @@
 import { ArcFlightMap } from "@/components/map";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_FLIGHT_ARCS } from "../constants";
+import type { DemoStateProps } from "../types";
 
-interface ArcFlightShowcaseTabProps {
-  isLoading: boolean;
-  isEmpty: boolean;
-  isError: boolean;
-  onRetry: () => void;
-}
-
-export function ArcFlightShowcaseTab({ isLoading, isEmpty, isError, onRetry }: ArcFlightShowcaseTabProps) {
+export function ArcFlightShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
   return (
     <TabsContent value="arc" className="space-y-4">
       <ArcFlightMap

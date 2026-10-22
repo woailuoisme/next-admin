@@ -1,6 +1,4 @@
-import type { ReactNode } from "react";
-
-import type { MapCommonProps, MapFeedbackProps } from "../shared/types";
+import type { MapCardSlotProps, MapCommonProps, MapFeedbackProps } from "../shared/types";
 import type { CoordinateSystem } from "../utils/coordinates";
 
 export type RouteStopStatus = "completed" | "current" | "pending";
@@ -55,10 +53,5 @@ export type RouteTrackingMapProps = MapCommonProps &
     /** Click stop callback */
     onStopClick?: (stop: RouteStop) => void;
     /** Card container wrapper props */
-    cardProps?: {
-      title?: ReactNode;
-      description?: ReactNode;
-      collapsible?: boolean;
-      fullscreenable?: boolean;
-    };
+    cardProps?: MapCardSlotProps;
   };

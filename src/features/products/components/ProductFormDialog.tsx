@@ -9,22 +9,16 @@ import { useTranslations } from "next-intl";
 import { FormDialog } from "@/components/dialogs";
 import { FormSection, NumberInput, SelectInput, TextareaInput, TextInput } from "@/components/form";
 import { categoryQueries } from "@/features/categories";
+import { slugify } from "@/lib/slug";
 
 import type { Product, ProductInput } from "../types";
 
 import { useCreateProductMutation, useUpdateProductMutation } from "../hooks";
 import { productQueries } from "../queries";
-import { PRODUCT_STATUS_OPTIONS, productInputSchema } from "../schemas";
+import { PRODUCT_STATUSES, productInputSchema } from "../schemas";
 
 const DEFAULT_PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60";
-
-function slugifyTitle(val: string): string {
-  return val
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
 
 interface ProductFormDialogProps {
   open: boolean;
@@ -104,10 +98,7 @@ export function ProductFormDialog({
       draft: t("status_draft"),
       out_of_stock: t("status_out_of_stock"),
     };
-    return PRODUCT_STATUS_OPTIONS.map((opt) => ({
-      label: labelMap[opt.labelKey],
-      value: opt.value,
-    }));
+    return PRODUCT_STATUSES.map((value) => ({ label: labelMap[value], value }));
   }, [t]);
 
   return (
@@ -143,7 +134,7 @@ export function ProductFormDialog({
             prefix={<Tag className="size-3.5" />}
             onChange={(val: string) => {
               if (!isEditing && val) {
-                form.setFieldValue("slug", slugifyTitle(val));
+                form.setFieldValue("slug", slugify(val));
               }
             }}
           />

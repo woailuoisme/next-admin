@@ -102,33 +102,23 @@ const StatCardFacade = memo(function StatCard({
 
       {/* Bottom row / Sparkline */}
       {hasTrend || hasSparkline ? (
-        resolvedSparklineLayout === "bottom" ? (
-          <div className={cn("space-y-2", dStyles.trendSpacing)}>
-            {hasTrend ? <StatCardTrend trend={trend} /> : null}
-            {hasSparkline ? (
-              <StatCardSparkline
-                data={sparklineData}
-                type={sparklineType}
-                layout="bottom"
-                theme={theme}
-                density={resolvedDensity}
-              />
-            ) : null}
-          </div>
-        ) : (
-          <div className={cn("flex items-center justify-between gap-2.5", dStyles.trendSpacing)}>
-            {hasTrend ? <StatCardTrend trend={trend} /> : null}
-            {hasSparkline ? (
-              <StatCardSparkline
-                data={sparklineData}
-                type={sparklineType}
-                layout="inline"
-                theme={theme}
-                density={resolvedDensity}
-              />
-            ) : null}
-          </div>
-        )
+        <div
+          className={cn(
+            resolvedSparklineLayout === "bottom" ? "space-y-2" : "flex items-center justify-between gap-2.5",
+            dStyles.trendSpacing,
+          )}
+        >
+          {hasTrend ? <StatCardTrend trend={trend} /> : null}
+          {hasSparkline ? (
+            <StatCardSparkline
+              data={sparklineData}
+              type={sparklineType}
+              layout={resolvedSparklineLayout}
+              theme={theme}
+              density={resolvedDensity}
+            />
+          ) : null}
+        </div>
       ) : null}
     </StatCardRoot>
   );

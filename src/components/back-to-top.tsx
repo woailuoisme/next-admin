@@ -89,16 +89,21 @@ function resolveTargetEl(
   return target?.() ?? window;
 }
 
+/** 目标是否为文档级滚动容器（window / document / <html>） */
+function isDocumentScroller(targetEl: HTMLElement | Window | Document): boolean {
+  return (
+    targetEl === window ||
+    targetEl === document ||
+    (typeof document !== "undefined" && targetEl === document.documentElement)
+  );
+}
+
 function getScrollMetrics(targetEl: HTMLElement | Window | Document | null) {
   if (!targetEl) {
     return { scrollTop: 0, scrollHeight: 0, clientHeight: 0 };
   }
 
-  if (
-    targetEl === window ||
-    targetEl === document ||
-    (typeof document !== "undefined" && targetEl === document.documentElement)
-  ) {
+  if (isDocumentScroller(targetEl)) {
     const doc = document.documentElement;
     const body = document.body;
     return {
@@ -125,11 +130,7 @@ function scrollToTop(targetEl: HTMLElement | Window | Document | null, top: numb
   if (!targetEl) return;
   const behavior: ScrollBehavior = smooth ? "smooth" : "auto";
 
-  if (
-    targetEl === window ||
-    targetEl === document ||
-    (typeof document !== "undefined" && targetEl === document.documentElement)
-  ) {
+  if (isDocumentScroller(targetEl)) {
     if (typeof window.scrollTo === "function") {
       window.scrollTo({ top, behavior });
     } else {

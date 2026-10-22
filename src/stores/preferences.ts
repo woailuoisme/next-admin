@@ -4,19 +4,6 @@ export type ThemeColor = "default" | "supabase" | "catppuccin" | "caffeine" | "t
 
 export type ThemeMode = "light" | "dark" | "auto";
 
-export type ThemeRadiusOption =
-  | "0"
-  | "0.3rem"
-  | "0.35rem"
-  | "0.375rem"
-  | "0.4rem"
-  | "0.45rem"
-  | "0.5rem"
-  | "0.625rem"
-  | "0.75rem"
-  | "1.0rem"
-  | "1.3rem";
-
 export interface ThemeMeta {
   id: ThemeColor;
   name: string;
@@ -86,9 +73,8 @@ export const THEME_CONFIGS: ThemeMeta[] = [
 
 export const THEME_CONFIG_MAP = new Map<ThemeColor, ThemeMeta>(THEME_CONFIGS.map((t) => [t.id, t]));
 export const THEME_IDS_SET = new Set<string>(THEME_CONFIGS.map((t) => t.id));
-export const VALID_THEME_MODES = new Set<string>(["light", "dark", "auto"]);
 
-export const RADIUS_OPTIONS: { label: string; value: ThemeRadiusOption }[] = [
+export const RADIUS_OPTIONS = [
   { label: "直角 (0)", value: "0" },
   { label: "精细 (0.35)", value: "0.35rem" },
   { label: "默认 (0.45)", value: "0.45rem" },
@@ -133,8 +119,8 @@ function getInitialColor(): ThemeColor {
 
 function getInitialMode(): ThemeMode {
   if (typeof window === "undefined") return "auto";
-  const stored = window.localStorage.getItem(THEME_MODE_STORAGE_KEY) as ThemeMode;
-  if (stored && VALID_THEME_MODES.has(stored)) {
+  const stored = window.localStorage.getItem(THEME_MODE_STORAGE_KEY);
+  if (stored === "light" || stored === "dark" || stored === "auto") {
     return stored;
   }
   return "auto";
@@ -271,41 +257,6 @@ export const usePreferencesStore = create<PreferencesState>()((set, get) => ({
     };
   },
 }));
-
-export const THEME_CSS_VAR_NAMES = [
-  "--background",
-  "--foreground",
-  "--card",
-  "--card-foreground",
-  "--popover",
-  "--popover-foreground",
-  "--primary",
-  "--primary-foreground",
-  "--secondary",
-  "--secondary-foreground",
-  "--muted",
-  "--muted-foreground",
-  "--accent",
-  "--accent-foreground",
-  "--destructive",
-  "--destructive-foreground",
-  "--border",
-  "--input",
-  "--ring",
-  "--chart-1",
-  "--chart-2",
-  "--chart-3",
-  "--chart-4",
-  "--chart-5",
-  "--sidebar",
-  "--sidebar-foreground",
-  "--sidebar-primary",
-  "--sidebar-primary-foreground",
-  "--sidebar-accent",
-  "--sidebar-accent-foreground",
-  "--sidebar-border",
-  "--sidebar-ring",
-] as const;
 
 export const useTheme = () => usePreferencesStore((s) => s.theme);
 export const useThemeMode = () => usePreferencesStore((s) => s.mode);

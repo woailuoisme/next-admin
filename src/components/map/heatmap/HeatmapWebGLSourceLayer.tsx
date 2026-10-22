@@ -28,9 +28,9 @@ export function HeatmapWebGLSourceLayer({
   opacity,
 }: HeatmapWebGLSourceLayerProps) {
   const { map, isLoaded } = useMap();
-  const id = useId();
-  const sourceId = `heatmap-src-${id.replace(/:/g, "")}`;
-  const layerId = `heatmap-layer-${id.replace(/:/g, "")}`;
+  const uid = useId().replace(/:/g, "");
+  const sourceId = `heatmap-src-${uid}`;
+  const layerId = `heatmap-layer-${uid}`;
   const isMountedRef = useRef(false);
 
   useEffect(() => {

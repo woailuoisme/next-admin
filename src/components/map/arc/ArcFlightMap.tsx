@@ -146,7 +146,6 @@ export const ArcFlightMap = memo(function ArcFlightMap({
         height={height}
         title={cardProps.title || "Flight & Arc Topology"}
         description={cardProps.description || "Hub-and-spoke flow and flight route network"}
-        collapsible={cardProps.collapsible}
         fullscreenable={cardProps.fullscreenable}
         isLoading={isLoading}
         isError={isError}

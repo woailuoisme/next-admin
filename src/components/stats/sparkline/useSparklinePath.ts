@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type { SparklinePoint, SparklineType } from "./types";
 
 interface UseSparklinePathOptions {
-  data: (number | SparklinePoint)[] | readonly (number | SparklinePoint)[] | readonly number[];
+  data: readonly (number | SparklinePoint)[];
   type?: SparklineType;
   width?: number;
   height?: number;

@@ -17,5 +17,5 @@ export function DashboardContainer() {
     setRange(newRange);
   });
 
-  return <DashboardPage range={range as DashboardTimeRange} onRangeChange={handleRangeChange} />;
+  return <DashboardPage range={range} onRangeChange={handleRangeChange} />;
 }

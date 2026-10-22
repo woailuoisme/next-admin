@@ -32,6 +32,7 @@ export const ResourcePageHeader = memo(function ResourcePageHeader({
   className,
 }: ResourcePageHeaderProps) {
   const handleBack = useResourceBackNavigation(backTo);
+  const backTitle = typeof backLabel === "string" ? backLabel : "Back";
 
   return (
     <div className={cn("flex flex-col gap-3 border-b border-border/70 pb-5", className)}>
@@ -53,7 +54,7 @@ export const ResourcePageHeader = memo(function ResourcePageHeader({
                     {item.label}
                   </Link>
                 ) : (
-                  <span className={cn(isLast ? "font-semibold text-foreground" : "")}>{item.label}</span>
+                  <span className={cn(isLast && "font-semibold text-foreground")}>{item.label}</span>
                 )}
               </div>
             );
@@ -70,8 +71,8 @@ export const ResourcePageHeader = memo(function ResourcePageHeader({
               size="icon-sm"
               onClick={handleBack}
               className="text-muted-foreground hover:text-foreground mt-0.5 -ml-2 rounded-lg sm:mt-0"
-              title={typeof backLabel === "string" ? backLabel : "Back"}
-              aria-label={typeof backLabel === "string" ? backLabel : "Back"}
+              title={backTitle}
+              aria-label={backTitle}
             >
               <ArrowLeft className="size-4" />
             </Button>

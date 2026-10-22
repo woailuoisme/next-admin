@@ -177,7 +177,6 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapPro
         height={height}
         title={cardProps.title}
         description={cardProps.description}
-        collapsible={cardProps.collapsible}
         fullscreenable={cardProps.fullscreenable}
         isLoading={isLoading}
         isError={isError}

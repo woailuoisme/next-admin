@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 import { FormDialog } from "@/components/dialogs";
 import { TextareaInput, TextInput } from "@/components/form";
+import { slugify } from "@/lib/slug";
 
 import type { Category, CategoryInput } from "../types";
 
@@ -21,13 +22,6 @@ const EMPTY_CATEGORY_FORM_VALUES: CategoryInput = {
   slug: "",
   description: "",
 };
-
-function generateSlug(val: string): string {
-  return val
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
 
 export function CategoryFormDialog({ open, onOpenChange, categoryToEdit }: CategoryFormDialogProps) {
   const createMutation = useCreateCategoryMutation();
@@ -70,7 +64,7 @@ export function CategoryFormDialog({ open, onOpenChange, categoryToEdit }: Categ
 
   const handleNameChange = useMemoizedFn((val: string) => {
     if (!isEditing && val) {
-      form.setFieldValue("slug", generateSlug(val));
+      form.setFieldValue("slug", slugify(val));
     }
   });
 

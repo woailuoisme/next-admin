@@ -16,5 +16,3 @@ export const customerSearchSchema = baseTableSearchSchema.extend({
 });
 
 export type CustomerSearchParams = z.infer<typeof customerSearchSchema>;
-export const customerFilterSchema = customerSearchSchema;
-export type CustomerFilterParams = CustomerSearchParams;

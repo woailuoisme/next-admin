@@ -11,7 +11,7 @@ import { useStatCardContext } from "./StatCardContext";
 import { DENSITY_STYLES } from "./types";
 
 export interface StatCardSparklineProps {
-  data?: (number | SparklinePoint)[] | readonly (number | SparklinePoint)[] | readonly number[];
+  data?: readonly (number | SparklinePoint)[];
   type?: SparklineType;
   layout?: SparklineLayout;
   theme?: StatCardTheme;

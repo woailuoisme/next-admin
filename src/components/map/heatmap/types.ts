@@ -1,6 +1,4 @@
-import type { ReactNode } from "react";
-
-import type { Coordinates, MapCommonProps } from "../shared/types";
+import type { Coordinates, MapCardSlotProps, MapCommonProps } from "../shared/types";
 import type { CoordinateSystem } from "../utils/coordinates";
 
 export interface HeatmapPoint {
@@ -46,12 +44,7 @@ export interface GeoHeatmapMapProps extends MapCommonProps {
   legendTitle?: string;
 
   /** Card wrapper props */
-  cardProps?: {
-    title?: ReactNode;
-    description?: ReactNode;
-    collapsible?: boolean;
-    fullscreenable?: boolean;
-  };
+  cardProps?: MapCardSlotProps;
 
   /** Loading and error states */
   isLoading?: boolean;

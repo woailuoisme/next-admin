@@ -1,6 +1,4 @@
-import type { ReactNode } from "react";
-
-import type { MapCommonProps, MapFeedbackProps } from "../shared/types";
+import type { MapCardSlotProps, MapCommonProps, MapFeedbackProps } from "../shared/types";
 import type { CoordinateSystem } from "../utils/coordinates";
 
 export type FlightArcItem = {
@@ -43,10 +41,5 @@ export type ArcFlightMapProps = MapCommonProps &
     /** Hover arc callback */
     onArcHover?: (arc: FlightArcItem | null) => void;
     /** Card container wrapper props */
-    cardProps?: {
-      title?: ReactNode;
-      description?: ReactNode;
-      collapsible?: boolean;
-      fullscreenable?: boolean;
-    };
+    cardProps?: MapCardSlotProps;
   };

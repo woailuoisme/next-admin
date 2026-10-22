@@ -1,11 +1,8 @@
+import type { ReactNode } from "react";
+
 import type { BasemapPreset } from "../presets/basemaps";
 
 export type Coordinates = [number, number]; // [lng, lat]
-
-export interface MapCoordinates {
-  lng: number;
-  lat: number;
-}
 
 export interface MapCommonProps {
   height?: number | string;
@@ -13,13 +10,18 @@ export interface MapCommonProps {
   basemap?: BasemapPreset;
   customStyleUrl?: { light?: string; dark?: string };
   blank?: boolean;
-  isBlank?: boolean;
   center?: Coordinates;
   zoom?: number;
   pitch?: number;
   bearing?: number;
   interactive?: boolean;
-  isInteractive?: boolean;
+}
+
+/** 各业务地图的 `cardProps` 入参（统一由 MapCard 消费） */
+export interface MapCardSlotProps {
+  title?: ReactNode;
+  description?: ReactNode;
+  fullscreenable?: boolean;
 }
 
 export interface MapFeedbackProps {

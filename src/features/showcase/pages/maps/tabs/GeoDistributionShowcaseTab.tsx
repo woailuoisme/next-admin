@@ -1,20 +1,9 @@
 import { GeoDistributionMap } from "@/components/map";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_GEOJSON_DATA } from "../constants";
+import type { DemoStateProps } from "../types";
 
-interface GeoDistributionShowcaseTabProps {
-  isLoading: boolean;
-  isEmpty: boolean;
-  isError: boolean;
-  onRetry: () => void;
-}
-
-export function GeoDistributionShowcaseTab({
-  isLoading,
-  isEmpty,
-  isError,
-  onRetry,
-}: GeoDistributionShowcaseTabProps) {
+export function GeoDistributionShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
   return (
     <TabsContent value="geo" className="space-y-4">
       <GeoDistributionMap

@@ -166,7 +166,6 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
         height={height}
         title={cardProps.title || "Regional Distribution"}
         description={cardProps.description || "Geospatial data density and regional metrics"}
-        collapsible={cardProps.collapsible}
         fullscreenable={cardProps.fullscreenable}
         isLoading={isLoading}
         isError={isError}

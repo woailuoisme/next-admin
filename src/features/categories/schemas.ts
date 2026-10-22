@@ -13,4 +13,3 @@ export const categorySearchSchema = baseTableSearchSchema.extend({
   editCategoryId: z.string().optional(),
   deleteCategoryId: z.string().optional(),
 });
-export type CategorySearchParams = z.infer<typeof categorySearchSchema>;

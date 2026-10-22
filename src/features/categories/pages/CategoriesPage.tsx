@@ -39,7 +39,7 @@ export function CategoriesPage({
     search,
     entityName: "Category",
     queryOptions: categoryQueries.list,
-    deleteMutationFn: (id) => deleteCategoryApi(id),
+    deleteMutationFn: deleteCategoryApi,
     invalidateQueryKeys: [categoryQueries.all()],
     modalKeys: {
       createKey: "createCategory",

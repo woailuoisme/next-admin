@@ -1,15 +1,9 @@
 import { RouteTrackingMap } from "@/components/map";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_ROUTE_COORDS, MOCK_ROUTE_STOPS } from "../constants";
+import type { DemoStateProps } from "../types";
 
-interface RouteShowcaseTabProps {
-  isLoading: boolean;
-  isEmpty: boolean;
-  isError: boolean;
-  onRetry: () => void;
-}
-
-export function RouteShowcaseTab({ isLoading, isEmpty, isError, onRetry }: RouteShowcaseTabProps) {
+export function RouteShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
   return (
     <TabsContent value="route" className="space-y-4">
       <RouteTrackingMap

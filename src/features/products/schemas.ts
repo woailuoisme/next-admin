@@ -6,15 +6,6 @@ export const PRODUCT_STATUSES = ["active", "draft", "out_of_stock"] as const;
 
 export const productStatusSchema = z.enum(PRODUCT_STATUSES);
 
-export const PRODUCT_STATUS_OPTIONS: readonly {
-  value: (typeof PRODUCT_STATUSES)[number];
-  labelKey: "active" | "draft" | "out_of_stock";
-}[] = [
-  { value: "active", labelKey: "active" },
-  { value: "draft", labelKey: "draft" },
-  { value: "out_of_stock", labelKey: "out_of_stock" },
-] as const;
-
 export const productInputSchema = z.object({
   title: z.string().min(2),
   slug: z.string().min(2),
@@ -36,5 +27,3 @@ export const productSearchSchema = baseTableSearchSchema.extend({
 });
 
 export type ProductSearchParams = z.infer<typeof productSearchSchema>;
-export const productFilterSchema = productSearchSchema;
-export type ProductFilterParams = ProductSearchParams;

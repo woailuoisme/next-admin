@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { Check, Laptop, Moon, Palette, Sliders, Sparkles, Sun } from "lucide-react";
 import { memo, useState } from "react";
 import { cn } from "cn";
@@ -9,7 +8,7 @@ import { GlitchTipDiagnostic } from "@/components/glitch-tip-diagnostic";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { RADIUS_OPTIONS, type ThemeColor, usePreferencesStore } from "@/stores/preferences";
+import { RADIUS_OPTIONS, usePreferencesStore } from "@/stores/preferences";
 
 export interface ThemeColorPickerProps {
   className?: string;
@@ -26,18 +25,6 @@ export const ThemeColorPicker = memo(function ThemeColorPicker({ className }: Th
     usePreferencesStore();
 
   const [open, setOpen] = useState(false);
-
-  const handleThemeChange = useMemoizedFn((newTheme: ThemeColor) => {
-    setTheme(newTheme);
-  });
-
-  const handleModeChange = useMemoizedFn((newMode: "light" | "dark" | "auto") => {
-    setMode(newMode);
-  });
-
-  const handleRadiusChange = useMemoizedFn((newRadius: string) => {
-    setRadius(newRadius);
-  });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -99,7 +86,7 @@ export const ThemeColorPicker = memo(function ThemeColorPicker({ className }: Th
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => handleThemeChange(item.id as ThemeColor)}
+                    onClick={() => setTheme(item.id)}
                     className={cn(
                       "group flex cursor-pointer items-center justify-between gap-2 rounded-lg border p-2 text-left transition-all duration-150",
                       isSelected
@@ -163,7 +150,7 @@ export const ThemeColorPicker = memo(function ThemeColorPicker({ className }: Th
                   <button
                     key={optMode}
                     type="button"
-                    onClick={() => handleModeChange(optMode)}
+                    onClick={() => setMode(optMode)}
                     className={cn(
                       "flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-lg border text-[11px] transition-all",
                       isSelected
@@ -192,7 +179,7 @@ export const ThemeColorPicker = memo(function ThemeColorPicker({ className }: Th
                   <button
                     key={opt.value}
                     type="button"
-                    onClick={() => handleRadiusChange(opt.value)}
+                    onClick={() => setRadius(opt.value)}
                     className={cn(
                       "flex h-6 cursor-pointer items-center justify-center rounded border font-mono text-[10px] transition-all",
                       isRadiusActive

@@ -39,7 +39,7 @@ export const MapCard = memo(function MapCard({
 }: MapCardProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const openFullscreen = useMemoizedFn(() => setIsFullscreen(true));
-  const canFullscreen = fullscreenable !== undefined ? fullscreenable : showFullscreen;
+  const canFullscreen = fullscreenable ?? showFullscreen;
   const resolvedErrorMsg =
     errorMessage || error?.message || (isError ? "Failed to load map data" : undefined);
 

@@ -13,17 +13,20 @@ import { HeatmapShowcaseTab } from "./tabs/HeatmapShowcaseTab";
 import { MarkersShowcaseTab } from "./tabs/MarkersShowcaseTab";
 import { PickerShowcaseTab } from "./tabs/PickerShowcaseTab";
 import { RouteShowcaseTab } from "./tabs/RouteShowcaseTab";
-import type { DemoState } from "./types";
+import type { DemoState, DemoStateProps } from "./types";
 
 export function MapShowcasePage() {
   const [demoState, setDemoState] = useState<DemoState>("normal");
 
-  const isLoading = demoState === "loading";
-  const isEmpty = demoState === "empty";
-  const isError = demoState === "error";
-
   const handleRetry = () => {
     setDemoState("normal");
+  };
+
+  const stateProps: DemoStateProps = {
+    isLoading: demoState === "loading",
+    isEmpty: demoState === "empty",
+    isError: demoState === "error",
+    onRetry: handleRetry,
   };
 
   return (
@@ -46,27 +49,17 @@ export function MapShowcasePage() {
           ))}
         </TabsList>
 
-        <MarkersShowcaseTab isLoading={isLoading} isEmpty={isEmpty} isError={isError} onRetry={handleRetry} />
+        <MarkersShowcaseTab {...stateProps} />
 
-        <RouteShowcaseTab isLoading={isLoading} isEmpty={isEmpty} isError={isError} onRetry={handleRetry} />
+        <RouteShowcaseTab {...stateProps} />
 
-        <GeoDistributionShowcaseTab
-          isLoading={isLoading}
-          isEmpty={isEmpty}
-          isError={isError}
-          onRetry={handleRetry}
-        />
+        <GeoDistributionShowcaseTab {...stateProps} />
 
-        <ArcFlightShowcaseTab
-          isLoading={isLoading}
-          isEmpty={isEmpty}
-          isError={isError}
-          onRetry={handleRetry}
-        />
+        <ArcFlightShowcaseTab {...stateProps} />
 
-        <HeatmapShowcaseTab isLoading={isLoading} isEmpty={isEmpty} isError={isError} onRetry={handleRetry} />
+        <HeatmapShowcaseTab {...stateProps} />
 
-        <BigDataShowcaseTab isLoading={isLoading} isEmpty={isEmpty} isError={isError} onRetry={handleRetry} />
+        <BigDataShowcaseTab {...stateProps} />
 
         <CoordsShowcaseTab />
 

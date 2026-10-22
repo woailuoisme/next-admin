@@ -48,7 +48,7 @@ export function ProductsPage({
     onOpenEdit: onEditProduct,
     onOpenDelete: onDeleteProduct,
     getEntityTitle: (p) => p?.title,
-    deleteMutationFn: (id) => deleteProductApi(id),
+    deleteMutationFn: deleteProductApi,
     invalidateQueryKeys: [productKeys.all, dashboardKeys.all, categoryKeys.all],
   });
 

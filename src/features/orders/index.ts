@@ -12,7 +12,6 @@ export {
   ORDER_PAYMENT_STATUSES,
   ORDER_STATUS_OPTIONS,
   ORDER_STATUSES,
-  orderFilterSchema,
   orderPaymentStatusSchema,
   orderSearchSchema,
   orderStatusSchema,

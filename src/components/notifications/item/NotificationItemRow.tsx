@@ -11,6 +11,38 @@ import type { NotificationItemRowProps } from "./types";
 
 import { SEVERITY_BADGE_CLASSES, formatRelativeTime, getCategoryIconComponent } from "../shared";
 
+interface RowActionProps {
+  label: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  onClick: (e: React.MouseEvent) => void;
+  className?: string;
+}
+
+/** 悬停工具栏图标按钮：统一 Tooltip 包裹与基础样式 */
+function RowAction({ label, Icon, onClick, className }: RowActionProps) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClick}
+          aria-label={label}
+          className={cn(
+            "text-muted-foreground hover:bg-muted hover:text-foreground size-6 rounded",
+            className,
+          )}
+        >
+          <Icon className="size-3.5" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="text-[11px]">
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 export const NotificationItemRow = memo(function NotificationItemRow({
   item,
   onItemClick,
@@ -124,60 +156,20 @@ export const NotificationItemRow = memo(function NotificationItemRow({
         onClick={handleToolbarClick}
       >
         {!item.read && onMarkAsRead && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleMarkRead}
-                aria-label={t("mark_as_read")}
-                className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 rounded"
-              >
-                <Check className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-[11px]">
-              {t("mark_as_read")}
-            </TooltipContent>
-          </Tooltip>
+          <RowAction label={t("mark_as_read")} Icon={Check} onClick={handleMarkRead} />
         )}
 
         {item.actionUrl && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleExternalAction}
-                aria-label={t("open_details")}
-                className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 rounded"
-              >
-                <ExternalLink className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-[11px]">
-              {t("open_details")}
-            </TooltipContent>
-          </Tooltip>
+          <RowAction label={t("open_details")} Icon={ExternalLink} onClick={handleExternalAction} />
         )}
 
         {onDelete && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleDelete}
-                aria-label={t("delete")}
-                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive size-6 rounded"
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-[11px]">
-              {t("delete")}
-            </TooltipContent>
-          </Tooltip>
+          <RowAction
+            label={t("delete")}
+            Icon={Trash2}
+            onClick={handleDelete}
+            className="hover:bg-destructive/10 hover:text-destructive"
+          />
         )}
       </div>
     </div>

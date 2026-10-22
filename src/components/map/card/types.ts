@@ -37,8 +37,7 @@ export interface MapCardProps {
   errorMessage?: string;
   onRetry?: () => void;
 
-  /** Optional collapsible & fullscreenable aliases */
-  collapsible?: boolean;
+  /** Fullscreen toggle alias, overrides `showFullscreen` */
   fullscreenable?: boolean;
 
   className?: string;

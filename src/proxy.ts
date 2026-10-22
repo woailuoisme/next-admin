@@ -2,15 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 const AUTH_COOKIE_NAME = "auth_token";
 
-const PROTECTED_PREFIXES = [
-  "/overview",
-  "/dashboard",
-  "/products",
-  "/categories",
-  "/orders",
-  "/users",
-  "/showcase",
-];
+const PROTECTED_PREFIXES = ["/overview", "/products", "/categories", "/orders", "/users", "/showcase"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -23,10 +15,7 @@ export function proxy(request: NextRequest) {
 
   // 2. 登录页拦截：已登录用户重定向至 /overview
   if (pathname.startsWith("/login")) {
-    if (token) {
-      return NextResponse.redirect(new URL("/overview", request.url));
-    }
-    return NextResponse.next();
+    return token ? NextResponse.redirect(new URL("/overview", request.url)) : NextResponse.next();
   }
 
   // 3. 受保护路由拦截：未登录用户重定向至 /login 并附带原始回跳路径

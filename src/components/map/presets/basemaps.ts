@@ -23,8 +23,6 @@ export const BASEMAP_OPTIONS: BasemapOption[] = [
   { label: "纯透明底图 (Blank)", value: "blank", description: "无瓦片透明背景，专注于数据图层" },
 ];
 
-export const BASEMAP_PRESETS = BASEMAP_OPTIONS;
-
 export const BLANK_MAP_STYLE: StyleSpecification = {
   version: 8,
   sources: {},

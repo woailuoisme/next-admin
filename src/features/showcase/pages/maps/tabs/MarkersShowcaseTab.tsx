@@ -1,15 +1,9 @@
 import { LocationMarkerMap } from "@/components/map";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_LOCATIONS } from "../constants";
+import type { DemoStateProps } from "../types";
 
-interface MarkersShowcaseTabProps {
-  isLoading: boolean;
-  isEmpty: boolean;
-  isError: boolean;
-  onRetry: () => void;
-}
-
-export function MarkersShowcaseTab({ isLoading, isEmpty, isError, onRetry }: MarkersShowcaseTabProps) {
+export function MarkersShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
   return (
     <TabsContent value="markers" className="space-y-4">
       <LocationMarkerMap

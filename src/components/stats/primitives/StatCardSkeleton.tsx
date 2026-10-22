@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +10,52 @@ import { useStatsGridContext } from "../grid/StatsGridContext";
 import { DENSITY_STYLES } from "./types";
 
 export type StatSkeletonVariant = "default" | "progress" | "live" | "multi-metric";
+
+/** progress / live / multi-metric 三种变体共用一个卡片外壳，仅内部骨架不同 */
+const VARIANT_CONTENT: Record<Exclude<StatSkeletonVariant, "default">, ReactNode> = {
+  progress: (
+    <>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-9 w-9 rounded-lg" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-36" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+      <Skeleton className="mt-2 h-2.5 w-full rounded-full" />
+    </>
+  ),
+  live: (
+    <>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-6 w-20 rounded-full" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-4 w-20" />
+      </div>
+      <Skeleton className="mt-2 h-7 w-full" />
+    </>
+  ),
+  "multi-metric": (
+    <>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-9 w-9 rounded-lg" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-36" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+      <div className="grid grid-cols-2 gap-3 pt-2">
+        <Skeleton className="h-12 w-full rounded-md" />
+        <Skeleton className="h-12 w-full rounded-md" />
+      </div>
+    </>
+  ),
+};
 
 export interface StatCardSkeletonProps {
   variant?: StatSkeletonVariant;
@@ -31,58 +77,11 @@ export const StatCardSkeleton = memo(function StatCardSkeleton({
   const resolvedSparklineLayout = sparklineLayout ?? gridContext.sparklineLayout ?? "inline";
   const dStyles = DENSITY_STYLES[resolvedDensity];
 
-  if (variant === "progress") {
+  if (variant !== "default") {
     return (
       <Card className={cn("overflow-hidden border border-border/60", className)}>
         <CardContent className="flex flex-col justify-between space-y-4 p-5">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-9 w-9 rounded-lg" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-36" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-          <Skeleton className="mt-2 h-2.5 w-full rounded-full" />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (variant === "live") {
-    return (
-      <Card className={cn("overflow-hidden border border-border/60", className)}>
-        <CardContent className="flex flex-col justify-between space-y-4 p-5">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-6 w-20 rounded-full" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-32" />
-            <Skeleton className="h-4 w-20" />
-          </div>
-          <Skeleton className="mt-2 h-7 w-full" />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (variant === "multi-metric") {
-    return (
-      <Card className={cn("overflow-hidden border border-border/60", className)}>
-        <CardContent className="flex flex-col justify-between space-y-4 p-5">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-9 w-9 rounded-lg" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-36" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <Skeleton className="h-12 w-full rounded-md" />
-            <Skeleton className="h-12 w-full rounded-md" />
-          </div>
+          {VARIANT_CONTENT[variant]}
         </CardContent>
       </Card>
     );
