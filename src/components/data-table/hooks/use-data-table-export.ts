@@ -7,7 +7,7 @@ import { exportToExcel } from "@/lib/excel";
 import { readCellValue } from "../core/utils";
 
 /** 触发浏览器下载并回收对象 URL */
-function downloadBlob(content: string, fileName: string, mimeType: string) {
+export function downloadBlob(content: string, fileName: string, mimeType: string) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

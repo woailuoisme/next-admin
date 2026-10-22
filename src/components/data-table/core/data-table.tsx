@@ -47,6 +47,13 @@ const DENSITY_ROW_CLASSES: Record<DataTableDensity, string> = {
   standard: "h-12 py-2 text-xs",
 };
 
+/** 虚拟滚动行高估值，与 DENSITY_ROW_CLASSES 的 h-* 一一对应 */
+const DENSITY_ROW_HEIGHTS: Record<DataTableDensity, number> = {
+  compact: 36,
+  comfortable: 64,
+  standard: 48,
+};
+
 export function DataTable<TData extends Record<string, any> = Record<string, any>>({
   rows: rawRows,
   data,
@@ -158,7 +165,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     onDensityChange?.(d);
   });
 
-  const densityRowClass = DENSITY_ROW_CLASSES[density] ?? DENSITY_ROW_CLASSES.standard;
+  const densityRowClass = DENSITY_ROW_CLASSES[density];
 
   // ==================== Column Visibility State ====================
   const [internalVisibility, setInternalVisibility] = useState<Record<string, boolean>>({});
@@ -364,7 +371,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   const rowVirtualizer = useVirtualizer({
     count: pagedRows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => (density === "compact" ? 36 : density === "comfortable" ? 64 : 48),
+    estimateSize: () => DENSITY_ROW_HEIGHTS[density],
     overscan: 5,
     enabled: virtualize,
   });

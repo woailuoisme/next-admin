@@ -84,6 +84,13 @@ export interface UseResourceManagementReturn<
 }
 
 /**
+ * 按主键在行集合中定位实体（ID 统一转字符串比较，兼容 number / string 主键）
+ */
+function useRowById<TData extends { id: string | number }>(rows: TData[], id: string | null): TData | null {
+  return useMemo(() => (id ? (rows.find((row) => String(row.id) === String(id)) ?? null) : null), [rows, id]);
+}
+
+/**
  * useResourceManagement:
  * 工业级 CRUD 资源页高内聚深模块 (Deep Module)。
  *
@@ -131,20 +138,9 @@ export function useResourceManagement<
   });
 
   // 3. Resolve active entities from current table rows
-  const activeEditItem = useMemo(() => {
-    if (!modal.editId) return null;
-    return table.rows.find((r) => String(r.id) === String(modal.editId)) ?? null;
-  }, [table.rows, modal.editId]);
-
-  const activeDeleteItem = useMemo(() => {
-    if (!modal.deleteId) return null;
-    return table.rows.find((r) => String(r.id) === String(modal.deleteId)) ?? null;
-  }, [table.rows, modal.deleteId]);
-
-  const activeViewItem = useMemo(() => {
-    if (!modal.viewId) return null;
-    return table.rows.find((r) => String(r.id) === String(modal.viewId)) ?? null;
-  }, [table.rows, modal.viewId]);
+  const activeEditItem = useRowById(table.rows, modal.editId);
+  const activeDeleteItem = useRowById(table.rows, modal.deleteId);
+  const activeViewItem = useRowById(table.rows, modal.viewId);
 
   // 4. Invalidation Helper
   const invalidateQueries = useMemoizedFn(() => {
@@ -220,8 +216,7 @@ export function useResourceManagement<
 
   const handleFormOpenChange = useMemoizedFn((open: boolean) => {
     if (!open) {
-      modal.closeCreate();
-      modal.closeEdit();
+      modal.closeFormDialog();
     }
   });
 

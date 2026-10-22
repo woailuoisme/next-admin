@@ -62,12 +62,7 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
             {hasExpandColumn && (
               <TableCell
                 style={{
-                  left:
-                    checkboxSelection || pinnedLeftFields.length > 0
-                      ? checkboxSelection
-                        ? "44px"
-                        : "0px"
-                      : undefined,
+                  left: checkboxSelection ? "44px" : pinnedLeftFields.length > 0 ? "0px" : undefined,
                 }}
                 className={cn(
                   "w-9 px-1 text-center",
@@ -227,7 +222,7 @@ export const DataTableEmptyOverlay = memo(function DataTableEmptyOverlay({
     );
   }
 
-  // 2. Custom emptyState rendering
+  // 2. 自定义 emptyState 或默认空状态：共用同一套配置回退与文案
   let content: ReactNode = null;
   const emptyStateContext: TableEmptyStateContext = {
     isFiltered,
@@ -253,11 +248,10 @@ export const DataTableEmptyOverlay = memo(function DataTableEmptyOverlay({
     content = emptyState(emptyStateContext);
   } else if (isValidElement(emptyState)) {
     content = emptyState;
-  } else if (emptyState && typeof emptyState === "object") {
-    const baseConfig = emptyState as TableEmptyStateConfig;
+  } else {
+    // 未传配置时等价于空配置，图标 / 文案 / 动作全部走下方默认值
+    const baseConfig = (emptyState as TableEmptyStateConfig | undefined) ?? {};
     const config = isFiltered && baseConfig.filtered ? { ...baseConfig, ...baseConfig.filtered } : baseConfig;
-
-    const actions = config.actions ?? resetActions;
 
     content = (
       <TableEmptyState
@@ -270,25 +264,10 @@ export const DataTableEmptyOverlay = memo(function DataTableEmptyOverlay({
             ? "No records match your active filters or search criteria."
             : "There is no data available to display right now.")
         }
-        actions={actions}
+        actions={config.actions ?? resetActions}
         renderActions={config.renderActions}
         size={config.size ?? "md"}
         className={config.className}
-      />
-    );
-  } else {
-    // 3. Default Filament v5 styled empty state
-    content = (
-      <TableEmptyState
-        icon={isFiltered ? FilterX : ArrowUpDown}
-        iconColor={isFiltered ? "warning" : "muted"}
-        heading={isFiltered ? noResultsMessage : emptyMessage}
-        description={
-          isFiltered
-            ? "No records match your active filters or search criteria."
-            : "There is no data available to display right now."
-        }
-        actions={resetActions}
       />
     );
   }

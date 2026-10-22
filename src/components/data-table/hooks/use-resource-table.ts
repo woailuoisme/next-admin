@@ -16,8 +16,6 @@ const DISABLED_QUERY_OPTIONS = {
   enabled: false,
 };
 
-const EMPTY_SEARCH = {} as const;
-
 function parseNextSearchParams<TSearch extends Record<string, any>>(
   searchParams: ReturnType<typeof useSearchParams>,
 ): TSearch {
@@ -135,10 +133,7 @@ export function useResourceTable<
 
   const nextParsedSearch = useMemo(() => parseNextSearchParams<TSearch>(searchParams), [searchParams]);
 
-  const search = useMemo(
-    () => (propSearch ?? nextParsedSearch ?? EMPTY_SEARCH) as TSearch,
-    [propSearch, nextParsedSearch],
-  );
+  const search = useMemo(() => (propSearch ?? nextParsedSearch) as TSearch, [propSearch, nextParsedSearch]);
 
   const navigate = useMemoizedFn(
     (opts: { search?: (prev: TSearch) => TSearch | Record<string, any>; replace?: boolean }) => {
