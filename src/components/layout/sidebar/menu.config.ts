@@ -95,6 +95,11 @@ export function getSidebarMenuGroups(tMenu?: (key: any) => string): NavGroup[] {
   ];
 }
 
+/** 未声明 roles 视为对所有角色开放 */
+function isRoleAllowed(roles: string[] | undefined, userRole?: string): boolean {
+  return !roles?.length || !userRole || roles.includes(userRole);
+}
+
 /**
  * Filter menu groups and items based on the user's current role
  */
@@ -107,43 +112,17 @@ export function getAuthorizedMenu(
   }
 
   return groups
-    .filter((group) => {
-      if (!group.roles || group.roles.length === 0) {
-        return true;
-      }
-      return group.roles.includes(userRole);
-    })
-    .map((group) => {
-      const filteredItems = group.items
-        .filter((item) => {
-          if (!item.roles || item.roles.length === 0) {
-            return true;
-          }
-          return item.roles.includes(userRole);
-        })
-        .map((item) => {
-          if (!item.items) {
-            return item;
-          }
-
-          const filteredSubItems = item.items.filter((subItem) => {
-            if (!subItem.roles || subItem.roles.length === 0) {
-              return true;
-            }
-            return subItem.roles.includes(userRole);
-          });
-
-          return {
-            ...item,
-            items: filteredSubItems,
-          };
-        });
-
-      return {
-        ...group,
-        items: filteredItems,
-      };
-    })
+    .filter((group) => isRoleAllowed(group.roles, userRole))
+    .map((group) => ({
+      ...group,
+      items: group.items
+        .filter((item) => isRoleAllowed(item.roles, userRole))
+        .map((item) =>
+          item.items
+            ? { ...item, items: item.items.filter((subItem) => isRoleAllowed(subItem.roles, userRole)) }
+            : item,
+        ),
+    }))
     .filter((group) => group.items.length > 0);
 }
 

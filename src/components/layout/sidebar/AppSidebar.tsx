@@ -9,7 +9,7 @@ import { useAuthSession } from "@/stores/auth";
 import type { NavGroup, SidebarUser } from "./types";
 
 import { getAuthorizedMenu, useSidebarMenuGroups } from "./menu.config";
-import { NavMain } from "./NavMain";
+import { NavMain } from "./nav-main";
 import { NavUser } from "./NavUser";
 import { SidebarHeader } from "./SidebarHeader";
 

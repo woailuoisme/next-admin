@@ -14,8 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page(props: { searchParams: Promise<{ range?: DashboardTimeRange }> }) {
-  const search = await props.searchParams;
-  const range = search?.range ?? "30d";
+  const { range = "30d" } = await props.searchParams;
   const queryClient = getQueryClient();
 
   await prefetchWithTimeout(queryClient.prefetchQuery(dashboardQueries.summary(range)));

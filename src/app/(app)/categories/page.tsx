@@ -12,13 +12,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Page(props: { searchParams: Promise<CategorySearchParams> }) {
+  const search = await props.searchParams;
   const queryClient = getQueryClient();
 
-  // Non-blocking prefetch in parallel with searchParams
-  const [search] = await Promise.all([
-    props.searchParams,
-    prefetchWithTimeout(queryClient.prefetchQuery(categoryQueries.list())),
-  ]);
+  // Non-blocking prefetch with graceful offline / build-time fallback
+  await prefetchWithTimeout(queryClient.prefetchQuery(categoryQueries.list()));
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

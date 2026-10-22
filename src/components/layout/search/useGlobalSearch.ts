@@ -5,7 +5,6 @@ export function useGlobalSearch() {
   const [open, setOpen] = useState(false);
 
   const handleOpen = useMemoizedFn(() => setOpen(true));
-  const handleClose = useMemoizedFn(() => setOpen(false));
   const toggle = useMemoizedFn(() => setOpen((prev) => !prev));
 
   useKeyPress(
@@ -29,7 +28,6 @@ export function useGlobalSearch() {
   return {
     open,
     handleOpen,
-    handleClose,
     setOpen,
   };
 }
