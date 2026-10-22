@@ -1,6 +1,6 @@
 import { useMemoizedFn } from "ahooks";
-import { Loader2, Maximize2, Minimize2 } from "lucide-react";
-import { memo, type SubmitEvent, useEffect, useId, useMemo, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { memo, type SubmitEvent, useEffect, useId, useMemo, useRef } from "react";
 
 import { FormContext } from "@/components/form";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,8 @@ import { cn } from "@/lib/utils";
 
 import type { FormDialogProps } from "./types";
 
+import { FullscreenToggle } from "./FullscreenToggle";
+import { useDialogFullscreen } from "./hooks/useDialogFullscreen";
 import { DIALOG_SIZE_CLASSES, SHEET_SIZE_CLASSES } from "./size-classes";
 
 export const FormDialog = memo(function FormDialog<TData = Record<string, unknown>>({
@@ -59,24 +61,10 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   const formId = useId();
   const isEdit = mode ? mode === "edit" : Boolean(entity);
 
-  const [internalFullscreen, setInternalFullscreen] = useState(false);
-  const [prevOpen, setPrevOpen] = useState(open);
-
-  if (prevOpen !== open) {
-    setPrevOpen(open);
-    if (!open) {
-      setInternalFullscreen(false);
-    }
-  }
-
-  const isFullscreen = controlledFullscreen ?? internalFullscreen;
-
-  const toggleFullscreen = useMemoizedFn(() => {
-    const next = !isFullscreen;
-    if (controlledFullscreen === undefined) {
-      setInternalFullscreen(next);
-    }
-    onFullscreenChange?.(next);
+  const { isFullscreen, toggleFullscreen } = useDialogFullscreen({
+    open,
+    fullscreen: controlledFullscreen,
+    onFullscreenChange,
   });
 
   const prevOpenRef = useRef(false);
@@ -144,7 +132,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
     e.preventDefault();
     e.stopPropagation();
     if (onSubmit) {
-      onSubmit(e as Parameters<NonNullable<typeof onSubmit>>[0]);
+      onSubmit(e);
     } else if (form?.handleSubmit) {
       form.handleSubmit();
     }
@@ -231,17 +219,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
         )}
       >
         {allowFullscreen ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="text-muted-foreground hover:text-foreground absolute top-2.5 right-9 z-10"
-            onClick={toggleFullscreen}
-            title={isFullscreen ? "Restore" : "Maximize"}
-            aria-label={isFullscreen ? "Restore size" : "Maximize dialog"}
-          >
-            {isFullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
-          </Button>
+          <FullscreenToggle isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
         ) : null}
 
         <DialogHeader className="border-border/60 shrink-0 border-b px-6 py-4 pr-16">

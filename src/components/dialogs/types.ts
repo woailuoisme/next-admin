@@ -176,7 +176,6 @@ export interface DataListProps {
   items: DataListItem[];
   columns?: 1 | 2 | 3 | 4;
   className?: string;
-  size?: "sm" | "default";
 }
 
 export interface DeleteDialogProps {

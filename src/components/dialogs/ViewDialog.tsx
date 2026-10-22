@@ -1,6 +1,6 @@
 import { useMemoizedFn } from "ahooks";
-import { Edit, Loader2, Maximize2, Minimize2 } from "lucide-react";
-import { memo, type ReactNode, useState } from "react";
+import { Edit, Loader2 } from "lucide-react";
+import { memo, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils";
 
 import type { ViewDialogProps } from "./types";
 
+import { FullscreenToggle } from "./FullscreenToggle";
+import { useDialogFullscreen } from "./hooks/useDialogFullscreen";
 import { DIALOG_SIZE_CLASSES, SHEET_SIZE_CLASSES } from "./size-classes";
 
 interface ViewHeaderProps {
@@ -101,32 +103,14 @@ export const ViewDialog = memo(function ViewDialog({
   fullscreen: controlledFullscreen,
   onFullscreenChange,
 }: ViewDialogProps) {
-  const [internalFullscreen, setInternalFullscreen] = useState(false);
-  const [prevOpen, setPrevOpen] = useState(open);
-
-  if (prevOpen !== open) {
-    setPrevOpen(open);
-    if (!open) {
-      setInternalFullscreen(false);
-    }
-  }
-
-  const isFullscreen = controlledFullscreen ?? internalFullscreen;
-
-  const toggleFullscreen = useMemoizedFn(() => {
-    const next = !isFullscreen;
-    if (controlledFullscreen === undefined) {
-      setInternalFullscreen(next);
-    }
-    onFullscreenChange?.(next);
+  const { isFullscreen, toggleFullscreen } = useDialogFullscreen({
+    open,
+    fullscreen: controlledFullscreen,
+    onFullscreenChange,
   });
 
   const handleClose = useMemoizedFn(() => {
     onOpenChange(false);
-  });
-
-  const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
-    onOpenChange(nextOpen);
   });
 
   const contentBody = loading ? (
@@ -139,7 +123,7 @@ export const ViewDialog = memo(function ViewDialog({
 
   if (variant === "sheet") {
     return (
-      <Sheet open={open} onOpenChange={handleOpenChange}>
+      <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           side="right"
           className={cn(
@@ -186,7 +170,7 @@ export const ViewDialog = memo(function ViewDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
           "flex flex-col gap-0 overflow-hidden p-0 transition-all duration-200",
@@ -198,17 +182,7 @@ export const ViewDialog = memo(function ViewDialog({
         )}
       >
         {allowFullscreen ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="text-muted-foreground hover:text-foreground absolute top-2.5 right-9 z-10"
-            onClick={toggleFullscreen}
-            title={isFullscreen ? "Restore" : "Maximize"}
-            aria-label={isFullscreen ? "Restore size" : "Maximize dialog"}
-          >
-            {isFullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
-          </Button>
+          <FullscreenToggle isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
         ) : null}
 
         <DialogHeader className="border-border/60 shrink-0 border-b px-6 py-4 pr-16">
