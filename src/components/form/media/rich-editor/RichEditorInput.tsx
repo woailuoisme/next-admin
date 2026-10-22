@@ -1,6 +1,6 @@
-import { memo, useId } from "react";
+import { memo } from "react";
 
-import { FieldConnector, FieldWrapper } from "../../core";
+import { FieldConnector, FieldWrapper, useFieldId } from "../../core";
 import { TipTapCore } from "./TipTapCore";
 import { DEFAULT_TOOLBAR, type RichEditorInputProps } from "./types";
 
@@ -80,8 +80,7 @@ export const RichEditorInput = memo(function RichEditorInput({
   error,
   ...restProps
 }: RichEditorInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<string>

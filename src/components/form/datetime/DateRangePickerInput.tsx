@@ -3,14 +3,14 @@ import type { DateRange } from "react-day-picker";
 import { useMemoizedFn } from "ahooks";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, X } from "lucide-react";
-import { memo, useId, useState } from "react";
+import { memo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-import { type BaseInputProps, type DateRangeValue, FieldConnector, FieldWrapper } from "../core";
+import { type BaseInputProps, type DateRangeValue, FieldConnector, FieldWrapper, useFieldId } from "../core";
 import { parseDate } from "./date-utils";
 
 export interface DateRangePickerInputProps extends BaseInputProps {
@@ -165,8 +165,7 @@ export const DateRangePickerInput = memo(function DateRangePickerInput({
   dateFormat = "yyyy-MM-dd",
   clearable = true,
 }: DateRangePickerInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<DateRangeValue | undefined>

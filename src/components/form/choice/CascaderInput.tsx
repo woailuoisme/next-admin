@@ -1,7 +1,7 @@
-import { memo, useId } from "react";
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 
-import { FieldConnector, FieldWrapper, type BaseInputProps } from "../core";
+import { FieldConnector, FieldWrapper, useFieldId, type BaseInputProps } from "../core";
 import { Cascader, type CascaderFieldNames, type CascaderOption } from "./Cascader";
 
 export type { CascaderFieldNames, CascaderOption };
@@ -66,8 +66,7 @@ function CascaderInputInner({
   popupClassName,
   size = "default",
 }: CascaderInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<(string | number)[]>

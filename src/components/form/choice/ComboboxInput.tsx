@@ -1,6 +1,6 @@
 import { useMemoizedFn } from "ahooks";
 import { Check, ChevronsUpDown, X } from "lucide-react";
-import { memo, useId, useState } from "react";
+import { memo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, type SelectOption } from "../core";
+import { type BaseInputProps, FieldConnector, FieldWrapper, type SelectOption, useFieldId } from "../core";
 
 const EMPTY_OPTIONS: SelectOption<any>[] = [];
 
@@ -202,8 +202,7 @@ function ComboboxInputComponent<TValue extends string | number = string>({
   onChange: controlledOnChange,
   onBlur: controlledOnBlur,
 }: ComboboxInputProps<TValue>) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<TValue>

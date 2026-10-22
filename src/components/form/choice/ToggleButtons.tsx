@@ -1,10 +1,16 @@
 import { useMemoizedFn } from "ahooks";
-import { memo, useId } from "react";
+import { memo } from "react";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, type ToggleButtonOption } from "../core";
+import {
+  type BaseInputProps,
+  FieldConnector,
+  FieldWrapper,
+  type ToggleButtonOption,
+  useFieldId,
+} from "../core";
 
 const EMPTY_OPTIONS: ToggleButtonOption[] = [];
 
@@ -127,8 +133,7 @@ export const ToggleButtons = memo(function ToggleButtons({
   size = "sm",
   fullWidth = false,
 }: ToggleButtonsProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<string>

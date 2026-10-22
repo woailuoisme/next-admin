@@ -1,6 +1,6 @@
 import { useDebounceFn, useMemoizedFn } from "ahooks";
 import { Eye, EyeOff, X } from "lucide-react";
-import { type ChangeEvent, type ReactNode, memo, useId, useState } from "react";
+import { type ChangeEvent, type ReactNode, memo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/input-group";
 import { cn } from "@/lib/utils";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper } from "../core";
+import { type BaseInputProps, FieldConnector, FieldWrapper, useFieldId } from "../core";
 
 export interface TextInputProps<T extends string | number = string> extends BaseInputProps {
   value?: T;
@@ -240,8 +240,7 @@ export function TextInput<T extends string | number = string>({
   autoComplete,
   inputClassName,
 }: TextInputProps<T>) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
   const isPassword = password || type === "password";
   const effectiveType = numeric ? "number" : type;
 

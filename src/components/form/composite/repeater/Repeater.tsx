@@ -2,14 +2,14 @@ import { closestCenter, DndContext } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { ChevronsDownUp, ChevronsUpDown, Plus } from "lucide-react";
-import { memo, type ReactNode, useId, useMemo } from "react";
+import { memo, type ReactNode, useMemo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 import type { RepeaterProps } from "./types";
 
-import { FieldConnector, FieldWrapper } from "../../core";
+import { FieldConnector, FieldWrapper, useFieldId } from "../../core";
 import { RepeaterRow } from "./RepeaterRow";
 import { RepeaterTable } from "./RepeaterTable";
 import { useRepeaterController } from "./useRepeaterController";
@@ -305,8 +305,7 @@ export const Repeater = memo(function Repeater<T = unknown>({
   renderSummary,
   renderExtraActions,
 }: RepeaterProps<T>) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<T[]>

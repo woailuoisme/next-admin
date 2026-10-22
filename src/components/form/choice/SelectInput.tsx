@@ -1,9 +1,9 @@
-import { memo, useId } from "react";
+import { memo } from "react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-import { FieldConnector, FieldWrapper, type BaseInputProps, type SelectOption } from "../core";
+import { FieldConnector, FieldWrapper, type BaseInputProps, type SelectOption, useFieldId } from "../core";
 
 export interface SelectInputProps<TValue extends string | number = string> extends BaseInputProps {
   options: SelectOption<TValue>[] | readonly SelectOption<TValue>[];
@@ -38,8 +38,7 @@ function SelectInputInner<TValue extends string | number = string>({
   onBlur: controlledOnBlur,
   triggerClassName,
 }: SelectInputProps<TValue>) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<TValue>

@@ -1,8 +1,8 @@
-import { memo, useId } from "react";
+import { memo } from "react";
 
 import type { FileUploadInputProps, FileUploadValue } from "./types";
 
-import { FieldConnector, FieldWrapper } from "../../core";
+import { FieldConnector, FieldWrapper, useFieldId } from "../../core";
 import { FileUploadCore } from "./FileUploadCore";
 
 interface FileUploadInputInnerProps extends FileUploadInputProps {
@@ -87,8 +87,7 @@ export const FileUploadInput = memo(function FileUploadInput({
   error,
   ...restProps
 }: FileUploadInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<FileUploadValue>

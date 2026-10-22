@@ -1,8 +1,8 @@
-import { lazy, memo, Suspense, useId } from "react";
+import { lazy, memo, Suspense } from "react";
 
 import type { RichEditorInputProps } from "./types";
 
-import { FieldWrapper } from "../../core";
+import { FieldWrapper, useFieldId } from "../../core";
 import { RichEditorSkeleton } from "./RichEditorSkeleton";
 
 const AsyncRichEditorInput = lazy(() =>
@@ -23,8 +23,7 @@ export const LazyRichEditorInput = memo(function LazyRichEditorInput({
   hidden,
   ...props
 }: RichEditorInputProps) {
-  const autoId = useId();
-  const fieldId = id || (name ? `field-${name}` : autoId);
+  const fieldId = useFieldId(name, id);
 
   return (
     <Suspense

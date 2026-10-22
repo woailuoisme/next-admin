@@ -1,11 +1,11 @@
 import { useMemoizedFn } from "ahooks";
 import { Clock, X } from "lucide-react";
-import { memo, type ReactNode, useId } from "react";
+import { memo, type ReactNode } from "react";
 
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper } from "../core";
+import { type BaseInputProps, FieldConnector, FieldWrapper, useFieldId } from "../core";
 
 export interface TimePickerInputProps extends BaseInputProps {
   value?: string;
@@ -103,8 +103,7 @@ export const TimePickerInput = memo(function TimePickerInput({
   step = 60,
   clearable = true,
 }: TimePickerInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<string>

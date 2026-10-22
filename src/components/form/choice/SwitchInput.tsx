@@ -1,10 +1,10 @@
 import { useMemoizedFn } from "ahooks";
-import { memo, useId } from "react";
+import { memo } from "react";
 
 import { Field, FieldContent, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper } from "../core";
+import { type BaseInputProps, FieldConnector, FieldWrapper, useFieldId } from "../core";
 
 export interface SwitchInputProps extends BaseInputProps {
   value?: boolean;
@@ -134,8 +134,7 @@ export const SwitchInput = memo(function SwitchInput({
   onLabel,
   offLabel,
 }: SwitchInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<boolean>

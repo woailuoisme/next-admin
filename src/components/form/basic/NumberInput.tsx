@@ -1,12 +1,12 @@
 import { useMemoizedFn } from "ahooks";
 import { Minus, Plus } from "lucide-react";
-import { type ChangeEvent, type ReactNode, memo, useId } from "react";
+import { type ChangeEvent, type ReactNode, memo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-import { FieldConnector, FieldWrapper, type BaseInputProps } from "../core";
+import { FieldConnector, FieldWrapper, useFieldId, type BaseInputProps } from "../core";
 
 export interface NumberInputProps extends BaseInputProps {
   value?: number | null;
@@ -166,8 +166,7 @@ export const NumberInput = memo(function NumberInput({
   suffix,
   steppers = true,
 }: NumberInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<number | null>

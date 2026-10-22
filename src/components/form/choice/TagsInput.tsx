@@ -1,12 +1,12 @@
 import { useMemoizedFn } from "ahooks";
 import { X } from "lucide-react";
-import { type KeyboardEvent, memo, useId, useState } from "react";
+import { type KeyboardEvent, memo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper } from "../core";
+import { type BaseInputProps, FieldConnector, FieldWrapper, useFieldId } from "../core";
 
 const EMPTY_TAGS: string[] = [];
 const EMPTY_SUGGESTIONS: string[] = [];
@@ -159,8 +159,7 @@ export const TagsInput = memo(function TagsInput({
   maxTags,
   suggestions = EMPTY_SUGGESTIONS,
 }: TagsInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<string[]>

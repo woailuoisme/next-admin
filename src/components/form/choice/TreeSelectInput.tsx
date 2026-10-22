@@ -1,7 +1,7 @@
-import { memo, useId } from "react";
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 
-import { FieldConnector, FieldWrapper, type BaseInputProps } from "../core";
+import { FieldConnector, FieldWrapper, useFieldId, type BaseInputProps } from "../core";
 import {
   TreeSelect,
   type TreeSelectFieldNames,
@@ -96,8 +96,7 @@ function TreeSelectInputInner({
   size = "default",
   filterTreeNode,
 }: TreeSelectInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   const isMultiple = multiple || treeCheckable;
   const normalizedDefaultValue =

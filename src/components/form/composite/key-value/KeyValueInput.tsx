@@ -17,7 +17,7 @@ import {
 import { useMemoizedFn } from "ahooks";
 import { isEqual } from "es-toolkit";
 import { Code2, Plus, Table2 } from "lucide-react";
-import { memo, useId, useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import type { KeyValueInputInnerProps, KeyValueInputProps, KeyValueRowItem } from "./types";
 
-import { FieldConnector, FieldWrapper } from "../../core";
+import { FieldConnector, FieldWrapper, useFieldId } from "../../core";
 import { KeyValueRawEditor } from "./KeyValueRawEditor";
 import { KeyValueRow } from "./KeyValueRow";
 import {
@@ -312,8 +312,7 @@ export const KeyValueInput = memo(function KeyValueInput({
   maxItems,
   minItems = 0,
 }: KeyValueInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<any>

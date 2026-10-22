@@ -1,8 +1,8 @@
-import { memo, useId } from "react";
+import { memo } from "react";
 
 import { Slider } from "@/components/ui/slider";
 
-import { FieldConnector, FieldWrapper, type BaseInputProps } from "../core";
+import { FieldConnector, FieldWrapper, useFieldId, type BaseInputProps } from "../core";
 
 export interface SliderInputProps extends BaseInputProps {
   value?: number;
@@ -40,8 +40,7 @@ export const SliderInput = memo(function SliderInput({
   formatValue,
   showValue = true,
 }: SliderInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<number>

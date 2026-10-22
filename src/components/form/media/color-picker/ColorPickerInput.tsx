@@ -1,10 +1,10 @@
 import { useMemoizedFn } from "ahooks";
 import { X } from "lucide-react";
-import { memo, useId, useState } from "react";
+import { memo, useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { FieldConnector, FieldWrapper } from "../../core";
+import { FieldConnector, FieldWrapper, useFieldId } from "../../core";
 import { ColorPickerContent } from "./ColorPickerContent";
 import { ColorTrigger } from "./ColorTrigger";
 import { type ColorPickerInnerProps, type ColorPickerInputProps, DEFAULT_COLOR_PRESETS } from "./types";
@@ -93,8 +93,7 @@ export const ColorPickerInput = memo(function ColorPickerInput({
   clearable = true,
   showEyeDropper = true,
 }: ColorPickerInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<string>

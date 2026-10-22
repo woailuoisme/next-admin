@@ -1,11 +1,11 @@
 import { useMemoizedFn } from "ahooks";
-import { memo, useId } from "react";
+import { memo } from "react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, type SelectOption } from "../core";
+import { type BaseInputProps, FieldConnector, FieldWrapper, type SelectOption, useFieldId } from "../core";
 
 const EMPTY_OPTIONS: SelectOption[] = [];
 const EMPTY_VALUES: (string | number)[] = [];
@@ -172,8 +172,7 @@ export const CheckboxGroup = memo(function CheckboxGroup({
   direction = "vertical",
   card = false,
 }: CheckboxGroupProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<(string | number)[]>
@@ -301,8 +300,7 @@ export const CheckboxInput = memo(function CheckboxInput({
   onBlur: controlledOnBlur,
   description,
 }: CheckboxInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<boolean>

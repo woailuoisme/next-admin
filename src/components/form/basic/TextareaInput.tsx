@@ -1,10 +1,10 @@
 import { useDebounceFn, useMemoizedFn } from "ahooks";
-import { type ChangeEvent, memo, useId, useState } from "react";
+import { type ChangeEvent, memo, useState } from "react";
 
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper } from "../core";
+import { type BaseInputProps, FieldConnector, FieldWrapper, useFieldId } from "../core";
 
 export interface TextareaInputProps extends BaseInputProps {
   value?: string;
@@ -127,8 +127,7 @@ export const TextareaInput = memo(function TextareaInput({
   debounceMs,
   textareaClassName,
 }: TextareaInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<string>

@@ -1,14 +1,14 @@
 import { useMemoizedFn } from "ahooks";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, X } from "lucide-react";
-import { memo, useId, useState } from "react";
+import { memo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper } from "../core";
+import { type BaseInputProps, FieldConnector, FieldWrapper, useFieldId } from "../core";
 import { parseDate } from "./date-utils";
 
 export interface DatePickerInputProps extends BaseInputProps {
@@ -163,8 +163,7 @@ export const DatePickerInput = memo(function DatePickerInput({
   clearable = true,
   outputFormat = "iso",
 }: DatePickerInputProps) {
-  const autoId = useId();
-  const id = explicitId || (name ? `field-${name}` : autoId);
+  const id = useFieldId(name, explicitId);
 
   return (
     <FieldConnector<any>
