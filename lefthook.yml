@@ -21,6 +21,9 @@ pre-commit:
     - name: typecheck
       run: bun run typecheck
 
+    - name: gitleaks
+      run: if command -v gitleaks >/dev/null 2>&1; then gitleaks protect --staged --verbose; fi
+
 commit-msg:
   commands:
     "conventional-commits":

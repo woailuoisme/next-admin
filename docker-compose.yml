@@ -6,8 +6,12 @@ services:
     container_name: next-admin
     pull_policy: build
     ports:
-      - "${PORT:-3500}:${PORT:-3500}"
-    environment:
-      PORT: "${PORT:-3500}"
-      SERVER_URL: ${SERVER_URL:-http://localhost:3500}
+      - "3500:3500"
+    env_file: .env.production
     restart: unless-stopped
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    external: true

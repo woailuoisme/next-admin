@@ -1,0 +1,27 @@
+# -----------------------------------------------------------------------------
+# Gitleaks 密钥检测与合规配置文件
+# 官方参考: https://github.com/gitleaks/gitleaks
+# -----------------------------------------------------------------------------
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "全局白名单：忽略文档教程、测试用例、锁文件及公开演示 Key"
+paths = [
+  '''^\.agents/''',
+  '''^test/''',
+  '''\.lock$''',
+  '''\.md$''',
+  '''\.example$''',
+]
+stopwords = [
+  # 文档示例密钥 (Dummy Keys in docs)
+  "sk_live_abc123def456",
+  "sk_live_789xyz",
+  "pk_live_abc123",
+  "wJalrXUtnFEMI/K7MDENG",
+  # 公开地图演示 Key (Public Client-side Demo Keys)
+  "09b3952ec0114dfc92d8522c5c541744",
+  "cc29193551434f284ba897ba74b393eb",
+]

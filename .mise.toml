@@ -1,17 +1,11 @@
 [tools]
 node = "24"
 bun = "latest"
-wrangler = "latest"
 
 "github:h4ckf0r0day/obscura" = "latest"
 
 just = "latest"
 lefthook = "latest"
 rumdl = "latest"
-
-ast-grep = "latest"
-rg = "latest"
-fd = "latest"
-sd = "latest"
 
 gitleaks = "latest"

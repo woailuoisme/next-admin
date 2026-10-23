@@ -21,18 +21,27 @@ next-env.d.ts
 
 # Testing & Coverage
 coverage/
+test-results/
+playwright-report/
 
-# Environment files (preserve default & example, ignore sensitive local overrides)
-.env*
-!.env
+# Environment files
+# 只有 .env.example 进版本库；其余由本地 / CI / 部署平台注入
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
 !.env.example
-!.env.production
 
 # IDEs & System files
 .DS_Store
 *.pem
 .idea/
-.vscode/
+# .vscode 内共享 extensions/settings，其余排除
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 *.swp
 *.swo
 
@@ -41,7 +50,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+bun-debug.log*
 *.log
+
+# Tool caches
+.rumdl_cache/
+.code-review-graph/
 
 # Scratch & Temporary files
 scratch/
