@@ -15,11 +15,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page(props: { searchParams: Promise<CategorySearchParams> }) {
-  const search = await props.searchParams;
   const queryClient = getQueryClient();
 
-  // Non-blocking prefetch with graceful offline / build-time fallback
-  await prefetchWithTimeout(queryClient.prefetchQuery(categoryQueries.list()));
+  // 列表查询不依赖 searchParams，两者并行；预取超时后降级为骨架流式渲染
+  const [search] = await Promise.all([
+    props.searchParams,
+    prefetchWithTimeout(queryClient.prefetchQuery(categoryQueries.list())),
+  ]);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

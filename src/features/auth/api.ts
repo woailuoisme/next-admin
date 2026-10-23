@@ -5,7 +5,6 @@ import { apiClient } from "@/lib/apiClient";
 import type {
   AdminUser,
   AuthSession,
-  DemoAccount,
   ForgotPasswordCredentials,
   ForgotPasswordResponse,
   LoginCredentials,
@@ -26,11 +25,6 @@ export async function logoutApi(): Promise<void> {
 export async function fetchCurrentAdminApi(): Promise<AdminUser> {
   const res = await apiClient.get("auth/me").json<ApiResponse<{ admin: AdminUser }>>();
   return res.data.admin;
-}
-
-export async function getDemoAccountsApi(): Promise<DemoAccount[]> {
-  const res = await apiClient.get("auth/demo-accounts").json<ApiResponse<DemoAccount[]>>();
-  return res.data;
 }
 
 export async function forgotPasswordApi(credentials: ForgotPasswordCredentials): Promise<ForgotPasswordResponse> {

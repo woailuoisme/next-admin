@@ -29,12 +29,6 @@ export interface AuthState {
   isLoading: boolean;
 }
 
-export interface DemoAccount {
-  name: string;
-  email: string;
-  role: string;
-}
-
 export interface ForgotPasswordCredentials {
   email: string;
 }
@@ -43,8 +37,6 @@ export interface ForgotPasswordResponse {
   ticket: string;
   /** 票据有效期（秒） */
   expiresIn: number;
-  /** 仅非生产环境返回，便于演示 */
-  devCode?: string;
 }
 
 export interface VerifyOtpCredentials {

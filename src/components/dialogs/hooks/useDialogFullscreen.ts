@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { useState } from "react";
 

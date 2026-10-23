@@ -17,16 +17,15 @@ const inter = Inter({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${process.env.PORT || "3500"}`),
   title: {
-    default: "Next SN Admin",
-    template: "%s | Next SN Admin",
+    default: "Admin Panel",
+    template: "%s | Admin Panel",
   },
-  description: "Enterprise Admin Dashboard with Next.js 16",
+  description: "Enterprise admin dashboard built with Next.js and TanStack",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

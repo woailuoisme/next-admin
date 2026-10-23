@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { isNil } from "es-toolkit";
 import { Check, Copy } from "lucide-react";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
@@ -12,7 +12,6 @@ import { toastMessages } from "@/lib/toastMessages";
 import type { MessageKeyOf } from "@/types/i18n";
 
 import { fetchCurrentAdminApi, forgotPasswordApi, loginApi, logoutApi, resetPasswordApi, verifyOtpApi } from "./api";
-import { authQueries } from "./queries";
 import { clearResetFlow, readResetFlow, saveResetFlow, patchResetFlow } from "./resetFlow";
 import { clearAuthSession, getAuthToken, setAuthSession, useIsAuthenticated } from "./store";
 
@@ -66,10 +65,6 @@ export function useLogoutMutation() {
   });
 }
 
-export function useDemoAccountsQuery() {
-  return useQuery(authQueries.demoAccounts());
-}
-
 /**
  * 启动时用 /auth/me 校验本地持久化的 token：
  * token 失效时 apiClient 会统一清理会话并跳转登录，有效时刷新管理员信息。
@@ -109,7 +104,6 @@ export function useForgotPasswordMutation() {
         ticket: data.ticket,
         email: variables.email,
         expiresAt: Date.now() + data.expiresIn * 1000,
-        devCode: data.devCode,
       });
       router.push("/forgot-password/verify");
     },

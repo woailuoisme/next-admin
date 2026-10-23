@@ -20,7 +20,6 @@ async function createFlow(email: string): Promise<ResetFlowState> {
     ticket: data.ticket,
     email,
     expiresAt: Date.now() + data.expiresIn * 1000,
-    devCode: data.devCode,
   };
 }
 
@@ -80,11 +79,11 @@ describe("VerifyOtpForm", () => {
     expect(resend).toBeDisabled();
   });
 
-  it("renders the development code hint", async () => {
-    const flow = await createFlow(`verify-hint-${Date.now()}@example.com`);
+  it("does not leak or display the verification code on screen", async () => {
+    const flow = await createFlow(`verify-clean-${Date.now()}@example.com`);
     renderWithProviders(<VerifyOtpForm flow={flow} />);
 
-    expect(await screen.findByText(/本次验证码为 123456/)).toBeInTheDocument();
+    expect(screen.queryByText(/本次验证码为/)).not.toBeInTheDocument();
     expect(screen.getByText(/验证码已发送，10 分钟内有效/)).toBeInTheDocument();
   });
 });

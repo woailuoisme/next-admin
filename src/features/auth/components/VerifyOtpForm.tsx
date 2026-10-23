@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemoizedFn } from "ahooks";
-import { AlertCircle, ArrowLeft, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
+import { ArrowLeft, RefreshCw, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -14,7 +14,7 @@ import type { MessageKeyOf } from "@/types/i18n";
 import { resolveResetErrorKey, useForgotPasswordMutation, useVerifyOtpMutation } from "../hooks";
 import type { ResetFlowState } from "../resetFlow";
 
-import { AuthCard } from "./AuthShell";
+import { AuthCard, AuthFormError, AuthSubmitButton } from "./AuthShell";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -93,34 +93,16 @@ export function VerifyOtpForm({ flow }: VerifyOtpFormProps) {
 
         <p className="text-muted-foreground text-center text-[11px]">{t("code_sent_hint")}</p>
 
-        {flow.devCode ? (
-          <p className="bg-muted text-muted-foreground rounded-md px-3 py-2 text-center font-mono text-[11px]">
-            {t("dev_code_hint", { code: flow.devCode })}
-          </p>
-        ) : null}
+        {errorKey ? <AuthFormError message={t(errorKey)} className="justify-center" /> : null}
 
-        {errorKey ? (
-          <p className="text-destructive flex items-center justify-center gap-1.5 text-xs" role="alert">
-            <AlertCircle className="size-3.5 shrink-0" />
-            <span>{t(errorKey)}</span>
-          </p>
-        ) : null}
-
-        <Button
+        <AuthSubmitButton
           type="button"
-          className="w-full font-semibold shadow-md"
-          disabled={code.length !== 6 || isSubmitting || isLocked}
+          isPending={isSubmitting}
+          pendingLabel={t("verifying")}
+          label={t("verify_action")}
+          disabled={code.length !== 6 || isLocked}
           onClick={() => submitCode(code)}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              {t("verifying")}
-            </>
-          ) : (
-            t("verify_action")
-          )}
-        </Button>
+        />
 
         <div className="flex flex-col items-center gap-2">
           {isLocked ? (

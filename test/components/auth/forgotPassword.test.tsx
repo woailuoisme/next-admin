@@ -46,6 +46,6 @@ describe("ForgotPasswordForm", () => {
     const flow = readResetFlow();
     expect(flow?.ticket).toMatch(/^reset-ticket-/);
     expect(flow?.email).toContain("forgot-");
-    expect(flow?.devCode).toBe("123456");
+    expect(flow?.expiresAt).toBeGreaterThan(Date.now());
   });
 });

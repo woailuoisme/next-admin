@@ -167,7 +167,8 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     onDensityChange?.(d);
   });
 
-  const densityRowClass = DENSITY_ROW_CLASSES[density];
+  // density 可能来自 URL / localStorage，保留兜底避免类名变空
+  const densityRowClass = DENSITY_ROW_CLASSES[density] ?? DENSITY_ROW_CLASSES.standard;
 
   // ==================== Column Visibility State ====================
   const [internalVisibility, setInternalVisibility] = useState<Record<string, boolean>>({});

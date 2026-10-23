@@ -18,7 +18,7 @@ const EMAIL = "reset-target@example.com";
 
 async function createResetToken() {
   const forgot = await forgotPasswordApi({ email: `${Date.now()}-${EMAIL}` });
-  const verified = await verifyOtpApi({ ticket: forgot.ticket, code: forgot.devCode ?? "123456" });
+  const verified = await verifyOtpApi({ ticket: forgot.ticket, code: "123456" });
   return verified.resetToken;
 }
 

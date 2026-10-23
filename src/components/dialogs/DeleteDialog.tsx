@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { useMemoizedFn, useUnmountedRef } from "ahooks";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";

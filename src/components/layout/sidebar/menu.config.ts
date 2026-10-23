@@ -6,6 +6,7 @@ import {
   type LucideIcon,
   MapPin,
   Package,
+  Radio,
   Sparkles,
   TableProperties,
   Users,
@@ -83,14 +84,20 @@ export function getSidebarMenuGroups(tMenu?: (key: any) => string): NavGroup[] {
           to: "/showcase/maps",
           icon: MapPin,
         },
+        {
+          title: t("showcase_realtime"),
+          to: "/showcase/realtime",
+          icon: Radio,
+        },
       ],
     },
   ];
 }
 
 /** 未声明 roles 视为对所有角色开放 */
-function isRoleAllowed(roles: string[] | undefined, userRole?: string): boolean {
-  return !roles?.length || !userRole || roles.includes(userRole);
+// 调用方已保证 userRole 存在（getAuthorizedMenu 入口早退），这里不再重复放行分支
+function isRoleAllowed(roles: string[] | undefined, userRole: string): boolean {
+  return !roles?.length || roles.includes(userRole);
 }
 
 /**

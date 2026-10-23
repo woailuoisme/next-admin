@@ -1,19 +1,18 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { AlertCircle, KeyRound, Loader2, Lock } from "lucide-react";
+import { KeyRound, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { DEFAULT_PASSWORD_REQUIREMENTS, Form, PasswordStrengthMeter, TextInput } from "@/components/form";
-import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MessageKeyOf } from "@/types/i18n";
 
 import { resolveResetErrorKey, useResetPasswordMutation } from "../hooks";
 import { buildResetPasswordSchema } from "../schemas";
 
-import { AuthCard } from "./AuthShell";
+import { AuthCard, AuthFormError, AuthSubmitButton } from "./AuthShell";
 
 // 与 DEFAULT_PASSWORD_REQUIREMENTS 的顺序一一对应，仅替换文案
 const REQUIREMENT_LABEL_KEYS = [
@@ -103,23 +102,9 @@ export function ResetPasswordForm({ resetToken, email }: ResetPasswordFormProps)
             required
           />
 
-          {errorKey ? (
-            <p className="text-destructive flex items-center gap-1.5 text-xs" role="alert">
-              <AlertCircle className="size-3.5 shrink-0" />
-              <span>{t(errorKey)}</span>
-            </p>
-          ) : null}
+          {errorKey ? <AuthFormError message={t(errorKey)} /> : null}
 
-          <Button type="submit" className="w-full font-semibold shadow-md" disabled={mutation.isPending}>
-            {mutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                {t("resetting")}
-              </>
-            ) : (
-              t("reset_action")
-            )}
-          </Button>
+          <AuthSubmitButton isPending={mutation.isPending} pendingLabel={t("resetting")} label={t("reset_action")} />
         </Form>
       </CardContent>
     </AuthCard>

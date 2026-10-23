@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { env } from "@/env";
 import { getQueryClient } from "@/lib/queryClient";
+import { useResolvedThemeMode } from "@/stores/preferences";
 
 // Filter out React 19 false-positive warning for next-themes inline script tag in development
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
@@ -34,6 +35,8 @@ const TOASTER_ICONS = {
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const queryClient = getQueryClient();
+  // Toaster 用应用自身的主题状态覆盖 next-themes，避免两套主题源在运行时不一致
+  const resolvedTheme = useResolvedThemeMode();
 
   const [isMockReady, setIsMockReady] = useState(() => !env.ENABLE_MOCK);
 
@@ -63,7 +66,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
                 <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
               </div>
             )}
-            <Toaster position="top-right" closeButton visibleToasts={4} icons={TOASTER_ICONS} />
+            <Toaster position="top-right" closeButton visibleToasts={4} icons={TOASTER_ICONS} theme={resolvedTheme} />
           </TooltipProvider>
         </QueryClientProvider>
       </NuqsAdapter>

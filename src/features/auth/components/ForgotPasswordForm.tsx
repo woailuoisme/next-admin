@@ -1,20 +1,19 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { AlertCircle, ArrowLeft, Loader2, Mail } from "lucide-react";
+import { AlertCircle, ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Form, TextInput } from "@/components/form";
-import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MessageKeyOf } from "@/types/i18n";
 
 import { resolveResetErrorKey, useForgotPasswordMutation } from "../hooks";
 import { forgotPasswordSchema } from "../schemas";
 
-import { AuthCard } from "./AuthShell";
+import { AuthCard, AuthFormError, AuthSubmitButton } from "./AuthShell";
 
 export interface ForgotPasswordFormProps {
   /** 从后续步骤因票据过期回退而来 */
@@ -62,29 +61,15 @@ export function ForgotPasswordForm({ expired = false }: ForgotPasswordFormProps)
             name="email"
             label={t("email_label")}
             type="email"
-            placeholder="admin@example.com"
+            placeholder="name@company.com"
             prefix={<Mail className="text-muted-foreground size-4" />}
             autoComplete="email"
             required
           />
 
-          {errorKey ? (
-            <p className="text-destructive flex items-center gap-1.5 text-xs" role="alert">
-              <AlertCircle className="size-3.5 shrink-0" />
-              <span>{t(errorKey)}</span>
-            </p>
-          ) : null}
+          {errorKey ? <AuthFormError message={t(errorKey)} /> : null}
 
-          <Button type="submit" className="w-full font-semibold shadow-md" disabled={mutation.isPending}>
-            {mutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                {t("sending")}
-              </>
-            ) : (
-              t("send_code")
-            )}
-          </Button>
+          <AuthSubmitButton isPending={mutation.isPending} pendingLabel={t("sending")} label={t("send_code")} />
         </Form>
 
         <Link

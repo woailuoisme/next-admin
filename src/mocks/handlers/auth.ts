@@ -1,4 +1,3 @@
-import { capitalize } from "es-toolkit";
 import { http } from "msw";
 
 import type { AdminUser } from "@/features/auth";
@@ -21,10 +20,6 @@ interface ResetTicket {
 const resetTickets = new Map<string, ResetTicket>();
 const resetTokens = new Map<string, { email: string; expiresAt: number }>();
 const lastSentAtByEmail = new Map<string, number>();
-
-function isDevEnvironment() {
-  return process.env.NODE_ENV !== "production";
-}
 
 /**
  * happy-dom 处理空体 204 时会重复关闭响应流（ERR_INVALID_STATE），
@@ -102,24 +97,6 @@ export const authHandlers = [
     return jsonOk({ admin });
   }),
 
-  http.get("/v1/auth/demo-accounts", async ({ request }) => {
-    await simulateNetwork(request);
-    const chaos = checkChaosError(request);
-    if (chaos) return chaos;
-
-    const admins = db.adminUser.getAll() as unknown as AdminUser[];
-    const demoAccounts = admins
-      .filter((a) => a.status === "active")
-      .slice(0, 3)
-      .map((a) => ({
-        name: a.name,
-        email: a.email,
-        role: a.role === "superadmin" ? "Superadmin" : capitalize(a.role),
-      }));
-
-    return jsonOk(demoAccounts);
-  }),
-
   // 忘记密码：无论邮箱是否存在都返回成功，避免账号枚举
   http.post("/v1/auth/forgot-password", async ({ request }) => {
     await simulateNetwork(request);
@@ -155,7 +132,6 @@ export const authHandlers = [
     return jsonOk({
       ticket,
       expiresIn: TICKET_TTL_MS / 1000,
-      ...(isDevEnvironment() ? { devCode: OTP_CODE } : {}),
     });
   }),
 

@@ -1,9 +1,7 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { Suspense } from "react";
 
-import DashboardLoading from "@/app/(app)/loading";
 import { DashboardContainer } from "@/features/dashboard/pages/DashboardContainer";
 import { dashboardQueries } from "@/features/dashboard/queries";
 import type { DashboardTimeRange } from "@/features/dashboard/types";
@@ -22,9 +20,7 @@ export default async function Page(props: { searchParams: Promise<{ range?: Dash
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Suspense fallback={<DashboardLoading />}>
-        <DashboardContainer />
-      </Suspense>
+      <DashboardContainer />
     </HydrationBoundary>
   );
 }

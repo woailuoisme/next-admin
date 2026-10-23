@@ -14,8 +14,6 @@ export interface ResetFlowState {
   resetToken?: string;
   /** 重置令牌过期时间戳（毫秒） */
   resetExpiresAt?: number;
-  /** 仅开发环境返回的验证码，用于演示 */
-  devCode?: string;
 }
 
 function isBrowser() {

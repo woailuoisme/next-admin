@@ -77,7 +77,7 @@ export const StatCardSkeleton = memo(function StatCardSkeleton({
   const resolvedSparklineLayout = sparklineLayout ?? gridContext.sparklineLayout ?? "inline";
   const dStyles = DENSITY_STYLES[resolvedDensity];
 
-  if (variant !== "default") {
+  if (variant !== "default" && VARIANT_CONTENT[variant]) {
     return (
       <Card className={cn("overflow-hidden border border-border/60", className)}>
         <CardContent className="flex flex-col justify-between space-y-4 p-5">{VARIANT_CONTENT[variant]}</CardContent>

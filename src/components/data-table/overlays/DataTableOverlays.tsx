@@ -260,7 +260,9 @@ export const DataTableEmptyOverlay = memo(function DataTableEmptyOverlay({
     content = emptyState;
   } else {
     // 未传配置时等价于空配置，图标 / 文案 / 动作全部走下方默认值
-    const baseConfig = (emptyState as TableEmptyStateConfig | undefined) ?? {};
+    // 走到这里只剩 undefined / false / 配置对象；显式判对象，避免依赖布尔装箱
+    const baseConfig: TableEmptyStateConfig =
+      typeof emptyState === "object" && emptyState !== null ? (emptyState as TableEmptyStateConfig) : {};
     const config = isFiltered && baseConfig.filtered ? { ...baseConfig, ...baseConfig.filtered } : baseConfig;
 
     content = (

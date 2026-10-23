@@ -1,14 +1,6 @@
 // Public API seam for auth feature
 
-export {
-  fetchCurrentAdminApi,
-  forgotPasswordApi,
-  getDemoAccountsApi,
-  loginApi,
-  logoutApi,
-  resetPasswordApi,
-  verifyOtpApi,
-} from "./api";
+export { fetchCurrentAdminApi, forgotPasswordApi, loginApi, logoutApi, resetPasswordApi, verifyOtpApi } from "./api";
 export { AuthCard, AuthShell } from "./components/AuthShell";
 export { ForgotPasswordForm } from "./components/ForgotPasswordForm";
 export { LoginForm } from "./components/LoginForm";
@@ -16,7 +8,6 @@ export { ResetPasswordForm } from "./components/ResetPasswordForm";
 export { VerifyOtpForm } from "./components/VerifyOtpForm";
 export {
   resolveResetErrorKey,
-  useDemoAccountsQuery,
   useForgotPasswordMutation,
   useLoginMutation,
   useLogoutMutation,
@@ -27,7 +18,6 @@ export { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 export { LoginPage } from "./pages/LoginPage";
 export { ResetPasswordPage } from "./pages/ResetPasswordPage";
 export { VerifyOtpPage } from "./pages/VerifyOtpPage";
-export { authKeys, authQueries } from "./queries";
 export { clearResetFlow, hasUsableResetToken, patchResetFlow, readResetFlow, saveResetFlow } from "./resetFlow";
 export {
   buildResetPasswordSchema,
@@ -55,7 +45,6 @@ export type {
   AdminUserStatus,
   AuthSession,
   AuthState,
-  DemoAccount,
   ForgotPasswordCredentials,
   ForgotPasswordResponse,
   LoginCredentials,

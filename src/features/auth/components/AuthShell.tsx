@@ -1,7 +1,9 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import type { ComponentProps, ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -26,5 +28,47 @@ export function AuthCard({ children, className }: { children: ReactNode; classNa
     <div className={cn("w-full max-w-md space-y-6", className)}>
       <Card className="border-border/60 shadow-xl backdrop-blur-sm">{children}</Card>
     </div>
+  );
+}
+
+/** 表单级业务错误提示（成功/过期等提示请直接用 role="status"） */
+export function AuthFormError({ message, className }: { message: ReactNode; className?: string }) {
+  return (
+    <p role="alert" className={cn("text-destructive flex items-center gap-1.5 text-xs", className)}>
+      <AlertCircle className="size-3.5 shrink-0" />
+      <span>{message}</span>
+    </p>
+  );
+}
+
+/** 认证表单主按钮：统一的 pending 转圈与文案切换 */
+export function AuthSubmitButton({
+  isPending,
+  label,
+  pendingLabel,
+  className,
+  disabled,
+  ...props
+}: Omit<ComponentProps<typeof Button>, "children"> & {
+  isPending: boolean;
+  label: ReactNode;
+  pendingLabel: ReactNode;
+}) {
+  return (
+    <Button
+      type="submit"
+      className={cn("w-full font-semibold shadow-md", className)}
+      {...props}
+      disabled={isPending || disabled}
+    >
+      {isPending ? (
+        <>
+          <Loader2 className="mr-2 size-4 animate-spin" />
+          {pendingLabel}
+        </>
+      ) : (
+        label
+      )}
+    </Button>
   );
 }

@@ -10,9 +10,9 @@ describe("Health Check Route Handler (/api/health)", () => {
 
     const data = await response.json();
     expect(data.status).toBe("healthy");
-    expect(data.environment).toBeDefined();
+    expect(data.uptime).toBeDefined();
     expect(data.timestamp).toBeDefined();
     expect(typeof data.timestamp).toBe("string");
-    expect(data.version).toBeDefined();
+    expect(data.version).toBeUndefined();
   });
 });

@@ -67,11 +67,11 @@ describe("Shared & layout components i18n", () => {
 
   it("keeps the sidebar brand copy stable across locales", () => {
     const zh = renderWithProviders(<SidebarHeader />);
-    expect(screen.getByText("Next SN Admin")).toBeInTheDocument();
+    expect(screen.getByText("Admin Panel")).toBeInTheDocument();
     zh.unmount();
 
     renderWithProviders(<SidebarHeader />, { locale: "en" });
-    expect(screen.getByText("Next SN Admin")).toBeInTheDocument();
+    expect(screen.getByText("Admin Panel")).toBeInTheDocument();
   });
 
   it("localizes the not-found page", () => {

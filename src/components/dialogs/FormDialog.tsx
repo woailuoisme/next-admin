@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";

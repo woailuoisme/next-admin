@@ -7,7 +7,7 @@ const defaultEnableMock =
   mockFlag === undefined ? process.env.NODE_ENV === "development" : mockFlag === "true" || mockFlag === "1";
 
 const envSchema = z.object({
-  APP_TITLE: z.string().min(1).default("Next SN Admin"),
+  APP_TITLE: z.string().min(1).default("Admin Panel"),
   APP_URL: z.string().url().or(z.literal("")).default(""),
   ENABLE_MOCK: z.boolean().default(defaultEnableMock),
   API_URL: z.string().url().or(z.literal("")).default(""),
