@@ -16,11 +16,6 @@ export function defaultNumberFormatter(val: number): string {
 }
 
 /**
- * Common alias for defaultNumberFormatter
- */
-export const formatNumber = defaultNumberFormatter;
-
-/**
  * Compact axis number formatter (e.g. 1.2M, 50k, 100)
  */
 export function defaultAxisNumberFormatter(val: number): string {
@@ -53,9 +48,12 @@ export function defaultXAxisFormatter(val: string | number): string {
 /**
  * Adaptive formatter for composed charts (detects small decimals as percentages)
  */
-export function defaultComposedValueFormatter(val: number): string {
+export function defaultComposedValueFormatter(val: number, format?: { number: (value: number) => string }): string {
   if (typeof val !== "number" || Number.isNaN(val)) {
     return String(val ?? 0);
   }
-  return Math.abs(val) <= 100 && String(val).includes(".") ? `${val.toFixed(1)}%` : val.toLocaleString();
+  if (Math.abs(val) <= 100 && String(val).includes(".")) {
+    return `${val.toFixed(1)}%`;
+  }
+  return format ? format.number(val) : defaultNumberFormatter(val);
 }

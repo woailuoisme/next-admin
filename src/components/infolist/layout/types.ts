@@ -31,6 +31,8 @@ export interface InfolistSectionProps extends Omit<React.HTMLAttributes<HTMLDivE
   columns?: GridColumns;
   card?: boolean;
   footer?: React.ReactNode;
+  /** 可选国际化字典覆盖 */
+
   children?: React.ReactNode;
 }
 

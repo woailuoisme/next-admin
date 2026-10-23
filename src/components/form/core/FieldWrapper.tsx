@@ -21,6 +21,7 @@ export const FieldWrapper = memo(function FieldWrapper({
   className,
   hidden,
   children,
+  align,
 }: FieldWrapperProps) {
   if (hidden) return null;
 
@@ -35,12 +36,19 @@ export const FieldWrapper = memo(function FieldWrapper({
       orientation="vertical"
       className={cn(
         "w-full gap-1.5 text-left",
+        align === "center" && "items-center text-center",
+        align === "right" && "items-end text-right",
         colSpan ? COL_SPAN_CLASSES[colSpan] : "col-span-1",
         className,
       )}
     >
       {(label || hint) && (
-        <div className="flex items-center justify-between gap-2">
+        <div
+          className={cn(
+            "flex items-center gap-2",
+            align === "center" ? "justify-center" : align === "right" ? "justify-end" : "justify-between",
+          )}
+        >
           <div className="flex items-center gap-1.5">
             {label && (
               <FieldLabel
@@ -62,16 +70,34 @@ export const FieldWrapper = memo(function FieldWrapper({
         </div>
       )}
 
-      <div className="w-full">{children}</div>
+      <div
+        className={cn("w-full", align === "center" && "flex justify-center", align === "right" && "flex justify-end")}
+      >
+        {children}
+      </div>
 
       {/* 底部错误提示或辅助文字 */}
       {hasError ? (
-        <FieldError className="animate-in text-destructive fade-in-50 flex items-center gap-1 text-[11px] font-medium duration-150">
+        <FieldError
+          id={id ? `${id}-error` : undefined}
+          className={cn(
+            "animate-in text-destructive fade-in-50 flex items-center gap-1 text-[11px] font-medium duration-150",
+            align === "center" && "justify-center",
+            align === "right" && "justify-end",
+          )}
+        >
           <AlertCircle className="size-3 shrink-0" />
           <span>{resolvedError}</span>
         </FieldError>
       ) : helperText ? (
-        <FieldDescription className="text-muted-foreground text-[11px] leading-relaxed">
+        <FieldDescription
+          id={id ? `${id}-desc` : undefined}
+          className={cn(
+            "text-muted-foreground text-[11px] leading-relaxed",
+            align === "center" && "text-center",
+            align === "right" && "text-right",
+          )}
+        >
           {helperText}
         </FieldDescription>
       ) : null}

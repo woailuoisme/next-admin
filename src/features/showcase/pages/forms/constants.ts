@@ -260,9 +260,7 @@ export const DEFAULT_VALUES: ShowcaseFormValues = {
     { sku: "SKU-9902", description: "Optical Transceiver 100G", quantity: 4, unitPrice: 350 },
   ],
   avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-  attachments: [
-    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80",
-  ],
+  attachments: ["https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80"],
   articleContent:
     "<h2>Welcome to TanStack Dashboard</h2><p>This rich content is managed by <strong>TipTap</strong>, matching the <em>Filament v5</em> RichEditor experience.</p><ul><li><p>Full WYSIWYG editing</p></li><li><p>Dual-mode HTML/Markdown output</p></li></ul>",
   password: "SecretPassword123!",

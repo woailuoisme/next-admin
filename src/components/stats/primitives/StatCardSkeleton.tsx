@@ -80,9 +80,7 @@ export const StatCardSkeleton = memo(function StatCardSkeleton({
   if (variant !== "default") {
     return (
       <Card className={cn("overflow-hidden border border-border/60", className)}>
-        <CardContent className="flex flex-col justify-between space-y-4 p-5">
-          {VARIANT_CONTENT[variant]}
-        </CardContent>
+        <CardContent className="flex flex-col justify-between space-y-4 p-5">{VARIANT_CONTENT[variant]}</CardContent>
       </Card>
     );
   }
@@ -98,9 +96,7 @@ export const StatCardSkeleton = memo(function StatCardSkeleton({
       <CardContent className={cn("flex flex-col justify-between", dStyles.cardPadding, dStyles.headerGap)}>
         <div className="flex items-center justify-between">
           <Skeleton className={cn(resolvedDensity === "compact" ? "h-3.5 w-20" : "h-4 w-24")} />
-          <Skeleton
-            className={cn(resolvedDensity === "compact" ? "h-6 w-6 rounded-md" : "h-8 w-8 rounded-lg")}
-          />
+          <Skeleton className={cn(resolvedDensity === "compact" ? "h-6 w-6 rounded-md" : "h-8 w-8 rounded-lg")} />
         </div>
         <div className={cn(resolvedDensity === "compact" ? "space-y-1" : "space-y-2")}>
           <Skeleton className={cn(resolvedDensity === "compact" ? "h-6 w-28" : "h-7 w-32")} />

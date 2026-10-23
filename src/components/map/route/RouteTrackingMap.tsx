@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { memo, useMemo } from "react";
 
 import { Map, MapControls, MapRoute, RouteProgress } from "@/components/ui/map";
@@ -11,7 +12,7 @@ import { EMPTY_STOPS, MAP_NO_ATTRIBUTION, MAP_PRIMARY, MAP_PRIMARY_SOFT } from "
 import { MapAutoResizer } from "../shared/MapAutoResizer";
 import { MapEmptyState } from "../shared/MapEmptyState";
 import { MapSkeleton } from "../shared/MapSkeleton";
-import { transformCoordinates } from "../utils/coordinates";
+import { resolveCoordinateSystems, transformCoordinates } from "../utils/coordinates";
 import { RoutePlaybackScrubber } from "./RoutePlaybackScrubber";
 import { StopMarker } from "./StopMarker";
 import { useRouteTracking } from "./useRouteTracking";
@@ -47,11 +48,12 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
   isEmpty = false,
   isError = false,
   error,
+  errorMessage,
+  emptyMessage,
   onRetry,
 }: RouteTrackingMapProps) {
-  const sourceCoords = coordinateSystem;
-  const targetCoords = basemap === "amap" ? "GCJ02" : "WGS84";
-  const needsTransform = sourceCoords !== targetCoords;
+  const t = useTranslations("map");
+  const { sourceCoords, targetCoords, needsTransform } = resolveCoordinateSystems(coordinateSystem, basemap);
 
   const normalizedCoordinates = useMemo(() => {
     if (!needsTransform) return coordinates;
@@ -86,10 +88,7 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
     return DEFAULT_BEIJING_CENTER;
   }, [center, normalizedCoordinates, needsTransform, sourceCoords, targetCoords]);
 
-  const basemapConfig = useMemo(
-    () => resolveBasemapConfig(basemap, customStyleUrl),
-    [basemap, customStyleUrl],
-  );
+  const basemapConfig = useMemo(() => resolveBasemapConfig(basemap, customStyleUrl), [basemap, customStyleUrl]);
 
   const hasEmptyData = isEmpty || normalizedCoordinates.length < 2;
 
@@ -103,12 +102,12 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
         <MapEmptyState
           height="100%"
           type="error"
-          message={error?.message || "Failed to load route tracking data"}
+          message={error?.message || errorMessage || t("route_error")}
           onAction={onRetry}
-          actionLabel="Retry"
+          actionLabel={t("retry")}
         />
       ) : hasEmptyData ? (
-        <MapEmptyState height="100%" type="no-data" message="No route trajectory data available" />
+        <MapEmptyState height="100%" type="no-data" message={emptyMessage || t("route_empty")} />
       ) : (
         <>
           <Map
@@ -123,12 +122,7 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
             <MapAutoResizer />
             <MapControls position="bottom-right" showZoom showCompass showLocate />
 
-            <MapRoute
-              coordinates={normalizedCoordinates}
-              color={routeColor}
-              width={routeWidth}
-              progress={progress}
-            >
+            <MapRoute coordinates={normalizedCoordinates} color={routeColor} width={routeWidth} progress={progress}>
               <RouteProgress color={traveledColor} width={routeWidth + 1} />
               <VehicleMarker vehicle={vehicle} progress={progress} />
             </MapRoute>
@@ -157,12 +151,13 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
     return (
       <MapCard
         height={height}
-        title={cardProps.title || "Route & Vehicle Tracking"}
-        description={cardProps.description || "Real-time trajectory, stops and milestone monitoring"}
+        title={cardProps.title || t("route_card_title")}
+        description={cardProps.description || t("route_card_desc")}
         fullscreenable={cardProps.fullscreenable}
         isLoading={isLoading}
         isError={isError}
         error={error}
+        errorMessage={errorMessage}
         onRetry={onRetry}
       >
         {mapBody}

@@ -82,10 +82,7 @@ const CheckboxGroupInner = memo(function CheckboxGroupInner({
     >
       <FieldGroup
         data-slot="checkbox-group"
-        className={cn(
-          "gap-2 pt-1",
-          direction === "horizontal" ? "flex-row flex-wrap items-center gap-4" : "space-y-2",
-        )}
+        className={cn("gap-2 pt-1", direction === "horizontal" ? "flex-row flex-wrap items-center gap-4" : "space-y-2")}
       >
         {options.map((option) => {
           const optionId = `${id}-${String(option.value)}`;
@@ -111,10 +108,7 @@ const CheckboxGroupInner = memo(function CheckboxGroupInner({
                   className="mt-0.5 rounded-sm"
                 />
                 <FieldContent className="min-w-0 flex-1 space-y-0.5">
-                  <FieldLabel
-                    htmlFor={optionId}
-                    className="text-foreground cursor-pointer text-xs font-semibold"
-                  >
+                  <FieldLabel htmlFor={optionId} className="text-foreground cursor-pointer text-xs font-semibold">
                     {option.label}
                   </FieldLabel>
                   {option.description && (
@@ -136,10 +130,7 @@ const CheckboxGroupInner = memo(function CheckboxGroupInner({
                 disabled={disabled || option.disabled}
                 className="rounded-sm"
               />
-              <FieldLabel
-                htmlFor={optionId}
-                className="text-foreground cursor-pointer text-xs font-medium select-none"
-              >
+              <FieldLabel htmlFor={optionId} className="text-foreground cursor-pointer text-xs font-medium select-none">
                 {option.label}
               </FieldLabel>
             </Field>

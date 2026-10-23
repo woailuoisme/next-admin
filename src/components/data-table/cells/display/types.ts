@@ -49,14 +49,7 @@ export interface TextCellProps extends BaseCellProps {
 // ==========================================
 // 2. BadgeCell Props
 // ==========================================
-export type BadgeVariantType =
-  | "default"
-  | "secondary"
-  | "destructive"
-  | "outline"
-  | "success"
-  | "warning"
-  | "info";
+export type BadgeVariantType = "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info";
 
 export interface BadgeCellOption {
   label: React.ReactNode;

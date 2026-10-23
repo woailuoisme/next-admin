@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 
-export const metadata: Metadata = {
-  title: "用户登录",
-  description: "登录到 Next SN Admin 企业管理后台",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("auth");
+  return { title: t("page_title"), description: t("page_description") };
+}
 
-export default function Page() {
-  return <LoginPage />;
+export default async function Page({ searchParams }: { searchParams: Promise<{ email?: string }> }) {
+  const { email } = await searchParams;
+  return <LoginPage initialEmail={email} />;
 }

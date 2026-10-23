@@ -33,8 +33,7 @@ export const UserCell = memo(function UserCell({
   const [copied, setCopied] = useState(false);
 
   const isExplicitUnassigned =
-    allowUnassigned &&
-    (isNil(name) || name === "" || name === "未指派" || name === "Unassigned" || name === "待分配");
+    allowUnassigned && (isNil(name) || name === "" || name === "未指派" || name === "Unassigned" || name === "待分配");
 
   const hasNoInfo = isNil(name) && isNil(subtitle);
 
@@ -71,9 +70,7 @@ export const UserCell = memo(function UserCell({
         </div>
         <div className="flex min-w-0 flex-col leading-tight">
           <span className="text-muted-foreground/60 truncate text-xs italic">{unassignedText}</span>
-          {subtitle && (
-            <span className="text-muted-foreground/50 mt-0.5 truncate text-[11px]">{subtitle}</span>
-          )}
+          {subtitle && <span className="text-muted-foreground/50 mt-0.5 truncate text-[11px]">{subtitle}</span>}
         </div>
       </div>
     );

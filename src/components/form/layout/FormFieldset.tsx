@@ -14,12 +14,7 @@ export interface FormFieldsetProps {
   children: ReactNode;
 }
 
-export const FormFieldset = memo(function FormFieldset({
-  legend,
-  columns,
-  className,
-  children,
-}: FormFieldsetProps) {
+export const FormFieldset = memo(function FormFieldset({ legend, columns, className, children }: FormFieldsetProps) {
   return (
     <FieldSet
       className={cn(
@@ -28,13 +23,9 @@ export const FormFieldset = memo(function FormFieldset({
       )}
     >
       {legend && (
-        <FieldLegend className="text-foreground px-2 text-xs font-semibold tracking-tight">
-          {legend}
-        </FieldLegend>
+        <FieldLegend className="text-foreground px-2 text-xs font-semibold tracking-tight">{legend}</FieldLegend>
       )}
-      <div className="w-full pt-1.5">
-        {columns ? <FormGrid columns={columns}>{children}</FormGrid> : children}
-      </div>
+      <div className="w-full pt-1.5">{columns ? <FormGrid columns={columns}>{children}</FormGrid> : children}</div>
     </FieldSet>
   );
 });

@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 
+import { useFormatter } from "next-intl";
+
 import type { FunnelConversionChartProps, FunnelItemWithRates } from "./types";
 
-import { formatNumber } from "../shared/formatters";
 import { CHART_PALETTE } from "../shared/theme";
 
 export function useFunnelConversion(props: FunnelConversionChartProps) {
@@ -17,8 +18,7 @@ export function useFunnelConversion(props: FunnelConversionChartProps) {
       const prevValue = index === 0 ? item.value : data[index - 1]?.value || 1;
       const conversionRate = Math.round((item.value / initialValue) * 1000) / 10;
       const stepRate = Math.round((item.value / prevValue) * 1000) / 10;
-      const dropoffRate =
-        index === 0 ? 0 : Math.max(0, Math.round(((prevValue - item.value) / prevValue) * 1000) / 10);
+      const dropoffRate = index === 0 ? 0 : Math.max(0, Math.round(((prevValue - item.value) / prevValue) * 1000) / 10);
 
       const color = item.fill || CHART_PALETTE[index % CHART_PALETTE.length] || "var(--chart-1)";
 
@@ -32,7 +32,8 @@ export function useFunnelConversion(props: FunnelConversionChartProps) {
     });
   }, [data]);
 
-  const valueFormatter = customFormatter ?? formatNumber;
+  const format = useFormatter();
+  const valueFormatter = customFormatter ?? ((val: number) => format.number(val));
 
   return {
     processedData,

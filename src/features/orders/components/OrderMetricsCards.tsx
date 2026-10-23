@@ -1,6 +1,7 @@
 import { Clock, DollarSign, PackageCheck, ShoppingCart } from "lucide-react";
 
 import { type SparklineLayout, StatCard, type StatDensity, StatsGrid } from "@/components/stats";
+import { useTranslations } from "next-intl";
 
 export interface OrderMetricsSummary {
   total: number;
@@ -28,59 +29,61 @@ export function OrderMetricsCards({
   density,
   sparklineLayout = "inline",
 }: OrderMetricsCardsProps) {
+  const t = useTranslations("orders");
+
   return (
     <StatsGrid columns={4} isLoading={isLoading} density={density} sparklineLayout={sparklineLayout}>
       <StatCard
-        title="平台总订单数"
+        title={t("metric_total_title")}
         value={stats.total.toLocaleString()}
         icon={ShoppingCart}
         theme="chart-1"
-        description="全渠道支付成功的有效订单汇总"
+        description={t("metric_total_desc")}
         trend={{
           value: "+12.4%",
           direction: "up",
-          label: "较上周",
+          label: t("metric_total_trend"),
         }}
         sparklineData={stats.sparklines?.totalOrders}
         sparklineType="bar"
       />
       <StatCard
-        title="待发货 / 履约中"
+        title={t("metric_pending_title")}
         value={stats.pendingCount}
         icon={Clock}
         theme="chart-3"
-        description="处于 Pending 或 Processing 状态需仓库打包出库的订单"
+        description={t("metric_pending_desc")}
         trend={{
-          value: stats.pendingCount > 0 ? "需处理" : "已清空",
+          value: stats.pendingCount > 0 ? t("metric_pending_need_action") : t("metric_pending_cleared"),
           direction: stats.pendingCount > 0 ? "neutral" : "up",
           isPositiveGood: false,
         }}
         sparklineData={stats.sparklines?.pending}
       />
       <StatCard
-        title="已交付完成"
+        title={t("metric_delivered_title")}
         value={stats.deliveredCount}
         icon={PackageCheck}
         theme="chart-2"
-        description="已妥投收件人签收并结算的完成订单"
+        description={t("metric_delivered_desc")}
         trend={{
           value: "95.6%",
           direction: "up",
-          label: "履约达成率",
+          label: t("metric_delivered_trend"),
         }}
         sparklineData={stats.sparklines?.delivered}
       />
       <StatCard
-        title="平均客单价 (AOV)"
+        title={t("metric_aov_title")}
         value={stats.avgOrderValue.toFixed(2)}
         prefix="$"
         icon={DollarSign}
         theme="chart-4"
-        description="每笔有效交易的平均消费金额"
+        description={t("metric_aov_desc")}
         trend={{
           value: "+5.2%",
           direction: "up",
-          label: "较上季",
+          label: t("metric_aov_trend"),
         }}
         sparklineData={stats.sparklines?.avgOrderValue}
       />

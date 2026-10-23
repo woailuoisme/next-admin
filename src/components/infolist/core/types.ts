@@ -25,6 +25,7 @@ export interface EntryBaseProps {
   className?: string;
   labelClassName?: string;
   contentClassName?: string;
+  /** 可选国际化字典覆盖 */
 }
 
 export interface EntryWrapperProps extends EntryBaseProps {
@@ -35,11 +36,14 @@ export interface InfolistContextValue<TRecord = unknown> {
   record?: TRecord;
   orientation?: EntryOrientation;
   dense?: boolean;
+  /** 可选国际化字典覆盖 */
 }
 
 export interface InfolistProps<TRecord = unknown> extends React.HTMLAttributes<HTMLDivElement> {
   record?: TRecord;
   orientation?: EntryOrientation;
   dense?: boolean;
+  /** 可选国际化字典覆盖 */
+
   children?: React.ReactNode;
 }

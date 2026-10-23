@@ -2,7 +2,7 @@ import type { ReactElement, ReactNode } from "react";
 
 import { noop } from "es-toolkit";
 
-import { useFormContext } from "./context";
+import { useFormContext } from "./FormContext";
 
 export interface ConnectedFieldRenderProps<TValue = unknown> {
   value: TValue;

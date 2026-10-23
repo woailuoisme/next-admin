@@ -9,8 +9,7 @@ export const EMPTY_NOTIFICATION_FILTERS: NotificationFilters = Object.freeze({})
 export const notificationKeys = {
   all: ["notifications"] as const,
   lists: () => [...notificationKeys.all, "list"] as const,
-  list: (filters: NotificationFilters = EMPTY_NOTIFICATION_FILTERS) =>
-    [...notificationKeys.lists(), filters] as const,
+  list: (filters: NotificationFilters = EMPTY_NOTIFICATION_FILTERS) => [...notificationKeys.lists(), filters] as const,
 };
 
 export const selectUnreadCount = (data: NotificationListResponse): number => data.unreadCount;

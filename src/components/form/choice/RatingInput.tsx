@@ -163,10 +163,7 @@ const RatingInputInner = memo(function RatingInputInner({
 
               {/* Foreground Star (Filled overlay) */}
               {fillPercentage > 0 && (
-                <div
-                  className="absolute inset-0 overflow-hidden p-0.5"
-                  style={{ width: `${fillPercentage}%` }}
-                >
+                <div className="absolute inset-0 overflow-hidden p-0.5" style={{ width: `${fillPercentage}%` }}>
                   <CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.filled)} />
                 </div>
               )}

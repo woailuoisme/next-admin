@@ -24,13 +24,10 @@ export const FilterControlGrid: React.FC<FilterControlGridProps> = ({
   onTernaryChange,
   onCustomChange,
 }) => {
-  const columnsCount =
-    explicitColumnsCount ?? (resolvedFilters.length >= 3 ? 3 : resolvedFilters.length >= 2 ? 2 : 1);
+  const columnsCount = explicitColumnsCount ?? (resolvedFilters.length >= 3 ? 3 : resolvedFilters.length >= 2 ? 2 : 1);
 
   if (resolvedFilters.length === 0) {
-    return (
-      <p className="text-muted-foreground py-4 text-center text-xs">No filters available for this table.</p>
-    );
+    return <p className="text-muted-foreground py-4 text-center text-xs">No filters available for this table.</p>;
   }
 
   return (

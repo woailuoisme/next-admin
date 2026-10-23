@@ -1,21 +1,48 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+
+import { MapSkeleton } from "@/components/map";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapFeatureHighlights } from "./components/MapFeatureHighlights";
 import { MapHeaderBar } from "./components/MapHeaderBar";
 import { MAP_TABS } from "./constants";
-import { ArcFlightShowcaseTab } from "./tabs/ArcFlightShowcaseTab";
-import { BigDataShowcaseTab } from "./tabs/BigDataShowcaseTab";
-import { CoordsShowcaseTab } from "./tabs/CoordsShowcaseTab";
-import { GeoDistributionShowcaseTab } from "./tabs/GeoDistributionShowcaseTab";
-import { HeatmapShowcaseTab } from "./tabs/HeatmapShowcaseTab";
 import { MarkersShowcaseTab } from "./tabs/MarkersShowcaseTab";
-import { PickerShowcaseTab } from "./tabs/PickerShowcaseTab";
-import { RouteShowcaseTab } from "./tabs/RouteShowcaseTab";
 import type { DemoState, DemoStateProps } from "./types";
 
+const RouteShowcaseTab = dynamic(() => import("./tabs/RouteShowcaseTab").then((m) => m.RouteShowcaseTab), {
+  loading: () => <MapSkeleton height={500} />,
+});
+
+const GeoDistributionShowcaseTab = dynamic(
+  () => import("./tabs/GeoDistributionShowcaseTab").then((m) => m.GeoDistributionShowcaseTab),
+  { loading: () => <MapSkeleton height={500} /> },
+);
+
+const ArcFlightShowcaseTab = dynamic(() => import("./tabs/ArcFlightShowcaseTab").then((m) => m.ArcFlightShowcaseTab), {
+  loading: () => <MapSkeleton height={500} />,
+});
+
+const HeatmapShowcaseTab = dynamic(() => import("./tabs/HeatmapShowcaseTab").then((m) => m.HeatmapShowcaseTab), {
+  loading: () => <MapSkeleton height={500} />,
+});
+
+const BigDataShowcaseTab = dynamic(() => import("./tabs/BigDataShowcaseTab").then((m) => m.BigDataShowcaseTab), {
+  loading: () => <MapSkeleton height={500} />,
+});
+
+const CoordsShowcaseTab = dynamic(() => import("./tabs/CoordsShowcaseTab").then((m) => m.CoordsShowcaseTab), {
+  loading: () => <MapSkeleton height={500} />,
+});
+
+const PickerShowcaseTab = dynamic(() => import("./tabs/PickerShowcaseTab").then((m) => m.PickerShowcaseTab), {
+  loading: () => <MapSkeleton height={500} />,
+});
+
 export function MapShowcasePage() {
+  const t = useTranslations("showcase");
   const [demoState, setDemoState] = useState<DemoState>("normal");
 
   const handleRetry = () => {
@@ -37,14 +64,14 @@ export function MapShowcasePage() {
 
       <Tabs defaultValue="markers" className="space-y-6">
         <TabsList className="bg-muted/60 grid h-auto! w-full grid-cols-2 gap-1 border p-1 md:grid-cols-4">
-          {MAP_TABS.map(({ value, icon: Icon, label }) => (
+          {MAP_TABS.map(({ value, icon: Icon, labelKey }) => (
             <TabsTrigger
               key={value}
               value={value}
               className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
             >
               <Icon className="size-3.5" />
-              {label}
+              {t(labelKey)}
             </TabsTrigger>
           ))}
         </TabsList>

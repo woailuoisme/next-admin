@@ -16,6 +16,8 @@ export type GridColumns = ColumnsCount | ResponsiveColumns;
 export interface FieldWrapperProps {
   /** 字段标签 */
   label?: ReactNode;
+  /** 字段对齐方式 */
+  align?: "left" | "center" | "right";
   /** 字段唯一标识 */
   id?: string;
   /** 是否必填，展示红色星号 */

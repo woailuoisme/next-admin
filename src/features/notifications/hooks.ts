@@ -2,8 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { useCentrifuge, useSubscription } from "@/integrations/centrifuge";
-import { getApiErrorMessage } from "@/lib/api-client";
-import { toastMessages } from "@/lib/toast-messages";
+import { getApiErrorMessage } from "@/lib/apiClient";
+import { toastMessages } from "@/lib/toastMessages";
 import { useAuthAdmin } from "@/stores/auth";
 
 import type { NotificationFilters, NotificationItem, NotificationListResponse } from "./types";

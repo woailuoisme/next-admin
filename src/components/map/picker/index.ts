@@ -1,5 +1,5 @@
-export type { AmapPlace, AmapSearchResult } from "./amap-geo";
-export { describeAmapInfo, isAmapApiEnabled, reverseGeocode, searchPlaces } from "./amap-geo";
+export type { AmapPlace, AmapSearchResult } from "./amapGeo";
+export { describeAmapInfo, isAmapApiEnabled, reverseGeocode, searchPlaces } from "./amapGeo";
 export { LocationAddressSearch } from "./LocationAddressSearch";
 export { LocationCoordinatesInput } from "./LocationCoordinatesInput";
 export { LocationPicker } from "./LocationPicker";

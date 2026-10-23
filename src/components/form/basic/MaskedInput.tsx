@@ -134,8 +134,7 @@ const MaskedInputInner = memo(function MaskedInputInner({
   });
 
   const hasValue = Boolean(displayValue);
-  const hasAdornments =
-    Boolean(prefix) || Boolean(suffix) || (clearable && hasValue && !disabled && !readOnly);
+  const hasAdornments = Boolean(prefix) || Boolean(suffix) || (clearable && hasValue && !disabled && !readOnly);
 
   if (hasAdornments) {
     return (

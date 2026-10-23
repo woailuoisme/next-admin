@@ -11,12 +11,7 @@ export interface SelectFilterControlProps {
   ariaLabel?: string;
 }
 
-export const SelectFilterControl: React.FC<SelectFilterControlProps> = ({
-  definition,
-  value,
-  onChange,
-  ariaLabel,
-}) => {
+export const SelectFilterControl: React.FC<SelectFilterControlProps> = ({ definition, value, onChange, ariaLabel }) => {
   return (
     <Select value={String(value ?? "__all__")} onValueChange={onChange}>
       <SelectTrigger className="bg-background h-8 text-xs" aria-label={ariaLabel}>

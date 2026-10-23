@@ -17,14 +17,7 @@ export function GaugesShowcaseTab({ chartStateProps }: GaugesShowcaseTabProps) {
           {...chartStateProps}
           height={200}
         >
-          <RadialGaugeChart
-            value={99.9}
-            max={100}
-            label="正常运行时间"
-            unit="%"
-            theme="chart-2"
-            height={180}
-          />
+          <RadialGaugeChart value={99.9} max={100} label="正常运行时间" unit="%" theme="chart-2" height={180} />
         </ChartCard>
 
         <ChartCard
@@ -33,14 +26,7 @@ export function GaugesShowcaseTab({ chartStateProps }: GaugesShowcaseTabProps) {
           {...chartStateProps}
           height={200}
         >
-          <RadialGaugeChart
-            value={78.4}
-            max={100}
-            label="集群内存消耗"
-            unit="%"
-            theme="chart-3"
-            height={180}
-          />
+          <RadialGaugeChart value={78.4} max={100} label="集群内存消耗" unit="%" theme="chart-3" height={180} />
         </ChartCard>
 
         <ChartCard

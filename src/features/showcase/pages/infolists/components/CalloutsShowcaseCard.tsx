@@ -9,9 +9,7 @@ export function CalloutsShowcaseCard() {
       <CardHeader className="border-b pb-4">
         <div className="flex items-center gap-2">
           <Sparkles className="text-primary size-4" />
-          <CardTitle className="text-base font-semibold">
-            Callouts 提示卡片矩阵 (Schemas / Callouts)
-          </CardTitle>
+          <CardTitle className="text-base font-semibold">Callouts 提示卡片矩阵 (Schemas / Callouts)</CardTitle>
         </div>
         <CardDescription className="text-xs">
           基于 6 大 Tailwind 语义色彩 Token，支持标题、多行内容、动作按钮、可关闭及行内紧凑模式。

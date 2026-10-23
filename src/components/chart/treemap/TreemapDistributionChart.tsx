@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { ResponsiveContainer, Tooltip, Treemap } from "recharts";
+import { Tooltip, Treemap } from "recharts";
 
 import { cn } from "@/lib/utils";
 
@@ -7,7 +7,10 @@ import type { ValueFormatter } from "../shared/formatters";
 import type { TreemapDistributionChartProps } from "./types";
 
 import { CHART_ON_FILL_TEXT } from "../shared/constants";
-import { formatNumber } from "../shared/formatters";
+import { useFormatter } from "next-intl";
+
+import { defaultNumberFormatter } from "../shared/formatters";
+import { ChartFrame } from "../shared/ChartFrame";
 import { useTreemapDistribution } from "./useTreemapDistribution";
 
 interface CustomContentProps {
@@ -35,7 +38,7 @@ const CustomTreemapNode = memo(function CustomTreemapNode(props: CustomContentPr
     value = 0,
     color = "var(--chart-1)",
     percent,
-    valueFormatter = (val: number) => formatNumber(val),
+    valueFormatter = defaultNumberFormatter,
   } = props;
 
   // Don't render tiny sub-pixels
@@ -138,40 +141,32 @@ const TreemapTooltipContent = memo(function TreemapTooltipContent({
 export const TreemapDistributionChart = memo(function TreemapDistributionChart({
   data,
   height = 300,
-  valueFormatter = (val: number) => formatNumber(val),
+  valueFormatter: customValueFormatter,
   colorPalette,
   aspectRatio = 1.618,
   showTooltip = true,
   nodeGap: _nodeGap = 2,
   className,
 }: TreemapDistributionChartProps) {
+  const format = useFormatter();
+  const valueFormatter = customValueFormatter ?? ((val: number) => format.number(val));
   const { enrichedData, total } = useTreemapDistribution({
     data,
     colorPalette,
   });
 
   return (
-    <div className={cn("w-full overflow-hidden select-none", className)} style={{ height }}>
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
-        minWidth={0}
-        minHeight={height}
-        initialDimension={{ width: 500, height }}
+    <ChartFrame height={height} className={cn("w-full overflow-hidden select-none", className)} style={{ height }}>
+      <Treemap
+        data={enrichedData}
+        dataKey="value"
+        nameKey="name"
+        aspectRatio={aspectRatio}
+        isAnimationActive={false}
+        content={<CustomTreemapNode valueFormatter={valueFormatter} />}
       >
-        <Treemap
-          data={enrichedData}
-          dataKey="value"
-          nameKey="name"
-          aspectRatio={aspectRatio}
-          isAnimationActive={false}
-          content={<CustomTreemapNode valueFormatter={valueFormatter} />}
-        >
-          {showTooltip && (
-            <Tooltip content={<TreemapTooltipContent total={total} valueFormatter={valueFormatter} />} />
-          )}
-        </Treemap>
-      </ResponsiveContainer>
-    </div>
+        {showTooltip && <Tooltip content={<TreemapTooltipContent total={total} valueFormatter={valueFormatter} />} />}
+      </Treemap>
+    </ChartFrame>
   );
 });

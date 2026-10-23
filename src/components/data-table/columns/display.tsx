@@ -293,7 +293,7 @@ export function currencyCol<TData = any>(
     headerDescription?: string;
     currency?: string;
     currencyCode?: string;
-    locale?: string;
+
     decimals?: number;
     compact?: boolean;
     colorize?: boolean;
@@ -306,7 +306,6 @@ export function currencyCol<TData = any>(
     headerDescription,
     currency,
     currencyCode,
-    locale,
     decimals,
     compact,
     colorize,
@@ -329,7 +328,6 @@ export function currencyCol<TData = any>(
         value={value}
         prefix={currency || "$"}
         currencyCode={currencyCode}
-        locale={locale}
         decimals={decimals}
         compact={compact}
         colorize={colorize}
@@ -359,17 +357,8 @@ export function progressCol<TData = any>(
     showPercentage?: boolean;
   },
 ): DataTableColDef<TData> {
-  const {
-    headerDescription,
-    max,
-    showValue,
-    colorByValue,
-    segments,
-    target,
-    targetLabel,
-    showPercentage,
-    ...colDef
-  } = options || {};
+  const { headerDescription, max, showValue, colorByValue, segments, target, targetLabel, showPercentage, ...colDef } =
+    options || {};
 
   return {
     field,
@@ -530,8 +519,7 @@ export function ratingCol<TData = any>(
     reviewCount?: number | ((row: TData) => number | undefined);
   },
 ): DataTableColDef<TData> {
-  const { headerDescription, max, size, showScore, allowHalf, iconType, reviewCount, ...colDef } =
-    options || {};
+  const { headerDescription, max, size, showScore, allowHalf, iconType, reviewCount, ...colDef } = options || {};
 
   return {
     field,
@@ -579,13 +567,7 @@ export function colorCol<TData = any>(
     filterable: true,
     align: "left",
     renderCell: ({ value }: DataTableRenderCellParams<TData>) => (
-      <ColorCell
-        value={value}
-        showHex={showHex}
-        copyable={copyable}
-        shape={shape}
-        checkerboard={checkerboard}
-      />
+      <ColorCell value={value} showHex={showHex} copyable={copyable} shape={shape} checkerboard={checkerboard} />
     ),
     ...colDef,
   };
@@ -718,9 +700,7 @@ export function userCol<TData = any>(
           : avatarField && row
             ? (row as any)[avatarField]
             : userObj.avatarSrc || userObj.avatarUrl;
-      const resolvedFallback = fallback
-        ? resolveFn(fallback, row)
-        : userObj.fallback || userObj.avatarFallback;
+      const resolvedFallback = fallback ? resolveFn(fallback, row) : userObj.fallback || userObj.avatarFallback;
       const resolvedStatus = getStatus
         ? getStatus(row)
         : statusField && row

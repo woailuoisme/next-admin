@@ -72,12 +72,7 @@ export interface RepeaterProps<T = unknown> extends BaseInputProps {
   /** 克隆单项的工厂函数（缺省时使用深拷贝） */
   cloneItem?: (item: T) => T;
   /** 项渲染函数 */
-  renderItem: (
-    item: T,
-    index: number,
-    updateItem: (val: T) => void,
-    helpers: RepeaterItemHelpers<T>,
-  ) => ReactNode;
+  renderItem: (item: T, index: number, updateItem: (val: T) => void, helpers: RepeaterItemHelpers<T>) => ReactNode;
   /** 项标题函数 */
   itemTitle?: (item: T, index: number) => ReactNode;
   /** 自定义项 Key 获取函数 */

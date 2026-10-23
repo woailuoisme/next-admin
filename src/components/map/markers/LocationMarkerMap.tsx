@@ -62,10 +62,7 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
   // Deferred search query for smooth UI response during fast typing
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
-  const rawItems = useMemo(
-    () => props.data ?? props.locations ?? EMPTY_MARKERS,
-    [props.data, props.locations],
-  );
+  const rawItems = useMemo(() => props.data ?? props.locations ?? EMPTY_MARKERS, [props.data, props.locations]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -77,20 +74,14 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
     return counts;
   }, [rawItems]);
 
-  const basemapConfig = useMemo(
-    () => resolveBasemapConfig(basemap, customStyleUrl),
-    [basemap, customStyleUrl],
-  );
+  const basemapConfig = useMemo(() => resolveBasemapConfig(basemap, customStyleUrl), [basemap, customStyleUrl]);
   const hasNoData = isEmpty || (!isLoading && filteredData.length === 0 && !deferredSearchQuery);
-  const isCanvasTier =
-    renderMode === "canvas" || (renderMode === "auto" && filteredData.length >= tierThreshold);
+  const isCanvasTier = renderMode === "canvas" || (renderMode === "auto" && filteredData.length >= tierThreshold);
 
   // 高度交由外层容器决定（卡片取 MapCard.height、全屏取 fullscreenHeight、独立使用取 wrapper），
   // 内层统一 size-full，避免内层固定高度大于外层裁切框导致搜索浮层/控件被裁
   const mapBody = (
-    <div
-      className={cn("relative flex size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}
-    >
+    <div className={cn("relative flex size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}>
       {isLoading ? (
         <MapSkeleton height="100%" />
       ) : isError ? (

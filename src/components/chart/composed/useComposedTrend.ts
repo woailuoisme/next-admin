@@ -1,4 +1,5 @@
 import { useMemoizedFn } from "ahooks";
+import { useFormatter } from "next-intl";
 import { useMemo } from "react";
 
 import type { ComposedTrendChartProps } from "./types";
@@ -23,6 +24,8 @@ export function useComposedTrend(props: ComposedTrendChartProps) {
     valueFormatter: propValueFormatter,
   } = props;
 
+  const format = useFormatter();
+
   const hasRightAxis = bars.some((b) => b.yAxisId === "right") || lines.some((l) => l.yAxisId === "right");
 
   const leftAxisFormatter = useMemoizedFn((val: number) => {
@@ -37,7 +40,7 @@ export function useComposedTrend(props: ComposedTrendChartProps) {
 
   const valueFormatter = useMemoizedFn((val: number) => {
     if (propValueFormatter) return propValueFormatter(val);
-    return defaultComposedValueFormatter(val);
+    return defaultComposedValueFormatter(val, format);
   });
 
   const normalizedBars = useMemo(

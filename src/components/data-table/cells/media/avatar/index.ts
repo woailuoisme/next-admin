@@ -7,5 +7,5 @@ export {
   STATUS_DOT_LABELS,
   getAvatarPalette,
   hashString,
-} from "./avatar-palette";
+} from "./avatarPalette";
 export type { AvatarCellProps, AvatarItem, AvatarThumbProps, UserOnlineStatus } from "./types";

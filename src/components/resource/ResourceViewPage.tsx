@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Edit, Loader2 } from "lucide-react";
 import { memo } from "react";
 
@@ -17,29 +18,27 @@ export const ResourceViewPage = memo(function ResourceViewPage({
   backTo,
   backLabel,
   onEdit,
-  editText = "Edit",
-  closeText = "Back to list",
+  editText,
+  closeText,
   loading = false,
   extraActions,
   footerClassName,
   className,
   children,
 }: Omit<ResourceViewHostProps, "presentation" | "open" | "onOpenChange" | "size">) {
+  const t = useTranslations("resource");
   const handleBack = useResourceBackNavigation(backTo);
+
+  const resolvedEditText = editText ?? t("edit");
+  const resolvedCloseText = closeText ?? t("back_to_list");
 
   const headerActions = (
     <div className="flex items-center gap-2">
       {extraActions}
       {onEdit ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onEdit}
-          className="h-8 gap-1.5 text-xs shadow-xs"
-        >
+        <Button type="button" variant="outline" size="sm" onClick={onEdit} className="h-8 gap-1.5 text-xs shadow-xs">
           <Edit className="size-3.5" />
-          <span>{editText}</span>
+          <span>{resolvedEditText}</span>
         </Button>
       ) : null}
     </div>
@@ -65,16 +64,9 @@ export const ResourceViewPage = memo(function ResourceViewPage({
         <div className="space-y-6">{children}</div>
       )}
 
-      <div
-        className={cn("flex items-center justify-between border-t border-border/70 pt-4", footerClassName)}
-      >
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleBack}
-          className="h-8.5 px-4 text-xs font-medium"
-        >
-          {closeText}
+      <div className={cn("flex items-center justify-between border-t border-border/70 pt-4", footerClassName)}>
+        <Button type="button" variant="outline" onClick={handleBack} className="h-8.5 px-4 text-xs font-medium">
+          {resolvedCloseText}
         </Button>
       </div>
     </div>

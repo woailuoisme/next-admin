@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
 import { memo, useState } from "react";
@@ -37,11 +38,11 @@ export const MapCard = memo(function MapCard({
   className,
   children,
 }: MapCardProps) {
+  const t = useTranslations("map");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const openFullscreen = useMemoizedFn(() => setIsFullscreen(true));
   const canFullscreen = fullscreenable ?? showFullscreen;
-  const resolvedErrorMsg =
-    errorMessage || error?.message || (isError ? "Failed to load map data" : undefined);
+  const resolvedErrorMsg = errorMessage || error?.message || (isError ? t("error_default") : undefined);
 
   return (
     <>
@@ -70,8 +71,8 @@ export const MapCard = memo(function MapCard({
                 onClick={openFullscreen}
                 disabled={isLoading || isEmpty}
                 className="text-muted-foreground hover:text-foreground size-8"
-                title="全屏聚焦查看"
-                aria-label="全屏聚焦查看"
+                title={t("fullscreen_title")}
+                aria-label={t("fullscreen_title")}
               >
                 <Maximize2 className="size-3.5" />
               </Button>
@@ -94,20 +95,17 @@ export const MapCard = memo(function MapCard({
               {onRetry ? (
                 <Button variant="outline" size="sm" onClick={onRetry} className="h-8 gap-1.5 text-xs">
                   <RefreshCw className="size-3.5" />
-                  重试加载
+                  {t("retry")}
                 </Button>
               ) : null}
             </div>
           ) : isEmpty ? (
             <MapEmptyState height={height} description={emptyMessage} />
           ) : (
-            <div
-              className="border-border/40 relative w-full overflow-hidden rounded-lg border"
-              style={{ height }}
-            >
+            <div className="border-border/40 relative w-full overflow-hidden rounded-lg border" style={{ height }}>
               {isFullscreen ? (
                 <div className="bg-muted/20 text-muted-foreground flex size-full items-center justify-center text-xs">
-                  全屏聚焦视图已激活
+                  {t("fullscreen_active")}
                 </div>
               ) : (
                 children

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { type ChangeEvent, type DragEvent, useEffect, useRef, useState } from "react";
 
@@ -31,6 +32,7 @@ export function useFileUpload({
   readOnly,
   onUpload,
 }: UseFileUploadOptions) {
+  const t = useTranslations("form");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const blobUrlsRef = useRef<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
@@ -86,7 +88,7 @@ export function useFileUpload({
 
       try {
         if (file.size > maxSize) {
-          throw new Error(`File exceeds max size (${formatBytes(maxSize)})`);
+          throw new Error(`${t("upload_error_too_large")} (${formatBytes(maxSize)})`);
         }
 
         let uploadedUrl = "";
@@ -125,7 +127,7 @@ export function useFileUpload({
             ? {
                 ...item,
                 status: "error",
-                error: err?.message || "Upload failed",
+                error: err?.message || t("upload_status_failed"),
               }
             : item,
         );

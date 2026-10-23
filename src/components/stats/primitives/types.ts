@@ -63,6 +63,7 @@ export interface StatCardRootProps extends ComponentPropsWithoutRef<"div"> {
   theme?: StatCardTheme;
   to?: string;
   onClick?: () => void;
+
   children: ReactNode;
 }
 
@@ -100,6 +101,7 @@ export interface StatCardValueProps extends Omit<ComponentPropsWithoutRef<"div">
   copyText?: string;
   animated?: boolean;
   density?: StatDensity;
+
   children?: ReactNode;
 }
 

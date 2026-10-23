@@ -1,7 +1,7 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { ArrowRight, Check, Clock, ExternalLink, Trash2 } from "lucide-react";
 import { memo } from "react";
-import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -28,10 +28,7 @@ function RowAction({ label, Icon, onClick, className }: RowActionProps) {
           size="icon"
           onClick={onClick}
           aria-label={label}
-          className={cn(
-            "text-muted-foreground hover:bg-muted hover:text-foreground size-6 rounded",
-            className,
-          )}
+          className={cn("text-muted-foreground hover:bg-muted hover:text-foreground size-6 rounded", className)}
         >
           <Icon className="size-3.5" />
         </Button>
@@ -112,10 +109,7 @@ export const NotificationItemRow = memo(function NotificationItemRow({
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5">
             {!item.read && (
-              <span
-                data-testid="notification-unread-dot"
-                className="bg-primary size-1.5 shrink-0 rounded-full"
-              />
+              <span data-testid="notification-unread-dot" className="bg-primary size-1.5 shrink-0 rounded-full" />
             )}
             <h4
               className={cn(
@@ -155,13 +149,9 @@ export const NotificationItemRow = memo(function NotificationItemRow({
         className="border-border/50 bg-popover/95 absolute top-2.5 right-2.5 z-10 hidden items-center gap-0.5 rounded-md border p-0.5 shadow-xs backdrop-blur-md transition-all group-hover:flex"
         onClick={handleToolbarClick}
       >
-        {!item.read && onMarkAsRead && (
-          <RowAction label={t("mark_as_read")} Icon={Check} onClick={handleMarkRead} />
-        )}
+        {!item.read && onMarkAsRead && <RowAction label={t("mark_as_read")} Icon={Check} onClick={handleMarkRead} />}
 
-        {item.actionUrl && (
-          <RowAction label={t("open_details")} Icon={ExternalLink} onClick={handleExternalAction} />
-        )}
+        {item.actionUrl && <RowAction label={t("open_details")} Icon={ExternalLink} onClick={handleExternalAction} />}
 
         {onDelete && (
           <RowAction

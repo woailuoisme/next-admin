@@ -28,12 +28,10 @@ export function InteractiveTableSection({
   return (
     <Card className="border-border/60 max-w-full min-w-0 overflow-hidden">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold">
-          Interactive DataTable with Filament v5 Features
-        </CardTitle>
+        <CardTitle className="text-sm font-semibold">Interactive DataTable with Filament v5 Features</CardTitle>
         <CardDescription className="text-xs">
-          Try toggling the filter drawer or above-content inline panel, applying ternary filters, assembling
-          dynamic rules in Query Builder, and navigating through pages with capsule pagination.
+          Try toggling the filter drawer or above-content inline panel, applying ternary filters, assembling dynamic
+          rules in Query Builder, and navigating through pages with capsule pagination.
         </CardDescription>
       </CardHeader>
       <CardContent className="max-w-full min-w-0 overflow-hidden p-0">

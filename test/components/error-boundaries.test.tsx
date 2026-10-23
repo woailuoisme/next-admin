@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { NotFoundComponent } from "@/components/layout/not-found-component";
-import { RootErrorComponent } from "@/components/layout/root-error-component";
+import { NotFoundComponent } from "@/components/layout/NotFoundComponent";
+import { RootErrorComponent } from "@/components/layout/RootErrorComponent";
 import DashboardLoading from "@/app/(app)/loading";
 import { renderWithProviders, screen } from "../test-utils";
 
@@ -9,7 +9,7 @@ describe("Error Boundaries & Layout Fallbacks", () => {
     renderWithProviders(<NotFoundComponent />);
 
     expect(screen.getByText("404 Not Found")).toBeInTheDocument();
-    expect(screen.getByText("页面未找到 (Page Not Found)")).toBeInTheDocument();
+    expect(screen.getByText("页面未找到")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /返回上一页/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /返回首页/ })).toBeInTheDocument();
   });
@@ -20,7 +20,7 @@ describe("Error Boundaries & Layout Fallbacks", () => {
 
     const { user } = renderWithProviders(<RootErrorComponent error={error} reset={resetMock} />);
 
-    expect(screen.getByText("页面加载遇到异常 (Page Load Error)")).toBeInTheDocument();
+    expect(screen.getByText("页面加载遇到异常")).toBeInTheDocument();
     expect(screen.getByText("Test runtime failure")).toBeInTheDocument();
 
     const retryButton = screen.getByRole("button", { name: /重试/ });

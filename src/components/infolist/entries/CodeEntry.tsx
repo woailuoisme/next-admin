@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { CopyButton } from "@/components/copy-button";
+import { CopyButton } from "@/components/shared/CopyButton";
 import { cn } from "@/lib/utils";
 
 import type { CodeEntryProps } from "./types";
@@ -42,9 +42,7 @@ export const CodeEntry = React.memo(function CodeEntry({
           <span>{language ?? (typeof rawValue === "object" ? "json" : "code")}</span>
           {copyable && <CopyButton text={displayCode} className="size-5" />}
         </div>
-        <pre
-          className={cn("overflow-auto p-3 font-mono text-xs leading-relaxed text-foreground/90", maxHeight)}
-        >
+        <pre className={cn("overflow-auto p-3 font-mono text-xs leading-relaxed text-foreground/90", maxHeight)}>
           <code>{displayCode}</code>
         </pre>
       </div>

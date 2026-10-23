@@ -7,12 +7,7 @@ interface InfolistHeaderBarProps {
   onDenseToggle: () => void;
 }
 
-export function InfolistHeaderBar({
-  orientation,
-  dense,
-  onOrientationChange,
-  onDenseToggle,
-}: InfolistHeaderBarProps) {
+export function InfolistHeaderBar({ orientation, dense, onOrientationChange, onDenseToggle }: InfolistHeaderBarProps) {
   return (
     <div className="flex flex-col gap-3 border-b pb-5 sm:flex-row sm:items-center sm:justify-between">
       <div>

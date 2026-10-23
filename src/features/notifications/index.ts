@@ -1,10 +1,5 @@
 // Public API seam for notifications feature
-export {
-  deleteNotification,
-  fetchNotifications,
-  markAllNotificationsAsRead,
-  markNotificationAsRead,
-} from "./api";
+export { deleteNotification, fetchNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "./api";
 export {
   NOTIFICATIONS_QUERY_KEY,
   notificationKeys,

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useMemoizedFn } from "ahooks";
 import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from "lucide-react";
 import { memo } from "react";
@@ -48,8 +50,10 @@ export function NavUserSkeleton() {
   );
 }
 
-interface NavUserProps {
+export interface NavUserProps {
   user?: SidebarUser | null;
+
+  defaultOpen?: boolean;
 }
 
 /** 头像 + 姓名/邮箱组合（侧栏按钮与下拉菜单头部共用） */
@@ -68,7 +72,8 @@ function UserIdentity({ user, initials }: { user: SidebarUser; initials: string 
   );
 }
 
-export const NavUser = memo(function NavUser({ user }: NavUserProps) {
+export const NavUser = memo(function NavUser({ user, defaultOpen }: NavUserProps) {
+  const t = useTranslations("layout");
   const { isMobile, state } = useSidebar();
   const logoutMutation = useLogoutMutation();
 
@@ -85,7 +90,7 @@ export const NavUser = memo(function NavUser({ user }: NavUserProps) {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu defaultOpen={defaultOpen}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
@@ -113,22 +118,22 @@ export const NavUser = memo(function NavUser({ user }: NavUserProps) {
             <DropdownMenuGroup>
               <DropdownMenuItem className="cursor-pointer">
                 <Sparkles className="mr-2 size-4" />
-                <span>Upgrade to Pro</span>
+                <span>{t("nav_user_upgrade_pro")}</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem className="cursor-pointer">
                 <BadgeCheck className="mr-2 size-4" />
-                <span>Account</span>
+                <span>{t("nav_user_account")}</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <CreditCard className="mr-2 size-4" />
-                <span>Billing</span>
+                <span>{t("nav_user_billing")}</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Bell className="mr-2 size-4" />
-                <span>Notifications</span>
+                <span>{t("nav_user_notifications")}</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
@@ -140,7 +145,7 @@ export const NavUser = memo(function NavUser({ user }: NavUserProps) {
                 disabled={logoutMutation.isPending}
               >
                 <LogOut className="mr-2 size-4" />
-                <span>{logoutMutation.isPending ? "Logging out..." : "Log out"}</span>
+                <span>{logoutMutation.isPending ? t("nav_user_logging_out") : t("nav_user_logout")}</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

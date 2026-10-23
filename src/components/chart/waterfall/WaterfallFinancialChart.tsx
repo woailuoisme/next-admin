@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Tooltip, XAxis, YAxis } from "recharts";
 
 import { cn } from "@/lib/utils";
 
@@ -10,8 +10,8 @@ import {
   CHART_GRID_STROKE,
   DEFAULT_ANIMATION_DURATION,
   DEFAULT_CHART_MARGIN,
-  DEFAULT_INITIAL_CHART_WIDTH,
 } from "../shared/constants";
+import { ChartFrame } from "../shared/ChartFrame";
 import { useWaterfallFinancial } from "./useWaterfallFinancial";
 
 interface WaterfallTooltipItem {
@@ -74,53 +74,43 @@ const WaterfallTooltipContent = memo(function WaterfallTooltipContent({
   );
 });
 
-export const WaterfallFinancialChart = memo(function WaterfallFinancialChart(
-  props: WaterfallFinancialChartProps,
-) {
+export const WaterfallFinancialChart = memo(function WaterfallFinancialChart(props: WaterfallFinancialChartProps) {
   const { height = 320, showGrid = true, showTooltip = true, className } = props;
 
   const { processedData, valueFormatter } = useWaterfallFinancial(props);
 
   return (
-    <div className={className} style={{ width: "100%", height }}>
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
-        minWidth={0}
-        minHeight={height}
-        initialDimension={{ width: DEFAULT_INITIAL_CHART_WIDTH, height }}
-      >
-        <BarChart data={processedData} margin={DEFAULT_CHART_MARGIN}>
-          {showGrid && <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />}
+    <ChartFrame height={height} className={className}>
+      <BarChart data={processedData} margin={DEFAULT_CHART_MARGIN}>
+        {showGrid && <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />}
 
-          <XAxis dataKey="label" axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} />
+        <XAxis dataKey="label" axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} />
 
-          <YAxis axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} tickFormatter={valueFormatter} />
+        <YAxis axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} tickFormatter={valueFormatter} />
 
-          {showTooltip && (
-            <Tooltip
-              content={<WaterfallTooltipContent valueFormatter={valueFormatter} />}
-              cursor={{ fill: "color-mix(in oklab, var(--muted) 25%, transparent)" }}
-            />
-          )}
+        {showTooltip && (
+          <Tooltip
+            content={<WaterfallTooltipContent valueFormatter={valueFormatter} />}
+            cursor={{ fill: "color-mix(in oklab, var(--muted) 25%, transparent)" }}
+          />
+        )}
 
-          {/* Invisible base bar for waterfall elevation */}
-          <Bar dataKey="base" stackId="waterfall" fill="transparent" isAnimationActive={false} />
+        {/* Invisible base bar for waterfall elevation */}
+        <Bar dataKey="base" stackId="waterfall" fill="transparent" isAnimationActive={false} />
 
-          {/* Visible delta bar */}
-          <Bar
-            dataKey="delta"
-            stackId="waterfall"
-            radius={[4, 4, 4, 4]}
-            maxBarSize={48}
-            animationDuration={DEFAULT_ANIMATION_DURATION}
-          >
-            {processedData.map((entry, index) => (
-              <Cell key={`waterfall-cell-${entry.label}_${index}`} fill={entry.fill} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+        {/* Visible delta bar */}
+        <Bar
+          dataKey="delta"
+          stackId="waterfall"
+          radius={[4, 4, 4, 4]}
+          maxBarSize={48}
+          animationDuration={DEFAULT_ANIMATION_DURATION}
+        >
+          {processedData.map((entry, index) => (
+            <Cell key={`waterfall-cell-${entry.label}_${index}`} fill={entry.fill} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ChartFrame>
   );
 });

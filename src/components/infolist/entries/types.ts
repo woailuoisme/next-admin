@@ -3,14 +3,7 @@ import type * as React from "react";
 
 import type { EntryBaseProps } from "../core/types";
 
-export type EntrySemanticColor =
-  | "primary"
-  | "secondary"
-  | "success"
-  | "warning"
-  | "destructive"
-  | "info"
-  | "neutral";
+export type EntrySemanticColor = "primary" | "secondary" | "success" | "warning" | "destructive" | "info" | "neutral";
 
 export interface TextEntryProps extends EntryBaseProps {
   /** Explicit value or taken from record */

@@ -6,15 +6,16 @@ import { useMemo, useState } from "react";
 import type { Coordinates } from "../shared/types";
 import type { LocationMarkerItem, LocationMarkerMapProps } from "./types";
 
-import { transformCoordinates } from "../utils/coordinates";
+import { resolveCoordinateSystems, transformCoordinates } from "../utils/coordinates";
 
 const EMPTY_MARKERS: LocationMarkerItem[] = [];
 const DEFAULT_BEIJING_CENTER: Coordinates = [116.4074, 39.9042];
 
 export function useLocationMarkers(props: LocationMarkerMapProps) {
-  const sourceCoords = props.coordinateSystem ?? "WGS84";
-  const targetCoords = props.basemap === "amap" ? "GCJ02" : "WGS84";
-  const needsTransform = sourceCoords !== targetCoords;
+  const { sourceCoords, targetCoords, needsTransform } = resolveCoordinateSystems(
+    props.coordinateSystem,
+    props.basemap,
+  );
 
   const data = useMemo(() => {
     const raw = props.data ?? props.locations ?? EMPTY_MARKERS;

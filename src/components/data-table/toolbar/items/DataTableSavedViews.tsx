@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Bookmark, Check, Plus, Trash2 } from "lucide-react";
 import { type FormEvent, memo, useMemo, useState } from "react";
@@ -25,6 +26,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
   onDeleteView,
   className,
 }: DataTableSavedViewsProps) {
+  const t = useTranslations("table");
   const [open, setOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newViewName, setNewViewName] = useState("");
@@ -54,7 +56,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
           )}
         >
           <Bookmark className="size-3.5" />
-          <span>{activeView ? activeView.name : "Views"}</span>
+          <span>{activeView ? activeView.name : t("views_title")}</span>
           {views.length > 0 && (
             <span className="bg-muted rounded-full px-1.5 font-mono text-[10px]">{views.length}</span>
           )}
@@ -63,7 +65,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
       <PopoverContent align="start" className="w-64 p-3 shadow-lg">
         <div className="space-y-2.5">
           <div className="border-border/60 flex items-center justify-between border-b pb-2">
-            <span className="text-foreground text-xs font-semibold">Saved Views</span>
+            <span className="text-foreground text-xs font-semibold">{t("views_saved_title")}</span>
             {!isCreating && (
               <Button
                 variant="ghost"
@@ -72,7 +74,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
                 onClick={() => setIsCreating(true)}
               >
                 <Plus className="size-3" />
-                <span>Save current</span>
+                <span>{t("views_save_current")}</span>
               </Button>
             )}
           </div>
@@ -83,7 +85,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
               <input
                 type="text"
                 autoFocus
-                placeholder="View name..."
+                placeholder={t("views_name_placeholder")}
                 value={newViewName}
                 onChange={(e) => setNewViewName(e.target.value)}
                 className="border-input bg-background focus:ring-ring h-7 w-full rounded-md border px-2 text-xs focus:ring-1 focus:outline-hidden"
@@ -99,15 +101,10 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
                     setNewViewName("");
                   }}
                 >
-                  Cancel
+                  {t("views_cancel")}
                 </Button>
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={!newViewName.trim()}
-                  className="h-6 px-2 text-[11px]"
-                >
-                  Save
+                <Button type="submit" size="sm" disabled={!newViewName.trim()} className="h-6 px-2 text-[11px]">
+                  {t("views_save")}
                 </Button>
               </div>
             </form>
@@ -116,7 +113,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
           {/* Views List */}
           <div className="max-h-56 space-y-1 overflow-y-auto pr-0.5">
             {views.length === 0 ? (
-              <div className="text-muted-foreground/60 py-3 text-center text-xs italic">No saved views</div>
+              <div className="text-muted-foreground/60 py-3 text-center text-xs italic">{t("views_empty")}</div>
             ) : (
               views.map((v) => {
                 const isActive = v.id === activeViewId;
@@ -129,9 +126,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
                     }}
                     className={cn(
                       "group/view flex cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-xs transition-colors",
-                      isActive
-                        ? "bg-primary/10 font-medium text-primary"
-                        : "text-foreground hover:bg-muted/50",
+                      isActive ? "bg-primary/10 font-medium text-primary" : "text-foreground hover:bg-muted/50",
                     )}
                   >
                     <div className="flex min-w-0 items-center gap-2">
@@ -139,7 +134,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
                       <span className="truncate">{v.name}</span>
                       {v.isSystem && (
                         <span className="bg-muted text-muted-foreground rounded px-1 text-[9px] uppercase">
-                          Default
+                          {t("views_default")}
                         </span>
                       )}
                     </div>

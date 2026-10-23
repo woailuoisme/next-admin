@@ -17,13 +17,7 @@ export function useRouteTracking({
   playbackDuration = 15,
 }: Pick<
   RouteTrackingMapProps,
-  | "coordinates"
-  | "stops"
-  | "progress"
-  | "defaultProgress"
-  | "onProgressChange"
-  | "autoPlay"
-  | "playbackDuration"
+  "coordinates" | "stops" | "progress" | "defaultProgress" | "onProgressChange" | "autoPlay" | "playbackDuration"
 >) {
   const [internalProgress, setInternalProgress] = useState(defaultProgress);
   const [isPlaying, setIsPlaying] = useState(autoPlay);

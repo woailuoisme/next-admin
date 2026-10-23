@@ -52,9 +52,7 @@ export async function exportToExcel<TData = any>({
     });
 
     // 过滤出有效可见列（排除操作列与纯勾选列）
-    const validCols = columns.filter(
-      (c) => c.field !== "__actions" && c.field !== "__select" && c.field !== "actions",
-    );
+    const validCols = columns.filter((c) => c.field !== "__actions" && c.field !== "__select" && c.field !== "actions");
 
     // 1. 设置工作表列结构
     worksheet.columns = validCols.map((col) => {
@@ -62,9 +60,7 @@ export async function exportToExcel<TData = any>({
       let maxLen = col.headerName ? col.headerName.length * 1.5 : 10;
       const sampleRows = data.slice(0, 30);
       for (const row of sampleRows) {
-        const val = col.valueFormatter
-          ? col.valueFormatter((row as any)[col.field], row)
-          : (row as any)[col.field];
+        const val = col.valueFormatter ? col.valueFormatter((row as any)[col.field], row) : (row as any)[col.field];
         if (val !== undefined && val !== null) {
           const strLen = String(val).length;
           if (strLen > maxLen) {

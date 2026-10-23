@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { memo, type MouseEvent, type ReactElement, type ReactNode } from "react";
 
@@ -9,7 +10,7 @@ import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableSortMo
 
 import { JUSTIFY_ALIGN_CLASSES } from "../cells/base";
 import { EMPTY_ARRAY, EMPTY_RECORD, NOOP } from "../core/constants";
-import { useOptionalDataTableContext } from "../core/data-table-context";
+import { useOptionalDataTableContext } from "../core/DataTableContext";
 
 export interface DataTableHeaderProps<TData = unknown> {
   visibleColumns?: DataTableColDef<TData>[];
@@ -31,6 +32,7 @@ export interface DataTableHeaderProps<TData = unknown> {
 
 function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData>) {
   const ctx = useOptionalDataTableContext<TData>();
+  const t = useTranslations("table");
 
   const visibleColumns = props.visibleColumns ?? ctx?.visibleColumns ?? EMPTY_ARRAY;
   const checkboxSelection = props.checkboxSelection ?? ctx?.checkboxSelection ?? false;
@@ -57,7 +59,7 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
             <Checkbox
               checked={isAllPageSelected ? true : isSomePageSelected ? "indeterminate" : false}
               onCheckedChange={(checked) => onSelectAll(Boolean(checked))}
-              aria-label="Select all on current page"
+              aria-label={t("aria_select_all_page")}
             />
           </TableHead>
         )}
@@ -66,19 +68,14 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
         {hasExpandColumn && (
           <TableHead
             style={{
-              left:
-                checkboxSelection || pinnedLeftFields.length > 0
-                  ? checkboxSelection
-                    ? "44px"
-                    : "0px"
-                  : undefined,
+              left: checkboxSelection ? "44px" : pinnedLeftFields.length > 0 ? "0px" : undefined,
             }}
             className={cn(
               "w-9 px-1 text-center select-none",
               (checkboxSelection || pinnedLeftFields.length > 0) &&
-                "sticky z-25 border-r border-border/70 bg-muted/95 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]",
+                "sticky z-25 border-r border-border/70 bg-muted/95 shadow-pin-left",
             )}
-            aria-label="展开行"
+            aria-label={t("aria_expand_row")}
           />
         )}
 
@@ -124,10 +121,8 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
               }}
               className={cn(
                 "group/header relative text-xs font-semibold whitespace-nowrap text-foreground transition-colors select-none",
-                isLeftPinned &&
-                  "sticky z-25 border-r border-border/70 bg-muted/95 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]",
-                isRightPinned &&
-                  "sticky z-25 border-l border-border/70 bg-muted/95 shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.06)]",
+                isLeftPinned && "sticky z-25 border-r border-border/70 bg-muted/95 shadow-pin-left",
+                isRightPinned && "sticky z-25 border-l border-border/70 bg-muted/95 shadow-pin-right",
                 headerClassName,
               )}
             >
@@ -168,7 +163,7 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
                 <div
                   role="separator"
                   aria-orientation="vertical"
-                  aria-label={`Resize column ${headerName}`}
+                  aria-label={t("aria_resize_column", { name: headerName ?? field })}
                   onMouseDown={(e) => onResizeStart(field, currentWidth ?? 120, e)}
                   className="hover:bg-primary/50 absolute top-0 right-0 z-30 h-full w-2 cursor-col-resize opacity-0 transition-opacity group-hover/header:opacity-100"
                 >

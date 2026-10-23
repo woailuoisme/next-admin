@@ -1,16 +1,8 @@
+import { useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useMemoizedFn } from "ahooks";
-import {
-  AlertCircle,
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  GripVertical,
-  MoveDown,
-  MoveUp,
-  Trash2,
-} from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp, Copy, GripVertical, MoveDown, MoveUp, Trash2 } from "lucide-react";
 import { memo, type ReactNode, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -37,18 +29,14 @@ interface RepeaterRowProps<T> {
   canDelete?: boolean;
   confirmDelete?: boolean;
   error?: string | string[];
+
   onToggleCollapse: (key: string) => void;
   onMoveUp: (index: number) => void;
   onMoveDown: (index: number) => void;
   onDuplicate: (index: number) => void;
   onRemove: (index: number) => void;
   onUpdate: (nextVal: T, index: number) => void;
-  renderItem: (
-    item: T,
-    index: number,
-    updateItem: (val: T) => void,
-    helpers: RepeaterItemHelpers<T>,
-  ) => ReactNode;
+  renderItem: (item: T, index: number, updateItem: (val: T) => void, helpers: RepeaterItemHelpers<T>) => ReactNode;
 }
 
 export const RepeaterRow = memo(function RepeaterRow<T>({
@@ -75,6 +63,7 @@ export const RepeaterRow = memo(function RepeaterRow<T>({
   onUpdate,
   renderItem,
 }: RepeaterRowProps<T>) {
+  const t = useTranslations("form");
   const [deletePopoverOpen, setDeletePopoverOpen] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -163,7 +152,7 @@ export const RepeaterRow = memo(function RepeaterRow<T>({
                 type="button"
                 {...attributes}
                 {...listeners}
-                aria-label={`拖拽排序 ${titleStr}`}
+                aria-label={`${t("repeater_drag_handle")} ${titleStr}`}
                 className="text-muted-foreground/60 hover:bg-muted/80 hover:text-foreground cursor-grab rounded p-1 transition-colors active:cursor-grabbing"
               >
                 <GripVertical className="size-3.5" />
@@ -251,20 +240,11 @@ export const RepeaterRow = memo(function RepeaterRow<T>({
                       <Trash2 className="size-3" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent
-                    align="end"
-                    side="bottom"
-                    className="w-56 space-y-2.5 p-3 text-xs shadow-lg"
-                  >
+                  <PopoverContent align="end" side="bottom" className="w-56 space-y-2.5 p-3 text-xs shadow-lg">
                     <div className="text-foreground font-medium">确认删除此项？</div>
                     <p className="text-muted-foreground text-[11px]">该条目及其填写的表单内容将被移除。</p>
                     <div className="flex justify-end gap-1.5 pt-1">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="xs"
-                        onClick={() => setDeletePopoverOpen(false)}
-                      >
+                      <Button type="button" variant="outline" size="xs" onClick={() => setDeletePopoverOpen(false)}>
                         取消
                       </Button>
                       <Button type="button" variant="destructive" size="xs" onClick={handleDirectRemove}>

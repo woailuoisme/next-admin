@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { CopyButton } from "@/components/copy-button";
+import { CopyButton } from "@/components/shared/CopyButton";
 
 import type { ColorEntryProps } from "./types";
 
@@ -35,9 +35,7 @@ export const ColorEntry = React.memo(function ColorEntry({
           style={{ backgroundColor: colorStr }}
           title={colorStr}
         />
-        {showText && (
-          <span className="text-foreground font-mono text-xs uppercase">{colorStr.toUpperCase()}</span>
-        )}
+        {showText && <span className="text-foreground font-mono text-xs uppercase">{colorStr.toUpperCase()}</span>}
         {copyable && <CopyButton text={colorStr} className="size-5 shrink-0" />}
       </div>
     </EntryWrapper>

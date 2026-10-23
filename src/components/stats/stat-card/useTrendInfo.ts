@@ -15,6 +15,12 @@ const SUCCESS_COLOR_CLASS = "text-chart-2 bg-chart-2/10 border-chart-2/20";
 const DANGER_COLOR_CLASS = "text-destructive bg-destructive/10 border-destructive/20";
 const NEUTRAL_COLOR_CLASS = "text-muted-foreground bg-muted border-border";
 
+function resolveTrendColorClass(isSuccess: boolean, isDanger: boolean): string {
+  if (isSuccess) return SUCCESS_COLOR_CLASS;
+  if (isDanger) return DANGER_COLOR_CLASS;
+  return NEUTRAL_COLOR_CLASS;
+}
+
 /**
  * Pure calculation function for trend semantic colors and direction
  */
@@ -36,7 +42,7 @@ export function calculateTrendInfo(trend?: StatCardTrendData | null): TrendInfoR
   const isSuccess = (dir === "up" && isGood) || (dir === "down" && !isGood);
   const isDanger = (dir === "down" && isGood) || (dir === "up" && !isGood);
 
-  const colorClass = isSuccess ? SUCCESS_COLOR_CLASS : isDanger ? DANGER_COLOR_CLASS : NEUTRAL_COLOR_CLASS;
+  const colorClass = resolveTrendColorClass(isSuccess, isDanger);
 
   const displayValue = typeof trend.value === "number" ? `${trend.value}%` : trend.value;
 

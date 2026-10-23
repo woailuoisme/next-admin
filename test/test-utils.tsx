@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, type RenderOptions } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "next-themes";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { type ReactElement, type ReactNode } from "react";
-
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { DICTIONARY, type SupportedLocale } from "@/i18n";
 
 /**
  * 创建适用于测试隔离的 QueryClient
@@ -25,9 +26,6 @@ export function createTestQueryClient() {
   });
 }
 
-import { NextIntlClientProvider } from "next-intl";
-import { DICTIONARY, type SupportedLocale } from "@/i18n";
-
 export interface ExtendedRenderOptions extends Omit<RenderOptions, "wrapper"> {
   queryClient?: QueryClient;
   locale?: SupportedLocale;
@@ -42,10 +40,7 @@ export function renderWithProviders(
 ) {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <NextIntlClientProvider
-        locale={locale}
-        messages={DICTIONARY[locale as keyof typeof DICTIONARY] ?? DICTIONARY.zh}
-      >
+      <NextIntlClientProvider locale={locale} messages={DICTIONARY[locale as keyof typeof DICTIONARY] ?? DICTIONARY.zh}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <NuqsAdapter>
             <QueryClientProvider client={queryClient}>

@@ -165,9 +165,7 @@ export const productsHandlers = [
 
     const body = (await request.json()) as Omit<Product, "id" | "createdAt">;
 
-    const category = body.categoryId
-      ? db.category.findFirst({ where: { id: { equals: body.categoryId } } })
-      : null;
+    const category = body.categoryId ? db.category.findFirst({ where: { id: { equals: body.categoryId } } }) : null;
 
     const newProduct = await db.product.create({
       id: `prod-${Date.now()}`,

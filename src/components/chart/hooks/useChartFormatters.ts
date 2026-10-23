@@ -1,10 +1,7 @@
 import { useMemoizedFn } from "ahooks";
+import { useFormatter } from "next-intl";
 
-import {
-  defaultAxisNumberFormatter,
-  defaultNumberFormatter,
-  defaultXAxisFormatter,
-} from "../shared/formatters";
+import { defaultAxisNumberFormatter, defaultXAxisFormatter } from "../shared/formatters";
 
 export interface UseChartFormattersOptions {
   valueFormatter?: (val: number) => string;
@@ -21,9 +18,11 @@ export function useChartFormatters({
   xAxisFormatter: propXAxisFormatter,
   yAxisFormatter: propYAxisFormatter,
 }: UseChartFormattersOptions = {}) {
+  const format = useFormatter();
+
   const valueFormatter = useMemoizedFn((val: number) => {
     if (propValueFormatter) return propValueFormatter(val);
-    return defaultNumberFormatter(val);
+    return format.number(val);
   });
 
   const xAxisFormatter = useMemoizedFn((val: string | number) => {

@@ -6,10 +6,7 @@ interface ImageLightboxModalProps {
   onClose: () => void;
 }
 
-export const ImageLightboxModal = memo(function ImageLightboxModal({
-  url,
-  onClose,
-}: ImageLightboxModalProps) {
+export const ImageLightboxModal = memo(function ImageLightboxModal({ url, onClose }: ImageLightboxModalProps) {
   if (!url) return null;
 
   return (

@@ -99,10 +99,7 @@ export function rowsToRaw(rows: KeyValueRowItem[], format: KeyValueRawFormat): s
     .join("\n");
 }
 
-export function rawToRows(
-  rawText: string,
-  format: KeyValueRawFormat,
-): { rows: KeyValueRowItem[]; error?: string } {
+export function rawToRows(rawText: string, format: KeyValueRawFormat): { rows: KeyValueRowItem[]; error?: string } {
   if (format === "json") {
     try {
       if (!rawText.trim()) {

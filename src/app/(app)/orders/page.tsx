@@ -1,19 +1,20 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
+import DashboardLoading from "@/app/(app)/loading";
 import { OrdersPage } from "@/features/orders/pages/OrdersPage";
 import { orderQueries } from "@/features/orders/queries";
 import type { OrderSearchParams } from "@/features/orders/types";
-import { getQueryClient, prefetchWithTimeout } from "@/lib/query-client";
+import { getQueryClient, prefetchWithTimeout } from "@/lib/queryClient";
 
-export const metadata: Metadata = {
-  title: "订单管理",
-  description: "订单履约、查询与状态流转管理",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("orders");
+  return { title: t("page_title"), description: t("page_description") };
+}
 
-export default async function Page(props: {
-  searchParams: Promise<OrderSearchParams & { orderId?: string }>;
-}) {
+export default async function Page(props: { searchParams: Promise<OrderSearchParams & { orderId?: string }> }) {
   const search = await props.searchParams;
   const queryClient = getQueryClient();
 
@@ -22,7 +23,9 @@ export default async function Page(props: {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <OrdersPage search={search} />
+      <Suspense fallback={<DashboardLoading />}>
+        <OrdersPage search={search} />
+      </Suspense>
     </HydrationBoundary>
   );
 }

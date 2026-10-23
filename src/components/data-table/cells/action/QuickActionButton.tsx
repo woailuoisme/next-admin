@@ -11,15 +11,17 @@ interface QuickActionButtonProps<TData> {
   action: ActionItem<TData>;
   row: TData;
   index?: number;
+  /** 无 label / ariaLabel 时的无障碍兜底文案（由 ActionsCell 注入已本地化的通用名称） */
+  fallbackLabel: string;
 }
 
-function QuickActionButtonInner<TData>({ action, row }: QuickActionButtonProps<TData>) {
+function QuickActionButtonInner<TData>({ action, row, fallbackLabel }: QuickActionButtonProps<TData>) {
   const Icon = action.icon;
   const isDisabled = typeof action.disabled === "function" ? action.disabled(row) : !!action.disabled;
 
   const labelText = typeof action.label === "string" ? action.label : undefined;
   const tooltipContent = action.tooltip || labelText;
-  const srText = action.ariaLabel || labelText || "操作";
+  const srText = action.ariaLabel || labelText || fallbackLabel;
 
   const handleClick = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();

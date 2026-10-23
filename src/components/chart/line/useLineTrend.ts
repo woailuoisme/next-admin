@@ -51,9 +51,7 @@ export function useLineTrend(props: LineTrendChartProps) {
   }, [series, dataKey, seriesName, activeStroke]);
 
   const formattedReferenceLabel =
-    typeof referenceValue === "number"
-      ? (referenceLabel ?? `目标: ${valueFormatter(referenceValue)}`)
-      : undefined;
+    typeof referenceValue === "number" ? (referenceLabel ?? `目标: ${valueFormatter(referenceValue)}`) : undefined;
 
   return {
     normalizedSeries,

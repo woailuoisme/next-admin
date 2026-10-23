@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { closestCenter, DndContext } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -32,8 +33,8 @@ const RepeaterInner = memo(function RepeaterInner<T>({
   renderItem,
   itemTitle,
   getItemKey,
-  addButtonText = "添加新项",
-  emptyText = "暂无条目，请点击下方按钮新增",
+  addButtonText: propAddButtonText,
+  emptyText: propEmptyText,
   showEmptyAddButton = true,
   minItems = 0,
   maxItems,
@@ -49,6 +50,9 @@ const RepeaterInner = memo(function RepeaterInner<T>({
   renderSummary,
   renderExtraActions,
 }: RepeaterInnerProps<T>) {
+  const t = useTranslations("form");
+  const addButtonText = propAddButtonText ?? t("repeater_add");
+  const emptyText = propEmptyText ?? t("repeater_empty");
   const {
     keys,
     collapsedMap,
@@ -288,8 +292,8 @@ export const Repeater = memo(function Repeater<T = unknown>({
   renderItem,
   itemTitle,
   getItemKey,
-  addButtonText = "添加新项",
-  emptyText = "暂无条目，请点击下方按钮新增",
+  addButtonText,
+  emptyText,
   showEmptyAddButton = true,
   minItems = 0,
   maxItems,

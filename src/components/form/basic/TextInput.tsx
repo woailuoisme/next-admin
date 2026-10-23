@@ -255,15 +255,7 @@ export function TextInput<T extends string | number = string>({
       error={error}
       disabled={disabled}
       readOnly={readOnly}
-      render={({
-        value,
-        onChange,
-        onBlur,
-        error: computedError,
-        disabled: isDisabled,
-        readOnly: isReadOnly,
-        meta,
-      }) => (
+      render={({ value, onChange, onBlur, error: computedError, disabled: isDisabled, readOnly: isReadOnly, meta }) => (
         <FieldWrapper
           label={label}
           id={id}

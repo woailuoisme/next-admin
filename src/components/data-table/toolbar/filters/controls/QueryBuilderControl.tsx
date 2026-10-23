@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
 import React from "react";
 
@@ -11,6 +12,7 @@ import type {
   DataTableFilterItem,
   DataTableFilterOperator,
 } from "../../../core/types";
+import type { MessageKeyOf } from "@/types/i18n";
 
 export interface QueryBuilderControlProps<TData = any> {
   filterableColumns: DataTableColDef<TData>[];
@@ -22,47 +24,48 @@ export interface QueryBuilderControlProps<TData = any> {
 
 export function getOperatorsForColumn(
   type?: DataTableColType,
+  t?: (key: MessageKeyOf<"table">) => string,
 ): Array<{ value: DataTableFilterOperator; label: string }> {
   switch (type) {
     case "number":
       return [
-        { value: "equals", label: "= equals" },
-        { value: "notEquals", label: "!= not equals" },
-        { value: "greaterThan", label: "> greater than" },
-        { value: "greaterThanOrEqual", label: ">= greater or equal" },
-        { value: "lessThan", label: "< less than" },
-        { value: "lessThanOrEqual", label: "<= less or equal" },
-        { value: "isEmpty", label: "is empty" },
-        { value: "isNotEmpty", label: "is not empty" },
+        { value: "equals", label: t ? t("op_equals") : "= equals" },
+        { value: "notEquals", label: t ? t("op_not_equals") : "!= not equals" },
+        { value: "greaterThan", label: t ? t("op_greater_than") : "> greater than" },
+        { value: "greaterThanOrEqual", label: t ? t("op_greater_than_or_equal") : ">= greater or equal" },
+        { value: "lessThan", label: t ? t("op_less_than") : "< less than" },
+        { value: "lessThanOrEqual", label: t ? t("op_less_than_or_equal") : "<= less or equal" },
+        { value: "isEmpty", label: t ? t("op_is_empty") : "is empty" },
+        { value: "isNotEmpty", label: t ? t("op_is_not_empty") : "is not empty" },
       ];
     case "date":
     case "dateTime":
       return [
-        { value: "equals", label: "is" },
-        { value: "notEquals", label: "is not" },
-        { value: "greaterThan", label: "after" },
-        { value: "greaterThanOrEqual", label: "on or after" },
-        { value: "lessThan", label: "before" },
-        { value: "lessThanOrEqual", label: "on or before" },
-        { value: "isEmpty", label: "is empty" },
-        { value: "isNotEmpty", label: "is not empty" },
+        { value: "equals", label: t ? t("op_date_is") : "is" },
+        { value: "notEquals", label: t ? t("op_date_is_not") : "is not" },
+        { value: "greaterThan", label: t ? t("op_date_after") : "after" },
+        { value: "greaterThanOrEqual", label: t ? t("op_date_on_or_after") : "on or after" },
+        { value: "lessThan", label: t ? t("op_date_before") : "before" },
+        { value: "lessThanOrEqual", label: t ? t("op_date_on_or_before") : "on or before" },
+        { value: "isEmpty", label: t ? t("op_is_empty") : "is empty" },
+        { value: "isNotEmpty", label: t ? t("op_is_not_empty") : "is not empty" },
       ];
     case "boolean":
       return [
-        { value: "equals", label: "equals" },
-        { value: "isEmpty", label: "is empty" },
-        { value: "isNotEmpty", label: "is not empty" },
+        { value: "equals", label: t ? t("op_equals") : "equals" },
+        { value: "isEmpty", label: t ? t("op_is_empty") : "is empty" },
+        { value: "isNotEmpty", label: t ? t("op_is_not_empty") : "is not empty" },
       ];
     default:
       return [
-        { value: "contains", label: "contains" },
-        { value: "notContains", label: "doesn't contain" },
-        { value: "equals", label: "equals" },
-        { value: "notEquals", label: "doesn't equal" },
-        { value: "startsWith", label: "starts with" },
-        { value: "endsWith", label: "ends with" },
-        { value: "isEmpty", label: "is empty" },
-        { value: "isNotEmpty", label: "is not empty" },
+        { value: "contains", label: t ? t("op_contains") : "contains" },
+        { value: "notContains", label: t ? t("op_not_contains") : "doesn't contain" },
+        { value: "equals", label: t ? t("op_equals") : "equals" },
+        { value: "notEquals", label: t ? t("op_not_equals") : "doesn't equal" },
+        { value: "startsWith", label: t ? t("op_starts_with") : "starts with" },
+        { value: "endsWith", label: t ? t("op_ends_with") : "ends with" },
+        { value: "isEmpty", label: t ? t("op_is_empty") : "is empty" },
+        { value: "isNotEmpty", label: t ? t("op_is_not_empty") : "is not empty" },
       ];
   }
 }
@@ -74,6 +77,8 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
   onUpdateRule,
   onRemoveRule,
 }) => {
+  const t = useTranslations("table");
+
   const availableColumns = React.useMemo(
     () => filterableColumns.filter((col) => col.field && col.field !== "__actions"),
     [filterableColumns],
@@ -91,7 +96,7 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
     <div className="space-y-3 pt-2" data-testid="query-builder-control">
       <div className="flex items-center justify-between border-t pt-3">
         <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold">
-          <span>Custom Conditions</span>
+          <span>{t("query_builder_title")}</span>
           {rules.length > 0 && (
             <span className="py-0.2 bg-primary/10 text-primary rounded-full px-1.5 font-mono text-[10px]">
               {rules.length}
@@ -108,19 +113,17 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
           data-testid="query-builder-add-rule-btn"
         >
           <Plus className="h-3.5 w-3.5" />
-          <span>Add condition</span>
+          <span>{t("query_builder_add_condition")}</span>
         </Button>
       </div>
 
       {rules.length === 0 ? (
-        <p className="text-muted-foreground py-1 text-xs italic">
-          No custom conditions applied. Click &quot;Add condition&quot; to build dynamic rules.
-        </p>
+        <p className="text-muted-foreground py-1 text-xs italic">{t("query_builder_empty")}</p>
       ) : (
         <div className="space-y-2">
           {rules.map((rule) => {
             const currentCol = availableColumns.find((c) => c.field === rule.field);
-            const operators = getOperatorsForColumn(currentCol?.type);
+            const operators = getOperatorsForColumn(currentCol?.type, t);
             const isNullCheck = rule.operator === "isEmpty" || rule.operator === "isNotEmpty";
 
             return (
@@ -135,10 +138,8 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
                     value={rule.field}
                     onValueChange={(newField) => {
                       const targetCol = availableColumns.find((c) => c.field === newField);
-                      const newOps = getOperatorsForColumn(targetCol?.type);
-                      const newOp = newOps.some((op) => op.value === rule.operator)
-                        ? rule.operator
-                        : newOps[0].value;
+                      const newOps = getOperatorsForColumn(targetCol?.type, t);
+                      const newOp = newOps.some((op) => op.value === rule.operator) ? rule.operator : newOps[0].value;
                       onUpdateRule(rule.id, {
                         field: newField,
                         operator: newOp,
@@ -146,7 +147,7 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
                     }}
                   >
                     <SelectTrigger className="bg-background h-8 text-xs" aria-label="Rule column">
-                      <SelectValue placeholder="Column" />
+                      <SelectValue placeholder={t("query_builder_column_placeholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableColumns.map((col) => (
@@ -169,7 +170,7 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
                     }
                   >
                     <SelectTrigger className="bg-background h-8 text-xs" aria-label="Rule operator">
-                      <SelectValue placeholder="Operator" />
+                      <SelectValue placeholder={t("query_builder_operator_placeholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {operators.map((op) => (
@@ -185,7 +186,7 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
                 <div className="min-w-[120px] flex-1">
                   {isNullCheck ? (
                     <div className="text-muted-foreground flex h-8 items-center px-2 text-xs italic">
-                      (no value needed)
+                      {t("query_builder_no_value_needed")}
                     </div>
                   ) : currentCol?.type === "boolean" ? (
                     <Select
@@ -193,14 +194,14 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
                       onValueChange={(val) => onUpdateRule(rule.id, { value: val === "true" })}
                     >
                       <SelectTrigger className="bg-background h-8 text-xs" aria-label="Rule boolean value">
-                        <SelectValue placeholder="Select..." />
+                        <SelectValue placeholder={t("query_builder_select_placeholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="true" className="text-xs">
-                          True
+                          {t("op_true")}
                         </SelectItem>
                         <SelectItem value="false" className="text-xs">
-                          False
+                          {t("op_false")}
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -208,7 +209,7 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
                     <Input
                       type={currentCol?.type === "number" ? "number" : "text"}
                       className="bg-background h-8 text-xs"
-                      placeholder="Value..."
+                      placeholder={t("query_builder_value_placeholder")}
                       value={rule.value ?? ""}
                       onChange={(e) =>
                         onUpdateRule(rule.id, {
@@ -230,9 +231,9 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="text-muted-foreground hover:text-destructive h-8 w-8 shrink-0"
+                  className="text-muted-foreground hover:text-destructive h-8 w-8 shrink-0 cursor-pointer"
                   onClick={() => onRemoveRule(rule.id)}
-                  aria-label="Remove rule"
+                  aria-label={t("query_builder_remove_rule")}
                   data-testid={`query-builder-remove-rule-${rule.id}`}
                 >
                   <Trash2 className="h-4 w-4" />

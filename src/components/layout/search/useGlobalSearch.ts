@@ -11,10 +11,7 @@ export function useGlobalSearch() {
     ["meta.k", "ctrl.k", "/"],
     (event) => {
       const target = event.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
-      ) {
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
         return;
       }
       event.preventDefault();

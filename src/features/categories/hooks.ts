@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { handleMutationError } from "@/lib/api-client";
-import { toastMessages } from "@/lib/toast-messages";
+import { handleMutationError } from "@/lib/apiClient";
+import { toastMessages } from "@/lib/toastMessages";
 
 import type { Category, CategoryInput } from "./types";
 

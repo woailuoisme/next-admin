@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+
 import { MapShowcasePage } from "@/features/showcase/pages/MapShowcasePage";
 
-export const metadata: Metadata = {
-  title: "地图组件",
-  description: "交互式地理信息、网格与标记地图组件演示",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("showcase");
+  return {
+    title: t("maps_title"),
+    description: t("maps_description"),
+  };
+}
 
 export default function Page() {
   return <MapShowcasePage />;

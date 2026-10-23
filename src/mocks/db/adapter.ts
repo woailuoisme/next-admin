@@ -43,9 +43,7 @@ export class CollectionAdapter<T extends { id?: string }> {
     this.collection = new Collection({ schema });
   }
 
-  private toQuery(
-    predicate?: QueryPredicate<T>,
-  ): ((query: Query<T>) => Query<unknown>) | Query<T> | undefined {
+  private toQuery(predicate?: QueryPredicate<T>): ((query: Query<T>) => Query<unknown>) | Query<T> | undefined {
     if (predicate == null) return undefined;
     if (typeof predicate === "function" || predicate instanceof Query) {
       return predicate;
@@ -139,8 +137,8 @@ export class CollectionAdapter<T extends { id?: string }> {
   delete(predicateOrLegacy: QueryPredicate<T>): T | undefined {
     const targetRecord = this.findFirst(predicateOrLegacy);
     if (!targetRecord) return undefined;
-    return this.collection.delete(
-      targetRecord as unknown as Parameters<Collection<z.ZodType>["delete"]>[0],
-    ) as T | undefined;
+    return this.collection.delete(targetRecord as unknown as Parameters<Collection<z.ZodType>["delete"]>[0]) as
+      | T
+      | undefined;
   }
 }

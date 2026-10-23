@@ -69,10 +69,7 @@ export function useMetricSparkline({
     if (points.length === 1) {
       linePath = `M 0 ${points[0].y} L ${viewBoxWidth} ${points[0].y}`;
     } else if (curve === "linear" || points.length === 2) {
-      linePath = points.reduce(
-        (acc, p, i) => `${acc} ${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`,
-        "",
-      );
+      linePath = points.reduce((acc, p, i) => `${acc} ${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`, "");
     } else {
       // Monotone / smooth cubic bezier
       linePath = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;

@@ -2,6 +2,7 @@
 
 import { countBy, meanBy } from "es-toolkit";
 import { Plus } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
 import { useResourceManagement } from "@/components/data-table";
@@ -12,10 +13,14 @@ import { dashboardKeys } from "@/features/dashboard/queries";
 import type { Product, ProductFilters, ProductListResponse } from "../types";
 
 import { deleteProductApi } from "../api";
-import { ProductFormDialog } from "../components/ProductFormDialog";
 import { ProductMetricsCards } from "../components/ProductMetricsCards";
 import { ProductTable } from "../components/ProductTable";
 import { productKeys, productQueries } from "../queries";
+import { useTranslations } from "next-intl";
+
+const ProductFormDialog = dynamic(() => import("../components/ProductFormDialog").then((m) => m.ProductFormDialog), {
+  ssr: false,
+});
 
 export interface ProductsPageProps {
   search?: ProductFilters & {
@@ -28,12 +33,8 @@ export interface ProductsPageProps {
   onDeleteProduct?: (productId: string) => void;
 }
 
-export function ProductsPage({
-  search = {},
-  onCreateProduct,
-  onEditProduct,
-  onDeleteProduct,
-}: ProductsPageProps) {
+export function ProductsPage({ search = {}, onCreateProduct, onEditProduct, onDeleteProduct }: ProductsPageProps) {
+  const t = useTranslations("products");
   // Unified Deep Resource Management Module
   const resource = useResourceManagement<Product, ProductFilters, ProductListResponse>({
     entityName: "Product",
@@ -63,16 +64,14 @@ export function ProductsPage({
       {/* Page Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">商品目录 (Product Catalog)</h1>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            全面监控在库 SKU 存量、售价毛利及上下架运营可用性
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("page_title")}</h1>
+          <p className="text-muted-foreground mt-0.5 text-xs">{t("page_description")}</p>
         </div>
         <Button
           onClick={resource.modal.openCreate}
           className="h-9 cursor-pointer gap-1.5 text-xs font-semibold shadow-xs"
         >
-          <Plus className="size-4" /> 添加商品
+          <Plus className="size-4" /> {t("create_action")}
         </Button>
       </div>
 
@@ -103,11 +102,7 @@ export function ProductsPage({
   );
 }
 
-export function computeProductStats(
-  rows: Product[],
-  total?: number,
-  serverSummary?: ProductListResponse["summary"],
-) {
+export function computeProductStats(rows: Product[], total?: number, serverSummary?: ProductListResponse["summary"]) {
   if (serverSummary) {
     return serverSummary;
   }

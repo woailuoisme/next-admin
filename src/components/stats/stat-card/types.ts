@@ -73,6 +73,7 @@ export interface StatCardProps {
   onClick?: () => void;
   /** Loading skeleton state */
   isLoading?: boolean;
+
   /** Custom container class */
   className?: string;
 }

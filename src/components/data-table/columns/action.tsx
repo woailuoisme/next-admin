@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Edit2, Eye, Trash2 } from "lucide-react";
 
 import type { ActionItem } from "../cells/action/types";
@@ -6,6 +7,11 @@ import type { ActionsColOptions } from "./types";
 
 import { ActionsCell } from "../cells/action";
 
+function ActionsColHeader({ headerName }: { headerName?: string }) {
+  const t = useTranslations("table");
+  return <span>{headerName ?? t("actions_column_title")}</span>;
+}
+
 /**
  * 操作列构造器 (ActionsColumn)
  * 支持声明式 crud 预置配置以及原生 quickActions/dropdownActions
@@ -13,7 +19,8 @@ import { ActionsCell } from "../cells/action";
 export function actionsCol<TData = any>(options: ActionsColOptions<TData> = {}): DataTableColDef<TData> {
   const {
     field = "actions",
-    headerName = "操作",
+    headerName,
+    renderHeader: propRenderHeader,
     quickActions = options.quick,
     dropdownActions = options.dropdown,
     maxQuickActions,
@@ -30,15 +37,15 @@ export function actionsCol<TData = any>(options: ActionsColOptions<TData> = {}):
   if (crud) {
     const {
       onView,
-      viewLabel = "View",
+      viewLabel,
       isViewHidden,
       isViewDisabled,
       onEdit,
-      editLabel = "Edit",
+      editLabel,
       isEditHidden,
       isEditDisabled,
       onDelete,
-      deleteLabel = "Delete",
+      deleteLabel,
       isDeleteHidden,
       isDeleteDisabled,
     } = crud;
@@ -91,7 +98,8 @@ export function actionsCol<TData = any>(options: ActionsColOptions<TData> = {}):
 
   return {
     field,
-    headerName,
+    headerName: headerName ?? "操作",
+    renderHeader: propRenderHeader ?? (() => <ActionsColHeader headerName={headerName} />),
     sortable: false,
     filterable: false,
     align: "center",

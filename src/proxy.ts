@@ -18,6 +18,11 @@ export function proxy(request: NextRequest) {
     return token ? NextResponse.redirect(new URL("/overview", request.url)) : NextResponse.next();
   }
 
+  // 2.1 忘记密码流程：已登录用户无需重置密码，直接返回工作区
+  if (pathname.startsWith("/forgot-password") && token) {
+    return NextResponse.redirect(new URL("/overview", request.url));
+  }
+
   // 3. 受保护路由拦截：未登录用户重定向至 /login 并附带原始回跳路径
   const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   if (isProtected && !token) {
@@ -31,5 +36,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)",
+  ],
 };

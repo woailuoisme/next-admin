@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { type HeatmapColorRamp, GeoHeatmapMap } from "@/components/map";
+import { type HeatmapColorRamp, LazyGeoHeatmapMap } from "@/components/map";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_HEATMAP_POINTS } from "../constants";
@@ -34,7 +34,7 @@ export function HeatmapShowcaseTab({ isLoading, isEmpty, isError, onRetry }: Dem
         </div>
       </div>
 
-      <GeoHeatmapMap
+      <LazyGeoHeatmapMap
         data={MOCK_HEATMAP_POINTS}
         colorRamp={heatmapRamp}
         radius={32}

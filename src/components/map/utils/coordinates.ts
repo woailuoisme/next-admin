@@ -21,6 +21,26 @@ export function isInsideChina(coords: Coordinates): boolean {
   return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271;
 }
 
+/**
+ * 底图对应的显示坐标系
+ *
+ * 高德瓦片本身就是 GCJ-02，其余底图（Carto / OSM）为 WGS84。
+ * 不做转换会让标点与底图偏移数百米。
+ */
+export function getBasemapCRS(basemap?: string): CoordinateSystem {
+  return basemap === "amap" ? "GCJ02" : "WGS84";
+}
+
+/** 输入坐标系 / 底图显示坐标系，以及两者之间是否需要转换 */
+export function resolveCoordinateSystems(
+  coordinateSystem?: CoordinateSystem,
+  basemap?: string,
+): { sourceCoords: CoordinateSystem; targetCoords: CoordinateSystem; needsTransform: boolean } {
+  const sourceCoords = coordinateSystem ?? "WGS84";
+  const targetCoords = getBasemapCRS(basemap);
+  return { sourceCoords, targetCoords, needsTransform: sourceCoords !== targetCoords };
+}
+
 function transformLat(x: number, y: number): number {
   let ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
   ret += ((20.0 * Math.sin(6.0 * x * PI) + 20.0 * Math.sin(2.0 * x * PI)) * 2.0) / 3.0;

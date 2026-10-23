@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import {
   closestCenter,
   DndContext,
@@ -28,14 +29,7 @@ import type { KeyValueInputInnerProps, KeyValueInputProps, KeyValueRowItem } fro
 import { FieldConnector, FieldWrapper, useFieldId } from "../../core";
 import { KeyValueRawEditor } from "./KeyValueRawEditor";
 import { KeyValueRow } from "./KeyValueRow";
-import {
-  createKvRow,
-  findDuplicateKeys,
-  markDuplicateRows,
-  parseToRows,
-  rowsToPairs,
-  rowsToRecord,
-} from "./parsers";
+import { createKvRow, findDuplicateKeys, markDuplicateRows, parseToRows, rowsToPairs, rowsToRecord } from "./parsers";
 
 const EMPTY_RECORD: Record<string, string> = {};
 
@@ -55,8 +49,8 @@ const KeyValueInputInner = memo(function KeyValueInputInner({
   onChange,
   onBlur,
   valueType = "auto",
-  keyPlaceholder,
-  valuePlaceholder,
+  keyPlaceholder: propKeyPlaceholder,
+  valuePlaceholder: propValuePlaceholder,
   keyLabel,
   valueLabel,
   keySuggestions,
@@ -65,13 +59,17 @@ const KeyValueInputInner = memo(function KeyValueInputInner({
   allowDuplicateKeys = false,
   enableRawMode = false,
   defaultRawFormat = "json",
-  addButtonText = "添加属性",
+  addButtonText: propAddButtonText,
   canAdd = true,
   canDelete = true,
   reorderable = true,
   maxItems,
   minItems = 0,
 }: KeyValueInputInnerProps) {
+  const t = useTranslations("form");
+  const keyPlaceholder = propKeyPlaceholder ?? t("keyvalue_key_placeholder");
+  const valuePlaceholder = propValuePlaceholder ?? t("keyvalue_value_placeholder");
+  const addButtonText = propAddButtonText ?? t("keyvalue_add");
   const [rows, setRows] = useState<KeyValueRowItem[]>(() => markDuplicateRows(parseToRows(value)));
   const [prevValue, setPrevValue] = useState(value);
   const [isRawMode, setIsRawMode] = useState(false);
@@ -294,8 +292,8 @@ export const KeyValueInput = memo(function KeyValueInput({
   onChange: controlledOnChange,
   onBlur: controlledOnBlur,
   valueType = "auto",
-  keyPlaceholder = "键名 (Key)",
-  valuePlaceholder = "键值 (Value)",
+  keyPlaceholder,
+  valuePlaceholder,
   keyLabel,
   valueLabel,
   keySuggestions,
@@ -304,8 +302,8 @@ export const KeyValueInput = memo(function KeyValueInput({
   allowDuplicateKeys = false,
   enableRawMode = false,
   defaultRawFormat = "json",
-  addButtonText = "添加属性",
-  emptyText = "暂无键值对配置",
+  addButtonText,
+  emptyText,
   canAdd = true,
   canDelete = true,
   reorderable = true,

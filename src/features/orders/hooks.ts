@@ -2,8 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { dashboardKeys } from "@/features/dashboard/queries";
-import { handleMutationError } from "@/lib/api-client";
-import { toastMessages } from "@/lib/toast-messages";
+import { handleMutationError } from "@/lib/apiClient";
+import { toastMessages } from "@/lib/toastMessages";
 
 import type { OrderStatus } from "./types";
 

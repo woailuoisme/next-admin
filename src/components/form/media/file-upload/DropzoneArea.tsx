@@ -1,6 +1,6 @@
+import { useTranslations } from "next-intl";
 import { UploadCloud } from "lucide-react";
 import { type DragEvent, memo } from "react";
-
 import { cn } from "@/lib/utils";
 
 import { formatBytes } from "./utils";
@@ -28,6 +28,8 @@ export const DropzoneArea = memo(function DropzoneArea({
   onDragLeave,
   onDrop,
 }: DropzoneAreaProps) {
+  const t = useTranslations("form");
+
   return (
     <div
       onDragOver={onDragOver}
@@ -36,9 +38,7 @@ export const DropzoneArea = memo(function DropzoneArea({
       onClick={onClick}
       className={cn(
         "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border/80 bg-muted/20 px-6 py-7 text-center transition-all",
-        isDragging
-          ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-          : "hover:border-primary/80 hover:bg-muted/40",
+        isDragging ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "hover:border-primary/80 hover:bg-muted/40",
         hasError && "border-destructive bg-destructive/5",
         disabled && "cursor-not-allowed opacity-60",
       )}
@@ -48,11 +48,12 @@ export const DropzoneArea = memo(function DropzoneArea({
       </div>
       <div className="mt-3 space-y-1">
         <p className="text-foreground text-xs font-medium">
-          <span className="text-primary hover:underline">Click to upload</span> or drag and drop
+          <span className="text-primary hover:underline">{t("upload_dropzone_title")}</span>{" "}
+          {isDragging ? t("upload_dropzone_active") : t("upload_dropzone_desc")}
         </p>
         <p className="text-muted-foreground text-[11px]">
-          {accept ? `Supported formats: ${accept}` : "All files supported"}{" "}
-          {maxSize && `(up to ${formatBytes(maxSize)})`}
+          {accept ? `${t("upload_supported_formats")}: ${accept}` : t("upload_all_formats")}{" "}
+          {maxSize && `(${t("upload_max_size_prefix")} ${formatBytes(maxSize)})`}
         </p>
       </div>
     </div>

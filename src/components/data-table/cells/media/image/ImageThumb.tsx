@@ -98,9 +98,7 @@ function ImageThumbInner({
   const imageElement = (
     <>
       {/* Shimmer skeleton before image is loaded */}
-      {!isLoaded && (
-        <div className={cn("absolute inset-0 z-0 animate-pulse bg-muted/70", shapeClasses[shape])} />
-      )}
+      {!isLoaded && <div className={cn("absolute inset-0 z-0 animate-pulse bg-muted/70", shapeClasses[shape])} />}
       <img
         src={imgUrl}
         alt={alt}

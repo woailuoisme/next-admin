@@ -1,6 +1,6 @@
 import type { ApiResponse } from "@/types";
 
-import { apiClient, createIdempotencyKey } from "@/lib/api-client";
+import { apiClient, createIdempotencyKey } from "@/lib/apiClient";
 
 import type { Category } from "./types";
 

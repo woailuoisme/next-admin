@@ -1,6 +1,6 @@
+import { useTranslations } from "next-intl";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { memo, type ComponentType } from "react";
-
 import { cn } from "@/lib/utils";
 
 import type { PacingStatus } from "../progress-card/types";
@@ -36,6 +36,7 @@ export interface StatCardProgressProps {
   suffix?: string;
   trend?: StatCardTrendData;
   theme?: StatCardTheme;
+
   className?: string;
 }
 
@@ -52,6 +53,7 @@ export const StatCardProgress = memo(function StatCardProgress({
   className,
 }: StatCardProgressProps) {
   const context = useStatCardContext();
+  const t = useTranslations("stats");
   const resolvedTheme = theme ?? context.theme ?? "primary";
   const themeConfig = getStatTheme(resolvedTheme);
 
@@ -67,6 +69,19 @@ export const StatCardProgress = memo(function StatCardProgress({
 
   const targetDisplay = typeof targetValue === "number" ? targetValue.toLocaleString() : targetValue;
   const DirIcon = trendInfo ? TREND_DIR_ICONS[trendInfo.dir] : null;
+
+  const resolvePacingLabel = (status: PacingStatus) => {
+    switch (status) {
+      case "ahead":
+        return t("pacing_ahead");
+      case "on_track":
+        return t("pacing_on_track");
+      case "behind":
+        return t("pacing_behind");
+      default:
+        return PACING_LABELS[status];
+    }
+  };
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -98,7 +113,7 @@ export const StatCardProgress = memo(function StatCardProgress({
             )}
           >
             <pacingInfo.PacingIcon className="h-3 w-3" />
-            <span>{pacingLabel || PACING_LABELS[pacingInfo.status]}</span>
+            <span>{pacingLabel || resolvePacingLabel(pacingInfo.status)}</span>
           </div>
         ) : trend && trendInfo ? (
           <div

@@ -1,6 +1,6 @@
+import { useTranslations } from "next-intl";
 import { ArrowUpDown, FilterX, Loader2, RotateCcw } from "lucide-react";
 import { type CSSProperties, isValidElement, memo, type ReactElement, type ReactNode, useMemo } from "react";
-
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ import type { DataTableColDef, DataTableSlots } from "../core/types";
 import type { TableEmptyStateConfig, TableEmptyStateContext, TableEmptyStateProps } from "../empty-state";
 
 import { EMPTY_ARRAY, EMPTY_RECORD } from "../core/constants";
+import { useOptionalDataTableContext } from "../core/DataTableContext";
 import { TableEmptyState } from "../empty-state";
 
 export interface DataTableSkeletonRowsProps<TData = any> {
@@ -67,7 +68,7 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
                 className={cn(
                   "w-9 px-1 text-center",
                   (checkboxSelection || pinnedLeftFields.length > 0) &&
-                    "sticky z-10 border-r border-border/80 bg-card shadow-[2px_0_4px_-2px_rgba(0,0,0,0.05)]",
+                    "sticky z-10 border-r border-border/80 bg-card shadow-pin-left",
                 )}
               >
                 <Skeleton className="mx-auto size-3.5 rounded-xs" />
@@ -101,9 +102,8 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
                     "px-4 py-2",
                     isPinnedLeft && "sticky z-10 bg-card",
                     isPinnedRight && "sticky z-10 bg-card",
-                    isLastPinnedLeft && "border-r border-border/80 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.05)]",
-                    isFirstPinnedRight &&
-                      "border-l border-border/80 shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.05)]",
+                    isLastPinnedLeft && "border-r border-border/80 shadow-pin-left",
+                    isFirstPinnedRight && "border-l border-border/80 shadow-pin-right",
                     col.align === "right" && "text-right",
                     col.align === "center" && "text-center",
                   )}
@@ -126,6 +126,12 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
   );
 }) as <TData = any>(props: DataTableSkeletonRowsProps<TData>) => ReactElement | null;
 
+function useResolvedLoadingText(loadingText?: string) {
+  const ctx = useOptionalDataTableContext();
+  const t = useTranslations("table");
+  return loadingText ?? ctx?.loadingText ?? t("loading_text");
+}
+
 export interface DataTableBackdropLoaderProps {
   slots?: DataTableSlots;
   loadingText?: string;
@@ -133,8 +139,10 @@ export interface DataTableBackdropLoaderProps {
 
 export const DataTableBackdropLoader = memo(function DataTableBackdropLoader({
   slots,
-  loadingText = "Loading records...",
+  loadingText,
 }: DataTableBackdropLoaderProps) {
+  const resolvedLoadingText = useResolvedLoadingText(loadingText);
+
   if (slots?.loadingOverlay) {
     return <slots.loadingOverlay />;
   }
@@ -147,7 +155,7 @@ export const DataTableBackdropLoader = memo(function DataTableBackdropLoader({
     >
       <div className="border-border/60 bg-card/95 text-foreground flex items-center gap-3 rounded-xl border px-5 py-3 text-sm font-medium shadow-lg backdrop-blur-md">
         <Loader2 className="text-primary size-5 animate-spin" />
-        <span>{loadingText}</span>
+        <span>{resolvedLoadingText}</span>
       </div>
     </div>
   );
@@ -162,8 +170,10 @@ export interface DataTableLoadingOverlayProps {
 export const DataTableLoadingOverlay = memo(function DataTableLoadingOverlay({
   colSpan,
   slots,
-  loadingText = "Loading records...",
+  loadingText,
 }: DataTableLoadingOverlayProps) {
+  const resolvedLoadingText = useResolvedLoadingText(loadingText);
+
   return (
     <TableRow>
       <TableCell colSpan={colSpan} className="h-64 text-center">
@@ -172,7 +182,7 @@ export const DataTableLoadingOverlay = memo(function DataTableLoadingOverlay({
         ) : (
           <div className="text-muted-foreground flex flex-col items-center justify-center gap-3">
             <Loader2 className="text-primary size-8 animate-spin" />
-            <span className="text-xs font-medium tracking-wide">{loadingText}</span>
+            <span className="text-xs font-medium tracking-wide">{resolvedLoadingText}</span>
           </div>
         )}
       </TableCell>
@@ -193,30 +203,30 @@ export interface DataTableEmptyOverlayProps {
 
 export const DataTableEmptyOverlay = memo(function DataTableEmptyOverlay({
   colSpan,
-  emptyMessage = "No records found.",
-  noResultsMessage = "No matching records found.",
-  resetFiltersText = "Reset filters",
+  emptyMessage,
+  noResultsMessage,
+  resetFiltersText,
   isFiltered = false,
   onResetFilters,
   slots,
   emptyState,
 }: DataTableEmptyOverlayProps) {
-  // 1. Slots have highest priority for backward compatibility
-  if (isFiltered && slots?.noResultsOverlay) {
-    return (
-      <TableRow>
-        <TableCell colSpan={colSpan} className="h-64 text-center">
-          <slots.noResultsOverlay />
-        </TableCell>
-      </TableRow>
-    );
-  }
+  const ctx = useOptionalDataTableContext();
+  const t = useTranslations("table");
 
-  if (!isFiltered && slots?.noRowsOverlay) {
+  const resolvedEmptyMessage = emptyMessage ?? ctx?.emptyMessage ?? t("empty_heading");
+  const resolvedNoResultsMessage = noResultsMessage ?? ctx?.noResultsMessage ?? t("no_results_heading");
+  const resolvedResetFiltersText = resetFiltersText ?? ctx?.resetFiltersText ?? t("reset_filters_action");
+  const resolvedEmptyDescription = t("empty_description");
+  const resolvedNoResultsDescription = t("no_results_description");
+
+  // 1. Slots have highest priority for backward compatibility
+  const SlotOverlay = isFiltered ? slots?.noResultsOverlay : slots?.noRowsOverlay;
+  if (SlotOverlay) {
     return (
       <TableRow>
         <TableCell colSpan={colSpan} className="h-64 text-center">
-          <slots.noRowsOverlay />
+          <SlotOverlay />
         </TableCell>
       </TableRow>
     );
@@ -228,7 +238,7 @@ export const DataTableEmptyOverlay = memo(function DataTableEmptyOverlay({
     isFiltered,
     resetFilters: onResetFilters,
     onResetFilters,
-    resetFiltersText,
+    resetFiltersText: resolvedResetFiltersText,
   };
 
   // 过滤态下的默认「重置筛选」动作，供自定义与默认空状态共用
@@ -236,7 +246,7 @@ export const DataTableEmptyOverlay = memo(function DataTableEmptyOverlay({
     isFiltered && onResetFilters
       ? [
           {
-            label: resetFiltersText,
+            label: resolvedResetFiltersText,
             icon: RotateCcw,
             onClick: onResetFilters,
             variant: "outline" as const,
@@ -257,13 +267,8 @@ export const DataTableEmptyOverlay = memo(function DataTableEmptyOverlay({
       <TableEmptyState
         icon={config.icon ?? (isFiltered ? FilterX : ArrowUpDown)}
         iconColor={config.iconColor ?? (isFiltered ? "warning" : "muted")}
-        heading={config.heading ?? (isFiltered ? noResultsMessage : emptyMessage)}
-        description={
-          config.description ??
-          (isFiltered
-            ? "No records match your active filters or search criteria."
-            : "There is no data available to display right now.")
-        }
+        heading={config.heading ?? (isFiltered ? resolvedNoResultsMessage : resolvedEmptyMessage)}
+        description={config.description ?? (isFiltered ? resolvedNoResultsDescription : resolvedEmptyDescription)}
         actions={config.actions ?? resetActions}
         renderActions={config.renderActions}
         size={config.size ?? "md"}

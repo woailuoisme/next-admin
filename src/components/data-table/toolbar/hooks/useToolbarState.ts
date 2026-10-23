@@ -1,7 +1,7 @@
 import type { InternalDataTableToolbarProps } from "../types";
 
 import { EMPTY_ARRAY, EMPTY_RECORD, NOOP } from "../../core/constants";
-import { useOptionalDataTableContext } from "../../core/data-table-context";
+import { useOptionalDataTableContext } from "../../core/DataTableContext";
 
 const EMPTY_FILTER_MODEL = { items: EMPTY_ARRAY };
 
@@ -42,8 +42,8 @@ export function useToolbarState<TData = any>(props: InternalDataTableToolbarProp
   const showFilters = props.showFilters ?? toolbarProps.showFilters ?? true;
   const showDensity = props.showDensity ?? toolbarProps.showDensity ?? true;
   const showExport = props.showExport ?? toolbarProps.showExport ?? true;
-  const quickFilterPlaceholder =
-    props.quickFilterPlaceholder ?? toolbarProps.quickFilterPlaceholder ?? "Search records...";
+  const quickFilterPlaceholder = props.quickFilterPlaceholder ?? toolbarProps.quickFilterPlaceholder;
+  const quickFilterEntity = props.quickFilterEntity ?? toolbarProps.quickFilterEntity;
 
   return {
     columns,
@@ -79,5 +79,6 @@ export function useToolbarState<TData = any>(props: InternalDataTableToolbarProp
     showDensity,
     showExport,
     quickFilterPlaceholder,
+    quickFilterEntity,
   };
 }

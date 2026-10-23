@@ -4,13 +4,7 @@ import { type KeyboardEvent, memo, useId } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-import {
-  type BaseInputProps,
-  FieldConnector,
-  FieldWrapper,
-  resolveFieldHasError,
-  type SegmentedOption,
-} from "../core";
+import { type BaseInputProps, FieldConnector, FieldWrapper, resolveFieldHasError, type SegmentedOption } from "../core";
 
 export interface SegmentedControlProps<T extends string | number = string> extends BaseInputProps {
   value?: T;
@@ -121,10 +115,7 @@ const SegmentedControlInner = memo(function SegmentedControlInner<T extends stri
             {opt.badge != null && (
               <span className="ml-1 shrink-0">
                 {typeof opt.badge === "string" || typeof opt.badge === "number" ? (
-                  <Badge
-                    variant={isSelected ? "default" : "secondary"}
-                    className="h-4 rounded-full px-1 text-[10px]"
-                  >
+                  <Badge variant={isSelected ? "default" : "secondary"} className="h-4 rounded-full px-1 text-[10px]">
                     {opt.badge}
                   </Badge>
                 ) : (

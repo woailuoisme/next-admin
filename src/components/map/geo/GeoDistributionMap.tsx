@@ -57,10 +57,7 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
     unit,
   });
 
-  const basemapConfig = useMemo(
-    () => resolveBasemapConfig(basemap, customStyleUrl),
-    [basemap, customStyleUrl],
-  );
+  const basemapConfig = useMemo(() => resolveBasemapConfig(basemap, customStyleUrl), [basemap, customStyleUrl]);
 
   const fillPaint = useMemo(
     () => ({
@@ -105,9 +102,7 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
   const hasEmptyData =
     isEmpty ||
     !data ||
-    (typeof data === "object" &&
-      "features" in data &&
-      (data as GeoJSON.FeatureCollection).features.length === 0);
+    (typeof data === "object" && "features" in data && (data as GeoJSON.FeatureCollection).features.length === 0);
 
   // 高度交由外层容器决定：卡片模式取 MapCard.height、全屏取 fullscreenHeight、
   // 独立使用时由下方 wrapper 提供。内层统一 size-full，避免内层固定高度大于

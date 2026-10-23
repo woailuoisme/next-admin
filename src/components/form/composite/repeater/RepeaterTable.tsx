@@ -28,12 +28,7 @@ interface RepeaterTableRowProps<T> {
   onDuplicate: (index: number) => void;
   onRemove: (index: number) => void;
   onUpdate: (nextVal: T, index: number) => void;
-  renderItem: (
-    item: T,
-    index: number,
-    updateItem: (val: T) => void,
-    helpers: RepeaterItemHelpers<T>,
-  ) => ReactNode;
+  renderItem: (item: T, index: number, updateItem: (val: T) => void, helpers: RepeaterItemHelpers<T>) => ReactNode;
 }
 
 const RepeaterTableRow = memo(function RepeaterTableRow<T>({
@@ -199,12 +194,7 @@ const RepeaterTableRow = memo(function RepeaterTableRow<T>({
                   <div className="text-foreground font-medium">确认删除此行？</div>
                   <p className="text-muted-foreground text-[11px]">该行数据将被即刻移除。</p>
                   <div className="flex justify-end gap-1.5 pt-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="xs"
-                      onClick={() => setDeletePopoverOpen(false)}
-                    >
+                    <Button type="button" variant="outline" size="xs" onClick={() => setDeletePopoverOpen(false)}>
                       取消
                     </Button>
                     <Button type="button" variant="destructive" size="xs" onClick={handleDirectRemove}>
@@ -248,12 +238,7 @@ interface RepeaterTableProps<T> {
   onDuplicate: (index: number) => void;
   onRemove: (index: number) => void;
   onUpdate: (nextVal: T, index: number) => void;
-  renderItem: (
-    item: T,
-    index: number,
-    updateItem: (val: T) => void,
-    helpers: RepeaterItemHelpers<T>,
-  ) => ReactNode;
+  renderItem: (item: T, index: number, updateItem: (val: T) => void, helpers: RepeaterItemHelpers<T>) => ReactNode;
   isAddAllowed?: boolean;
   onAdd?: () => void;
   addButtonText?: string;

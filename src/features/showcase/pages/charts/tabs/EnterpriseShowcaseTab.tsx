@@ -121,11 +121,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
           {...chartStateProps}
           height={340}
         >
-          <WaterfallFinancialChart
-            data={ENTERPRISE_WATERFALL_DATA}
-            valueFormatter={CURRENCY_FORMATTER}
-            height={320}
-          />
+          <WaterfallFinancialChart data={ENTERPRISE_WATERFALL_DATA} valueFormatter={CURRENCY_FORMATTER} height={320} />
         </ChartCard>
       </div>
 
@@ -162,11 +158,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
           {...chartStateProps}
           height={340}
         >
-          <TreemapDistributionChart
-            data={ENTERPRISE_TREEMAP_DATA}
-            valueFormatter={CURRENCY_FORMATTER}
-            height={320}
-          />
+          <TreemapDistributionChart data={ENTERPRISE_TREEMAP_DATA} valueFormatter={CURRENCY_FORMATTER} height={320} />
         </ChartCard>
       </div>
 

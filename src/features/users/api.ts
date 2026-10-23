@@ -2,16 +2,14 @@ import { omitBy } from "es-toolkit";
 
 import type { ApiResponse } from "@/types";
 
-import { apiClient, toSearchParams } from "@/lib/api-client";
+import { apiClient, toSearchParams } from "@/lib/apiClient";
 
 import type { Customer, CustomerFilters } from "./types";
 
 export async function fetchCustomers(filters: CustomerFilters = {}): Promise<Customer[]> {
   const params = omitBy(filters, (value, key) => !value || (key === "status" && value === "all"));
 
-  const res = await apiClient
-    .get("users", { searchParams: toSearchParams(params) })
-    .json<ApiResponse<Customer[]>>();
+  const res = await apiClient.get("users", { searchParams: toSearchParams(params) }).json<ApiResponse<Customer[]>>();
   return res.data;
 }
 

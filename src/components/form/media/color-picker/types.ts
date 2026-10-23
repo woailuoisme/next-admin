@@ -40,10 +40,7 @@ export interface ColorPickerInnerProps {
   computedError?: ReactNode;
 }
 
-export interface ColorTriggerProps extends Omit<
-  React.ComponentPropsWithoutRef<"button">,
-  "value" | "onChange"
-> {
+export interface ColorTriggerProps extends Omit<React.ComponentPropsWithoutRef<"button">, "value" | "onChange"> {
   id?: string;
   value: string;
   placeholder?: string;

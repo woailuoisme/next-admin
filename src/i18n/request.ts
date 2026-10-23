@@ -11,5 +11,15 @@ export default getRequestConfig(async () => {
   return {
     locale,
     messages: (await import(`@/messages/${locale}.json`)).default,
+    // 开发期暴露缺键细节，生产期保持控制台安静
+    onError(error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error(error);
+      }
+    },
+    // 生产期缺键渲染为 namespace.key，便于定位而非渲染空白
+    getMessageFallback({ namespace, key }) {
+      return [namespace, key].filter(Boolean).join(".");
+    },
   };
 });

@@ -72,9 +72,7 @@ export const NavMainDropdown = memo(function NavMainDropdown({
                     <span
                       className={cn(
                         "size-1.5 rounded-full transition-all",
-                        isSubActive
-                          ? "scale-125 bg-primary ring-2 ring-primary/20"
-                          : "bg-muted-foreground/40",
+                        isSubActive ? "scale-125 bg-primary ring-2 ring-primary/20" : "bg-muted-foreground/40",
                       )}
                     />
                     <span className="font-normal">{subItem.title}</span>

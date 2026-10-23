@@ -1,9 +1,10 @@
+import { useTranslations } from "next-intl";
 import { Check, X } from "lucide-react";
-import { memo } from "react";
-
+import { memo, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 import type { PasswordRequirement } from "../core";
+import type { MessageKeyOf } from "@/types/i18n";
 
 export interface PasswordStrengthMeterProps {
   password?: string;
@@ -35,9 +36,10 @@ export function calculatePasswordStrength(password: string): {
   score: number;
   label: string;
   colorClass: string;
+  scoreKey: MessageKeyOf<"form">;
 } {
   if (!password) {
-    return { score: 0, label: "Empty", colorClass: STRENGTH_COLOR_CLASSES.empty };
+    return { score: 0, label: "Empty", colorClass: STRENGTH_COLOR_CLASSES.empty, scoreKey: "password_empty" };
   }
 
   let passedChecks = 0;
@@ -49,29 +51,49 @@ export function calculatePasswordStrength(password: string): {
 
   // Normalize to 0 - 4
   if (passedChecks <= 1) {
-    return { score: 1, label: "Weak", colorClass: STRENGTH_COLOR_CLASSES.weak };
+    return { score: 1, label: "Weak", colorClass: STRENGTH_COLOR_CLASSES.weak, scoreKey: "password_weak" };
   }
   if (passedChecks === 2) {
-    return { score: 2, label: "Fair", colorClass: STRENGTH_COLOR_CLASSES.fair };
+    return { score: 2, label: "Fair", colorClass: STRENGTH_COLOR_CLASSES.fair, scoreKey: "password_fair" };
   }
   if (passedChecks <= 4) {
-    return { score: 3, label: "Good", colorClass: STRENGTH_COLOR_CLASSES.good };
+    return { score: 3, label: "Good", colorClass: STRENGTH_COLOR_CLASSES.good, scoreKey: "password_good" };
   }
-  return { score: 4, label: "Strong", colorClass: STRENGTH_COLOR_CLASSES.strong };
+  return {
+    score: 4,
+    label: "Strong",
+    colorClass: STRENGTH_COLOR_CLASSES.strong,
+    scoreKey: "password_strong",
+  };
 }
 
 export const PasswordStrengthMeter = memo(function PasswordStrengthMeter({
   password = "",
-  requirements = DEFAULT_PASSWORD_REQUIREMENTS,
+  requirements: propRequirements,
   showScoreLabel = true,
   showRequirements = true,
   className,
 }: PasswordStrengthMeterProps) {
-  const { score, label, colorClass } = calculatePasswordStrength(password);
+  const t = useTranslations("form");
+  const { score, colorClass, scoreKey } = calculatePasswordStrength(password);
+
+  const defaultRequirements = useMemo<PasswordRequirement[]>(
+    () => [
+      { label: t("password_req_length"), validator: (p) => p.length >= 8 },
+      { label: t("password_req_case"), validator: (p) => /[a-z]/.test(p) && /[A-Z]/.test(p) },
+      { label: t("password_req_number"), validator: (p) => /\d/.test(p) },
+      { label: t("password_req_symbol"), validator: (p) => /[^A-Za-z0-9]/.test(p) },
+    ],
+    [t],
+  );
+
+  const requirements = propRequirements ?? defaultRequirements;
 
   if (!password) {
     return null;
   }
+
+  const label = t(scoreKey);
 
   return (
     <div className={cn("space-y-2 pt-1 text-xs", className)}>

@@ -16,9 +16,7 @@ export function MapHeaderBar({ demoState, onDemoStateChange, onReset }: MapHeade
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-foreground text-2xl font-bold tracking-tight md:text-3xl">
-            Map Components Showcase
-          </h1>
+          <h1 className="text-foreground text-2xl font-bold tracking-tight md:text-3xl">Map Components Showcase</h1>
           <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
             @mapcn/map 封装
           </Badge>

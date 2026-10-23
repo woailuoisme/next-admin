@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
 import { memo, useEffect } from "react";
@@ -17,9 +18,9 @@ export const ResourceFormPage = memo(function ResourceFormPage({
   breadcrumbs,
   backTo,
   backLabel,
-  submitText = "Save Changes",
-  cancelText = "Cancel",
-  saveAndContinueText = "Save & Continue",
+  submitText,
+  cancelText,
+  saveAndContinueText,
   onSaveAndContinue,
   isSubmitting = false,
   isSubmitDisabled = false,
@@ -32,7 +33,12 @@ export const ResourceFormPage = memo(function ResourceFormPage({
   className,
   children,
 }: Omit<ResourceFormHostProps, "presentation" | "open" | "onOpenChange" | "size">) {
+  const t = useTranslations("resource");
   const goBack = useResourceBackNavigation(backTo);
+
+  const resolvedSubmitText = submitText ?? t("save_changes");
+  const resolvedCancelText = cancelText ?? t("cancel");
+  const resolvedSaveAndContinueText = saveAndContinueText ?? t("save_and_continue");
 
   // 浏览器刷新/关闭未保存拦截
   useEffect(() => {
@@ -49,11 +55,7 @@ export const ResourceFormPage = memo(function ResourceFormPage({
   }, [enableDirtyGuard, isDirty]);
 
   const handleCancel = useMemoizedFn(() => {
-    if (
-      enableDirtyGuard &&
-      isDirty &&
-      !window.confirm("You have unsaved changes. Are you sure you want to discard them?")
-    ) {
+    if (enableDirtyGuard && isDirty && !window.confirm(t("unsaved_changes_confirm"))) {
       return;
     }
 
@@ -94,7 +96,7 @@ export const ResourceFormPage = memo(function ResourceFormPage({
             disabled={isSubmitting}
             className="text-muted-foreground hover:text-foreground h-8.5 px-3.5 text-xs"
           >
-            {cancelText}
+            {resolvedCancelText}
           </Button>
 
           <div className="flex items-center gap-2.5">
@@ -107,7 +109,7 @@ export const ResourceFormPage = memo(function ResourceFormPage({
                 className="h-8.5 px-4 text-xs font-medium"
               >
                 {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" /> : null}
-                {saveAndContinueText}
+                {resolvedSaveAndContinueText}
               </Button>
             ) : null}
 
@@ -117,7 +119,7 @@ export const ResourceFormPage = memo(function ResourceFormPage({
               className="h-8.5 px-4 text-xs font-medium shadow-xs"
             >
               {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" /> : null}
-              {submitText}
+              {resolvedSubmitText}
             </Button>
           </div>
         </div>

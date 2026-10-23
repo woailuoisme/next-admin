@@ -1,18 +1,7 @@
 import { DollarSign, Server, TrendingUp, Zap } from "lucide-react";
 
-import {
-  ComposedTrendChart,
-  DonutDistributionChart,
-  HorizontalBarChart,
-  RadialGaugeChart,
-} from "@/components/chart";
-import {
-  LiveStatCard,
-  MultiMetricStatCard,
-  ProgressStatCard,
-  StatCard,
-  type useLiveTicker,
-} from "@/components/stats";
+import { ComposedTrendChart, DonutDistributionChart, HorizontalBarChart, RadialGaugeChart } from "@/components/chart";
+import { LiveStatCard, MultiMetricStatCard, ProgressStatCard, StatCard, type useLiveTicker } from "@/components/stats";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -211,34 +200,13 @@ export function OverviewTab({
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-around gap-4 pt-2 sm:flex-row">
             <div className="flex flex-col items-center">
-              <RadialGaugeChart
-                value={99.9}
-                max={100}
-                height={180}
-                theme="chart-2"
-                label="Uptime SLA"
-                unit="%"
-              />
+              <RadialGaugeChart value={99.9} max={100} height={180} theme="chart-2" label="Uptime SLA" unit="%" />
             </div>
             <div className="flex flex-col items-center">
-              <RadialGaugeChart
-                value={76}
-                max={100}
-                height={180}
-                theme="chart-3"
-                label="Memory Quota"
-                unit="%"
-              />
+              <RadialGaugeChart value={76} max={100} height={180} theme="chart-3" label="Memory Quota" unit="%" />
             </div>
             <div className="flex flex-col items-center">
-              <RadialGaugeChart
-                value={42}
-                max={100}
-                height={180}
-                theme="primary"
-                label="Disk IOPS"
-                unit="%"
-              />
+              <RadialGaugeChart value={42} max={100} height={180} theme="primary" label="Disk IOPS" unit="%" />
             </div>
           </CardContent>
         </Card>

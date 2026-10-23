@@ -126,12 +126,7 @@ const PasswordInputInner = memo(function PasswordInputInner({
 
         {clearable && hasValue && !disabled && !readOnly && (
           <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              size="icon-xs"
-              variant="ghost"
-              onClick={handleClear}
-              aria-label="Clear password"
-            >
+            <InputGroupButton size="icon-xs" variant="ghost" onClick={handleClear} aria-label="Clear password">
               <X className="size-3" />
             </InputGroupButton>
           </InputGroupAddon>

@@ -3,14 +3,7 @@ import { Check, ChevronsUpDown, X } from "lucide-react";
 import { memo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
@@ -138,16 +131,12 @@ function ComboboxInputInnerComponent<TValue extends string | number = string>({
                         onSelect={() => handleSelect(option.value)}
                         className="cursor-pointer"
                       >
-                        <Check
-                          className={cn("mr-2 size-4 shrink-0", isSelected ? "opacity-100" : "opacity-0")}
-                        />
+                        <Check className={cn("mr-2 size-4 shrink-0", isSelected ? "opacity-100" : "opacity-0")} />
                         {option.icon && <span className="mr-2 shrink-0">{option.icon}</span>}
                         <div className="flex min-w-0 flex-col">
                           <span className="truncate">{option.label}</span>
                           {option.description && (
-                            <span className="text-muted-foreground truncate text-[11px]">
-                              {option.description}
-                            </span>
+                            <span className="text-muted-foreground truncate text-[11px]">{option.description}</span>
                           )}
                         </div>
                       </CommandItem>

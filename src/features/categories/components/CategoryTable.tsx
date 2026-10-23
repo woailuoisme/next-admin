@@ -1,12 +1,13 @@
 import { Download } from "lucide-react";
 import { useMemo } from "react";
 
-import { col, type DataTableColDef, downloadBlob, ResourceTable } from "@/components/data-table";
+import { col, type DataTableColDef, exportRowsAsJson, ResourceTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 
 import type { Category } from "../types";
 
 import { categoryQueries } from "../queries";
+import { useTranslations } from "next-intl";
 
 export interface CategoryTableProps {
   categories?: Category[];
@@ -24,63 +25,51 @@ const PINNED_COLUMNS = {
 const SLOT_PROPS = {
   toolbar: {
     exportFileName: "categories-catalog.csv",
-    quickFilterPlaceholder: "Filter categories in view...",
   },
 };
 
 const getCategoryRowId = (c: Category) => c.id;
 
-function exportCategoriesJson(selectedRows: Category[], clearSelection: () => void) {
-  downloadBlob(
-    JSON.stringify(selectedRows, null, 2),
-    `categories-${selectedRows.length}.json`,
-    "application/json",
-  );
-  clearSelection();
-}
+const exportCategoriesJson = (selectedRows: Category[], clearSelection: () => void) =>
+  exportRowsAsJson(selectedRows, `categories-${selectedRows.length}.json`, clearSelection);
 
-export function CategoryTable({
-  categories,
-  loading,
-  total,
-  onEditCategory,
-  onDeleteCategory,
-}: CategoryTableProps) {
+export function CategoryTable({ categories, loading, total, onEditCategory, onDeleteCategory }: CategoryTableProps) {
+  const t = useTranslations("categories");
+
   const columns = useMemo<DataTableColDef<Category>[]>(
     () => [
-      col.text<Category>("name", "Category Name", {
+      col.text<Category>("name", t("col_name"), {
         width: 220,
         flex: 1,
         pinned: "left",
         weight: "semibold",
       }),
-      col.text<Category>("slug", "Slug Identifier", {
+      col.text<Category>("slug", t("col_slug"), {
         width: 180,
         mono: true,
         copyable: true,
       }),
-      col.text<Category>("description", "Description", {
+      col.text<Category>("description", t("col_description"), {
         width: 280,
         flex: 1,
         truncate: true,
       }),
-      col.number<Category>("productCount", "Associated Items", {
+      col.number<Category>("productCount", t("col_product_count"), {
         width: 160,
-        aggregation: "sum",
-        suffix: " products",
+        suffix: t("unit_products"),
       }),
       col.actions<Category>({
         field: "__actions",
-        headerName: "Actions",
+        headerName: t("col_actions"),
         width: 80,
-        moreActionsLabel: "Actions",
+        moreActionsLabel: t("col_actions"),
         crud: {
           onEdit: (row) => onEditCategory?.(row.id),
           onDelete: (row) => onDeleteCategory?.(row.id),
         },
       }),
     ],
-    [onEditCategory, onDeleteCategory],
+    [onEditCategory, onDeleteCategory, t],
   );
 
   return (
@@ -94,7 +83,6 @@ export function CategoryTable({
       checkboxSelection
       paginationMode="client"
       pinnedColumns={PINNED_COLUMNS}
-      summaryRow
       slotProps={SLOT_PROPS}
       batchActions={(selectedRows, clearSelection) => (
         <div className="flex items-center gap-2">

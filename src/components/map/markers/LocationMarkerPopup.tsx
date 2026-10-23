@@ -9,6 +9,12 @@ interface LocationMarkerPopupProps {
   item: LocationMarkerItem;
 }
 
+const STATUS_BADGE_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
+  active: "default",
+  warning: "secondary",
+  inactive: "outline",
+};
+
 export const LocationMarkerPopup = memo(function LocationMarkerPopup({ item }: LocationMarkerPopupProps) {
   // 卡片外观（底色 / 描边 / 圆角 / 阴影 / 12px 内边距）由 ui/map 的 MarkerPopup 容器自带
   // （`bg-popover ... rounded-md border p-3 shadow-md`），此处只负责内容排版。
@@ -18,12 +24,7 @@ export const LocationMarkerPopup = memo(function LocationMarkerPopup({ item }: L
       <div className="flex items-start justify-between gap-2">
         <div className="text-foreground text-sm leading-tight font-semibold">{item.title}</div>
         {item.status ? (
-          <Badge
-            variant={
-              item.status === "active" ? "default" : item.status === "warning" ? "secondary" : "outline"
-            }
-            className="shrink-0 text-[10px]"
-          >
+          <Badge variant={STATUS_BADGE_VARIANTS[item.status] ?? "outline"} className="shrink-0 text-[10px]">
             {item.status}
           </Badge>
         ) : null}
@@ -44,9 +45,7 @@ export const LocationMarkerPopup = memo(function LocationMarkerPopup({ item }: L
       ) : null}
 
       {item.description ? (
-        <p className="border-border/40 text-muted-foreground/90 border-t pt-1.5 text-[11px]">
-          {item.description}
-        </p>
+        <p className="border-border/40 text-muted-foreground/90 border-t pt-1.5 text-[11px]">{item.description}</p>
       ) : null}
 
       <div className="border-border/50 text-muted-foreground flex items-center justify-between gap-2 border-t pt-1.5 font-mono text-[10px]">

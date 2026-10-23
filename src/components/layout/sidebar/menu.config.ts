@@ -11,20 +11,13 @@ import {
   Users,
 } from "lucide-react";
 
-import { createTranslator, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
-import { DICTIONARY, getUserLocale } from "@/i18n";
+import { createNamespaceTranslator } from "@/i18n";
 
 import type { NavGroup } from "./types";
 
-function getMenuTranslator() {
-  const locale = getUserLocale();
-  return createTranslator({
-    locale,
-    messages: DICTIONARY[locale] ?? DICTIONARY.zh,
-    namespace: "menu",
-  });
-}
+const getMenuTranslator = () => createNamespaceTranslator("menu");
 
 /**
  * Get localized sidebar navigation menu groups with concise wording.
@@ -58,35 +51,35 @@ export function getSidebarMenuGroups(tMenu?: (key: any) => string): NavGroup[] {
       ],
     },
     {
-      title: "UI Showcase",
+      title: t("showcase"),
       items: [
         {
-          title: "Table Columns",
+          title: t("showcase_tables"),
           to: "/showcase/tables",
           icon: TableProperties,
         },
         {
-          title: "Form Fields",
+          title: t("showcase_forms"),
           to: "/showcase/forms",
           icon: Sparkles,
         },
         {
-          title: "Infolists & Callouts",
+          title: t("showcase_infolists"),
           to: "/showcase/infolists",
           icon: FileText,
         },
         {
-          title: "Stats Cards",
+          title: t("showcase_stats"),
           to: "/showcase/stats",
           icon: BarChart3,
         },
         {
-          title: "Chart Widgets",
+          title: t("showcase_charts"),
           to: "/showcase/charts",
           icon: AreaChart,
         },
         {
-          title: "Map Components",
+          title: t("showcase_maps"),
           to: "/showcase/maps",
           icon: MapPin,
         },
@@ -103,10 +96,7 @@ function isRoleAllowed(roles: string[] | undefined, userRole?: string): boolean 
 /**
  * Filter menu groups and items based on the user's current role
  */
-export function getAuthorizedMenu(
-  groups: NavGroup[] = getSidebarMenuGroups(),
-  userRole?: string,
-): NavGroup[] {
+export function getAuthorizedMenu(groups: NavGroup[] = getSidebarMenuGroups(), userRole?: string): NavGroup[] {
   if (!userRole) {
     return groups;
   }

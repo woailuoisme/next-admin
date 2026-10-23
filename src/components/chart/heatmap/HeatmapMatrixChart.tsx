@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 import type { HeatmapMatrixChartProps } from "./types";
 
-import { formatNumber } from "../shared/formatters";
+import { useFormatter, useTranslations } from "next-intl";
 import { type ComputedHeatmapCell, useHeatmapMatrix } from "./useHeatmapMatrix";
 
 // SVG layout geometry constants
@@ -23,13 +23,18 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
   xLabels,
   yLabels,
   height = 260,
-  valueFormatter = (val: number) => formatNumber(val),
+  valueFormatter: customValueFormatter,
   colorTheme = "primary",
-  legendTitle = "活跃度",
+  legendTitle,
   showTooltip = true,
   showLegend = true,
   className,
 }: HeatmapMatrixChartProps) {
+  const format = useFormatter();
+  const t = useTranslations("chart");
+  const valueFormatter = customValueFormatter ?? ((val: number) => format.number(val));
+  const resolvedLegendTitle = legendTitle ?? t("heatmap_legend_title");
+
   const [hoveredCell, setHoveredCell] = useState<{
     cell: ComputedHeatmapCell;
     x: number;
@@ -52,11 +57,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
   });
 
   const themeColor =
-    colorTheme === "chart-1"
-      ? "var(--chart-1)"
-      : colorTheme === "chart-2"
-        ? "var(--chart-2)"
-        : "var(--primary)";
+    colorTheme === "chart-1" ? "var(--chart-1)" : colorTheme === "chart-2" ? "var(--chart-2)" : "var(--primary)";
 
   const numCols = computedXLabels.length || 1;
   const numRows = computedYLabels.length || 1;
@@ -69,8 +70,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
   const cellHeight = Math.max(12, (availableHeight - (numRows - 1) * CELL_GAP) / numRows);
 
   const actualSvgWidth = LABEL_LEFT_WIDTH + numCols * cellWidth + (numCols - 1) * CELL_GAP + 10;
-  const actualSvgHeight =
-    LABEL_TOP_HEIGHT + numRows * cellHeight + (numRows - 1) * CELL_GAP + (showLegend ? 36 : 10);
+  const actualSvgHeight = LABEL_TOP_HEIGHT + numRows * cellHeight + (numRows - 1) * CELL_GAP + (showLegend ? 36 : 10);
 
   return (
     <div className={cn("relative w-full overflow-hidden select-none", className)}>
@@ -83,8 +83,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
         {/* X Axis Labels (Top) */}
         {computedXLabels.map((xVal, colIndex) => {
           // If many columns (e.g. 24 hours or 31 days), show every 2nd or 3rd label
-          const shouldShow =
-            numCols <= 12 || colIndex % Math.ceil(numCols / 12) === 0 || colIndex === numCols - 1;
+          const shouldShow = numCols <= 12 || colIndex % Math.ceil(numCols / 12) === 0 || colIndex === numCols - 1;
 
           if (!shouldShow) return null;
 
@@ -161,7 +160,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
         {showLegend && (
           <g transform={`translate(${LABEL_LEFT_WIDTH}, ${actualSvgHeight - 20})`}>
             <text x={0} y={9} className="fill-muted-foreground text-[10px] font-medium">
-              {legendTitle}: 低 ({formatNumber(min)})
+              {resolvedLegendTitle}: {t("legend_low")} ({valueFormatter(min)})
             </text>
             {LEGEND_STEP_RATIOS.map((stepRatio, idx) => (
               <rect
@@ -176,7 +175,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
               />
             ))}
             <text x={95 + 5 * 16 + 8} y={9} className="fill-muted-foreground text-[10px] font-medium">
-              高 ({formatNumber(max)})
+              {t("legend_high")} ({valueFormatter(max)})
             </text>
           </g>
         )}
@@ -199,9 +198,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
           </div>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="text-muted-foreground">{legendTitle}:</span>
-            <span className="text-foreground font-semibold tabular-nums">
-              {valueFormatter(hoveredCell.cell.value)}
-            </span>
+            <span className="text-foreground font-semibold tabular-nums">{valueFormatter(hoveredCell.cell.value)}</span>
           </div>
         </div>
       )}

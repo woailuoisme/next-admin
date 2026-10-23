@@ -13,6 +13,7 @@ import type { OrderStatus } from "../types";
 import { useUpdateOrderStatusMutation } from "../hooks";
 import { orderQueries } from "../queries";
 import { ORDER_STATUS_OPTIONS } from "../schemas";
+import { useTranslations } from "next-intl";
 
 interface OrderDetailsSheetProps {
   orderId: string | null;
@@ -21,6 +22,7 @@ interface OrderDetailsSheetProps {
 }
 
 export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsSheetProps) {
+  const t = useTranslations("orders");
   const { data: order, isLoading } = useQuery({
     ...orderQueries.detail(orderId ?? ""),
     enabled: Boolean(orderId && open),
@@ -42,9 +44,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
       onOpenChange={onOpenChange}
       title={order?.orderNumber ?? "Order Details"}
       description={
-        order
-          ? `Placed on ${new Date(order.createdAt).toLocaleString()}`
-          : "Order details and fulfillment tracking"
+        order ? `Placed on ${new Date(order.createdAt).toLocaleString()}` : "Order details and fulfillment tracking"
       }
       badge={
         order && (
@@ -62,7 +62,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
           <div className="border-border/70 bg-muted/20 space-y-2 rounded-xl border p-3">
             <Label className="flex items-center gap-1.5 text-xs font-semibold">
               <Clock className="text-primary size-3.5" />
-              Fulfillment Progress
+              {t("detail_fulfillment")}
             </Label>
             <Select
               value={order.status}
@@ -70,19 +70,19 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
               disabled={statusMutation.isPending}
             >
               <SelectTrigger className="h-8 w-full text-xs font-medium capitalize">
-                <SelectValue placeholder="Update status" />
+                <SelectValue placeholder={t("update_status")} />
               </SelectTrigger>
               <SelectContent>
                 {ORDER_STATUS_OPTIONS.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
-                    {item.label}
+                    {t(item.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {statusMutation.isPending && (
               <p className="text-muted-foreground flex items-center gap-1 text-[10px]">
-                <Loader2 className="size-3 animate-spin" /> Updating fulfillment state...
+                <Loader2 className="size-3 animate-spin" /> {t("detail_updating")}
               </p>
             )}
           </div>
@@ -90,17 +90,17 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
           {/* Customer Details via DataList */}
           <div className="space-y-2">
             <p className="text-muted-foreground text-[11px] font-semibold tracking-wider uppercase">
-              Customer Information
+              {t("detail_customer_info")}
             </p>
             <DataList
               items={[
-                { label: "Full Name", value: order.customerName },
+                { label: t("detail_full_name"), value: order.customerName },
                 {
-                  label: "Email Address",
+                  label: t("detail_email"),
                   value: order.customerEmail,
                   copyable: true,
                 },
-                { label: "Shipping Destination", value: order.shippingAddress },
+                { label: t("detail_shipping_destination"), value: order.shippingAddress },
               ]}
               columns={1}
             />
@@ -109,7 +109,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
           {/* Line Items */}
           <div className="space-y-2">
             <p className="text-muted-foreground text-[11px] font-semibold tracking-wider uppercase">
-              Purchased Line Items
+              {t("detail_line_items")}
             </p>
             <div className="divide-border/50 border-border/60 bg-card divide-y overflow-hidden rounded-lg border">
               {order.items.map((item) => (
@@ -117,12 +117,10 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                   <div className="space-y-0.5">
                     <p className="text-foreground text-xs font-medium">{item.productTitle}</p>
                     <p className="text-muted-foreground text-[11px]">
-                      Qty: {item.quantity} &times; ${item.price.toFixed(2)}
+                      {t("detail_qty", { count: item.quantity })} ${item.price.toFixed(2)}
                     </p>
                   </div>
-                  <p className="text-foreground text-xs font-semibold">
-                    ${(item.quantity * item.price).toFixed(2)}
-                  </p>
+                  <p className="text-foreground text-xs font-semibold">${(item.quantity * item.price).toFixed(2)}</p>
                 </div>
               ))}
             </div>
@@ -131,20 +129,20 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
           {/* Financial Totals */}
           <div className="border-border/60 bg-muted/10 space-y-1.5 rounded-lg border p-3">
             <div className="text-muted-foreground flex justify-between">
-              <span>Subtotal</span>
+              <span>{t("detail_subtotal")}</span>
               <span>${order.subtotal.toFixed(2)}</span>
             </div>
             <div className="text-muted-foreground flex justify-between">
-              <span>Estimated Tax (8%)</span>
+              <span>{t("detail_tax")}</span>
               <span>${order.tax.toFixed(2)}</span>
             </div>
             <div className="text-muted-foreground flex justify-between">
-              <span>Standard Shipping</span>
+              <span>{t("detail_shipping")}</span>
               <span>${order.shipping.toFixed(2)}</span>
             </div>
             <Separator className="my-1" />
             <div className="text-foreground flex justify-between pt-1 text-sm font-bold">
-              <span>Total Billed</span>
+              <span>{t("detail_total_billed")}</span>
               <span className="text-primary font-mono">${order.total.toFixed(2)}</span>
             </div>
           </div>

@@ -54,10 +54,7 @@ export const ArcFlightMap = memo(function ArcFlightMap({
     showNodeMarkers,
   });
 
-  const basemapConfig = useMemo(
-    () => resolveBasemapConfig(basemap, customStyleUrl),
-    [basemap, customStyleUrl],
-  );
+  const basemapConfig = useMemo(() => resolveBasemapConfig(basemap, customStyleUrl), [basemap, customStyleUrl]);
 
   const arcPaint = useMemo(
     () => ({

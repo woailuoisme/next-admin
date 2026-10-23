@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { debounce, type DebouncedFunction } from "es-toolkit";
 import { Loader2, MapPin, Search } from "lucide-react";
@@ -5,7 +6,7 @@ import { memo, useEffect, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 
-import { type AmapPlace, isAmapApiEnabled, searchPlaces } from "./amap-geo";
+import { type AmapPlace, isAmapApiEnabled, searchPlaces } from "./amapGeo";
 
 interface LocationAddressSearchProps {
   disabled?: boolean;
@@ -29,6 +30,7 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
   readOnly = false,
   onSelect,
 }: LocationAddressSearchProps) {
+  const t = useTranslations("map");
   const apiEnabled = isAmapApiEnabled();
   const blocked = disabled || readOnly || !apiEnabled;
 
@@ -128,9 +130,7 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
       <Input
         value={keyword}
         disabled={blocked}
-        placeholder={
-          apiEnabled ? "输入地名搜索定位（如：北京南站）" : "配置 NEXT_PUBLIC_AMAP_KEY 后可地名搜索"
-        }
+        placeholder={apiEnabled ? t("picker_search_placeholder") : t("picker_search_disabled")}
         onChange={handleKeywordChange}
         onFocus={() => {
           if (places.length > 0) setIsOpen(true);
@@ -147,7 +147,7 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
           }
         }}
         className="h-8 pl-8 text-xs"
-        aria-label="地名搜索定位"
+        aria-label={t("picker_search_aria")}
       />
       {isSearching ? (
         <Loader2 className="text-muted-foreground absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 animate-spin" />

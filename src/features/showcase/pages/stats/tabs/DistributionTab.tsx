@@ -1,11 +1,6 @@
 import { CheckCircle2 } from "lucide-react";
 
-import {
-  DonutDistributionChart,
-  HorizontalBarChart,
-  RadarMetricChart,
-  RadialGaugeChart,
-} from "@/components/chart";
+import { DonutDistributionChart, HorizontalBarChart, RadarMetricChart, RadialGaugeChart } from "@/components/chart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { DISTRIBUTION_DATA, HORIZONTAL_RANKINGS, RADAR_METRICS } from "../constants";
@@ -14,9 +9,7 @@ export function DistributionTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-foreground text-lg font-semibold">
-          Distribution, Gauges & Multi-Dimensional Radar
-        </h2>
+        <h2 className="text-foreground text-lg font-semibold">Distribution, Gauges & Multi-Dimensional Radar</h2>
         <p className="text-muted-foreground text-xs">
           Visualizing composition proportions, goal completion, and holistic radar scorecards.
         </p>
@@ -68,14 +61,7 @@ export function DistributionTab() {
             <CardDescription>Single-metric speedometer view</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center gap-2 pt-2">
-            <RadialGaugeChart
-              value={87.4}
-              max={100}
-              height={210}
-              theme="primary"
-              label="Overall Score"
-              unit="%"
-            />
+            <RadialGaugeChart value={87.4} max={100} height={210} theme="primary" label="Overall Score" unit="%" />
             <div className="text-muted-foreground flex items-center gap-2 text-xs">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               Passed 48/52 quality gates

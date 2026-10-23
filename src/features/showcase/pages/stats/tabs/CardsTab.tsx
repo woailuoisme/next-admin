@@ -52,9 +52,7 @@ function SparklineMatrix({
 }) {
   return (
     <div>
-      <span className="text-muted-foreground mb-3 block text-xs font-semibold tracking-wider uppercase">
-        {title}
-      </span>
+      <span className="text-muted-foreground mb-3 block text-xs font-semibold tracking-wider uppercase">{title}</span>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {items.map((item) => (
           <div
@@ -82,9 +80,7 @@ export function CardsTab({ liveTicker }: CardsTabProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-foreground text-lg font-semibold">
-          1. Standard StatCards with Sparklines & Themes
-        </h2>
+        <h2 className="text-foreground text-lg font-semibold">1. Standard StatCards with Sparklines & Themes</h2>
         <p className="text-muted-foreground text-xs">
           Flexible status indicators, sparkline micro-charts, and customizable trends.
         </p>
@@ -133,9 +129,7 @@ export function CardsTab({ liveTicker }: CardsTabProps) {
       </div>
 
       <div className="pt-4">
-        <h2 className="text-foreground text-lg font-semibold">
-          2. ProgressStatCard (Goal Pacing & Theme Accents)
-        </h2>
+        <h2 className="text-foreground text-lg font-semibold">2. ProgressStatCard (Goal Pacing & Theme Accents)</h2>
         <p className="text-muted-foreground text-xs">
           Clear visual feedback on progress bars with intent coloring and pacing metadata.
         </p>
@@ -267,8 +261,7 @@ export function CardsTab({ liveTicker }: CardsTabProps) {
               4. Standalone Micro-Charts (Zero-Dependency SVG Sparklines)
             </h2>
             <p className="text-muted-foreground text-xs">
-              Ultra-lightweight Bezier smoothing with coordinate precision rounding and sub-millisecond render
-              budget.
+              Ultra-lightweight Bezier smoothing with coordinate precision rounding and sub-millisecond render budget.
             </p>
           </div>
           <Badge variant="outline" className="w-fit font-mono text-[11px]">
@@ -285,18 +278,8 @@ export function CardsTab({ liveTicker }: CardsTabProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <SparklineMatrix
-            title="Area Gradient Smoothing"
-            label="Area"
-            type="area"
-            items={SPARKLINE_AREA_ITEMS}
-          />
-          <SparklineMatrix
-            title="Categorical Bar Histograms"
-            label="Bar"
-            type="bar"
-            items={SPARKLINE_BAR_ITEMS}
-          />
+          <SparklineMatrix title="Area Gradient Smoothing" label="Area" type="area" items={SPARKLINE_AREA_ITEMS} />
+          <SparklineMatrix title="Categorical Bar Histograms" label="Bar" type="bar" items={SPARKLINE_BAR_ITEMS} />
         </CardContent>
       </Card>
 
@@ -308,8 +291,8 @@ export function CardsTab({ liveTicker }: CardsTabProps) {
               5. Density Scaling & Anti-Truncation Sparkline Layouts
             </h2>
             <p className="text-muted-foreground text-xs">
-              Interactive density control (compact, default, comfortable) and bottom-docked sparkline to
-              guarantee 0 text overflow in 4-column grids.
+              Interactive density control (compact, default, comfortable) and bottom-docked sparkline to guarantee 0
+              text overflow in 4-column grids.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

@@ -1,9 +1,10 @@
 import { memo } from "react";
-import { Funnel, FunnelChart, LabelList, ResponsiveContainer, Tooltip } from "recharts";
+import { Funnel, FunnelChart, LabelList, Tooltip } from "recharts";
 
 import type { FunnelConversionChartProps } from "./types";
 
 import { DEFAULT_ANIMATION_DURATION } from "../shared/constants";
+import { ChartFrame } from "../shared/ChartFrame";
 import { useFunnelConversion } from "./useFunnelConversion";
 
 interface FunnelTooltipItem {
@@ -63,50 +64,37 @@ export const FunnelConversionChart = memo(function FunnelConversionChart(props: 
   const { processedData, valueFormatter } = useFunnelConversion(props);
 
   return (
-    <div className={className} style={{ width: "100%", height }}>
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
-        minWidth={0}
-        minHeight={height}
-        initialDimension={{ width: 500, height }}
-      >
-        <FunnelChart margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
-          {showTooltip && (
-            <Tooltip
-              content={<FunnelTooltipContent valueFormatter={valueFormatter} />}
-              cursor={{ fill: "transparent" }}
+    <ChartFrame height={height} className={className}>
+      <FunnelChart margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
+        {showTooltip && (
+          <Tooltip
+            content={<FunnelTooltipContent valueFormatter={valueFormatter} />}
+            cursor={{ fill: "transparent" }}
+          />
+        )}
+
+        <Funnel dataKey="value" data={processedData} isAnimationActive animationDuration={DEFAULT_ANIMATION_DURATION}>
+          {showLabels && (
+            <LabelList
+              position="right"
+              fill="var(--foreground)"
+              stroke="none"
+              dataKey="name"
+              className="text-xs font-medium"
             />
           )}
-
-          <Funnel
-            dataKey="value"
-            data={processedData}
-            isAnimationActive
-            animationDuration={DEFAULT_ANIMATION_DURATION}
-          >
-            {showLabels && (
-              <LabelList
-                position="right"
-                fill="var(--foreground)"
-                stroke="none"
-                dataKey="name"
-                className="text-xs font-medium"
-              />
-            )}
-            {showRates && (
-              <LabelList
-                position="left"
-                fill="var(--muted-foreground)"
-                stroke="none"
-                dataKey="conversionRate"
-                formatter={(val: unknown) => `${val}%`}
-                className="font-mono text-[11px]"
-              />
-            )}
-          </Funnel>
-        </FunnelChart>
-      </ResponsiveContainer>
-    </div>
+          {showRates && (
+            <LabelList
+              position="left"
+              fill="var(--muted-foreground)"
+              stroke="none"
+              dataKey="conversionRate"
+              formatter={(val: unknown) => `${val}%`}
+              className="font-mono text-[11px]"
+            />
+          )}
+        </Funnel>
+      </FunnelChart>
+    </ChartFrame>
   );
 });

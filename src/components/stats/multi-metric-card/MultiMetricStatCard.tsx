@@ -4,15 +4,7 @@ import { cn } from "@/lib/utils";
 
 import type { MultiMetricStatCardProps, SubMetricItem } from "./types";
 
-import {
-  StatCardHeader,
-  StatCardHelpTooltip,
-  StatCardIcon,
-  StatCardRoot,
-  StatCardSkeleton,
-  StatCardTitle,
-  StatCardValue,
-} from "../primitives";
+import { StatCardHeadline, StatCardRoot, StatCardSkeleton, StatCardValue } from "../primitives";
 import { MetricRow } from "./MetricRow";
 import { TrendTag } from "./TrendTag";
 
@@ -43,18 +35,7 @@ export const MultiMetricStatCard = memo(function MultiMetricStatCard({
 
   return (
     <StatCardRoot theme={theme} to={to} onClick={onClick} className={className}>
-      {/* Top Header */}
-      <StatCardHeader>
-        <div className="flex min-w-0 items-center gap-1.5">
-          <StatCardTitle>{title}</StatCardTitle>
-          {description ? <StatCardHelpTooltip description={description} /> : null}
-        </div>
-
-        <div className="flex shrink-0 items-center gap-1.5">
-          {badge}
-          {Icon ? <StatCardIcon icon={Icon} theme={theme} /> : null}
-        </div>
-      </StatCardHeader>
+      <StatCardHeadline title={title} description={description} badge={badge} icon={Icon} theme={theme} />
 
       {/* Primary Focus Metric */}
       <div className="space-y-1">

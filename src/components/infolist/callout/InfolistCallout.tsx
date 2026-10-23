@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { AlertOctagon, AlertTriangle, CheckCircle2, HelpCircle, Info, Sparkles, X } from "lucide-react";
 import * as React from "react";
 
@@ -63,11 +64,7 @@ const calloutColorStyles: Record<
   },
 };
 
-function renderCalloutIcon(
-  icon: CalloutProps["icon"],
-  color: CalloutColor,
-  iconClass: string,
-): React.ReactNode {
+function renderCalloutIcon(icon: CalloutProps["icon"], color: CalloutColor, iconClass: string): React.ReactNode {
   if (icon === false) return null;
   if (React.isValidElement(icon)) return icon;
 
@@ -143,6 +140,7 @@ export const InfolistCallout = React.forwardRef<HTMLDivElement, CalloutProps>(fu
   },
   ref,
 ) {
+  const t = useTranslations("infolist");
   const [dismissed, setDismissed] = React.useState(false);
 
   if (dismissed) return null;
@@ -180,12 +178,7 @@ export const InfolistCallout = React.forwardRef<HTMLDivElement, CalloutProps>(fu
 
         <div className="flex shrink-0 items-center gap-2">
           {actions?.map((action, idx) => (
-            <CalloutActionButton
-              key={idx}
-              action={action}
-              defaultVariant="outline"
-              className="h-6 px-2 text-[11px]"
-            />
+            <CalloutActionButton key={idx} action={action} defaultVariant="outline" className="h-6 px-2 text-[11px]" />
           ))}
 
           {dismissible && (
@@ -193,7 +186,7 @@ export const InfolistCallout = React.forwardRef<HTMLDivElement, CalloutProps>(fu
               type="button"
               onClick={handleDismiss}
               className="text-muted-foreground hover:text-foreground cursor-pointer rounded-sm p-0.5 transition-colors"
-              aria-label="关闭提示"
+              aria-label={t("close_alert")}
             >
               <X className="size-3.5" />
             </button>
@@ -247,7 +240,7 @@ export const InfolistCallout = React.forwardRef<HTMLDivElement, CalloutProps>(fu
           type="button"
           onClick={handleDismiss}
           className="text-muted-foreground hover:text-foreground absolute top-3.5 right-3.5 cursor-pointer rounded-sm p-1 transition-colors"
-          aria-label="关闭提示"
+          aria-label={t("close_alert")}
         >
           <X className="size-4" />
         </button>

@@ -1,6 +1,6 @@
 import type { ApiResponse } from "@/types";
 
-import { apiClient } from "@/lib/api-client";
+import { apiClient } from "@/lib/apiClient";
 
 import type { NotificationFilters, NotificationItem, NotificationListResponse } from "./types";
 

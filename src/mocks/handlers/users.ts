@@ -21,9 +21,7 @@ export const usersHandlers = [
     let items = [...all];
 
     if (search) {
-      items = items.filter(
-        (c) => c.name.toLowerCase().includes(search) || c.email.toLowerCase().includes(search),
-      );
+      items = items.filter((c) => c.name.toLowerCase().includes(search) || c.email.toLowerCase().includes(search));
     }
 
     if (status && status !== "all") {

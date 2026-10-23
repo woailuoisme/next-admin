@@ -3,39 +3,21 @@ import { useMemoizedFn } from "ahooks";
 import { Ban, UserCheck } from "lucide-react";
 import { useMemo } from "react";
 
-import {
-  col,
-  type DataTableColDef,
-  type DataTableFilterDefinition,
-  ResourceTable,
-} from "@/components/data-table";
+import { col, type DataTableColDef, type DataTableFilterDefinition, ResourceTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
-import { useBatchMutation } from "@/hooks/use-batch-mutation";
+import { useBatchMutation } from "@/hooks/useBatchMutation";
 
 import type { Customer } from "../types";
 
 import { toggleCustomerStatusApi } from "../api";
 import { customerKeys, customerQueries } from "../queries";
+import { useTranslations } from "next-intl";
 
 const STATUS_VARIANT_MAP = {
   active: "success",
   inactive: "secondary",
   suspended: "destructive",
 } as const;
-
-const CUSTOMER_FILTERS: DataTableFilterDefinition[] = [
-  {
-    type: "select",
-    field: "status",
-    label: "Status",
-    placeholder: "All customer statuses",
-    options: [
-      { label: "Active", value: "active" },
-      { label: "Inactive", value: "inactive" },
-      { label: "Suspended", value: "suspended" },
-    ],
-  },
-];
 
 const PINNED_COLUMNS: { left?: string[]; right?: string[] } = {
   left: ["avatarUrl"],
@@ -45,7 +27,6 @@ const PINNED_COLUMNS: { left?: string[]; right?: string[] } = {
 const SLOT_PROPS = {
   toolbar: {
     exportFileName: "customers-directory.csv",
-    quickFilterPlaceholder: "Filter customers in view...",
   },
 } as const;
 
@@ -59,11 +40,38 @@ export interface CustomerTableProps {
 }
 
 export function CustomerTable({ customers, loading, total, onToggleCustomerStatus }: CustomerTableProps) {
+  const t = useTranslations("users");
   const queryClient = useQueryClient();
+
+  const statusLabelMap = useMemo<Record<string, string>>(
+    () => ({
+      active: t("status_active"),
+      inactive: t("status_inactive"),
+      suspended: t("status_suspended"),
+    }),
+    [t],
+  );
+
+  const customerFilters = useMemo<DataTableFilterDefinition[]>(
+    () => [
+      {
+        type: "select",
+        field: "status",
+        label: t("col_status"),
+        placeholder: t("filter_status_placeholder"),
+        options: [
+          { label: t("status_active"), value: "active" },
+          { label: t("status_inactive"), value: "inactive" },
+          { label: t("status_suspended"), value: "suspended" },
+        ],
+      },
+    ],
+    [t],
+  );
 
   const { mutateBatchAsync: suspendBatch, isPending: isSuspending } = useBatchMutation<Customer>({
     mutationFn: (customer) => toggleCustomerStatusApi(customer.id, "inactive"),
-    entityName: "Customer",
+    entityName: t("entity_name"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customerKeys.all });
     },
@@ -75,37 +83,36 @@ export function CustomerTable({ customers, loading, total, onToggleCustomerStatu
 
   const columns = useMemo<DataTableColDef<Customer>[]>(
     () => [
-      col.avatar<Customer>("avatarUrl", "Customer", {
+      col.avatar<Customer>("avatarUrl", t("col_customer"), {
         width: 260,
         flex: 1,
         pinned: "left",
         name: (r) => r.name,
         subtext: (r) => r.email,
       }),
-      col.text<Customer>("phone", "Contact Phone", {
-        width: 170,
+      col.text<Customer>("phone", t("col_phone"), {
+        width: 190,
         copyable: true,
       }),
-      col.number<Customer>("totalOrders", "Lifetime Orders", {
+      col.number<Customer>("totalOrders", t("col_orders"), {
         width: 150,
-        aggregation: "sum",
-        suffix: " purchases",
+        suffix: t("unit_purchases"),
       }),
-      col.currency<Customer>("totalSpent", "Total Spent", {
+      col.currency<Customer>("totalSpent", t("col_spent"), {
         width: 150,
-        aggregation: "sum",
       }),
-      col.date<Customer>("createdAt", "Joined Date", {
+      col.date<Customer>("createdAt", t("col_joined"), {
+        width: 160,
+      }),
+      col.badge<Customer>("status", t("col_status"), {
         width: 130,
-      }),
-      col.badge<Customer>("status", "Account Status", {
-        width: 120,
         dot: true,
         variantMap: STATUS_VARIANT_MAP,
+        labelMap: statusLabelMap,
       }),
       col.actions<Customer>({
         field: "__actions",
-        headerName: "Action",
+        headerName: t("col_action"),
         width: 100,
         pinned: "right",
         align: "center",
@@ -113,27 +120,27 @@ export function CustomerTable({ customers, loading, total, onToggleCustomerStatu
         quickActions: [
           {
             id: "suspend",
-            label: "Suspend",
-            ariaLabel: "Suspend",
+            label: t("action_suspend"),
+            ariaLabel: t("action_suspend"),
             icon: Ban,
             destructive: true,
-            tooltip: "Suspend Customer",
+            tooltip: t("action_suspend_tooltip"),
             hidden: (row) => row.status !== "active",
             onClick: handleToggleStatus,
           },
           {
             id: "activate",
-            label: "Activate",
-            ariaLabel: "Activate",
+            label: t("action_activate"),
+            ariaLabel: t("action_activate"),
             icon: UserCheck,
-            tooltip: "Activate Customer",
+            tooltip: t("action_activate_tooltip"),
             hidden: (row) => row.status === "active",
             onClick: handleToggleStatus,
           },
         ],
       }),
     ],
-    [handleToggleStatus],
+    [handleToggleStatus, statusLabelMap, t],
   );
 
   const renderBatchActions = useMemoizedFn((selectedRows: Customer[], clearSelection: () => void) => (
@@ -165,8 +172,7 @@ export function CustomerTable({ customers, loading, total, onToggleCustomerStatu
       checkboxSelection
       paginationMode="client"
       pinnedColumns={PINNED_COLUMNS}
-      filters={CUSTOMER_FILTERS}
-      summaryRow
+      filters={customerFilters}
       slotProps={SLOT_PROPS}
       batchActions={renderBatchActions}
     />

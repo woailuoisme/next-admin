@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +33,7 @@ export const SheetFilterLayout: React.FC<SheetFilterLayoutProps> = ({
   onOpenChange,
   trigger,
   children,
-  sheetTitle = "Filters",
+  sheetTitle,
   sheetDescription = "Filter and refine table records.",
   activeCount = 0,
   showReset = false,
@@ -40,6 +41,9 @@ export const SheetFilterLayout: React.FC<SheetFilterLayoutProps> = ({
   deferFilters = false,
   onApply,
 }) => {
+  const t = useTranslations("table");
+  const resolvedSheetTitle = sheetTitle ?? t("filter_title");
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
@@ -47,10 +51,10 @@ export const SheetFilterLayout: React.FC<SheetFilterLayoutProps> = ({
         <SheetHeader className="border-b pb-4">
           <div className="flex items-center justify-between pr-6">
             <div className="flex items-center gap-2">
-              <SheetTitle className="text-base font-semibold">{sheetTitle}</SheetTitle>
+              <SheetTitle className="text-base font-semibold">{resolvedSheetTitle}</SheetTitle>
               {activeCount > 0 && (
                 <Badge variant="secondary" className="bg-primary/10 text-primary font-mono text-[10px]">
-                  {activeCount} active
+                  {t("filter_active_count", { count: activeCount })}
                 </Badge>
               )}
             </div>
@@ -61,7 +65,7 @@ export const SheetFilterLayout: React.FC<SheetFilterLayoutProps> = ({
                 onClick={onReset}
                 className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive h-6 px-2 text-xs"
               >
-                Reset
+                {t("filter_reset")}
               </Button>
             )}
           </div>
@@ -73,11 +77,11 @@ export const SheetFilterLayout: React.FC<SheetFilterLayoutProps> = ({
         <SheetFooter className="flex flex-row items-center justify-end gap-2 border-t pt-4">
           <SheetClose asChild>
             <Button variant="outline" size="sm" className="h-8 text-xs">
-              Cancel
+              {t("filter_close")}
             </Button>
           </SheetClose>
           <Button size="sm" onClick={onApply} className="h-8 px-4 text-xs font-medium">
-            {deferFilters ? "Apply filters" : "Done"}
+            {deferFilters ? t("filter_apply") : t("filter_done")}
           </Button>
         </SheetFooter>
       </SheetContent>

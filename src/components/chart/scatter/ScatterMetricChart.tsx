@@ -1,24 +1,10 @@
 import { memo, useMemo } from "react";
-import {
-  CartesianGrid,
-  ReferenceLine,
-  ResponsiveContainer,
-  Scatter,
-  ScatterChart,
-  Tooltip,
-  XAxis,
-  YAxis,
-  ZAxis,
-} from "recharts";
+import { CartesianGrid, ReferenceLine, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 
 import type { ScatterMetricChartProps } from "./types";
 
-import {
-  AXIS_TICK_STYLE,
-  CHART_GRID_STROKE,
-  DEFAULT_CHART_MARGIN,
-  DEFAULT_INITIAL_CHART_WIDTH,
-} from "../shared/constants";
+import { AXIS_TICK_STYLE, CHART_GRID_STROKE, DEFAULT_CHART_MARGIN } from "../shared/constants";
+import { ChartFrame } from "../shared/ChartFrame";
 import { useScatterMetric } from "./useScatterMetric";
 
 /** 气泡尺寸范围的默认值（模块级常量，避免每次渲染新建数组） */
@@ -124,87 +110,73 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
   const { resolvedSeries, xFormatter, yFormatter, zFormatter } = useScatterMetric(props);
 
   return (
-    <div className={className} style={{ width: "100%", height }}>
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
-        minWidth={0}
-        minHeight={height}
-        initialDimension={{ width: DEFAULT_INITIAL_CHART_WIDTH, height }}
-      >
-        <ScatterChart margin={DEFAULT_CHART_MARGIN}>
-          {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />}
+    <ChartFrame height={height} className={className}>
+      <ScatterChart margin={DEFAULT_CHART_MARGIN}>
+        {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />}
 
-          <XAxis
-            type="number"
-            dataKey="x"
-            name={xAxisName}
-            axisLine={false}
-            tickLine={false}
-            tick={AXIS_TICK_STYLE}
-            tickFormatter={xFormatter}
+        <XAxis
+          type="number"
+          dataKey="x"
+          name={xAxisName}
+          axisLine={false}
+          tickLine={false}
+          tick={AXIS_TICK_STYLE}
+          tickFormatter={xFormatter}
+        />
+
+        <YAxis
+          type="number"
+          dataKey="y"
+          name={yAxisName}
+          axisLine={false}
+          tickLine={false}
+          tick={AXIS_TICK_STYLE}
+          tickFormatter={yFormatter}
+        />
+
+        <ZAxis type="number" dataKey="z" range={zRange} name={zAxisName} />
+
+        {referenceLines?.map((refLine, idx) => (
+          <ReferenceLine
+            key={`scatter-ref-line-${idx}`}
+            x={refLine.x}
+            y={refLine.y}
+            stroke={refLine.stroke || "color-mix(in oklab, var(--border) 80%, transparent)"}
+            strokeDasharray={refLine.strokeDasharray || "4 4"}
+            strokeWidth={refLine.strokeWidth ?? 1.5}
+            label={
+              refLine.label
+                ? {
+                    value: refLine.label,
+                    fill: "var(--muted-foreground)",
+                    fontSize: 10,
+                    position: refLine.position || "insideTopRight",
+                  }
+                : undefined
+            }
           />
+        ))}
 
-          <YAxis
-            type="number"
-            dataKey="y"
-            name={yAxisName}
-            axisLine={false}
-            tickLine={false}
-            tick={AXIS_TICK_STYLE}
-            tickFormatter={yFormatter}
+        {showTooltip && (
+          <Tooltip
+            content={
+              <ScatterTooltipContent
+                xAxisName={xAxisName}
+                yAxisName={yAxisName}
+                zAxisName={zAxisName}
+                xFormatter={xFormatter}
+                yFormatter={yFormatter}
+                zFormatter={zFormatter}
+              />
+            }
+            cursor={{ strokeDasharray: "3 3", stroke: "var(--border)" }}
           />
+        )}
 
-          <ZAxis type="number" dataKey="z" range={zRange} name={zAxisName} />
-
-          {referenceLines?.map((refLine, idx) => (
-            <ReferenceLine
-              key={`scatter-ref-line-${idx}`}
-              x={refLine.x}
-              y={refLine.y}
-              stroke={refLine.stroke || "color-mix(in oklab, var(--border) 80%, transparent)"}
-              strokeDasharray={refLine.strokeDasharray || "4 4"}
-              strokeWidth={refLine.strokeWidth ?? 1.5}
-              label={
-                refLine.label
-                  ? {
-                      value: refLine.label,
-                      fill: "var(--muted-foreground)",
-                      fontSize: 10,
-                      position: refLine.position || "insideTopRight",
-                    }
-                  : undefined
-              }
-            />
-          ))}
-
-          {showTooltip && (
-            <Tooltip
-              content={
-                <ScatterTooltipContent
-                  xAxisName={xAxisName}
-                  yAxisName={yAxisName}
-                  zAxisName={zAxisName}
-                  xFormatter={xFormatter}
-                  yFormatter={yFormatter}
-                  zFormatter={zFormatter}
-                />
-              }
-              cursor={{ strokeDasharray: "3 3", stroke: "var(--border)" }}
-            />
-          )}
-
-          {resolvedSeries.map((series) => (
-            <Scatter
-              key={series.name}
-              name={series.name}
-              data={series.data}
-              fill={series.fill}
-              fillOpacity={0.85}
-            />
-          ))}
-        </ScatterChart>
-      </ResponsiveContainer>
-    </div>
+        {resolvedSeries.map((series) => (
+          <Scatter key={series.name} name={series.name} data={series.data} fill={series.fill} fillOpacity={0.85} />
+        ))}
+      </ScatterChart>
+    </ChartFrame>
   );
 });

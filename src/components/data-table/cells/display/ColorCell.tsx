@@ -62,15 +62,13 @@ export const ColorCell = memo(function ColorCell({
       >
         {showChecker && (
           <span
-            className="absolute inset-0 bg-[linear-gradient(45deg,#cbd5e1_25%,transparent_25%),linear-gradient(-45deg,#cbd5e1_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#cbd5e1_75%),linear-gradient(-45deg,transparent_75%,#cbd5e1_75%)] bg-[size:6px_6px] bg-[position:0_0,0_3px,3px_-3px,-3px_0] opacity-40 dark:bg-[linear-gradient(45deg,#475569_25%,transparent_25%),linear-gradient(-45deg,#475569_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#475569_75%),linear-gradient(-45deg,transparent_75%,#475569_75%)]"
+            className="absolute inset-0 bg-[linear-gradient(45deg,var(--checker)_25%,transparent_25%),linear-gradient(-45deg,var(--checker)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,var(--checker)_75%),linear-gradient(-45deg,transparent_75%,var(--checker)_75%)] bg-[size:6px_6px] bg-[position:0_0,0_3px,3px_-3px,-3px_0] opacity-40"
             aria-hidden="true"
           />
         )}
         <span className="absolute inset-0" style={{ backgroundColor: value }} />
       </span>
-      {showHex && (
-        <span className="text-foreground/90 font-mono text-xs uppercase tabular-nums">{value}</span>
-      )}
+      {showHex && <span className="text-foreground/90 font-mono text-xs uppercase tabular-nums">{value}</span>}
       {copyable && (
         <Tooltip>
           <TooltipTrigger asChild>

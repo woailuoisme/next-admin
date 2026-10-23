@@ -12,13 +12,7 @@ interface ImageLightboxModalProps {
   onClose: () => void;
 }
 
-function ImageLightboxModalInner({
-  previewUrl,
-  images = [],
-  initialIndex = 0,
-  alt,
-  onClose,
-}: ImageLightboxModalProps) {
+function ImageLightboxModalInner({ previewUrl, images = [], initialIndex = 0, alt, onClose }: ImageLightboxModalProps) {
   // Active images list for gallery navigation
   const activeImages = images.length > 0 ? images : previewUrl ? [previewUrl] : [];
 

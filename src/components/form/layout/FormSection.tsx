@@ -162,9 +162,7 @@ export const FormSection = memo(function FormSection({
                   className="text-muted-foreground hover:text-foreground size-7 rounded-md"
                   aria-label={collapsed ? "展开区块" : "折叠区块"}
                 >
-                  <ChevronDown
-                    className={cn("size-4 transition-transform duration-200", collapsed && "-rotate-90")}
-                  />
+                  <ChevronDown className={cn("size-4 transition-transform duration-200", collapsed && "-rotate-90")} />
                 </Button>
               </CollapsibleTrigger>
             )}
@@ -175,9 +173,7 @@ export const FormSection = memo(function FormSection({
       <CollapsibleContent>{contentNode}</CollapsibleContent>
 
       {footer && !collapsed && (
-        <div className="border-border/50 mt-4 flex items-center justify-end gap-2 border-t pt-3">
-          {footer}
-        </div>
+        <div className="border-border/50 mt-4 flex items-center justify-end gap-2 border-t pt-3">{footer}</div>
       )}
     </Collapsible>
   );

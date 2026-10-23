@@ -65,12 +65,7 @@ export const ProgressCell = memo(function ProgressCell({
         )}
       >
         <div className="relative min-w-[50px] flex-1">
-          <div
-            className={cn(
-              "relative flex w-full overflow-hidden rounded-full bg-muted/80",
-              heightClasses[size],
-            )}
-          >
+          <div className={cn("relative flex w-full overflow-hidden rounded-full bg-muted/80", heightClasses[size])}>
             {segments.map((seg, idx) => {
               const segPct = effectiveMax > 0 ? (Math.max(0, seg.value) / effectiveMax) * 100 : 0;
               if (segPct <= 0) return null;
@@ -110,12 +105,7 @@ export const ProgressCell = memo(function ProgressCell({
               const pct = Math.round((seg.value / (effectiveMax || 1)) * 100);
               return (
                 <div key={idx} className="text-muted-foreground flex items-center gap-1.5 text-[10px]">
-                  <span
-                    className={cn(
-                      "size-1.5 shrink-0 rounded-full",
-                      seg.color || seg.className || "bg-primary",
-                    )}
-                  />
+                  <span className={cn("size-1.5 shrink-0 rounded-full", seg.color || seg.className || "bg-primary")} />
                   <span>{seg.label || `分段 ${idx + 1}`}:</span>
                   <span className="text-foreground font-mono font-medium">
                     {seg.value} ({pct}%)

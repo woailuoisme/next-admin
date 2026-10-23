@@ -8,13 +8,13 @@ export const orderStatusSchema = z.enum(ORDER_STATUSES);
 
 export const ORDER_STATUS_OPTIONS: readonly {
   value: (typeof ORDER_STATUSES)[number];
-  label: string;
+  labelKey: "status_pending" | "status_processing" | "status_shipped" | "status_delivered" | "status_cancelled";
 }[] = [
-  { value: "pending", label: "Pending Review" },
-  { value: "processing", label: "In Processing" },
-  { value: "shipped", label: "Shipped via Carrier" },
-  { value: "delivered", label: "Delivered to Customer" },
-  { value: "cancelled", label: "Cancelled" },
+  { value: "pending", labelKey: "status_pending" },
+  { value: "processing", labelKey: "status_processing" },
+  { value: "shipped", labelKey: "status_shipped" },
+  { value: "delivered", labelKey: "status_delivered" },
+  { value: "cancelled", labelKey: "status_cancelled" },
 ] as const;
 
 export const ORDER_PAYMENT_STATUSES = ["paid", "pending", "failed"] as const;
@@ -23,11 +23,11 @@ export const orderPaymentStatusSchema = z.enum(ORDER_PAYMENT_STATUSES);
 
 export const ORDER_PAYMENT_STATUS_OPTIONS: readonly {
   value: (typeof ORDER_PAYMENT_STATUSES)[number];
-  label: string;
+  labelKey: "payment_paid" | "payment_pending" | "payment_failed";
 }[] = [
-  { value: "paid", label: "Paid" },
-  { value: "pending", label: "Pending Payment" },
-  { value: "failed", label: "Failed" },
+  { value: "paid", labelKey: "payment_paid" },
+  { value: "pending", labelKey: "payment_pending" },
+  { value: "failed", labelKey: "payment_failed" },
 ] as const;
 
 export const orderSearchSchema = baseTableSearchSchema.extend({

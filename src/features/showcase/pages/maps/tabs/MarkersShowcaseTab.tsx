@@ -1,4 +1,4 @@
-import { LocationMarkerMap } from "@/components/map";
+import { LazyLocationMarkerMap } from "@/components/map";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_LOCATIONS } from "../constants";
 import type { DemoStateProps } from "../types";
@@ -6,7 +6,7 @@ import type { DemoStateProps } from "../types";
 export function MarkersShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
   return (
     <TabsContent value="markers" className="space-y-4">
-      <LocationMarkerMap
+      <LazyLocationMarkerMap
         locations={MOCK_LOCATIONS}
         height={520}
         center={[114, 30]}

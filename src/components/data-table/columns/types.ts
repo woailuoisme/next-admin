@@ -26,10 +26,7 @@ export interface CrudActionsConfig<T = unknown> {
   isDeleteDisabled?: boolean | ((row: T) => boolean);
 }
 
-export type ActionsColOptions<T = unknown> = Omit<
-  DataTableColDef<T>,
-  "field" | "headerName" | "renderCell"
-> & {
+export type ActionsColOptions<T = unknown> = Omit<DataTableColDef<T>, "field" | "headerName" | "renderCell"> & {
   field?: string;
   headerName?: string;
   quickActions?: ActionItem<T>[];

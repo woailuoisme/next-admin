@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { clamp } from "es-toolkit";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
@@ -14,7 +15,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 import type { DataTablePaginationModel } from "../core/types";
@@ -28,6 +28,9 @@ export interface DataTablePaginationProps {
   pageSizeOptions?: readonly number[];
   variant?: "capsule" | "shadcn" | "simple";
   className?: string;
+
+  /** 总结文案自定义渲染插槽 */
+  renderSummary?: (info: { from: number; to: number; total: number }) => React.ReactNode;
 }
 
 function getPaginationPages(currentPage: number, totalPages: number): (number | "...")[] {
@@ -56,6 +59,7 @@ export const DataTablePagination = memo(function DataTablePagination({
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
   variant = "capsule",
   className,
+  renderSummary,
 }: DataTablePaginationProps) {
   const t = useTranslations("table");
   const { page, pageSize } = paginationModel;
@@ -91,7 +95,9 @@ export const DataTablePagination = memo(function DataTablePagination({
     >
       {/* Left: Summary info */}
       <div className="text-muted-foreground text-xs select-none">
-        {t("pagination_summary", { from, to, total: rowCount })}
+        {renderSummary
+          ? renderSummary({ from, to, total: rowCount })
+          : t("pagination_summary", { from, to, total: rowCount })}
       </div>
 
       {/* Center: Segmented page size selector [ 每页 | 10 ∨ ] */}
@@ -132,7 +138,7 @@ export const DataTablePagination = memo(function DataTablePagination({
                       handlePageChange(page - 1);
                     }}
                     title={t("pagination_previous")}
-                    aria-label="Go to previous page"
+                    aria-label={t("pagination_previous")}
                     className="text-muted-foreground hover:bg-muted/50 hover:text-foreground flex h-full min-w-8 items-center justify-center rounded-none border-0 px-2 shadow-none"
                   >
                     <ChevronLeft className="size-4" />
@@ -187,7 +193,7 @@ export const DataTablePagination = memo(function DataTablePagination({
                       handlePageChange(page + 1);
                     }}
                     title={t("pagination_next")}
-                    aria-label="Go to next page"
+                    aria-label={t("pagination_next")}
                     className="text-muted-foreground hover:bg-muted/50 hover:text-foreground flex h-full min-w-8 items-center justify-center rounded-none border-0 px-2 shadow-none"
                   >
                     <ChevronRight className="size-4" />
@@ -251,10 +257,7 @@ export const DataTablePagination = memo(function DataTablePagination({
                     e.preventDefault();
                     if (page < totalPages) handlePageChange(page + 1);
                   }}
-                  className={cn(
-                    "cursor-pointer text-xs",
-                    page >= totalPages && "pointer-events-none opacity-40",
-                  )}
+                  className={cn("cursor-pointer text-xs", page >= totalPages && "pointer-events-none opacity-40")}
                 />
               </PaginationItem>
             </PaginationContent>
@@ -270,7 +273,7 @@ export const DataTablePagination = memo(function DataTablePagination({
               onClick={() => handlePageChange(1)}
               disabled={page <= 1}
               title={t("pagination_first")}
-              aria-label="Go to first page"
+              aria-label={t("pagination_first")}
             >
               <ChevronsLeft className="size-3.5" />
             </Button>
@@ -281,7 +284,7 @@ export const DataTablePagination = memo(function DataTablePagination({
               onClick={() => handlePageChange(page - 1)}
               disabled={page <= 1}
               title={t("pagination_previous")}
-              aria-label="Go to previous page"
+              aria-label={t("pagination_previous")}
             >
               <ChevronLeft className="size-3.5" />
             </Button>
@@ -295,7 +298,7 @@ export const DataTablePagination = memo(function DataTablePagination({
               onClick={() => handlePageChange(page + 1)}
               disabled={page >= totalPages}
               title={t("pagination_next")}
-              aria-label="Go to next page"
+              aria-label={t("pagination_next")}
             >
               <ChevronRight className="size-3.5" />
             </Button>
@@ -306,7 +309,7 @@ export const DataTablePagination = memo(function DataTablePagination({
               onClick={() => handlePageChange(totalPages)}
               disabled={page >= totalPages}
               title={t("pagination_last")}
-              aria-label="Go to last page"
+              aria-label={t("pagination_last")}
             >
               <ChevronsRight className="size-3.5" />
             </Button>

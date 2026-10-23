@@ -14,6 +14,8 @@ export interface OtpInputProps extends BaseInputProps {
   onBlur?: () => void;
   length?: number;
   groupSize?: number;
+  separator?: boolean;
+  align?: "left" | "center" | "right";
   mask?: boolean;
   numericOnly?: boolean;
   autoFocus?: boolean;
@@ -29,6 +31,8 @@ interface OtpInputInnerProps {
   onBlur?: () => void;
   length?: number;
   groupSize?: number;
+  separator?: boolean;
+  align?: "left" | "center" | "right";
   mask?: boolean;
   numericOnly?: boolean;
   autoFocus?: boolean;
@@ -47,6 +51,8 @@ const OtpInputInner = memo(function OtpInputInner({
   onBlur,
   length = 6,
   groupSize = 3,
+  separator = true,
+  align = "left",
   mask = false,
   numericOnly = true,
   autoFocus = false,
@@ -66,6 +72,9 @@ const OtpInputInner = memo(function OtpInputInner({
 
   // Split slot indices into groups
   const groups = useMemo(() => {
+    if (separator === false) {
+      return [Array.from({ length }, (_, i) => i)];
+    }
     const result: number[][] = [];
     const effectiveGroupSize = groupSize > 0 && groupSize < length ? groupSize : length;
     for (let i = 0; i < length; i += effectiveGroupSize) {
@@ -76,12 +85,18 @@ const OtpInputInner = memo(function OtpInputInner({
       result.push(group);
     }
     return result;
-  }, [length, groupSize]);
+  }, [length, groupSize, separator]);
 
   const pattern = numericOnly ? REGEXP_ONLY_DIGITS : undefined;
 
   return (
-    <div className={cn("flex flex-col items-start py-0.5", containerClassName)}>
+    <div
+      className={cn(
+        "flex flex-col py-0.5",
+        align === "center" ? "items-center" : align === "right" ? "items-end" : "items-start",
+        containerClassName,
+      )}
+    >
       <InputOTP
         id={id}
         maxLength={length}
@@ -92,10 +107,12 @@ const OtpInputInner = memo(function OtpInputInner({
         autoFocus={autoFocus}
         disabled={disabled || readOnly}
         aria-invalid={hasError}
+        aria-describedby={hasError && id ? `${id}-error` : undefined}
+        containerClassName={cn(align === "center" && "justify-center", align === "right" && "justify-end")}
       >
         {groups.map((group, groupIdx) => (
           <Fragment key={groupIdx}>
-            {groupIdx > 0 && <InputOTPSeparator />}
+            {groupIdx > 0 && separator && <InputOTPSeparator />}
             <InputOTPGroup>
               {group.map((slotIdx) => (
                 <InputOTPSlot
@@ -137,6 +154,8 @@ export function OtpInput({
   onBlur: controlledOnBlur,
   length = 6,
   groupSize = 3,
+  separator = true,
+  align = "left",
   mask = false,
   numericOnly = true,
   autoFocus = false,
@@ -173,6 +192,7 @@ export function OtpInput({
             colSpan={colSpan}
             className={className}
             hidden={hidden}
+            align={align}
           >
             <OtpInputInner
               id={id}
@@ -181,6 +201,8 @@ export function OtpInput({
               onBlur={onBlur}
               length={length}
               groupSize={groupSize}
+              separator={separator}
+              align={align}
               mask={mask}
               numericOnly={numericOnly}
               autoFocus={autoFocus}

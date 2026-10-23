@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { BackToTop } from "@/components/back-to-top";
+import { BackToTop } from "@/components/shared/BackToTop";
 import { CalloutsShowcaseCard } from "./components/CalloutsShowcaseCard";
 import { InfolistHeaderBar } from "./components/InfolistHeaderBar";
 import { RecordDetailsShowcaseCard } from "./components/RecordDetailsShowcaseCard";

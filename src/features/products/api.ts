@@ -1,6 +1,6 @@
 import type { ApiResponse } from "@/types";
 
-import { apiClient, createIdempotencyKey, toSearchParams } from "@/lib/api-client";
+import { apiClient, createIdempotencyKey, toSearchParams } from "@/lib/apiClient";
 
 import type { Product, ProductFilters, ProductInput, ProductListResponse } from "./types";
 

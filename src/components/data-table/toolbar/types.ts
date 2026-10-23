@@ -1,5 +1,4 @@
 import type React from "react";
-
 import type {
   DataTableColDef,
   DataTableDensity,
@@ -45,6 +44,7 @@ export interface DataTableQuickFilterProps {
   value?: string;
   onChange?: (val: string) => void;
   placeholder?: string;
+  entity?: string;
   debounceWait?: number;
   className?: string;
 }

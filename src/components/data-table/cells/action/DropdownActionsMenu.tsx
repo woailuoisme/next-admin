@@ -15,14 +15,11 @@ import type { ActionItem } from "./types";
 interface DropdownActionsMenuProps<TData> {
   actions: ActionItem<TData>[];
   row: TData;
-  moreActionsLabel?: string;
+  /** 更多操作按钮无障碍说明（由 ActionsCell 注入已本地化文案） */
+  moreActionsLabel: string;
 }
 
-function DropdownActionsMenuInner<TData>({
-  actions,
-  row,
-  moreActionsLabel = "更多操作",
-}: DropdownActionsMenuProps<TData>) {
+function DropdownActionsMenuInner<TData>({ actions, row, moreActionsLabel }: DropdownActionsMenuProps<TData>) {
   if (actions.length === 0) {
     return null;
   }

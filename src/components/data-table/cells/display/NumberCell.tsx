@@ -1,5 +1,6 @@
 import { isNil } from "es-toolkit";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
+import { useFormatter } from "next-intl";
 import { memo } from "react";
 
 import { cn } from "@/lib/utils";
@@ -8,29 +9,10 @@ import type { NumberCellProps } from "./types";
 
 import { AVATAR_ALIGN_CLASSES, TEXT_ALIGN_CLASSES } from "../base";
 
-const formatterCache = new Map<string, Intl.NumberFormat>();
-
-function getNumberFormatter(
-  notation: "standard" | "compact",
-  minDigits: number,
-  maxDigits: number,
-  currencyCode?: string,
-): Intl.NumberFormat {
-  const key = `${notation}_${minDigits}_${maxDigits}_${currencyCode || "none"}`;
-  let formatter = formatterCache.get(key);
-  if (!formatter) {
-    formatter = new Intl.NumberFormat("en-US", {
-      notation,
-      minimumFractionDigits: minDigits,
-      maximumFractionDigits: maxDigits,
-      ...(currencyCode ? { style: "currency", currency: currencyCode } : {}),
-    });
-    formatterCache.set(key, formatter);
-  }
-  return formatter;
-}
+type NumberFormatter = ReturnType<typeof useFormatter>;
 
 function formatValue(
+  format: NumberFormatter,
   value: number,
   mode: "number" | "currency" | "percent",
   precision: number,
@@ -40,22 +22,27 @@ function formatValue(
 ): string {
   const isNegative = value < 0;
   const absValue = accounting && isNegative ? Math.abs(value) : value;
+  const notation = compact ? "compact" : "standard";
 
   let formatted: string;
   if (currencyCode) {
-    formatted = getNumberFormatter(
-      compact ? "compact" : "standard",
-      compact ? 0 : precision,
-      precision,
-      currencyCode,
-    ).format(absValue);
+    formatted = format.number(absValue, {
+      style: "currency",
+      currency: currencyCode,
+      notation,
+      minimumFractionDigits: compact ? 0 : precision,
+      maximumFractionDigits: precision,
+    });
   } else if (compact) {
-    formatted = getNumberFormatter("compact", 0, precision).format(absValue);
+    formatted = format.number(absValue, { notation, maximumFractionDigits: precision });
   } else if (mode === "currency" || mode === "percent") {
-    const numStr = getNumberFormatter("standard", precision, precision).format(absValue);
+    const numStr = format.number(absValue, {
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
+    });
     formatted = mode === "percent" ? `${numStr}%` : numStr;
   } else {
-    formatted = getNumberFormatter("standard", 0, precision).format(absValue);
+    formatted = format.number(absValue, { maximumFractionDigits: precision });
   }
 
   return accounting && isNegative ? `(${formatted})` : formatted;
@@ -116,13 +103,15 @@ export const NumberCell = memo(function NumberCell({
   align = "right",
   className,
 }: NumberCellProps) {
+  const format = useFormatter();
+
   if (isNil(value) || Number.isNaN(value)) {
     return <span className="text-muted-foreground/40 text-xs italic">-</span>;
   }
 
   const isPositive = value > 0;
   const isNegative = value < 0;
-  const formattedNumber = formatValue(value, mode, precision, compact, accounting, currencyCode);
+  const formattedNumber = formatValue(format, value, mode, precision, compact, accounting, currencyCode);
   const trendColor = getTrendColor(trend, isPositive, isNegative);
   const resolvedDeltaType = resolveDeltaType(delta, deltaType);
 
@@ -134,9 +123,7 @@ export const NumberCell = memo(function NumberCell({
         trendColor,
       )}
     >
-      {trend && isPositive && (
-        <ArrowUpRight className={`size-3.5 shrink-0 stroke-[2.5] ${TREND_ICON_CLASSES.up}`} />
-      )}
+      {trend && isPositive && <ArrowUpRight className={`size-3.5 shrink-0 stroke-[2.5] ${TREND_ICON_CLASSES.up}`} />}
       {trend && isNegative && (
         <ArrowDownRight className={`size-3.5 shrink-0 stroke-[2.5] ${TREND_ICON_CLASSES.down}`} />
       )}
@@ -156,8 +143,7 @@ export const NumberCell = memo(function NumberCell({
   if (delta !== undefined && delta !== null) {
     const resolvedDeltaPrefix =
       deltaPrefix !== undefined ? deltaPrefix : typeof delta === "number" && delta > 0 ? "+" : "";
-    const deltaText =
-      typeof delta === "number" ? `${resolvedDeltaPrefix}${delta}%` : `${resolvedDeltaPrefix}${delta}`;
+    const deltaText = typeof delta === "number" ? `${resolvedDeltaPrefix}${delta}%` : `${resolvedDeltaPrefix}${delta}`;
 
     return (
       <div className={cn("flex flex-col", AVATAR_ALIGN_CLASSES[align], className)}>

@@ -11,5 +11,7 @@ export interface StatsGridProps {
   sparklineLayout?: SparklineLayout;
   isLoading?: boolean;
   skeletonCount?: number;
+  /** 可选国际化字典覆盖 */
+
   className?: string;
 }

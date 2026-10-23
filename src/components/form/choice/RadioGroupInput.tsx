@@ -81,10 +81,7 @@ function RadioGroupInputInnerComponent<TValue extends string | number = string>(
         value={stringValue}
         onValueChange={handleValueChange}
         disabled={disabled}
-        className={cn(
-          "pt-1",
-          direction === "horizontal" ? "flex-row flex-wrap items-center gap-4" : "space-y-2",
-        )}
+        className={cn("pt-1", direction === "horizontal" ? "flex-row flex-wrap items-center gap-4" : "space-y-2")}
       >
         <FieldGroup data-slot="radio-group" className="w-full gap-2">
           {options.map((option) => {
@@ -112,10 +109,7 @@ function RadioGroupInputInnerComponent<TValue extends string | number = string>(
                   <FieldContent className="min-w-0 flex-1 space-y-0.5">
                     <div className="flex items-center gap-1.5">
                       {"icon" in option && option.icon}
-                      <FieldLabel
-                        htmlFor={optionId}
-                        className="text-foreground cursor-pointer text-xs font-semibold"
-                      >
+                      <FieldLabel htmlFor={optionId} className="text-foreground cursor-pointer text-xs font-semibold">
                         {option.label}
                       </FieldLabel>
                     </div>
@@ -131,11 +125,7 @@ function RadioGroupInputInnerComponent<TValue extends string | number = string>(
 
             return (
               <Field key={String(option.value)} orientation="horizontal" className="items-center gap-2">
-                <RadioGroupItem
-                  id={optionId}
-                  value={String(option.value)}
-                  disabled={disabled || option.disabled}
-                />
+                <RadioGroupItem id={optionId} value={String(option.value)} disabled={disabled || option.disabled} />
                 <FieldLabel
                   htmlFor={optionId}
                   className="text-foreground flex cursor-pointer items-center gap-1.5 text-xs font-medium select-none"

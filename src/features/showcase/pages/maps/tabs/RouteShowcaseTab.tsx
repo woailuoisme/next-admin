@@ -1,4 +1,4 @@
-import { RouteTrackingMap } from "@/components/map";
+import { LazyRouteTrackingMap } from "@/components/map";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_ROUTE_COORDS, MOCK_ROUTE_STOPS } from "../constants";
 import type { DemoStateProps } from "../types";
@@ -6,7 +6,7 @@ import type { DemoStateProps } from "../types";
 export function RouteShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
   return (
     <TabsContent value="route" className="space-y-4">
-      <RouteTrackingMap
+      <LazyRouteTrackingMap
         coordinates={MOCK_ROUTE_COORDS}
         stops={MOCK_ROUTE_STOPS}
         vehicle={{

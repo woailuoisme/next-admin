@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { AlertCircle, MapPinOff, RefreshCw } from "lucide-react";
 import { memo, type ReactNode } from "react";
 
@@ -13,6 +14,7 @@ export interface MapEmptyStateProps {
   action?: ReactNode;
   actionLabel?: string;
   onAction?: () => void;
+
   className?: string;
 }
 
@@ -27,15 +29,11 @@ export const MapEmptyState = memo(function MapEmptyState({
   onAction,
   className,
 }: MapEmptyStateProps) {
+  const t = useTranslations("map");
   const isError = type === "error";
 
-  const resolvedTitle = title ?? (isError ? "地图数据加载失败" : "暂无地理坐标数据");
-  const resolvedDesc =
-    message ??
-    description ??
-    (isError
-      ? "网络连接异常或服务暂不可用，请稍后重试"
-      : "当前筛选或图层条件下未检索到可显示的地理空间要素或网点");
+  const resolvedTitle = title ?? (isError ? t("error_default") : t("empty_title"));
+  const resolvedDesc = message ?? description ?? (isError ? t("error_tile_timeout") : t("empty_desc"));
 
   return (
     <div
@@ -52,11 +50,7 @@ export const MapEmptyState = memo(function MapEmptyState({
           isError ? "bg-destructive/10 text-destructive" : "bg-muted/50 text-muted-foreground",
         )}
       >
-        {isError ? (
-          <AlertCircle className="size-6 stroke-[1.5]" />
-        ) : (
-          <MapPinOff className="size-6 stroke-[1.5]" />
-        )}
+        {isError ? <AlertCircle className="size-6 stroke-[1.5]" /> : <MapPinOff className="size-6 stroke-[1.5]" />}
       </div>
 
       <h4 className={cn("mt-3 text-sm font-semibold", isError ? "text-destructive" : "text-foreground")}>

@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import * as React from "react";
 
-import { CopyButton } from "@/components/copy-button";
+import { CopyButton } from "@/components/shared/CopyButton";
 import { cn } from "@/lib/utils";
 
 import type { EntrySemanticColor, TextEntryProps } from "./types";
@@ -108,20 +108,14 @@ function renderFormattedContent({
 
     case "email":
       return (
-        <a
-          href={`mailto:${rawValue}`}
-          className="text-primary underline-offset-4 transition-colors hover:underline"
-        >
+        <a href={`mailto:${rawValue}`} className="text-primary underline-offset-4 transition-colors hover:underline">
           {String(rawValue)}
         </a>
       );
 
     case "phone":
       return (
-        <a
-          href={`tel:${rawValue}`}
-          className="text-primary underline-offset-4 transition-colors hover:underline"
-        >
+        <a href={`tel:${rawValue}`} className="text-primary underline-offset-4 transition-colors hover:underline">
           {String(rawValue)}
         </a>
       );

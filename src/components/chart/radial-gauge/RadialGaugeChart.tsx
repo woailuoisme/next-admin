@@ -7,16 +7,7 @@ import type { RadialGaugeChartProps } from "./types";
 import { useRadialGauge } from "./useRadialGauge";
 
 export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaugeChartProps) {
-  const {
-    min = 0,
-    max = 100,
-    label = "达成率",
-    unit = "%",
-    formattedValue,
-    subtext,
-    height = 240,
-    className,
-  } = props;
+  const { min = 0, max = 100, label = "达成率", unit = "%", formattedValue, subtext, height = 240, className } = props;
 
   const {
     clampedValue,
@@ -95,9 +86,7 @@ export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaug
           ) : (
             <>
               <span>{clampedValue}</span>
-              {unit && (
-                <span className={cn("ml-0.5 font-normal", isCompact ? "text-sm" : "text-xl")}>{unit}</span>
-              )}
+              {unit && <span className={cn("ml-0.5 font-normal", isCompact ? "text-sm" : "text-xl")}>{unit}</span>}
             </>
           )}
         </span>

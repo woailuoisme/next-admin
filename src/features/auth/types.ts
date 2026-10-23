@@ -34,3 +34,39 @@ export interface DemoAccount {
   email: string;
   role: string;
 }
+
+export interface ForgotPasswordCredentials {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  ticket: string;
+  /** 票据有效期（秒） */
+  expiresIn: number;
+  /** 仅非生产环境返回，便于演示 */
+  devCode?: string;
+}
+
+export interface VerifyOtpCredentials {
+  ticket: string;
+  code: string;
+}
+
+export interface VerifyOtpResponse {
+  resetToken: string;
+  /** 重置令牌有效期（秒） */
+  expiresIn: number;
+}
+
+export interface ResetPasswordCredentials {
+  resetToken: string;
+  password: string;
+}
+
+/** 重置流程中后端可能返回的业务错误码 */
+export type ResetFlowErrorCode =
+  | "INVALID_CODE"
+  | "TICKET_EXPIRED"
+  | "TOO_MANY_ATTEMPTS"
+  | "RESEND_TOO_SOON"
+  | "WEAK_PASSWORD";

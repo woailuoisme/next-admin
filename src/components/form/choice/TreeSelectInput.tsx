@@ -99,8 +99,7 @@ function TreeSelectInputInner({
   const id = useFieldId(name, explicitId);
 
   const isMultiple = multiple || treeCheckable;
-  const normalizedDefaultValue =
-    defaultValue !== undefined ? defaultValue : isMultiple ? EMPTY_ARRAY : undefined;
+  const normalizedDefaultValue = defaultValue !== undefined ? defaultValue : isMultiple ? EMPTY_ARRAY : undefined;
 
   return (
     <FieldConnector<TreeSelectValue | TreeSelectValue[] | undefined>
@@ -157,10 +156,7 @@ function TreeSelectInputInner({
               maxTagPlaceholder={maxTagPlaceholder}
               size={size}
               filterTreeNode={filterTreeNode}
-              className={cn(
-                hasError && "border-destructive focus-visible:ring-destructive",
-                triggerClassName,
-              )}
+              className={cn(hasError && "border-destructive focus-visible:ring-destructive", triggerClassName)}
               popupClassName={popupClassName}
             />
           </FieldWrapper>

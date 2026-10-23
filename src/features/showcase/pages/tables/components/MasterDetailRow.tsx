@@ -28,14 +28,11 @@ export function MasterDetailRow({ row, collapse }: MasterDetailRowProps) {
             <span>Item ID:</span> <span className="text-foreground font-mono">{row.id}</span>
           </p>
           <p className="flex justify-between">
-            <span>Unit Price:</span>{" "}
-            <span className="text-foreground font-medium">${row.price.toFixed(2)}</span>
+            <span>Unit Price:</span> <span className="text-foreground font-medium">${row.price.toFixed(2)}</span>
           </p>
           <p className="flex justify-between">
             <span>Available Stock:</span>{" "}
-            <span className={row.stock < 20 ? "text-destructive font-bold" : "text-foreground"}>
-              {row.stock} units
-            </span>
+            <span className={row.stock < 20 ? "text-destructive font-bold" : "text-foreground"}>{row.stock} units</span>
           </p>
           <p className="flex justify-between">
             <span>Quality Rating:</span> <span className="text-foreground">⭐ {row.rating} / 5.0</span>
@@ -76,9 +73,7 @@ export function MasterDetailRow({ row, collapse }: MasterDetailRowProps) {
         </div>
         <div className="text-muted-foreground pt-1 text-xs">
           <p className="text-foreground font-medium">Audit Notes:</p>
-          <p className="bg-muted/20 text-muted-foreground mt-0.5 rounded p-1.5 text-[11px] italic">
-            "{row.notes}"
-          </p>
+          <p className="bg-muted/20 text-muted-foreground mt-0.5 rounded p-1.5 text-[11px] italic">"{row.notes}"</p>
         </div>
       </div>
 
@@ -88,9 +83,7 @@ export function MasterDetailRow({ row, collapse }: MasterDetailRowProps) {
           <span className="text-foreground text-xs font-semibold">Author & Operations</span>
           <div className="flex items-center gap-2.5">
             <Avatar className="h-8 w-8">
-              {row.author.avatarUrl && (
-                <AvatarImage src={row.author.avatarUrl} alt={row.author.name ?? "User"} />
-              )}
+              {row.author.avatarUrl && <AvatarImage src={row.author.avatarUrl} alt={row.author.name ?? "User"} />}
               <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
                 {row.author.name?.charAt(0) ?? "?"}
               </AvatarFallback>

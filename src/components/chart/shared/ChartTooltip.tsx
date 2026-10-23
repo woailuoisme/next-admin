@@ -1,6 +1,5 @@
+import { useFormatter } from "next-intl";
 import { memo } from "react";
-
-import { defaultNumberFormatter } from "./formatters";
 
 export interface ChartTooltipEntry {
   name?: string | number;
@@ -29,14 +28,17 @@ export const ChartTooltip = memo(function ChartTooltip({
   active,
   payload,
   label,
-  valueFormatter = defaultNumberFormatter,
+  valueFormatter,
   titleFormatter,
   hideLabel = false,
 }: ChartTooltipProps) {
+  const format = useFormatter();
+
   if (!active || !payload?.length) {
     return null;
   }
 
+  const resolvedValueFormatter = valueFormatter ?? ((value: number) => format.number(value));
   const displayLabel = titleFormatter ? titleFormatter(label ?? "") : label;
 
   return (
@@ -47,7 +49,7 @@ export const ChartTooltip = memo(function ChartTooltip({
       <div className="space-y-1">
         {payload.map((entry) => {
           const rawVal = Array.isArray(entry.value) ? entry.value[0] : entry.value;
-          const val = typeof rawVal === "number" ? valueFormatter(rawVal) : String(rawVal ?? 0);
+          const val = typeof rawVal === "number" ? resolvedValueFormatter(rawVal) : String(rawVal ?? 0);
           const dotColor = entry.color || entry.stroke || entry.fill || "var(--primary)";
           const itemKey =
             typeof entry.dataKey === "function" ? String(entry.name) : String(entry.dataKey || entry.name);

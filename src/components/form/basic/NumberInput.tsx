@@ -106,9 +106,7 @@ const NumberInputInner = memo(function NumberInputInner({
         )}
       />
       <div className="absolute right-1 flex items-center gap-0.5">
-        {suffix && (
-          <span className="text-muted-foreground pointer-events-none mr-1 text-xs select-none">{suffix}</span>
-        )}
+        {suffix && <span className="text-muted-foreground pointer-events-none mr-1 text-xs select-none">{suffix}</span>}
         {steppers && !disabled && (
           <>
             <Button

@@ -42,11 +42,7 @@ export function StatsShowcasePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-6">
-      <StatsHeaderBar
-        demoState={demoState}
-        onDemoStateChange={handleDemoStateChange}
-        liveTicker={liveTicker}
-      />
+      <StatsHeaderBar demoState={demoState} onDemoStateChange={handleDemoStateChange} liveTicker={liveTicker} />
 
       {/* Primary Navigation Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -63,10 +59,7 @@ export function StatsShowcasePage() {
             <LineChart className="h-3.5 w-3.5" />
             Trends
           </TabsTrigger>
-          <TabsTrigger
-            value="distribution"
-            className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
-          >
+          <TabsTrigger value="distribution" className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal">
             <PieChart className="h-3.5 w-3.5" />
             Multi-Dim
           </TabsTrigger>

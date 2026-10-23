@@ -45,6 +45,7 @@ export type LocationPickerProps = {
   basemap?: BasemapPreset;
   /** Custom vector style URL */
   customStyleUrl?: { light?: string; dark?: string };
+
   /** Additional container class */
   className?: string;
 };

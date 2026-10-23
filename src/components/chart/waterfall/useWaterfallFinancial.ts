@@ -1,13 +1,8 @@
 import { useMemo } from "react";
 
-import type {
-  WaterfallFinancialChartProps,
-  WaterfallItem,
-  WaterfallItemType,
-  WaterfallProcessedItem,
-} from "./types";
+import { useFormatter } from "next-intl";
 
-import { formatNumber } from "../shared/formatters";
+import type { WaterfallFinancialChartProps, WaterfallItem, WaterfallItemType, WaterfallProcessedItem } from "./types";
 
 export function useWaterfallFinancial(props: WaterfallFinancialChartProps) {
   const { data, valueFormatter: customFormatter } = props;
@@ -75,7 +70,8 @@ export function useWaterfallFinancial(props: WaterfallFinancialChartProps) {
     });
   }, [data]);
 
-  const valueFormatter = customFormatter ?? formatNumber;
+  const format = useFormatter();
+  const valueFormatter = customFormatter ?? ((val: number) => format.number(val));
 
   return {
     processedData,

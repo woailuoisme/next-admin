@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Filter } from "lucide-react";
 import React from "react";
 
@@ -10,6 +11,8 @@ export interface FilterTriggerProps extends React.ComponentProps<typeof Button> 
 
 export const FilterTrigger = React.forwardRef<HTMLButtonElement, FilterTriggerProps>(
   ({ activeCount = 0, className, ...props }, ref) => {
+    const t = useTranslations("table");
+
     return (
       <Button
         ref={ref}
@@ -19,7 +22,7 @@ export const FilterTrigger = React.forwardRef<HTMLButtonElement, FilterTriggerPr
         {...props}
       >
         <Filter className="size-3.5" />
-        <span>Filters</span>
+        <span>{t("filter_trigger")}</span>
         {activeCount > 0 && (
           <span className="bg-primary/15 text-primary flex size-4.5 items-center justify-center rounded-full font-mono text-[10px] font-semibold">
             {activeCount}

@@ -175,13 +175,7 @@ export function ChoicesTab({ form }: ChoicesTabProps) {
         description="Categorical selectors, searchable dropdowns, and segmented controls."
       >
         <FormGrid columns={{ sm: 1, md: 2 }}>
-          <SelectInput
-            form={form}
-            name="role"
-            label="System Role (SelectInput)"
-            options={ROLE_OPTIONS}
-            colSpan={1}
-          />
+          <SelectInput form={form} name="role" label="System Role (SelectInput)" options={ROLE_OPTIONS} colSpan={1} />
           <ComboboxInput
             form={form}
             name="department"

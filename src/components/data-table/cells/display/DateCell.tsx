@@ -1,7 +1,8 @@
 import { format, formatDistanceToNow, isPast, isValid, parseISO } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { enUS, zhCN } from "date-fns/locale";
 import { isNil } from "es-toolkit";
 import { AlertCircle, Calendar, Clock } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { memo } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -26,30 +27,34 @@ export const DateCell = memo(function DateCell({
   showIcon = false,
   overdueAlert = false,
   countdown = false,
-  countdownPrefix = "剩余 ",
+  countdownPrefix,
   timezone,
   align = "left",
   className,
 }: DateCellProps) {
+  const locale = useLocale();
+  const t = useTranslations("common");
+  const dateLocale = locale === "zh" ? zhCN : enUS;
+
   if (isNil(value) || value === "") {
     return <span className="text-muted-foreground/40 text-xs italic">-</span>;
   }
 
   const parsedDate = parseDate(value);
   if (!isValid(parsedDate)) {
-    return <span className="text-muted-foreground/40 text-xs italic">无效日期</span>;
+    return <span className="text-muted-foreground/40 text-xs italic">{t("invalid_date")}</span>;
   }
 
   const dateIsPast = isPast(parsedDate);
   const isOverdue = overdueAlert && dateIsPast;
 
-  const exactFormatted = format(parsedDate, "yyyy-MM-dd HH:mm:ss", { locale: zhCN });
-  const customFormatted = format(parsedDate, formatStr, { locale: zhCN });
-  const relativeString = formatDistanceToNow(parsedDate, { addSuffix: true, locale: zhCN });
+  const exactFormatted = format(parsedDate, "yyyy-MM-dd HH:mm:ss", { locale: dateLocale });
+  const customFormatted = format(parsedDate, formatStr, { locale: dateLocale });
+  const relativeString = formatDistanceToNow(parsedDate, { addSuffix: true, locale: dateLocale });
   const countdownString = countdown
     ? dateIsPast
-      ? "已截止"
-      : `${countdownPrefix}${formatDistanceToNow(parsedDate, { locale: zhCN })}`
+      ? t("countdown_expired")
+      : `${countdownPrefix ?? t("countdown_prefix")}${formatDistanceToNow(parsedDate, { locale: dateLocale })}`
     : "";
 
   // 1. 双行同屏排版模式 (免悬停即可兼顾相对与绝对时间)
@@ -74,22 +79,18 @@ export const DateCell = memo(function DateCell({
           <span className="truncate">{primaryText}</span>
           {isOverdue && (
             <span className="bg-destructive/10 text-destructive rounded-xs px-1 font-sans text-[9px]">
-              逾期
+              {t("overdue")}
             </span>
           )}
           {countdown && !isPast && (
-            <span className="bg-primary/10 text-primary rounded-xs px-1 font-sans text-[9px]">
-              {countdownString}
-            </span>
+            <span className="bg-primary/10 text-primary rounded-xs px-1 font-sans text-[9px]">{countdownString}</span>
           )}
         </div>
 
         <div className="text-muted-foreground/80 mt-0.5 flex items-center gap-1 font-mono text-[10px]">
           <span className="truncate">{secondaryText}</span>
           {timezone && (
-            <span className="bg-muted/60 text-muted-foreground/60 rounded-xs px-0.5 text-[9px]">
-              {timezone}
-            </span>
+            <span className="bg-muted/60 text-muted-foreground/60 rounded-xs px-0.5 text-[9px]">{timezone}</span>
           )}
         </div>
       </div>
@@ -117,12 +118,10 @@ export const DateCell = memo(function DateCell({
       )}
       <span className="truncate">{countdown ? countdownString : displayString}</span>
       {timezone && !countdown && (
-        <span className="bg-muted/60 text-muted-foreground/70 rounded-xs px-1 font-sans text-[10px]">
-          {timezone}
-        </span>
+        <span className="bg-muted/60 text-muted-foreground/70 rounded-xs px-1 font-sans text-[10px]">{timezone}</span>
       )}
       {isOverdue && (
-        <span className="bg-destructive/10 text-destructive rounded-xs px-1 font-sans text-[10px]">逾期</span>
+        <span className="bg-destructive/10 text-destructive rounded-xs px-1 font-sans text-[10px]">{t("overdue")}</span>
       )}
     </div>
   );
@@ -136,7 +135,7 @@ export const DateCell = memo(function DateCell({
         <p>{exactFormatted}</p>
         {relative && <p className="text-muted-foreground mt-0.5 text-[10px]">格式化: {customFormatted}</p>}
         {timezone && <p className="text-muted-foreground mt-0.5 text-[10px]">时区: {timezone}</p>}
-        {isOverdue && <p className="text-destructive mt-0.5 text-[10px] font-semibold">此记录已逾期</p>}
+        {isOverdue && <p className="text-destructive mt-0.5 text-[10px] font-semibold">{t("overdue_hint")}</p>}
       </TooltipContent>
     </Tooltip>
   );

@@ -107,11 +107,7 @@ export function useResourceOperations<TData = unknown, TSearch = unknown>(
     }
   };
 
-  const createPath = pagePaths?.create
-    ? pagePaths.create(basePath ?? "")
-    : basePath
-      ? `${basePath}/create`
-      : null;
+  const createPath = pagePaths?.create ? pagePaths.create(basePath ?? "") : basePath ? `${basePath}/create` : null;
 
   const openCreate = useMemoizedFn(() => {
     onCreate?.();
@@ -120,11 +116,7 @@ export function useResourceOperations<TData = unknown, TSearch = unknown>(
 
   const openEdit = useMemoizedFn((id: string) => {
     onEdit?.(id);
-    const path = pagePaths?.edit
-      ? pagePaths.edit(basePath ?? "", id)
-      : basePath
-        ? `${basePath}/${id}/edit`
-        : null;
+    const path = pagePaths?.edit ? pagePaths.edit(basePath ?? "", id) : basePath ? `${basePath}/${id}/edit` : null;
     dispatch(editPresentation, path, () => modalState.openEdit(id));
   });
 

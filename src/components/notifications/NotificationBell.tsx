@@ -53,9 +53,7 @@ export const NotificationBell = memo(function NotificationBell({ className }: No
   const markAllAsReadMutation = useMarkAllAsReadMutation();
   const deleteMutation = useDeleteNotificationMutation();
 
-  const unreadCount = open
-    ? (listData?.unreadCount ?? countData ?? 0)
-    : (countData ?? listData?.unreadCount ?? 0);
+  const unreadCount = open ? (listData?.unreadCount ?? countData ?? 0) : (countData ?? listData?.unreadCount ?? 0);
   const items = listData?.items ?? EMPTY_ITEMS;
   const totalCount = listData?.total ?? 0;
 

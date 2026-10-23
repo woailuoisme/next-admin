@@ -16,6 +16,7 @@ import { RecentOrdersTable } from "../components/RecentOrdersTable";
 import { RevenueChart } from "../components/RevenueChart";
 import { useDashboardSummaryQuery } from "../hooks";
 import { DASHBOARD_TIME_RANGE_OPTIONS } from "../schemas";
+import { useTranslations } from "next-intl";
 
 export interface DashboardPageProps {
   range?: DashboardTimeRange;
@@ -23,6 +24,7 @@ export interface DashboardPageProps {
 }
 
 export function DashboardPage({ range = "30d", onRangeChange }: DashboardPageProps) {
+  const t = useTranslations("dashboard");
   const { data, isLoading, isError, refetch, isFetching } = useDashboardSummaryQuery(range);
 
   const handleRefetch = useMemoizedFn(() => {
@@ -41,9 +43,9 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
   if (isError || !data) {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center gap-3">
-        <p className="text-destructive text-sm font-medium">Failed to load dashboard data</p>
+        <p className="text-destructive text-sm font-medium">{t("load_error")}</p>
         <Button variant="outline" size="sm" onClick={handleRefetch}>
-          Try Again
+          {t("retry")}
         </Button>
       </div>
     );
@@ -53,15 +55,13 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">运营仪表盘 (Executive Dashboard)</h1>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            实时掌握全店营收体量、履约履单状态及核心品类商品指标
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("page_title")}</h1>
+          <p className="text-muted-foreground mt-0.5 text-xs">{t("page_description")}</p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <fieldset
-            aria-label="选择统计周期"
+            aria-label={t("period_aria")}
             className="bg-muted/40 m-0 flex items-center rounded-lg border p-0.5 text-xs"
           >
             {DASHBOARD_TIME_RANGE_OPTIONS.map((item) => (
@@ -82,7 +82,7 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
                   onChange={() => handleRangeChange(item.value)}
                   className="sr-only"
                 />
-                {item.label}
+                {t(item.labelKey)}
               </label>
             ))}
           </fieldset>
@@ -95,7 +95,7 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
             className="h-8 gap-1.5 text-xs"
           >
             <RefreshCw className={cn("size-3.5", isFetching && "animate-spin")} />
-            <span>同步数据</span>
+            <span>{t("sync_action")}</span>
           </Button>
         </div>
       </div>

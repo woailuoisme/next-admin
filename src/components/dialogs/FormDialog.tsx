@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
 import { memo, type SubmitEvent, useEffect, useId, useMemo, useRef } from "react";
@@ -12,21 +13,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 import type { FormDialogProps } from "./types";
 
 import { FullscreenToggle } from "./FullscreenToggle";
 import { useDialogFullscreen } from "./hooks/useDialogFullscreen";
-import { DIALOG_SIZE_CLASSES, SHEET_SIZE_CLASSES } from "./size-classes";
+import {
+  DIALOG_BODY_CLASS,
+  DIALOG_FOOTER_CLASS,
+  getDialogContentClassName,
+  getSheetContentClassName,
+} from "./sizeClasses";
 
 export const FormDialog = memo(function FormDialog<TData = Record<string, unknown>>({
   open,
@@ -46,7 +45,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   submitText,
   createSubmitText,
   editSubmitText,
-  cancelText = "Cancel",
+  cancelText,
   isSubmitting = false,
   isSubmitDisabled = false,
   onSubmit,
@@ -58,6 +57,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   fullscreen: controlledFullscreen,
   onFullscreenChange,
 }: FormDialogProps<TData>) {
+  const t = useTranslations("dialog");
   const formId = useId();
   const isEdit = mode ? mode === "edit" : Boolean(entity);
 
@@ -111,11 +111,19 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   }, [open, entity, form, defaultValues]);
 
   const resolvedTitle =
-    title ?? (isEdit ? (editTitle ?? `Edit ${entityName}`) : (createTitle ?? `Add New ${entityName}`));
+    title ??
+    (isEdit
+      ? (editTitle ?? t("form_edit_title", { entityName }))
+      : (createTitle ?? t("form_create_title", { entityName })));
 
   const resolvedSubmitText =
     submitText ??
-    (isEdit ? (editSubmitText ?? "Save Changes") : (createSubmitText ?? `Create ${entityName}`));
+    (isEdit
+      ? (editSubmitText ?? t("form_edit_submit", { entityName }))
+      : (createSubmitText ?? t("form_create_submit", { entityName })));
+
+  const resolvedCancelText = cancelText ?? t("cancel");
+  const displaySubmitText = isSubmitting && !submitText ? t("form_submitting") : resolvedSubmitText;
 
   const formContextValue = useMemo(() => ({ form }), [form]);
 
@@ -147,19 +155,12 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
     // 本组件拥有 <form> 元素（吸底提交按钮位于其内部并依赖原生提交）
     // children 只能是字段内容，严禁再渲染 form / <Form as="form">，否则会嵌套 <form> 导致 hydration 报错
     <form id={formId} onSubmit={handleFormSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-4">
+      <div className={DIALOG_BODY_CLASS}>
         <FormContext value={formContextValue}>{children}</FormContext>
       </div>
 
-      <FooterComponent
-        className={cn(
-          "sticky bottom-0 z-10 m-0 flex shrink-0 flex-row items-center justify-end gap-2.5 border-t border-border/70 bg-muted/30 p-0 px-6 py-3.5 dark:bg-muted/15",
-          footerClassName,
-        )}
-      >
-        {extraFooterActions ? (
-          <div className="mr-auto flex items-center gap-2">{extraFooterActions}</div>
-        ) : null}
+      <FooterComponent className={cn(DIALOG_FOOTER_CLASS, footerClassName)}>
+        {extraFooterActions ? <div className="mr-auto flex items-center gap-2">{extraFooterActions}</div> : null}
         <Button
           type="button"
           variant="outline"
@@ -167,7 +168,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
           disabled={isSubmitting}
           className="h-8.5 px-4 text-xs font-medium"
         >
-          {cancelText}
+          {resolvedCancelText}
         </Button>
         <Button
           type="submit"
@@ -175,7 +176,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
           className="h-8.5 px-4 text-xs font-medium shadow-xs"
         >
           {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" /> : null}
-          {resolvedSubmitText}
+          {displaySubmitText}
         </Button>
       </FooterComponent>
     </form>
@@ -184,14 +185,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   if (variant === "sheet") {
     return (
       <Sheet open={open} onOpenChange={handleOpenChange}>
-        <SheetContent
-          side="right"
-          className={cn(
-            "flex flex-col gap-0 overflow-hidden p-0",
-            widthClassName || SHEET_SIZE_CLASSES[size],
-            className,
-          )}
-        >
+        <SheetContent side="right" className={getSheetContentClassName({ widthClassName, size, className })}>
           <SheetHeader className="border-border/60 shrink-0 border-b px-6 py-4 pr-16">
             <SheetTitle>{resolvedTitle}</SheetTitle>
             {description ? (
@@ -208,19 +202,8 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent
-        className={cn(
-          "flex flex-col gap-0 overflow-hidden p-0 transition-all duration-200",
-          isFullscreen
-            ? "h-[96vh] max-h-[96vh] w-[98vw] sm:max-w-[98vw]"
-            : "max-h-[calc(100dvh-2.5rem)] sm:max-h-[88vh]",
-          !isFullscreen && (widthClassName || DIALOG_SIZE_CLASSES[size]),
-          className,
-        )}
-      >
-        {allowFullscreen ? (
-          <FullscreenToggle isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
-        ) : null}
+      <DialogContent className={getDialogContentClassName({ isFullscreen, widthClassName, size, className })}>
+        {allowFullscreen ? <FullscreenToggle isFullscreen={isFullscreen} onToggle={toggleFullscreen} /> : null}
 
         <DialogHeader className="border-border/60 shrink-0 border-b px-6 py-4 pr-16">
           <DialogTitle>{resolvedTitle}</DialogTitle>

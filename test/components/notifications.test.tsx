@@ -45,11 +45,7 @@ describe("Notification Components", () => {
       const handleMarkAsRead = vi.fn();
 
       renderWithProviders(
-        <NotificationItemRow
-          item={mockItemUnread}
-          onItemClick={handleItemClick}
-          onMarkAsRead={handleMarkAsRead}
-        />,
+        <NotificationItemRow item={mockItemUnread} onItemClick={handleItemClick} onMarkAsRead={handleMarkAsRead} />,
       );
 
       const markReadBtn = screen.getByRole("button", { name: /标为已读|mark as read/i });

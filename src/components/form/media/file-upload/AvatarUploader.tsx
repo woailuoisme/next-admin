@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Camera, Loader2 } from "lucide-react";
 import { type DragEvent, memo } from "react";
 
@@ -35,6 +36,8 @@ export const AvatarUploader = memo(function AvatarUploader({
   onDrop,
   className,
 }: AvatarUploaderProps) {
+  const t = useTranslations("form");
+
   return (
     <div className={cn("flex items-center gap-4", className)}>
       <div
@@ -60,14 +63,14 @@ export const AvatarUploader = memo(function AvatarUploader({
             {!disabled && !readOnly && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
                 <Camera className="size-5 text-white" />
-                <span className="mt-1 text-[10px] font-medium text-white">Change</span>
+                <span className="mt-1 text-[10px] font-medium text-white">{t("upload_avatar_change")}</span>
               </div>
             )}
           </>
         ) : (
           <div className="text-muted-foreground flex flex-col items-center justify-center">
             <Camera className="text-muted-foreground/80 group-hover:text-primary size-6 transition-colors" />
-            <span className="mt-1 text-[10px] font-medium">Upload</span>
+            <span className="mt-1 text-[10px] font-medium">{t("upload_dropzone_title")}</span>
           </div>
         )}
 
@@ -81,7 +84,7 @@ export const AvatarUploader = memo(function AvatarUploader({
       {currentAvatar && !disabled && !readOnly && (
         <div className="flex flex-col gap-1.5">
           <Button type="button" variant="outline" size="xs" onClick={onChooseFile} className="h-7 text-xs">
-            Replace
+            {t("upload_avatar_change")}
           </Button>
           <Button
             type="button"
@@ -90,7 +93,7 @@ export const AvatarUploader = memo(function AvatarUploader({
             onClick={() => onRemove(currentAvatar.id)}
             className="text-destructive hover:bg-destructive/10 h-7 text-xs"
           >
-            Remove
+            {t("upload_remove")}
           </Button>
         </div>
       )}

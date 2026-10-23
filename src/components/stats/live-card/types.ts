@@ -52,6 +52,7 @@ export interface LiveStatCardProps {
   onClick?: () => void;
   /** Loading skeleton state */
   isLoading?: boolean;
+
   /** Container class */
   className?: string;
 }

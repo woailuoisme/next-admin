@@ -8,6 +8,7 @@ export interface BaseDialogProps {
   title?: ReactNode;
   description?: ReactNode;
   className?: string;
+
   /**
    * Optional custom CSS class name for the dialog footer container.
    */
@@ -191,6 +192,7 @@ export interface DeleteDialogProps {
   isPending?: boolean;
   requireConfirmKeyword?: boolean | string;
   confirmKeyword?: string;
+
   /**
    * Whether to auto-focus the confirmation keyword input on open. Defaults to true.
    */

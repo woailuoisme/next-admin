@@ -157,9 +157,7 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
         </InputGroupAddon>
       ) : (
         <InputGroupAddon align="inline-start">
-          <InputGroupText className="text-muted-foreground text-xs font-semibold">
-            {currencySymbol}
-          </InputGroupText>
+          <InputGroupText className="text-muted-foreground text-xs font-semibold">{currencySymbol}</InputGroupText>
         </InputGroupAddon>
       )}
 

@@ -7,3 +7,4 @@ export * from "./ChartEmptyState";
 export * from "./ChartSkeleton";
 export * from "./ChartBrush";
 export * from "./ChartReferenceLines";
+export * from "./ChartFrame";

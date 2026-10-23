@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+
 import { FormShowcasePage } from "@/features/showcase/pages/FormShowcasePage";
 
-export const metadata: Metadata = {
-  title: "表单展示",
-  description: "动态响应、复杂校验与富文本上传等高级表单交互",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("showcase");
+  return {
+    title: t("forms_title"),
+    description: t("forms_description"),
+  };
+}
 
 export default function Page() {
   return <FormShowcasePage />;

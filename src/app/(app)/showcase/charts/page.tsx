@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+
 import { ChartsShowcasePage } from "@/features/showcase/pages/ChartsShowcasePage";
 
-export const metadata: Metadata = {
-  title: "图表展示",
-  description: "企业级多维可视化图表与数据趋势分析组件",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("showcase");
+  return {
+    title: t("charts_title"),
+    description: t("charts_description"),
+  };
+}
 
 export default function Page() {
   return <ChartsShowcasePage />;

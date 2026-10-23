@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { RotateCcw } from "lucide-react";
 import { memo, useId, useState } from "react";
@@ -38,6 +39,7 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
   onConfirm,
   onReset,
 }: LocationCoordinatesInputProps) {
+  const t = useTranslations("map");
   const baseId = useId();
   const lngId = `${baseId}-lng`;
   const latId = `${baseId}-lat`;
@@ -64,14 +66,7 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
     const lat = Number.parseFloat(latDraft);
 
     // 任一侧非法或超出墨卡托投影有效边界则回退当前值，防止 MapLibre GL 抛错崩溃
-    if (
-      !Number.isFinite(lng) ||
-      !Number.isFinite(lat) ||
-      lng < -180 ||
-      lng > 180 ||
-      lat < -85.0511 ||
-      lat > 85.0511
-    ) {
+    if (!Number.isFinite(lng) || !Number.isFinite(lat) || lng < -180 || lng > 180 || lat < -85.0511 || lat > 85.0511) {
       setLngDraft(toDraft(value?.lng));
       setLatDraft(toDraft(value?.lat));
       return;
@@ -92,7 +87,7 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
     <div className="flex flex-wrap items-center gap-3">
       <div className="flex min-w-36 flex-1 items-center gap-2">
         <Label htmlFor={lngId} className="text-muted-foreground shrink-0 text-xs">
-          经度
+          {t("picker_longitude")}
         </Label>
         <Input
           id={lngId}
@@ -110,13 +105,13 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
           }}
           onBlur={() => commit()}
           className="h-8 font-mono text-xs"
-          placeholder="Longitude"
+          placeholder={t("picker_longitude")}
         />
       </div>
 
       <div className="flex min-w-36 flex-1 items-center gap-2">
         <Label htmlFor={latId} className="text-muted-foreground shrink-0 text-xs">
-          纬度
+          {t("picker_latitude")}
         </Label>
         <Input
           id={latId}
@@ -134,7 +129,7 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
           }}
           onBlur={() => commit()}
           className="h-8 font-mono text-xs"
-          placeholder="Latitude"
+          placeholder={t("picker_latitude")}
         />
       </div>
 
@@ -147,7 +142,7 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
           className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs"
         >
           <RotateCcw className="size-3" />
-          重置
+          {t("picker_reset")}
         </Button>
       ) : null}
     </div>

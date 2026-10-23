@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { debounce, type DebouncedFunction } from "es-toolkit";
 import { LocateFixed, MapPin } from "lucide-react";
@@ -14,8 +15,8 @@ import { resolveBasemapConfig } from "../presets/basemaps";
 import { MAP_NO_ATTRIBUTION } from "../shared/constants";
 import { MapAutoResizer } from "../shared/MapAutoResizer";
 import { MapFlyTo } from "../shared/MapFlyTo";
-import { transformCoordinates } from "../utils/coordinates";
-import { type AmapPlace, isAmapApiEnabled, reverseGeocode } from "./amap-geo";
+import { getBasemapCRS, transformCoordinates } from "../utils/coordinates";
+import { type AmapPlace, isAmapApiEnabled, reverseGeocode } from "./amapGeo";
 import { LocationAddressSearch } from "./LocationAddressSearch";
 import { LocationCoordinatesInput } from "./LocationCoordinatesInput";
 import { MapClickHandler } from "./MapClickHandler";
@@ -42,6 +43,7 @@ export function LocationPicker({
   customStyleUrl,
   className,
 }: LocationPickerProps) {
+  const t = useTranslations("map");
   const [internalValue, setInternalValue] = useState<LocationPickerValue>(controlledValue ?? defaultValue);
 
   const isControlled = controlledValue !== undefined;
@@ -51,17 +53,10 @@ export function LocationPicker({
 
   /** 对外契约坐标系：`value` / `onChange` 中的坐标即为该坐标系 */
   const sourceCRS: CoordinateSystem = coordinateSystem ?? "WGS84";
-  /**
-   * 地图显示坐标系 —— 与 `useLocationMarkers` 保持同一约定：
-   * 高德底图为 GCJ-02（Amap 瓦片本身就是 GCJ-02），其余（Carto / OSM）为 WGS84。
-   * 不做转换会让选点位置与底图偏移数百米。
-   */
-  const displayCRS: CoordinateSystem = basemap === "amap" ? "GCJ02" : "WGS84";
+  /** 地图显示坐标系，与 useLocationMarkers / RouteTrackingMap 共用同一套底图约定 */
+  const displayCRS = getBasemapCRS(basemap);
 
-  const basemapConfig = useMemo(
-    () => resolveBasemapConfig(basemap, customStyleUrl),
-    [basemap, customStyleUrl],
-  );
+  const basemapConfig = useMemo(() => resolveBasemapConfig(basemap, customStyleUrl), [basemap, customStyleUrl]);
 
   // 外部契约坐标 → 显示坐标。拆成数值依赖，使「仅地址变化」时不会改变引用，
   // 从而不会反复触发下方的逆地理编码 effect
@@ -166,9 +161,9 @@ export function LocationPicker({
   });
 
   const regeoAbortControllerRef = useRef<AbortController | null>(null);
-  const debouncedRegeoRef = useRef<DebouncedFunction<
-    (pos: [number, number], crs: CoordinateSystem) => void
-  > | null>(null);
+  const debouncedRegeoRef = useRef<DebouncedFunction<(pos: [number, number], crs: CoordinateSystem) => void> | null>(
+    null,
+  );
 
   useEffect(() => {
     const debounced = debounce(async (pos: [number, number], crs: CoordinateSystem) => {
@@ -255,16 +250,7 @@ export function LocationPicker({
 
     lastGeocodedCoordsRef.current = coordKey;
     debouncedRegeoRef.current?.(displayPosition, displayCRS);
-  }, [
-    amapEnabled,
-    disabled,
-    readOnly,
-    displayPosition,
-    displayCRS,
-    sourceLng,
-    sourceLat,
-    currentValue?.address,
-  ]);
+  }, [amapEnabled, disabled, readOnly, displayPosition, displayCRS, sourceLng, sourceLat, currentValue?.address]);
 
   const isPickerBlocked = disabled || readOnly;
 
@@ -313,7 +299,7 @@ export function LocationPicker({
               </MarkerContent>
               <MarkerPopup className="w-56 p-2.5">
                 <div className="space-y-1 text-xs">
-                  <p className="text-foreground font-semibold">已选位置</p>
+                  <p className="text-foreground font-semibold">{t("picker_selected_location")}</p>
                   {currentValue?.address ? (
                     <p className="text-muted-foreground leading-tight">{currentValue.address}</p>
                   ) : null}
@@ -330,7 +316,7 @@ export function LocationPicker({
         {currentValue || isPickerBlocked ? (
           <div className="border-border/80 bg-background/90 pointer-events-none absolute top-3 left-3 z-10 flex max-w-[calc(100%-1.5rem)] items-center gap-2 rounded-md border px-2.5 py-1 text-xs shadow-xs backdrop-blur-md">
             <LocateFixed className="text-primary size-3.5 shrink-0" />
-            {isPickerBlocked ? <span className="text-muted-foreground shrink-0">仅查看位置</span> : null}
+            {isPickerBlocked ? <span className="text-muted-foreground shrink-0">{t("picker_view_only")}</span> : null}
             {currentValue?.address ? (
               <span className="text-foreground/80 min-w-0 truncate">{currentValue.address}</span>
             ) : null}

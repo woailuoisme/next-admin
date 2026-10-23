@@ -7,7 +7,7 @@ import {
   type DataTableColDef,
   type DataTableFilterDefinition,
   type DataTableRenderCellParams,
-  downloadBlob,
+  exportRowsAsJson,
   ResourceTable,
 } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
@@ -15,41 +15,12 @@ import { Button } from "@/components/ui/button";
 import type { Product } from "../types";
 
 import { productQueries } from "../queries";
+import { useTranslations } from "next-intl";
 
 const STATUS_VARIANT_MAP: Record<string, "success" | "secondary"> = {
   active: "success",
   draft: "secondary",
 };
-
-const STATUS_LABEL_MAP: Record<string, string> = {
-  active: "Active",
-  draft: "Draft",
-};
-
-const PRODUCT_FILTERS: DataTableFilterDefinition[] = [
-  {
-    type: "select",
-    field: "status",
-    label: "Status",
-    placeholder: "All statuses",
-    options: [
-      { label: "Active", value: "active" },
-      { label: "Draft", value: "draft" },
-    ],
-  },
-  {
-    type: "select",
-    field: "categoryName",
-    label: "Category",
-    placeholder: "All categories",
-    options: [
-      { label: "Electronics", value: "Electronics" },
-      { label: "Clothing", value: "Clothing" },
-      { label: "Home", value: "Home" },
-      { label: "Accessories", value: "Accessories" },
-    ],
-  },
-];
 
 const PINNED_COLUMNS = {
   left: ["imageUrl", "title"],
@@ -59,20 +30,13 @@ const PINNED_COLUMNS = {
 const SLOT_PROPS = {
   toolbar: {
     exportFileName: "products-catalog.csv",
-    quickFilterPlaceholder: "Filter products in current view...",
   },
 };
 
 const getProductRowId = (row: Product) => row.id;
 
-function exportProductsJson(selectedRows: Product[], clearSelection: () => void) {
-  downloadBlob(
-    JSON.stringify(selectedRows, null, 2),
-    `products-selected-${selectedRows.length}.json`,
-    "application/json",
-  );
-  clearSelection();
-}
+const exportProductsJson = (selectedRows: Product[], clearSelection: () => void) =>
+  exportRowsAsJson(selectedRows, `products-selected-${selectedRows.length}.json`, clearSelection);
 
 interface ProductTableProps {
   products?: Product[];
@@ -91,15 +55,50 @@ export function ProductTable({
   onDeleteProduct,
   onBatchDelete,
 }: ProductTableProps) {
+  const t = useTranslations("products");
+
+  const statusLabelMap = useMemo<Record<string, string>>(
+    () => ({ active: t("status_active"), draft: t("status_draft") }),
+    [t],
+  );
+
+  const productFilters = useMemo<DataTableFilterDefinition[]>(
+    () => [
+      {
+        type: "select",
+        field: "status",
+        label: t("col_status"),
+        placeholder: t("filter_status_placeholder"),
+        options: [
+          { label: t("status_active"), value: "active" },
+          { label: t("status_draft"), value: "draft" },
+        ],
+      },
+      {
+        type: "select",
+        field: "categoryName",
+        label: t("col_category"),
+        placeholder: t("filter_category_placeholder"),
+        options: [
+          { label: t("category_electronics"), value: "Electronics" },
+          { label: t("category_clothing"), value: "Clothing" },
+          { label: t("category_home"), value: "Home" },
+          { label: t("category_accessories"), value: "Accessories" },
+        ],
+      },
+    ],
+    [t],
+  );
+
   const columns = useMemo<DataTableColDef<Product>[]>(
     () => [
-      col.avatar<Product>("imageUrl", "Item", {
+      col.avatar<Product>("imageUrl", t("col_item"), {
         width: 70,
         pinned: "left",
         shape: "rounded",
         size: "md",
       }),
-      col.text<Product>("title", "Product Info", {
+      col.text<Product>("title", t("col_product_info"), {
         description: (r) => r.slug,
         copyable: (r) => r.slug,
         flex: 1,
@@ -107,25 +106,29 @@ export function ProductTable({
         pinned: "left",
         weight: "semibold",
       }),
-      col.badge<Product>("categoryName", "Category", {
+      col.badge<Product>("categoryName", t("col_category"), {
         width: 140,
         variant: "outline",
       }),
       {
         field: "price",
-        headerName: "Financials",
+        headerName: t("col_financials"),
         width: 180,
         type: "number",
         sortable: true,
-        aggregation: "sum",
         renderCell: ({ row }: DataTableRenderCellParams<Product>) => {
           const margin = row.price > 0 ? Math.round(((row.price - row.costPrice) / row.price) * 100) : 0;
           return (
             <div className="text-xs">
               <span className="text-foreground font-mono font-bold">${row.price.toFixed(2)}</span>
               <div className="text-muted-foreground flex items-center gap-1 text-[10px]">
-                <span>Cost: ${row.costPrice.toFixed(2)}</span>
-                <span className="text-chart-2 font-medium">({margin}% margin)</span>
+                <span>
+                  {t("cost_prefix")} ${row.costPrice.toFixed(2)}
+                </span>
+                <span className="text-chart-2 font-medium">
+                  ({margin}
+                  {t("margin_suffix")})
+                </span>
               </div>
             </div>
           );
@@ -133,39 +136,38 @@ export function ProductTable({
       },
       {
         field: "stock",
-        headerName: "Inventory",
+        headerName: t("col_inventory"),
         width: 130,
         type: "number",
         sortable: true,
-        aggregation: "sum",
         renderCell: ({ row }: DataTableRenderCellParams<Product>) => {
           if (row.stock === 0) {
-            return <BadgeCell value="Out of Stock" variant="destructive" />;
+            return <BadgeCell value={t("stock_out")} variant="destructive" />;
           }
           if (row.stock <= 10) {
-            return <BadgeCell value={`Low: ${row.stock} left`} variant="warning" dot />;
+            return <BadgeCell value={t("low_stock", { count: row.stock })} variant="warning" dot />;
           }
-          return <span className="text-muted-foreground font-mono text-xs">{row.stock} in stock</span>;
+          return <span className="text-muted-foreground font-mono text-xs">{t("in_stock", { count: row.stock })}</span>;
         },
       },
-      col.badge<Product>("status", "Status", {
+      col.badge<Product>("status", t("col_status"), {
         width: 100,
         dot: true,
         variantMap: STATUS_VARIANT_MAP,
-        labelMap: STATUS_LABEL_MAP,
+        labelMap: statusLabelMap,
       }),
       col.actions<Product>({
         field: "actions",
-        headerName: "Actions",
+        headerName: t("col_actions"),
         width: 80,
-        moreActionsLabel: "Actions",
+        moreActionsLabel: t("col_actions"),
         crud: {
           onEdit: (row) => onEditProduct?.(row.id),
           onDelete: (row) => onDeleteProduct?.(row.id),
         },
       }),
     ],
-    [onEditProduct, onDeleteProduct],
+    [onEditProduct, onDeleteProduct, statusLabelMap, t],
   );
 
   return (
@@ -178,8 +180,7 @@ export function ProductTable({
       loading={loading}
       total={total}
       pinnedColumns={PINNED_COLUMNS}
-      filters={PRODUCT_FILTERS}
-      summaryRow
+      filters={productFilters}
       slotProps={SLOT_PROPS}
       batchActions={(selectedRows, clearSelection) => (
         <div className="flex items-center gap-2">

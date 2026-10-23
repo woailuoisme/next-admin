@@ -20,13 +20,7 @@ export interface FormTabsProps {
   className?: string;
 }
 
-export const FormTabs = memo(function FormTabs({
-  tabs,
-  defaultValue,
-  value,
-  onValueChange,
-  className,
-}: FormTabsProps) {
+export const FormTabs = memo(function FormTabs({ tabs, defaultValue, value, onValueChange, className }: FormTabsProps) {
   const initialTab = defaultValue || tabs[0]?.id;
 
   return (

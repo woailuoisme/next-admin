@@ -16,17 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  ChevronDown,
-  ChevronRight,
-  Check,
-  Folder,
-  FolderOpen,
-  FileText,
-  Loader2,
-  Search,
-  X,
-} from "lucide-react";
+import { ChevronDown, ChevronRight, Check, Folder, FolderOpen, FileText, Loader2, Search, X } from "lucide-react";
 
 // ==========================================
 // Types
@@ -176,14 +166,7 @@ function buildTreeIndex(
 
       let childKeys: TreeSelectValue[] = [];
       if (hasChildren) {
-        childKeys = traverse(
-          childrenRaw as TreeSelectNode[],
-          key,
-          level + 1,
-          currentPath,
-          currentLabels,
-          currentNodes,
-        );
+        childKeys = traverse(childrenRaw as TreeSelectNode[], key, level + 1, currentPath, currentLabels, currentNodes);
       }
 
       const internalNode: InternalTreeNode = {
@@ -286,9 +269,7 @@ function resolveCascadingCheckedState(
     if (selectableChildren.length === 0) continue;
 
     const allChildrenChecked = selectableChildren.every((ck) => checkedKeys.has(ck));
-    const someChildrenCheckedOrHalf = selectableChildren.some(
-      (ck) => checkedKeys.has(ck) || halfCheckedKeys.has(ck),
-    );
+    const someChildrenCheckedOrHalf = selectableChildren.some((ck) => checkedKeys.has(ck) || halfCheckedKeys.has(ck));
 
     if (allChildrenChecked) {
       checkedKeys.add(key);
@@ -429,8 +410,8 @@ function TreeSelectComponent({
   const isExpandControlled = controlledExpandedKeys !== undefined;
 
   // Normalize initial uncontrolled value with lazy initializer
-  const [uncontrolledValue, setUncontrolledValue] = useState<TreeSelectValue | TreeSelectValue[] | undefined>(
-    () => (defaultValue !== undefined ? defaultValue : isMultiple ? EMPTY_ARRAY : undefined),
+  const [uncontrolledValue, setUncontrolledValue] = useState<TreeSelectValue | TreeSelectValue[] | undefined>(() =>
+    defaultValue !== undefined ? defaultValue : isMultiple ? EMPTY_ARRAY : undefined,
   );
   const activeValue = isControlled ? controlledValue : uncontrolledValue;
 
@@ -447,14 +428,12 @@ function TreeSelectComponent({
   const { nodeMap, rootKeys } = useMemo(() => buildTreeIndex(treeData, fieldKeys), [treeData, fieldKeys]);
 
   // Expanded keys management (null means all expanded by default via treeDefaultExpandAll)
-  const [uncontrolledExpandedKeys, setUncontrolledExpandedKeys] = useState<Set<TreeSelectValue> | null>(
-    () => {
-      if (treeDefaultExpandAll) {
-        return null;
-      }
-      return new Set<TreeSelectValue>();
-    },
-  );
+  const [uncontrolledExpandedKeys, setUncontrolledExpandedKeys] = useState<Set<TreeSelectValue> | null>(() => {
+    if (treeDefaultExpandAll) {
+      return null;
+    }
+    return new Set<TreeSelectValue>();
+  });
 
   const activeExpandedKeys = useMemo(() => {
     if (isExpandControlled && controlledExpandedKeys) {
@@ -734,16 +713,7 @@ function TreeSelectComponent({
       const selectedNodes = formattedKeys.map((k) => nodeMap.get(k)?.raw).filter(Boolean) as TreeSelectNode[];
       onChange?.(formattedKeys, selectedNodes, { triggerValue: tagKey, checked: false });
     },
-    [
-      disabled,
-      treeCheckable,
-      activeValue,
-      isControlled,
-      nodeMap,
-      onChange,
-      allCascadedChecked,
-      showCheckedStrategy,
-    ],
+    [disabled, treeCheckable, activeValue, isControlled, nodeMap, onChange, allCascadedChecked, showCheckedStrategy],
   );
 
   // Render tree item recursively
@@ -800,9 +770,7 @@ function TreeSelectComponent({
           onClick={() => handleSelectNode(item)}
           className={cn(
             "group relative flex min-h-8 items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors select-none",
-            item.disabled
-              ? "text-muted-foreground/50 cursor-not-allowed"
-              : "hover:bg-accent/60 cursor-pointer",
+            item.disabled ? "text-muted-foreground/50 cursor-not-allowed" : "hover:bg-accent/60 cursor-pointer",
             isSingleSelected && "bg-primary/10 text-primary font-medium hover:bg-primary/15",
           )}
           style={{ paddingLeft: `${item.level * 20 + 8}px` }}
@@ -832,11 +800,7 @@ function TreeSelectComponent({
               }
             }}
             onKeyDown={(e) => {
-              if (
-                (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") &&
-                hasChildren &&
-                !isLoading
-              ) {
+              if ((e.key === "Enter" || e.key === " " || e.key === "ArrowRight") && hasChildren && !isLoading) {
                 e.preventDefault();
                 e.stopPropagation();
                 handleToggleExpand(item);
@@ -873,11 +837,7 @@ function TreeSelectComponent({
 
           {/* Label Content */}
           <span className="flex-1 truncate">
-            {hasSearchFilter ? (
-              <HighlightMatch text={item.label} keyword={deferredSearch.trim()} />
-            ) : (
-              item.labelNode
-            )}
+            {hasSearchFilter ? <HighlightMatch text={item.label} keyword={deferredSearch.trim()} /> : item.labelNode}
           </span>
 
           {/* Single Select Checkmark */}

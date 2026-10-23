@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { handleMutationError } from "@/lib/api-client";
-import { toastMessages } from "@/lib/toast-messages";
+import { handleMutationError } from "@/lib/apiClient";
+import { toastMessages } from "@/lib/toastMessages";
 
 import type { CustomerFilters } from "./types";
 
@@ -16,8 +16,7 @@ export function useCustomersQuery(filters: CustomerFilters = EMPTY_CUSTOMER_FILT
 export function useToggleCustomerStatusMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: "active" | "inactive" }) =>
-      toggleCustomerStatusApi(id, status),
+    mutationFn: ({ id, status }: { id: string; status: "active" | "inactive" }) => toggleCustomerStatusApi(id, status),
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: customerKeys.all });
       toast.success(toastMessages.statusChanged(updated.name, updated.status));

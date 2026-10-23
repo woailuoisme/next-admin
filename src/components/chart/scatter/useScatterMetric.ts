@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 
+import { useFormatter } from "next-intl";
+
 import type { ScatterMetricChartProps, ScatterPoint, ScatterSeries } from "./types";
 
-import { formatNumber } from "../shared/formatters";
 import { CHART_PALETTE } from "../shared/theme";
 
 export function useScatterMetric(props: ScatterMetricChartProps) {
@@ -53,17 +54,9 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
         x: Number(point[xAxisKey] ?? point.x ?? 0),
         y: Number(point[yAxisKey] ?? point.y ?? 0),
         z:
-          point[zAxisKey] !== undefined
-            ? Number(point[zAxisKey])
-            : point.z !== undefined
-              ? Number(point.z)
-              : undefined,
+          point[zAxisKey] !== undefined ? Number(point[zAxisKey]) : point.z !== undefined ? Number(point.z) : undefined,
         name: String(point[nameKey] ?? point.name ?? ""),
-        category: point[categoryKey]
-          ? String(point[categoryKey])
-          : point.category
-            ? String(point.category)
-            : undefined,
+        category: point[categoryKey] ? String(point[categoryKey]) : point.category ? String(point.category) : undefined,
       }));
 
       // Group by category if present
@@ -95,6 +88,8 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
     return [];
   }, [data, propSeries, xAxisKey, yAxisKey, zAxisKey, nameKey, categoryKey]);
 
+  const format = useFormatter();
+  const formatNumber = (val: number) => format.number(val);
   const xFormatter = customXFormatter ?? xValueFormatter ?? formatNumber;
   const yFormatter = customYFormatter ?? yValueFormatter ?? formatNumber;
   const zFormatter = customZFormatter ?? zValueFormatter ?? formatNumber;

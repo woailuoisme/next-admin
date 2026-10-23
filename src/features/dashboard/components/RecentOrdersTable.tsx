@@ -7,48 +7,60 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { MessageKeyOf } from "@/types/i18n";
+import { useFormatter, useTranslations } from "next-intl";
 
 interface RecentOrdersTableProps {
   orders?: Order[];
   isLoading?: boolean;
 }
 
-const STATUS_CONFIG: Record<OrderStatus, { label: string; className?: string; variant?: "destructive" }> = {
+const STATUS_CONFIG: Record<
+  OrderStatus,
+  {
+    labelKey: MessageKeyOf<"orders">;
+    className?: string;
+    variant?: "destructive";
+  }
+> = {
   delivered: {
-    label: "Delivered",
+    labelKey: "status_delivered",
     className: "border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-medium",
   },
   shipped: {
-    label: "Shipped",
+    labelKey: "status_shipped",
     className: "border-primary/30 bg-primary/10 text-primary font-medium",
   },
   processing: {
-    label: "Processing",
+    labelKey: "status_processing",
     className: "border-foreground/15 bg-secondary text-secondary-foreground font-medium",
   },
   pending: {
-    label: "Pending",
+    labelKey: "status_pending",
     className: "border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-300 font-medium",
   },
   cancelled: {
-    label: "Cancelled",
+    labelKey: "status_cancelled",
     variant: "destructive",
     className: "font-medium",
   },
 };
 
 function OrderStatusBadge({ status }: { status: OrderStatus }) {
+  const t = useTranslations("orders");
   const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
   return (
     <Badge variant={config.variant} className={config.className}>
-      {config.label}
+      {t(config.labelKey)}
     </Badge>
   );
 }
 
-const formatOrderTotal = (val: number) => `$${val.toFixed(2)}`;
-
 export function RecentOrdersTable({ orders = [], isLoading = false }: RecentOrdersTableProps) {
+  const t = useTranslations("dashboard");
+  const format = useFormatter();
+  const formatOrderTotal = (val: number) => format.number(val, { style: "currency", currency: "USD" });
+
   if (isLoading) {
     return (
       <Card className="border-border/60 col-span-full shadow-xs lg:col-span-3">
@@ -88,25 +100,20 @@ export function RecentOrdersTable({ orders = [], isLoading = false }: RecentOrde
         <div>
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <ShoppingCart className="text-primary size-4" />
-            Recent Customer Orders
+            {t("recent_orders_title")}
           </CardTitle>
-          <CardDescription className="text-xs">
-            Latest customer purchase records requiring fulfillment
-          </CardDescription>
+          <CardDescription className="text-xs">{t("recent_orders_desc")}</CardDescription>
         </div>
         <Button asChild variant="ghost" size="sm" className="gap-1 text-xs">
           <Link href="/orders">
-            View All <ArrowRight className="size-3.5" />
+            {t("recent_orders_view_all")} <ArrowRight className="size-3.5" />
           </Link>
         </Button>
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-border/50 divide-y">
           {orders.map((order) => (
-            <div
-              key={order.id}
-              className="hover:bg-muted/40 flex items-center justify-between p-4 transition-colors"
-            >
+            <div key={order.id} className="hover:bg-muted/40 flex items-center justify-between p-4 transition-colors">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold tracking-tight">{order.orderNumber}</span>
@@ -116,7 +123,9 @@ export function RecentOrdersTable({ orders = [], isLoading = false }: RecentOrde
               </div>
               <div className="text-right">
                 <p className="text-xs font-bold">{formatOrderTotal(order.total)}</p>
-                <p className="text-muted-foreground text-[11px]">{order.items.length} items</p>
+                <p className="text-muted-foreground text-[11px]">
+                  {t("recent_orders_items", { count: order.items.length })}
+                </p>
               </div>
             </div>
           ))}

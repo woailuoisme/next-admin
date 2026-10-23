@@ -37,9 +37,7 @@ function DonutTooltipContent({ active, payload, valueFormatter }: DonutTooltipCo
   return null;
 }
 
-export const DonutDistributionChart = memo(function DonutDistributionChart(
-  props: DonutDistributionChartProps,
-) {
+export const DonutDistributionChart = memo(function DonutDistributionChart(props: DonutDistributionChartProps) {
   const { innerRadius = 60, outerRadius = 85, height = 260, showLegend = true, className } = props;
 
   const { enrichedData, centerLabel, displayCenterValue, valueFormatter } = useDonutDistribution(props);
@@ -82,9 +80,7 @@ export const DonutDistributionChart = memo(function DonutDistributionChart(
         {/* Center summary text overlay */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center select-none">
           <span className="text-muted-foreground text-xs font-medium">{centerLabel}</span>
-          <span className="text-foreground font-mono text-lg font-bold tracking-tight">
-            {displayCenterValue}
-          </span>
+          <span className="text-foreground font-mono text-lg font-bold tracking-tight">{displayCenterValue}</span>
         </div>
       </div>
 

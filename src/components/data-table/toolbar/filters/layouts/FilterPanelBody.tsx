@@ -23,6 +23,7 @@ export interface FilterPanelBodyProps<TData = any> {
   title?: string;
   hideHeader?: boolean;
   hideFooter?: boolean;
+
   onSelectChange: (field: string, val: string) => void;
   onTernaryChange: (field: string, val: string) => void;
   onCustomChange: (field: string, val: any) => void;

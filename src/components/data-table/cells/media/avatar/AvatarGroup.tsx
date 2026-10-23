@@ -16,12 +16,7 @@ interface StackedAvatarGroupProps {
   shape?: keyof typeof avatarShapeClasses;
 }
 
-function StackedAvatarGroupInner({
-  items,
-  maxStacked = 3,
-  size = "sm",
-  shape = "circle",
-}: StackedAvatarGroupProps) {
+function StackedAvatarGroupInner({ items, maxStacked = 3, size = "sm", shape = "circle" }: StackedAvatarGroupProps) {
   const visibleItems = items.slice(0, maxStacked);
   const remainingItems = items.slice(maxStacked);
   const remainingCount = remainingItems.length;

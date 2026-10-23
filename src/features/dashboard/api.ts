@@ -1,6 +1,6 @@
 import type { ApiResponse } from "@/types";
 
-import { apiClient, toSearchParams } from "@/lib/api-client";
+import { apiClient, toSearchParams } from "@/lib/apiClient";
 
 import type { DashboardSummary, DashboardTimeRange } from "./types";
 

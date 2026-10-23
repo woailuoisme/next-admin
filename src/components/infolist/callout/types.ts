@@ -34,6 +34,8 @@ export interface CalloutProps extends Omit<React.HTMLAttributes<HTMLDivElement>,
   actions?: CalloutAction[];
   /** Custom colSpan if used inside an Infolist or Grid */
   colSpan?: ColSpan;
+  /** 可选国际化字典覆盖 */
+
   /** Additional children */
   children?: React.ReactNode;
 }

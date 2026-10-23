@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
 import * as React from "react";
 
@@ -23,6 +24,7 @@ export const InfolistSection = React.memo(function InfolistSection({
   children,
   ...props
 }: InfolistSectionProps) {
+  const t = useTranslations("infolist");
   const [collapsed, setCollapsed] = React.useState(defaultCollapsed);
 
   const handleOpenChange = React.useCallback((open: boolean) => {
@@ -32,19 +34,14 @@ export const InfolistSection = React.memo(function InfolistSection({
   const hasHeader = Boolean(title || description || icon || action);
 
   const contentNode = (
-    <div className="w-full">
-      {columns ? <InfolistGrid columns={columns}>{children}</InfolistGrid> : children}
-    </div>
+    <div className="w-full">{columns ? <InfolistGrid columns={columns}>{children}</InfolistGrid> : children}</div>
   );
 
   if (card) {
     return (
       <Collapsible open={!collapsed} onOpenChange={handleOpenChange} className="w-full">
         <Card
-          className={cn(
-            "w-full border-border bg-card text-left shadow-2xs transition-all duration-200",
-            className,
-          )}
+          className={cn("w-full border-border bg-card text-left shadow-2xs transition-all duration-200", className)}
           {...props}
         >
           {hasHeader && (
@@ -81,7 +78,7 @@ export const InfolistSection = React.memo(function InfolistSection({
                     <button
                       type="button"
                       className="border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground flex size-7 cursor-pointer items-center justify-center rounded-md border transition-all"
-                      aria-label={collapsed ? "展开区块" : "收起区块"}
+                      aria-label={collapsed ? t("section_expand") : t("section_collapse")}
                     >
                       <ChevronDown
                         className={cn(
@@ -99,9 +96,7 @@ export const InfolistSection = React.memo(function InfolistSection({
           <CollapsibleContent className="data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 duration-150">
             <CardContent className="pt-4">{contentNode}</CardContent>
             {footer && (
-              <CardFooter className="border-border/40 text-muted-foreground border-t pt-3 text-xs">
-                {footer}
-              </CardFooter>
+              <CardFooter className="border-border/40 text-muted-foreground border-t pt-3 text-xs">{footer}</CardFooter>
             )}
           </CollapsibleContent>
         </Card>

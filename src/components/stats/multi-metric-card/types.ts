@@ -28,5 +28,6 @@ export interface MultiMetricStatCardProps {
   to?: string;
   onClick?: () => void;
   isLoading?: boolean;
+
   className?: string;
 }

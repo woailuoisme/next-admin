@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Columns3 } from "lucide-react";
 import { memo, useMemo, useState, type ReactElement } from "react";
@@ -16,6 +17,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
   columnVisibility,
   onColumnVisibilityChange,
 }: DataTableColumnsPanelProps<TData>) {
+  const t = useTranslations("table");
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -32,9 +34,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
   const filteredColumns = useMemo(() => {
     if (!search.trim()) return toggleableColumns;
     const s = search.toLowerCase();
-    return toggleableColumns.filter((col: DataTableColDef<TData>) =>
-      col.headerName.toLowerCase().includes(s),
-    );
+    return toggleableColumns.filter((col: DataTableColDef<TData>) => col.headerName.toLowerCase().includes(s));
   }, [toggleableColumns, search]);
 
   const handleToggle = useMemoizedFn((field: string, checked: boolean) => {
@@ -61,20 +61,15 @@ function DataTableColumnsPanelInner<TData = unknown>({
   });
 
   const visibleCount = useMemo(() => {
-    return toggleableColumns.filter((col: DataTableColDef<TData>) => columnVisibility[col.field] !== false)
-      .length;
+    return toggleableColumns.filter((col: DataTableColDef<TData>) => columnVisibility[col.field] !== false).length;
   }, [toggleableColumns, columnVisibility]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs"
-        >
+        <Button variant="outline" size="sm" className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs">
           <Columns3 className="size-3.5" />
-          <span>Columns</span>
+          <span>{t("columns_button")}</span>
           <span className="py-0.2 bg-muted rounded-full px-1.5 font-mono text-[10px]">
             {visibleCount}/{toggleableColumns.length}
           </span>
@@ -83,7 +78,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
       <PopoverContent align="start" className="w-64 p-3 shadow-lg">
         <div className="space-y-3">
           <div className="flex items-center justify-between border-b pb-2">
-            <span className="text-foreground text-xs font-semibold">Manage Columns</span>
+            <span className="text-foreground text-xs font-semibold">{t("columns_title")}</span>
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -91,7 +86,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
                 className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-[11px]"
                 onClick={handleShowAll}
               >
-                Show all
+                {t("columns_show_all")}
               </Button>
               <span className="text-muted-foreground/40">|</span>
               <Button
@@ -100,7 +95,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
                 className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-[11px]"
                 onClick={handleHideAll}
               >
-                Hide all
+                {t("columns_hide_all")}
               </Button>
             </div>
           </div>
@@ -108,7 +103,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
           {toggleableColumns.length > 6 && (
             <input
               type="text"
-              placeholder="Search columns..."
+              placeholder={t("columns_search_placeholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border-input focus:ring-ring h-7 w-full rounded-md border bg-transparent px-2 text-xs focus:ring-1 focus:outline-hidden"
@@ -124,10 +119,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
                   className="hover:bg-muted/50 flex cursor-pointer items-center justify-between rounded-md p-1.5 text-xs transition-colors"
                 >
                   <span className="text-foreground truncate">{col.headerName}</span>
-                  <Checkbox
-                    checked={isVisible}
-                    onCheckedChange={(val) => handleToggle(col.field, Boolean(val))}
-                  />
+                  <Checkbox checked={isVisible} onCheckedChange={(val) => handleToggle(col.field, Boolean(val))} />
                 </label>
               );
             })}

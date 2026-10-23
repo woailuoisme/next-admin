@@ -42,8 +42,7 @@ export function useHorizontalBar(props: HorizontalBarChartProps) {
     const sum = sumBy(sliced, (item) => item.value);
 
     return sliced.map((item, idx) => {
-      const pct =
-        typeof item.percentage === "number" ? item.percentage : sum > 0 ? (item.value / sum) * 100 : 0;
+      const pct = typeof item.percentage === "number" ? item.percentage : sum > 0 ? (item.value / sum) * 100 : 0;
       const barPct = max > 0 ? (item.value / max) * 100 : 0;
       const color = item.color || CHART_PALETTE[idx % CHART_PALETTE.length] || activeStroke;
 

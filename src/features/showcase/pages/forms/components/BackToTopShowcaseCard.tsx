@@ -3,7 +3,7 @@
 import { useMemoizedFn } from "ahooks";
 import { useRef, useState } from "react";
 
-import { BackToTop } from "@/components/back-to-top";
+import { BackToTop } from "@/components/shared/BackToTop";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { LOCAL_SCROLL_ITEMS } from "../constants";
@@ -50,10 +50,7 @@ export function BackToTopShowcaseCard() {
             className="border-border/70 bg-muted/20 relative h-44 space-y-3 overflow-y-auto rounded-lg border p-4"
           >
             {LOCAL_SCROLL_ITEMS.map((item) => (
-              <div
-                key={item.id}
-                className="border-border/50 bg-background/80 rounded-md border p-3 shadow-xs"
-              >
+              <div key={item.id} className="border-border/50 bg-background/80 rounded-md border p-3 shadow-xs">
                 <span className="text-primary font-semibold">{item.title}</span>
                 <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
                   这里是局部可滚动容器内容。在长列表、聊天消息流或抽屉弹窗中，通过{" "}

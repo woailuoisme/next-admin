@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { Route } from "next";
 import { ArrowLeft, ChevronRight } from "lucide-react";
@@ -27,17 +28,19 @@ export const ResourcePageHeader = memo(function ResourcePageHeader({
   badge,
   breadcrumbs,
   backTo,
-  backLabel = "Back",
+  backLabel,
   extraActions,
   className,
 }: ResourcePageHeaderProps) {
+  const t = useTranslations("resource");
   const handleBack = useResourceBackNavigation(backTo);
-  const backTitle = typeof backLabel === "string" ? backLabel : "Back";
+  const resolvedBackLabel = backLabel ?? t("back");
+  const backTitle = typeof resolvedBackLabel === "string" ? resolvedBackLabel : t("back");
 
   return (
     <div className={cn("flex flex-col gap-3 border-b border-border/70 pb-5", className)}>
       {breadcrumbs && breadcrumbs.length > 0 ? (
-        <nav aria-label="Breadcrumb" className="text-muted-foreground flex items-center gap-1.5 text-xs">
+        <nav aria-label={t("breadcrumb_aria")} className="text-muted-foreground flex items-center gap-1.5 text-xs">
           {breadcrumbs.map((item, index) => {
             const isLast = index === breadcrumbs.length - 1;
             const itemKey = item.href
@@ -47,10 +50,7 @@ export const ResourcePageHeader = memo(function ResourcePageHeader({
               <div key={itemKey} className="flex items-center gap-1.5">
                 {index > 0 ? <ChevronRight className="text-muted-foreground/60 size-3 shrink-0" /> : null}
                 {item.href && !isLast ? (
-                  <Link
-                    href={item.href as Route}
-                    className="hover:text-foreground font-medium transition-colors"
-                  >
+                  <Link href={item.href as Route} className="hover:text-foreground font-medium transition-colors">
                     {item.label}
                   </Link>
                 ) : (
@@ -83,9 +83,7 @@ export const ResourcePageHeader = memo(function ResourcePageHeader({
               <h1 className="text-foreground text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
               {badge ? <div>{badge}</div> : null}
             </div>
-            {description ? (
-              <p className="text-muted-foreground mt-1 text-xs sm:text-sm">{description}</p>
-            ) : null}
+            {description ? <p className="text-muted-foreground mt-1 text-xs sm:text-sm">{description}</p> : null}
           </div>
         </div>
 

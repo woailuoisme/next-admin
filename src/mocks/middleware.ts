@@ -158,11 +158,7 @@ export function jsonCreated<T>(data: T, extra?: Record<string, unknown>): Respon
 /**
  * 辅助函数：构造 200 OK 分页统一包装响应 { data: T[], meta, ...extra }
  */
-export function jsonPaginated<T>(
-  data: T[],
-  meta: ApiPaginationMeta,
-  extra?: Record<string, unknown>,
-): Response {
+export function jsonPaginated<T>(data: T[], meta: ApiPaginationMeta, extra?: Record<string, unknown>): Response {
   return HttpResponse.json({ data, meta, ...extra }, { status: 200 });
 }
 
@@ -176,12 +172,7 @@ export function jsonNoContent(): Response {
 /**
  * 辅助函数：构造标准 RFC 结构化错误响应 { error: { code, message, fields } }
  */
-export function jsonError(
-  status: number,
-  code: string,
-  message: string,
-  fields?: Record<string, string[]>,
-): Response {
+export function jsonError(status: number, code: string, message: string, fields?: Record<string, string[]>): Response {
   return HttpResponse.json(
     {
       error: {

@@ -21,7 +21,7 @@ export const THEME_CONFIGS: ThemeMeta[] = [
     nameEn: "Default",
     primaryColor: "#f59e0b",
     accentColor: "#d97706",
-    description: "系统原生经典琥珀金与优雅现代质感",
+    description: "default",
     defaultRadius: "0.45rem",
   },
   {
@@ -30,7 +30,7 @@ export const THEME_CONFIGS: ThemeMeta[] = [
     nameEn: "Supabase",
     primaryColor: "#3ecf8e",
     accentColor: "#24b47e",
-    description: "Supabase 标志性极客翠绿与高对比暗黑风",
+    description: "Supabase ",
     defaultRadius: "0.5rem",
   },
   {
@@ -39,7 +39,7 @@ export const THEME_CONFIGS: ThemeMeta[] = [
     nameEn: "Catppuccin",
     primaryColor: "#8b5cf6",
     accentColor: "#06b6d4",
-    description: "经典开源的舒缓柔和粉彩与马卡龙紫青",
+    description: "Catppuccin",
     defaultRadius: "0.35rem",
   },
   {
@@ -48,7 +48,7 @@ export const THEME_CONFIGS: ThemeMeta[] = [
     nameEn: "Caffeine",
     primaryColor: "#78350f",
     accentColor: "#b45309",
-    description: "醇厚浓郁的手冲摩卡与烘焙咖啡暖褐",
+    description: "Caffeine",
     defaultRadius: "0.5rem",
   },
   {
@@ -57,7 +57,7 @@ export const THEME_CONFIGS: ThemeMeta[] = [
     nameEn: "Twitter",
     primaryColor: "#1d9bf0",
     accentColor: "#0c7abf",
-    description: "经典社交灵动推特蓝与通透现代布局",
+    description: "Twitter",
     defaultRadius: "1.3rem",
   },
   {
@@ -228,11 +228,7 @@ export const usePreferencesStore = create<PreferencesState>()((set, get) => ({
     // 跨标签页（Multi-tab）原生主题偏好变更同步监听
     const storageHandler = (e: StorageEvent) => {
       if (!e.key) return;
-      if (
-        e.key === THEME_COLOR_STORAGE_KEY ||
-        e.key === THEME_MODE_STORAGE_KEY ||
-        e.key === THEME_RADIUS_STORAGE_KEY
-      ) {
+      if (e.key === THEME_COLOR_STORAGE_KEY || e.key === THEME_MODE_STORAGE_KEY || e.key === THEME_RADIUS_STORAGE_KEY) {
         const nextColor = getInitialColor();
         const nextMode = getInitialMode();
         const nextRadius = getInitialRadius();

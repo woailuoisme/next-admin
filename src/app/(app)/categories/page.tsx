@@ -1,15 +1,18 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
+import DashboardLoading from "@/app/(app)/loading";
 import { CategoriesPage } from "@/features/categories/pages/CategoriesPage";
 import { categoryQueries } from "@/features/categories/queries";
 import type { CategorySearchParams } from "@/features/categories/types";
-import { getQueryClient, prefetchWithTimeout } from "@/lib/query-client";
+import { getQueryClient, prefetchWithTimeout } from "@/lib/queryClient";
 
-export const metadata: Metadata = {
-  title: "分类管理",
-  description: "查看与配置多级商品分类体系",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("categories");
+  return { title: t("page_title"), description: t("page_description") };
+}
 
 export default async function Page(props: { searchParams: Promise<CategorySearchParams> }) {
   const search = await props.searchParams;
@@ -20,7 +23,9 @@ export default async function Page(props: { searchParams: Promise<CategorySearch
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <CategoriesPage search={search} />
+      <Suspense fallback={<DashboardLoading />}>
+        <CategoriesPage search={search} />
+      </Suspense>
     </HydrationBoundary>
   );
 }

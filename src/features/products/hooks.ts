@@ -3,8 +3,8 @@ import { toast } from "sonner";
 
 import { categoryKeys } from "@/features/categories/queries";
 import { dashboardKeys } from "@/features/dashboard/queries";
-import { handleMutationError } from "@/lib/api-client";
-import { toastMessages } from "@/lib/toast-messages";
+import { handleMutationError } from "@/lib/apiClient";
+import { toastMessages } from "@/lib/toastMessages";
 
 import type { ProductInput } from "./types";
 

@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 
 import { type BaseInputProps, type DateRangeValue, FieldConnector, FieldWrapper, useFieldId } from "../core";
-import { parseDate } from "./date-utils";
+import { parseDate } from "./dateUtils";
 
 export interface DateRangePickerInputProps extends BaseInputProps {
   value?: DateRangeValue;
@@ -63,8 +63,7 @@ const DateRangePickerInputInner = memo(function DateRangePickerInputInner({
 
   const fromDate = parseDate(value?.from);
   const toDate = parseDate(value?.to);
-  const rangeSelected: DateRange | undefined =
-    fromDate || toDate ? { from: fromDate, to: toDate } : undefined;
+  const rangeSelected: DateRange | undefined = fromDate || toDate ? { from: fromDate, to: toDate } : undefined;
 
   const handleSelect = useMemoizedFn((range: DateRange | undefined) => {
     if (!range) {

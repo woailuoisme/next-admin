@@ -2,6 +2,7 @@ export * from "./types";
 export * from "./StatCardContext";
 export * from "./StatCardRoot";
 export * from "./StatCardHeader";
+export * from "./StatCardHeadline";
 export * from "./StatCardTitle";
 export * from "./StatCardHelpTooltip";
 export * from "./StatCardActions";

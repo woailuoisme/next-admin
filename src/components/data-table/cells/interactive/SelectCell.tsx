@@ -67,12 +67,7 @@ function SelectCellInner<TData = unknown, TVal extends string = string>({
         </SelectTrigger>
         <SelectContent align="start">
           {options.map((opt) => (
-            <SelectItem
-              key={String(opt.value)}
-              value={String(opt.value)}
-              disabled={opt.disabled}
-              className="text-xs"
-            >
+            <SelectItem key={String(opt.value)} value={String(opt.value)} disabled={opt.disabled} className="text-xs">
               {opt.label}
             </SelectItem>
           ))}

@@ -2,11 +2,7 @@ import { ReferenceLine } from "recharts";
 
 import type { ChartReferenceLine } from "./types";
 
-import {
-  DEFAULT_REFERENCE_DASH,
-  DEFAULT_REFERENCE_STROKE,
-  DEFAULT_REFERENCE_STROKE_WIDTH,
-} from "./constants";
+import { DEFAULT_REFERENCE_DASH, DEFAULT_REFERENCE_STROKE, DEFAULT_REFERENCE_STROKE_WIDTH } from "./constants";
 
 export interface ChartReferenceLinesProps {
   lines?: ChartReferenceLine[];

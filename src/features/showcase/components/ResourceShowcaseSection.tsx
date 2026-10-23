@@ -129,9 +129,7 @@ return (
               <span className="bg-primary/10 text-primary flex size-7 items-center justify-center rounded-lg">
                 <Layers className="size-4" />
               </span>
-              <CardTitle className="text-base font-semibold">
-                Filament v5 工业级 Resource CRUD 宿主架构
-              </CardTitle>
+              <CardTitle className="text-base font-semibold">Filament v5 工业级 Resource CRUD 宿主架构</CardTitle>
               <Badge variant="outline" className="border-primary/30 text-primary text-[11px]">
                 Dialog · Drawer · Page
               </Badge>
@@ -265,8 +263,8 @@ return (
               </Badge>
             </div>
             <p className="text-muted-foreground text-xs leading-relaxed">
-              在生产项目中，Page 模式通常直接映射到独立路由页面（如{" "}
-              <code>/_authenticated/customers/create</code> 或 <code>/_authenticated/customers/$id/edit</code>
+              在生产项目中，Page 模式通常直接映射到独立路由页面（如 <code>/_authenticated/customers/create</code> 或{" "}
+              <code>/_authenticated/customers/$id/edit</code>
               ）。 下方已就地挂载完整的 <code>ResourceFormPage</code> 与 <code>ResourceViewPage</code>{" "}
               预览容器，真实展示面包屑导航、返回按钮、表单主体以及底部吸底操作条：
             </p>
@@ -281,11 +279,7 @@ return (
               <span>标准业务集成范例 (Resource Form / View Host)</span>
             </span>
             <Button type="button" variant="ghost" size="icon-xs" onClick={handleCopyCode} className="h-6 w-6">
-              {copied ? (
-                <Check className={`size-3 ${SHOWCASE_ACCENT_CLASSES.success}`} />
-              ) : (
-                <Copy className="size-3" />
-              )}
+              {copied ? <Check className={`size-3 ${SHOWCASE_ACCENT_CLASSES.success}`} /> : <Copy className="size-3" />}
             </Button>
           </div>
           <pre className="text-foreground overflow-x-auto pt-3 text-[11px] leading-relaxed">

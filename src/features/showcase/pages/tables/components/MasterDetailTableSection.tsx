@@ -62,11 +62,9 @@ export function MasterDetailTableSection({ data }: MasterDetailTableSectionProps
     ] satisfies DataTableTabItem[];
   }, [data]);
 
-  const renderExpandedRow = useMemoizedFn(
-    ({ row, collapse }: { row: ShowcaseItem; collapse: () => void }) => (
-      <MasterDetailRow row={row} collapse={collapse} />
-    ),
-  );
+  const renderExpandedRow = useMemoizedFn(({ row, collapse }: { row: ShowcaseItem; collapse: () => void }) => (
+    <MasterDetailRow row={row} collapse={collapse} />
+  ));
 
   return (
     <Card className="border-border/60 max-w-full min-w-0 overflow-hidden">
@@ -77,8 +75,8 @@ export function MasterDetailTableSection({ data }: MasterDetailTableSectionProps
               Enterprise Master-Detail & Saved Views Architecture (Linear & Airtable Pattern)
             </CardTitle>
             <CardDescription className="text-xs">
-              Nested row expansion with smooth animations, accordion toggle, and row click mode, integrated
-              with status segmented tabs and saved views management.
+              Nested row expansion with smooth animations, accordion toggle, and row click mode, integrated with status
+              segmented tabs and saved views management.
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">

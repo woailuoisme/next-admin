@@ -9,6 +9,7 @@ import {
   DENSITY_STYLES,
   StatCardActions,
   StatCardHeader,
+  StatCardHeadline,
   StatCardHelpTooltip,
   StatCardIcon,
   StatCardProgress,
@@ -75,18 +76,15 @@ const StatCardFacade = memo(function StatCard({
       className={className}
     >
       {/* Top row: Title + Tooltip & Icon + Actions + Badge */}
-      <StatCardHeader>
-        <div className="flex min-w-0 items-center gap-1.5">
-          <StatCardTitle density={resolvedDensity}>{title}</StatCardTitle>
-          {description ? <StatCardHelpTooltip description={description} /> : null}
-        </div>
-
-        <div className="flex shrink-0 items-center gap-1.5">
-          {badge}
-          {actions ? <StatCardActions>{actions}</StatCardActions> : null}
-          {icon ? <StatCardIcon icon={icon} theme={theme} density={resolvedDensity} /> : null}
-        </div>
-      </StatCardHeader>
+      <StatCardHeadline
+        title={title}
+        description={description}
+        badge={badge}
+        actions={actions}
+        icon={icon}
+        theme={theme}
+        density={resolvedDensity}
+      />
 
       {/* Middle row: Metric Value */}
       <StatCardValue

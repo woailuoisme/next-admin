@@ -10,8 +10,7 @@ import type { BadgeCellOption, BadgeCellProps, BadgeVariantType } from "./types"
 import { JUSTIFY_ALIGN_CLASSES } from "../base";
 
 const semanticVariants: Record<string, string> = {
-  success:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 dark:bg-emerald-500/20",
+  success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 dark:bg-emerald-500/20",
   warning: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 dark:bg-amber-500/20",
   info: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400 dark:bg-sky-500/20",
 };
@@ -176,17 +175,7 @@ export const BadgeCell = memo(function BadgeCell({
           </TooltipTrigger>
           <TooltipContent side="top" className="flex max-w-xs flex-wrap gap-1 p-2 text-xs">
             {items.map((val) =>
-              renderSingleBadge(
-                val,
-                labelMap,
-                variantMap,
-                variant,
-                dot,
-                pulse,
-                density,
-                DefaultIcon,
-                onBadgeClick,
-              ),
+              renderSingleBadge(val, labelMap, variantMap, variant, dot, pulse, density, DefaultIcon, onBadgeClick),
             )}
           </TooltipContent>
         </Tooltip>

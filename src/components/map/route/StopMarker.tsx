@@ -48,11 +48,7 @@ export const StopMarker = memo(function StopMarker({ stop, onStopClick }: StopMa
   const { marker, Icon, iconExtra, badge } = STOP_STATUS_STYLES[status];
 
   return (
-    <MapMarker
-      longitude={stop.coordinates[0]}
-      latitude={stop.coordinates[1]}
-      onClick={() => onStopClick?.(stop)}
-    >
+    <MapMarker longitude={stop.coordinates[0]} latitude={stop.coordinates[1]} onClick={() => onStopClick?.(stop)}>
       <MarkerContent>
         <div
           className={cn(
@@ -73,9 +69,7 @@ export const StopMarker = memo(function StopMarker({ stop, onStopClick }: StopMa
         {stop.arrivalTime ? (
           <p className="text-muted-foreground mt-1 text-[11px]">Arrival: {stop.arrivalTime}</p>
         ) : null}
-        {stop.description ? (
-          <p className="text-muted-foreground mt-1 text-[11px]">{stop.description}</p>
-        ) : null}
+        {stop.description ? <p className="text-muted-foreground mt-1 text-[11px]">{stop.description}</p> : null}
       </MarkerPopup>
     </MapMarker>
   );

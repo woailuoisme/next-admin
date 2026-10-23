@@ -10,6 +10,7 @@ import type { Category, CategoryInput } from "../types";
 
 import { useCreateCategoryMutation, useUpdateCategoryMutation } from "../hooks";
 import { categoryInputSchema } from "../schemas";
+import { useTranslations } from "next-intl";
 
 interface CategoryFormDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ const EMPTY_CATEGORY_FORM_VALUES: CategoryInput = {
 };
 
 export function CategoryFormDialog({ open, onOpenChange, categoryToEdit }: CategoryFormDialogProps) {
+  const t = useTranslations("categories");
   const createMutation = useCreateCategoryMutation();
   const updateMutation = useUpdateCategoryMutation();
 
@@ -76,26 +78,26 @@ export function CategoryFormDialog({ open, onOpenChange, categoryToEdit }: Categ
       form={form}
       defaultValues={defaultValues}
       entityName="Category"
-      description="Group catalog merchandise into logical taxonomy departments."
+      description={t("form_desc")}
       size="md"
       isSubmitting={isPending}
     >
       <div className="space-y-4">
         <TextInput
           name="name"
-          label="Category Name"
+          label={t("form_name_label")}
           required
           placeholder="e.g. Smart Home"
           onChange={handleNameChange}
         />
 
-        <TextInput name="slug" label="Slug Identifier" required placeholder="smart-home" />
+        <TextInput name="slug" label={t("form_slug_label")} required placeholder={t("form_slug_placeholder")} />
 
         <TextareaInput
           name="description"
-          label="Description"
+          label={t("form_desc_label")}
           rows={3}
-          placeholder="Brief summary of items in this category..."
+          placeholder={t("form_desc_placeholder")}
         />
       </div>
     </FormDialog>

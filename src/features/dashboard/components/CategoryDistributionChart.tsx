@@ -1,6 +1,7 @@
-import { ChartCard, DonutDistributionChart } from "@/components/chart";
+import { ChartCard, LazyDonutDistributionChart } from "@/components/chart";
 
 import type { CategoryDistributionPoint } from "../types";
+import { useTranslations } from "next-intl";
 
 interface CategoryDistributionChartProps {
   data?: CategoryDistributionPoint[];
@@ -12,26 +13,23 @@ const EMPTY_DISTRIBUTION_DATA: CategoryDistributionPoint[] = [];
 
 const formatCategoryShare = (val: number) => `$${(val / 1000).toFixed(1)}k`;
 
-export function CategoryDistributionChart({
-  data,
-  isLoading = false,
-  className,
-}: CategoryDistributionChartProps) {
+export function CategoryDistributionChart({ data, isLoading = false, className }: CategoryDistributionChartProps) {
+  const t = useTranslations("dashboard");
   const chartData = data ?? EMPTY_DISTRIBUTION_DATA;
 
   return (
     <ChartCard
-      title="品类营收结构 (Category Share)"
-      description="按商品一级类目划分的贡献营收比重"
+      title={t("category_chart_title")}
+      description={t("category_chart_desc")}
       className={className}
       height={260}
       isLoading={isLoading}
       isEmpty={!isLoading && chartData.length === 0}
-      emptyMessage="暂无品类销售数据"
+      emptyMessage={t("category_empty")}
     >
-      <DonutDistributionChart
+      <LazyDonutDistributionChart
         data={chartData}
-        centerLabel="类目总额"
+        centerLabel={t("category_center_label")}
         valueFormatter={formatCategoryShare}
         height={240}
       />

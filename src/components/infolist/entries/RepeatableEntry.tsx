@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import * as React from "react";
 
@@ -29,6 +30,8 @@ interface RepeatableCardItemProps {
   title?: React.ReactNode;
   collapsible?: boolean;
   defaultCollapsed?: boolean;
+  expandLabel?: string;
+  collapseLabel?: string;
   children: React.ReactNode;
 }
 
@@ -36,6 +39,8 @@ function RepeatableCardItem({
   title,
   collapsible = false,
   defaultCollapsed = false,
+  expandLabel = "展开",
+  collapseLabel = "收起",
   children,
 }: RepeatableCardItemProps) {
   const [collapsed, setCollapsed] = React.useState(defaultCollapsed);
@@ -59,7 +64,7 @@ function RepeatableCardItem({
             <button
               type="button"
               className="text-muted-foreground hover:text-foreground rounded-sm p-0.5"
-              aria-label={collapsed ? "展开" : "收起"}
+              aria-label={collapsed ? expandLabel : collapseLabel}
             >
               {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
             </button>
@@ -81,22 +86,26 @@ export function RepeatableEntry<T = any>({
   tableHeaders,
   collapsible = false,
   defaultCollapsed = false,
-  emptyHeading = "暂无数据",
-  emptyDescription = "列表中没有任何条目记录",
+  emptyHeading,
+  emptyDescription,
   children,
   ...wrapperProps
 }: RepeatableEntryProps<T>) {
+  const t = useTranslations("infolist");
   const rawValue = useInfolistFieldValue<T[]>(name, explicitValue ?? undefined);
 
   const items = Array.isArray(rawValue) ? rawValue : (EMPTY_ITEMS as T[]);
+
+  const resolvedEmptyHeading = emptyHeading ?? t("empty_text");
+  const resolvedEmptyDescription = emptyDescription ?? t("empty_desc");
 
   const renderContent = () => {
     if (items.length === 0) {
       return (
         <TableEmptyState
           size="sm"
-          heading={emptyHeading}
-          description={emptyDescription}
+          heading={resolvedEmptyHeading}
+          description={resolvedEmptyDescription}
           className="bg-muted/10 rounded-xl border border-dashed py-6"
         />
       );
@@ -122,19 +131,11 @@ export function RepeatableEntry<T = any>({
             )}
             <div className="divide-border/60 divide-y">
               {items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="hover:bg-muted/30 flex items-center gap-4 p-3 text-xs transition-colors"
-                >
+                <div key={idx} className="hover:bg-muted/30 flex items-center gap-4 p-3 text-xs transition-colors">
                   {itemTitle && (
                     <div
-                      className={cn(
-                        "shrink-0 truncate font-medium text-foreground select-none",
-                        resolvedTitleWidth,
-                      )}
-                      title={
-                        typeof itemTitle(item, idx) === "string" ? String(itemTitle(item, idx)) : undefined
-                      }
+                      className={cn("shrink-0 truncate font-medium text-foreground select-none", resolvedTitleWidth)}
+                      title={typeof itemTitle(item, idx) === "string" ? String(itemTitle(item, idx)) : undefined}
                     >
                       {itemTitle(item, idx)}
                     </div>
@@ -151,17 +152,17 @@ export function RepeatableEntry<T = any>({
     return (
       <div
         className={cn(
-          variant === "grid"
-            ? cn("grid gap-3", gridColClasses[gridCols] ?? gridColClasses[2])
-            : "flex flex-col gap-3",
+          variant === "grid" ? cn("grid gap-3", gridColClasses[gridCols] ?? gridColClasses[2]) : "flex flex-col gap-3",
         )}
       >
         {items.map((item, idx) => (
           <RepeatableCardItem
             key={idx}
-            title={itemTitle ? itemTitle(item, idx) : `条目 #${idx + 1}`}
+            title={itemTitle ? itemTitle(item, idx) : t("item_title", { index: String(idx + 1) })}
             collapsible={collapsible}
             defaultCollapsed={defaultCollapsed}
+            expandLabel={t("expand")}
+            collapseLabel={t("collapse")}
           >
             {children(item, idx)}
           </RepeatableCardItem>

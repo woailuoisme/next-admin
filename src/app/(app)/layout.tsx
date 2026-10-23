@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 
-export const metadata: Metadata = {
-  title: "控制台",
-  description: "企业级高效中后台管理系统，基于 Next.js 16 App Router 与 Tailwind CSS 构建",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("common");
+  return { title: t("app_title"), description: t("app_description") };
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return <DashboardShell>{children}</DashboardShell>;

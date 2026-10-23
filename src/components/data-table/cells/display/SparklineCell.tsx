@@ -206,13 +206,7 @@ export const SparklineCell = memo(function SparklineCell({
         />
 
         {showEndpoint && hoveredIndex === null && (
-          <circle
-            cx={lastPoint.x}
-            cy={lastPoint.y}
-            r={2}
-            fill={color || "currentColor"}
-            className="animate-pulse"
-          />
+          <circle cx={lastPoint.x} cy={lastPoint.y} r={2} fill={color || "currentColor"} className="animate-pulse" />
         )}
 
         {/* 交互模式十字十字游标与浮动点 */}

@@ -1,15 +1,18 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
+import DashboardLoading from "@/app/(app)/loading";
 import { UsersPage } from "@/features/users/pages/UsersPage";
 import { customerQueries } from "@/features/users/queries";
 import type { CustomerSearchParams } from "@/features/users/types";
-import { getQueryClient, prefetchWithTimeout } from "@/lib/query-client";
+import { getQueryClient, prefetchWithTimeout } from "@/lib/queryClient";
 
-export const metadata: Metadata = {
-  title: "用户管理",
-  description: "平台注册用户管理、偏好与行为记录",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("users");
+  return { title: t("page_title"), description: t("page_description") };
+}
 
 export default async function Page(props: { searchParams: Promise<CustomerSearchParams> }) {
   const search = await props.searchParams;
@@ -20,7 +23,9 @@ export default async function Page(props: { searchParams: Promise<CustomerSearch
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <UsersPage search={search} />
+      <Suspense fallback={<DashboardLoading />}>
+        <UsersPage search={search} />
+      </Suspense>
     </HydrationBoundary>
   );
 }

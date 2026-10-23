@@ -18,10 +18,7 @@ export const StatCardTitle = memo(function StatCardTitle({
   const dStyles = DENSITY_STYLES[resolvedDensity] ?? DENSITY_STYLES.compact;
 
   return (
-    <span
-      className={cn("truncate font-medium text-muted-foreground", dStyles.titleText, className)}
-      {...props}
-    >
+    <span className={cn("truncate font-medium text-muted-foreground", dStyles.titleText, className)} {...props}>
       {children}
     </span>
   );

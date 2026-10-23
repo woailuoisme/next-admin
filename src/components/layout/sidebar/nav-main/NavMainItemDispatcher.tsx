@@ -9,10 +9,7 @@ import { NavMainDropdown } from "./NavMainDropdown";
 import { NavMainItem } from "./NavMainItem";
 import { hasActiveSubItem } from "./utils";
 
-export const NavMainItemDispatcher = memo(function NavMainItemDispatcher({
-  item,
-  currentPath,
-}: NavMainItemProps) {
+export const NavMainItemDispatcher = memo(function NavMainItemDispatcher({ item, currentPath }: NavMainItemProps) {
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === "collapsed" && !isMobile;
 

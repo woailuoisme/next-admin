@@ -24,8 +24,7 @@ export function ChartsHeaderBar({ demoState, onDemoStateChange, onRefresh }: Cha
           </Badge>
         </div>
         <p className="text-muted-foreground text-sm">
-          对标企业级监控仪表盘的高性能、响应式、模块化设计系统图表套件，内置 8
-          大图表类型、响应式容器及完备的状态反馈。
+          对标企业级监控仪表盘的高性能、响应式、模块化设计系统图表套件，内置 8 大图表类型、响应式容器及完备的状态反馈。
         </p>
       </div>
 

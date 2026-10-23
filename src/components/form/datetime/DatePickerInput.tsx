@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 
 import { type BaseInputProps, FieldConnector, FieldWrapper, useFieldId } from "../core";
-import { parseDate } from "./date-utils";
+import { parseDate } from "./dateUtils";
 
 export interface DatePickerInputProps extends BaseInputProps {
   value?: Date | string;
@@ -113,9 +113,7 @@ const DatePickerInputInner = memo(function DatePickerInputInner({
             >
               <div className="flex items-center gap-2 truncate">
                 <CalendarIcon className="text-muted-foreground size-3.5 shrink-0" />
-                <span className="truncate">
-                  {selectedDate ? format(selectedDate, dateFormat) : placeholder}
-                </span>
+                <span className="truncate">{selectedDate ? format(selectedDate, dateFormat) : placeholder}</span>
               </div>
             </Button>
           </PopoverTrigger>

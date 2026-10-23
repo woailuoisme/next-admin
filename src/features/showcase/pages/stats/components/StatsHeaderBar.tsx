@@ -18,9 +18,7 @@ export function StatsHeaderBar({ demoState, onDemoStateChange, liveTicker }: Sta
     <div className="border-border/60 flex flex-col justify-between gap-4 border-b pb-5 md:flex-row md:items-center">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-foreground text-2xl font-bold tracking-tight">
-            Enterprise Stats & Visualizations
-          </h1>
+          <h1 className="text-foreground text-2xl font-bold tracking-tight">Enterprise Stats & Visualizations</h1>
           <Badge variant="secondary" className="font-mono text-xs">
             v2.0 Toolkit
           </Badge>

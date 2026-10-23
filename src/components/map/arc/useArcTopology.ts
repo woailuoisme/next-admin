@@ -5,7 +5,7 @@ import type { CoordinateSystem } from "../utils/coordinates";
 import type { FlightArcItem } from "./types";
 
 import { DEFAULT_MAP_CENTER } from "../shared/constants";
-import { transformCoordinates } from "../utils/coordinates";
+import { resolveCoordinateSystems, transformCoordinates } from "../utils/coordinates";
 
 interface UseArcTopologyOptions {
   arcs?: FlightArcItem[];
@@ -30,9 +30,7 @@ export function useArcTopology({
   basemap = "carto",
   showNodeMarkers = true,
 }: UseArcTopologyOptions) {
-  const sourceCoords = coordinateSystem;
-  const targetCoords = basemap === "amap" ? "GCJ02" : "WGS84";
-  const needsTransform = sourceCoords !== targetCoords;
+  const { sourceCoords, targetCoords, needsTransform } = resolveCoordinateSystems(coordinateSystem, basemap);
 
   const normalizedArcs = useMemo(() => {
     if (!needsTransform || !arcs) return arcs;

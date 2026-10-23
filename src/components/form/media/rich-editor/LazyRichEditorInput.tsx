@@ -5,9 +5,7 @@ import type { RichEditorInputProps } from "./types";
 import { FieldWrapper, useFieldId } from "../../core";
 import { RichEditorSkeleton } from "./RichEditorSkeleton";
 
-const AsyncRichEditorInput = lazy(() =>
-  import("./RichEditorInput").then((mod) => ({ default: mod.RichEditorInput })),
-);
+const AsyncRichEditorInput = lazy(() => import("./RichEditorInput").then((mod) => ({ default: mod.RichEditorInput })));
 
 export const LazyRichEditorInput = memo(function LazyRichEditorInput({
   label,

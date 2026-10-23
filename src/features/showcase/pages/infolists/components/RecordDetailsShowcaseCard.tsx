@@ -38,14 +38,12 @@ export function RecordDetailsShowcaseCard({ orientation, dense }: RecordDetailsS
           </div>
           <div className="text-muted-foreground flex items-center gap-2 text-xs">
             <span>数据驱动 Context:</span>
-            <code className="bg-muted text-foreground rounded px-1.5 py-0.5 font-mono">
-              record=sampleUserData
-            </code>
+            <code className="bg-muted text-foreground rounded px-1.5 py-0.5 font-mono">record=sampleUserData</code>
           </div>
         </div>
         <CardDescription className="text-xs">
-          基于 InfolistContext 自动解析 name 属性路径，支持 Text, Badge, Currency, Image, Color, Code,
-          KeyValue, Repeatable 等全谱系条目。
+          基于 InfolistContext 自动解析 name 属性路径，支持 Text, Badge, Currency, Image, Color, Code, KeyValue,
+          Repeatable 等全谱系条目。
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
@@ -159,9 +157,7 @@ export function RecordDetailsShowcaseCard({ orientation, dense }: RecordDetailsS
               collapsible={repeatableVariant === "card"}
               itemTitle={(item) => `${item.orderNo} · ${item.title}`}
               tableHeaders={
-                repeatableVariant === "table"
-                  ? ["关联订单 / 标的", "订单金额", "履约状态", "创建日期"]
-                  : undefined
+                repeatableVariant === "table" ? ["关联订单 / 标的", "订单金额", "履约状态", "创建日期"] : undefined
               }
             >
               {(item) => (
@@ -175,9 +171,7 @@ export function RecordDetailsShowcaseCard({ orientation, dense }: RecordDetailsS
                     {repeatableVariant !== "table" && (
                       <span className="text-muted-foreground block text-[11px]">订单金额</span>
                     )}
-                    <span className="text-primary font-mono font-semibold">
-                      ${item.amount.toLocaleString()}
-                    </span>
+                    <span className="text-primary font-mono font-semibold">${item.amount.toLocaleString()}</span>
                   </div>
                   <div>
                     {repeatableVariant !== "table" && (

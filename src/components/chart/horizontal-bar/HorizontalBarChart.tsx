@@ -23,10 +23,7 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
         const rank = idx + 1;
 
         return (
-          <div
-            key={item.id ?? item.label}
-            className="hover:bg-muted/30 space-y-1.5 rounded-lg p-1.5 transition-colors"
-          >
+          <div key={item.id ?? item.label} className="hover:bg-muted/30 space-y-1.5 rounded-lg p-1.5 transition-colors">
             {/* Top text line: Rank, Label, Value, Percentage */}
             <div className="flex items-center justify-between text-xs">
               <div className="flex min-w-0 items-center gap-2">
@@ -34,12 +31,9 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
                 <span
                   className={cn(
                     "flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-bold",
-                    rank === 1 &&
-                      "border border-amber-500/30 bg-amber-500/20 text-amber-600 dark:text-amber-400",
-                    rank === 2 &&
-                      "border border-slate-400/30 bg-slate-400/20 text-slate-600 dark:text-slate-300",
-                    rank === 3 &&
-                      "border border-amber-700/30 bg-amber-700/20 text-amber-700 dark:text-amber-500",
+                    rank === 1 && "border border-amber-500/30 bg-amber-500/20 text-amber-600 dark:text-amber-400",
+                    rank === 2 && "border border-slate-400/30 bg-slate-400/20 text-slate-600 dark:text-slate-300",
+                    rank === 3 && "border border-amber-700/30 bg-amber-700/20 text-amber-700 dark:text-amber-500",
                     rank > 3 && "border border-border/40 bg-muted text-muted-foreground",
                   )}
                 >

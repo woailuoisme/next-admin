@@ -1,10 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import {
-  BASEMAP_OPTIONS,
-  type BasemapStyleKey,
-  type CoordinateSystem,
-  LocationMarkerMap,
-} from "@/components/map";
+import { BASEMAP_OPTIONS, type BasemapStyleKey, type CoordinateSystem, LazyLocationMarkerMap } from "@/components/map";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_LOCATIONS } from "../constants";
@@ -19,9 +16,7 @@ export function CoordsShowcaseTab() {
     <TabsContent value="coords" className="space-y-4">
       <div className="border-border/70 bg-card flex flex-col gap-3 rounded-lg border p-4 shadow-xs md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <div className="text-foreground text-xs font-semibold">
-            零依赖双轨坐标系转换 (WGS-84 ⇋ GCJ-02 ⇋ BD-09)
-          </div>
+          <div className="text-foreground text-xs font-semibold">零依赖双轨坐标系转换 (WGS-84 ⇋ GCJ-02 ⇋ BD-09)</div>
           <div className="text-muted-foreground text-[11px]">
             支持高德地图瓦片、天地图国家公共服务平台与国际标准底图的无缝切换与高精度纠偏
           </div>
@@ -64,7 +59,7 @@ export function CoordsShowcaseTab() {
         </div>
       </div>
 
-      <LocationMarkerMap
+      <LazyLocationMarkerMap
         locations={MOCK_LOCATIONS}
         coordinateSystem={activeCoordSys}
         basemap={activeBasemap}
@@ -75,8 +70,7 @@ export function CoordsShowcaseTab() {
         showSidebarList={false}
         cardProps={{
           title: `双轨坐标纠偏验证 (输入: ${activeCoordSys} | 底图: ${activeBasemap})`,
-          description:
-            "坐标变换引擎自动将输入纠偏至目标底图标准，保证标点在卫星、道路和高德地图上的绝对精准贴合",
+          description: "坐标变换引擎自动将输入纠偏至目标底图标准，保证标点在卫星、道路和高德地图上的绝对精准贴合",
         }}
       />
     </TabsContent>

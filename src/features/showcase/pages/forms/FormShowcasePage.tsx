@@ -2,16 +2,7 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useMemoizedFn } from "ahooks";
-import {
-  Calendar,
-  CheckCircle2,
-  Layers,
-  MapPin,
-  Palette,
-  Send,
-  ShieldCheck,
-  UploadCloud,
-} from "lucide-react";
+import { Calendar, CheckCircle2, Layers, MapPin, Palette, Send, ShieldCheck, UploadCloud } from "lucide-react";
 import { type SyntheticEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -110,8 +101,8 @@ export function FormShowcasePage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Filament v5 Form Fields & Layouts Showcase</h1>
         <p className="text-muted-foreground mt-1 text-xs">
-          Comprehensive gallery demonstrating all 20+ input controls, segmented toggles, array repeaters,
-          key-value maps, geographic location pickers, and layout containers.
+          Comprehensive gallery demonstrating all 20+ input controls, segmented toggles, array repeaters, key-value
+          maps, geographic location pickers, and layout containers.
         </p>
       </div>
 

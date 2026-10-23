@@ -85,11 +85,7 @@ export const ImageEntry = React.memo(function ImageEntry({
       </div>
 
       {lightbox && (
-        <ImageLightboxModal
-          previewUrl={activeLightboxUrl}
-          alt={alt}
-          onClose={() => setActiveLightboxUrl(null)}
-        />
+        <ImageLightboxModal previewUrl={activeLightboxUrl} alt={alt} onClose={() => setActiveLightboxUrl(null)} />
       )}
     </EntryWrapper>
   );

@@ -3,12 +3,18 @@ export interface GlobalSearchProps {
 }
 
 export interface GlobalSearchTriggerProps {
-  onClick: () => void;
+  onClick?: () => void;
   onMouseEnter?: () => void;
   className?: string;
+
+  triggerText?: string;
+  ariaLabel?: string;
 }
 
 export interface GlobalSearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+
+  placeholder?: string;
+  emptyText?: string;
 }

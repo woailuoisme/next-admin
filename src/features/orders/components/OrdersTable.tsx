@@ -6,7 +6,7 @@ import {
   col,
   type DataTableColDef,
   type DataTableFilterDefinition,
-  downloadBlob,
+  exportRowsAsJson,
   ResourceTable,
 } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import type { Order } from "../types";
 
 import { orderQueries } from "../queries";
+import { useTranslations } from "next-intl";
 
 interface OrdersTableProps {
   orders?: Order[];
@@ -31,22 +32,6 @@ const STATUS_VARIANT_MAP = {
   cancelled: "destructive",
 } as const;
 
-const ORDER_FILTERS: DataTableFilterDefinition[] = [
-  {
-    type: "select",
-    field: "status",
-    label: "Status",
-    placeholder: "All order statuses",
-    options: [
-      { label: "Pending", value: "pending" },
-      { label: "Processing", value: "processing" },
-      { label: "Shipped", value: "shipped" },
-      { label: "Delivered", value: "delivered" },
-      { label: "Cancelled", value: "cancelled" },
-    ],
-  },
-];
-
 const PINNED_COLUMNS = Object.freeze({
   left: ["orderNumber", "customerName"],
   right: ["actions"],
@@ -55,32 +40,57 @@ const PINNED_COLUMNS = Object.freeze({
 const SLOT_PROPS = Object.freeze({
   toolbar: {
     exportFileName: "orders-export.csv",
-    quickFilterPlaceholder: "Search orders in view...",
   },
 });
 
 const getOrderRowId = (row: Order) => row.id;
 const getItemsQuantity = (row: Order) => sumBy(row.items, (item) => item.quantity);
 
-function exportOrdersJson(selectedRows: Order[], clearSelection: () => void) {
-  downloadBlob(
-    JSON.stringify(selectedRows, null, 2),
-    `selected-orders-${selectedRows.length}.json`,
-    "application/json",
-  );
-  clearSelection();
-}
+const exportOrdersJson = (selectedRows: Order[], clearSelection: () => void) =>
+  exportRowsAsJson(selectedRows, `selected-orders-${selectedRows.length}.json`, clearSelection);
 
 export function OrdersTable({ orders, total, loading, onViewOrder, onSelectOrder }: OrdersTableProps) {
+  const t = useTranslations("orders");
+
+  const statusLabelMap = useMemo<Record<string, string>>(
+    () => ({
+      pending: t("status_pending"),
+      processing: t("status_processing"),
+      shipped: t("status_shipped"),
+      delivered: t("status_delivered"),
+      cancelled: t("status_cancelled"),
+    }),
+    [t],
+  );
+
+  const orderFilters = useMemo<DataTableFilterDefinition[]>(
+    () => [
+      {
+        type: "select",
+        field: "status",
+        label: t("col_status"),
+        placeholder: t("filter_status_placeholder"),
+        options: [
+          { label: t("status_pending"), value: "pending" },
+          { label: t("status_processing"), value: "processing" },
+          { label: t("status_shipped"), value: "shipped" },
+          { label: t("status_delivered"), value: "delivered" },
+          { label: t("status_cancelled"), value: "cancelled" },
+        ],
+      },
+    ],
+    [t],
+  );
+
   const columns = useMemo<DataTableColDef<Order>[]>(
     () => [
-      col.text<Order>("orderNumber", "Order #", {
+      col.text<Order>("orderNumber", t("col_order_number"), {
         mono: true,
         copyable: true,
         width: 150,
         pinned: "left",
       }),
-      col.text<Order>("customerName", "Customer", {
+      col.text<Order>("customerName", t("col_customer"), {
         width: 240,
         flex: 1,
         pinned: "left",
@@ -88,35 +98,34 @@ export function OrdersTable({ orders, total, loading, onViewOrder, onSelectOrder
         copyable: (r) => r.customerEmail,
         weight: "semibold",
       }),
-      col.date<Order>("createdAt", "Date Placed", {
-        width: 130,
-      }),
-      col.number<Order>("items", "Items", {
-        width: 120,
-        aggregation: "sum",
-        valueGetter: getItemsQuantity,
-        suffix: " items",
-      }),
-      col.currency<Order>("total", "Total Amount", {
+      col.date<Order>("createdAt", t("col_date_placed"), {
         width: 150,
-        aggregation: "sum",
       }),
-      col.badge<Order>("status", "Status", {
+      col.number<Order>("items", t("col_items"), {
+        width: 120,
+        valueGetter: getItemsQuantity,
+        suffix: t("unit_orders"),
+      }),
+      col.currency<Order>("total", t("col_total"), {
+        width: 150,
+      }),
+      col.badge<Order>("status", t("col_status"), {
         width: 130,
         dot: true,
         variantMap: STATUS_VARIANT_MAP,
+        labelMap: statusLabelMap,
       }),
       col.actions<Order>({
         field: "actions",
-        headerName: "Details",
+        headerName: t("col_details"),
         width: 80,
         crud: {
           onView: (row) => (onViewOrder ?? onSelectOrder)?.(row.id),
-          viewLabel: "Inspect Order",
+          viewLabel: t("action_inspect"),
         },
       }),
     ],
-    [onViewOrder, onSelectOrder],
+    [onViewOrder, onSelectOrder, statusLabelMap, t],
   );
 
   return (
@@ -129,8 +138,7 @@ export function OrdersTable({ orders, total, loading, onViewOrder, onSelectOrder
       loading={loading}
       total={total}
       pinnedColumns={PINNED_COLUMNS}
-      filters={ORDER_FILTERS}
-      summaryRow
+      filters={orderFilters}
       onRowClick={onSelectOrder ? (row) => onSelectOrder(row.id) : undefined}
       slotProps={SLOT_PROPS}
       batchActions={(selectedRows, clearSelection) => (
@@ -142,7 +150,7 @@ export function OrdersTable({ orders, total, loading, onViewOrder, onSelectOrder
             onClick={() => exportOrdersJson(selectedRows, clearSelection)}
           >
             <FileDown className="text-muted-foreground size-3.5" />
-            <span>Export JSON ({selectedRows.length})</span>
+            <span>{t("export_json", { count: selectedRows.length })}</span>
           </Button>
           <Button
             variant="outline"
@@ -153,7 +161,7 @@ export function OrdersTable({ orders, total, loading, onViewOrder, onSelectOrder
             }}
           >
             <Printer className="text-muted-foreground size-3.5" />
-            <span>Print Selected</span>
+            <span>{t("print_selected")}</span>
           </Button>
         </div>
       )}

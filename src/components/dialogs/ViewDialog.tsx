@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Edit, Loader2 } from "lucide-react";
 import { memo, type ReactNode } from "react";
@@ -11,21 +12,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 import type { ViewDialogProps } from "./types";
 
 import { FullscreenToggle } from "./FullscreenToggle";
 import { useDialogFullscreen } from "./hooks/useDialogFullscreen";
-import { DIALOG_SIZE_CLASSES, SHEET_SIZE_CLASSES } from "./size-classes";
+import {
+  DIALOG_BODY_CLASS,
+  DIALOG_FOOTER_CLASS,
+  getDialogContentClassName,
+  getSheetContentClassName,
+} from "./sizeClasses";
 
 interface ViewHeaderProps {
   title: ReactNode;
@@ -52,9 +51,7 @@ const ViewHeader = memo(function ViewHeader({
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between gap-3 pr-6">
         <div className="flex items-center gap-2.5">
-          <TitleComponent className="text-foreground text-lg font-semibold tracking-tight">
-            {title}
-          </TitleComponent>
+          <TitleComponent className="text-foreground text-lg font-semibold tracking-tight">{title}</TitleComponent>
           {badge ? <div>{badge}</div> : null}
         </div>
         <div className="flex items-center gap-2">
@@ -93,8 +90,8 @@ export const ViewDialog = memo(function ViewDialog({
   badge,
   loading = false,
   onEdit,
-  editText = "Edit",
-  closeText = "Close",
+  editText,
+  closeText,
   extraActions,
   children,
   className,
@@ -103,11 +100,17 @@ export const ViewDialog = memo(function ViewDialog({
   fullscreen: controlledFullscreen,
   onFullscreenChange,
 }: ViewDialogProps) {
+  const t = useTranslations("dialog");
+
   const { isFullscreen, toggleFullscreen } = useDialogFullscreen({
     open,
     fullscreen: controlledFullscreen,
     onFullscreenChange,
   });
+
+  const resolvedTitle = title ?? t("view_title", { entityName: "Record" });
+  const resolvedEditText = editText ?? t("edit");
+  const resolvedCloseText = closeText ?? t("close");
 
   const handleClose = useMemoizedFn(() => {
     onOpenChange(false);
@@ -121,49 +124,36 @@ export const ViewDialog = memo(function ViewDialog({
     children
   );
 
+  /** 主体 + 吸底关闭按钮：Dialog / Sheet 仅底栏组件不同 */
+  const renderPanel = (FooterComponent: React.ComponentType<{ className?: string; children?: ReactNode }>) => (
+    <>
+      <div className={DIALOG_BODY_CLASS}>{contentBody}</div>
+      <FooterComponent className={cn(DIALOG_FOOTER_CLASS, footerClassName)}>
+        <Button type="button" variant="outline" onClick={handleClose} className="h-8.5 px-4 text-xs font-medium">
+          {resolvedCloseText}
+        </Button>
+      </FooterComponent>
+    </>
+  );
+
   if (variant === "sheet") {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent
-          side="right"
-          className={cn(
-            "flex flex-col gap-0 overflow-hidden p-0",
-            widthClassName || SHEET_SIZE_CLASSES[size],
-            className,
-          )}
-        >
+        <SheetContent side="right" className={getSheetContentClassName({ widthClassName, size, className })}>
           <SheetHeader className="border-border/60 border-b px-6 py-4">
             <ViewHeader
-              title={title}
+              title={resolvedTitle}
               description={description}
               badge={badge}
               extraActions={extraActions}
               onEdit={onEdit}
-              editText={editText}
+              editText={resolvedEditText}
               TitleComponent={SheetTitle}
               DescriptionComponent={SheetDescription}
             />
           </SheetHeader>
 
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-4">
-            {contentBody}
-          </div>
-
-          <SheetFooter
-            className={cn(
-              "sticky bottom-0 z-10 m-0 flex shrink-0 flex-row items-center justify-end gap-2.5 border-t border-border/70 bg-muted/30 p-0 px-6 py-3.5 dark:bg-muted/15",
-              footerClassName,
-            )}
-          >
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              className="h-8.5 px-4 text-xs font-medium"
-            >
-              {closeText}
-            </Button>
-          </SheetFooter>
+          {renderPanel(SheetFooter)}
         </SheetContent>
       </Sheet>
     );
@@ -171,52 +161,23 @@ export const ViewDialog = memo(function ViewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn(
-          "flex flex-col gap-0 overflow-hidden p-0 transition-all duration-200",
-          isFullscreen
-            ? "h-[96vh] max-h-[96vh] w-[98vw] sm:max-w-[98vw]"
-            : "max-h-[calc(100dvh-2.5rem)] sm:max-h-[88vh]",
-          !isFullscreen && (widthClassName || DIALOG_SIZE_CLASSES[size]),
-          className,
-        )}
-      >
-        {allowFullscreen ? (
-          <FullscreenToggle isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
-        ) : null}
+      <DialogContent className={getDialogContentClassName({ isFullscreen, widthClassName, size, className })}>
+        {allowFullscreen ? <FullscreenToggle isFullscreen={isFullscreen} onToggle={toggleFullscreen} /> : null}
 
         <DialogHeader className="border-border/60 shrink-0 border-b px-6 py-4 pr-16">
           <ViewHeader
-            title={title}
+            title={resolvedTitle}
             description={description}
             badge={badge}
             extraActions={extraActions}
             onEdit={onEdit}
-            editText={editText}
+            editText={resolvedEditText}
             TitleComponent={DialogTitle}
             DescriptionComponent={DialogDescription}
           />
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-4">
-          {contentBody}
-        </div>
-
-        <DialogFooter
-          className={cn(
-            "sticky bottom-0 z-10 m-0 flex shrink-0 flex-row items-center justify-end gap-2.5 border-t border-border/70 bg-muted/30 p-0 px-6 py-3.5 dark:bg-muted/15",
-            footerClassName,
-          )}
-        >
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            className="h-8.5 px-4 text-xs font-medium"
-          >
-            {closeText}
-          </Button>
-        </DialogFooter>
+        {renderPanel(DialogFooter)}
       </DialogContent>
     </Dialog>
   );

@@ -1,18 +1,7 @@
-import { createTranslator } from "next-intl";
-
-import { DICTIONARY, getUserLocale } from "@/i18n";
+import { createNamespaceTranslator } from "@/i18n";
 
 export function formatRelativeTime(dateStr: string, t?: (key: any, values?: any) => string): string {
-  const translator =
-    t ??
-    (() => {
-      const locale = getUserLocale();
-      return createTranslator({
-        locale,
-        messages: DICTIONARY[locale] ?? DICTIONARY.zh,
-        namespace: "notification",
-      });
-    })();
+  const translator = t ?? createNamespaceTranslator("notification");
 
   const now = Date.now();
   const timestamp = new Date(dateStr).getTime();

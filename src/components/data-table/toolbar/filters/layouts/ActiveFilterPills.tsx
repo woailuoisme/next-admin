@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import React from "react";
 
@@ -22,6 +23,8 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
   columns,
   filters = [],
 }) => {
+  const t = useTranslations("table");
+
   const activeItems = React.useMemo(() => {
     return (filterModel.items || []).filter(
       (item) =>
@@ -67,10 +70,10 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
 
     // Null check operators
     if (item.operator === "isEmpty") {
-      return `${fieldName} is empty`;
+      return `${fieldName} ${t("op_is_empty")}`;
     }
     if (item.operator === "isNotEmpty") {
-      return `${fieldName} is not empty`;
+      return `${fieldName} ${t("op_is_not_empty")}`;
     }
 
     // Find preset filter if available
@@ -79,27 +82,25 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
     let displayVal = String(item.value);
 
     if (filterDef?.type === "select") {
-      const opt = filterDef.options.find(
-        (o: DataTableSelectFilterOption) => String(o.value) === String(item.value),
-      );
+      const opt = filterDef.options.find((o: DataTableSelectFilterOption) => String(o.value) === String(item.value));
       if (opt) {
         displayVal = opt.label;
       }
     } else if (filterDef?.type === "ternary") {
       if (item.value === true || item.value === "true") {
-        displayVal = filterDef.trueLabel ?? "Yes";
+        displayVal = filterDef.trueLabel ?? t("op_true");
       } else if (item.value === false || item.value === "false") {
-        displayVal = filterDef.falseLabel ?? "No";
+        displayVal = filterDef.falseLabel ?? t("op_false");
       }
     }
 
     const operatorLabels: Record<string, string> = {
-      contains: "contains",
-      notContains: "doesn't contain",
+      contains: t("op_contains"),
+      notContains: t("op_not_contains"),
       equals: "=",
       notEquals: "!=",
-      startsWith: "starts with",
-      endsWith: "ends with",
+      startsWith: t("op_starts_with"),
+      endsWith: t("op_ends_with"),
       greaterThan: ">",
       greaterThanOrEqual: ">=",
       lessThan: "<",
@@ -115,7 +116,7 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
       className="border-border/40 bg-muted/20 flex flex-wrap items-center gap-1.5 border-b px-2.5 py-1.5 text-xs"
       data-testid="data-table-active-filters"
     >
-      <span className="text-muted-foreground mr-1 text-[11px] font-medium">Active filters:</span>
+      <span className="text-muted-foreground mr-1 text-[11px] font-medium">{t("filter_active_label")}</span>
 
       {/* Quick filter pill */}
       {quickFilterValues.length > 0 && (
@@ -123,12 +124,12 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
           className="border-primary/20 bg-primary/10 text-primary inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium"
           data-testid="active-filter-pill-quick-search"
         >
-          <span>Search: &quot;{quickFilterValues.join(" ")}&quot;</span>
+          <span>{t("filter_quick_search_label", { value: quickFilterValues.join(" ") })}</span>
           <button
             type="button"
-            className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+            className="hover:bg-primary/20 cursor-pointer rounded-full p-0.5 transition-colors"
             onClick={handleRemoveQuickFilter}
-            aria-label="Remove search filter"
+            aria-label={t("quick_filter_clear")}
           >
             <X className="h-3 w-3" />
           </button>
@@ -145,9 +146,9 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
           <span>{getPillText(item)}</span>
           <button
             type="button"
-            className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+            className="hover:bg-primary/20 cursor-pointer rounded-full p-0.5 transition-colors"
             onClick={() => handleRemoveItem(item)}
-            aria-label={`Remove filter ${item.field}`}
+            aria-label={`${t("filter_remove_rule")} ${item.field}`}
           >
             <X className="h-3 w-3" />
           </button>
@@ -162,7 +163,7 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
           className="text-muted-foreground hover:text-destructive ml-1 cursor-pointer text-xs underline underline-offset-2 transition-colors"
           data-testid="clear-all-active-filters-btn"
         >
-          Clear all
+          {t("filter_clear_all")}
         </button>
       )}
     </div>

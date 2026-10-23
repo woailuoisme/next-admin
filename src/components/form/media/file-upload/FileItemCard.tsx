@@ -1,7 +1,7 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { AlertCircle, CheckCircle2, Download, Eye, Loader2, Trash2 } from "lucide-react";
 import { memo } from "react";
-
 import { cn } from "@/lib/utils";
 
 import type { FileUploadItem } from "./types";
@@ -35,6 +35,7 @@ export const FileItemCard = memo(function FileItemCard({
   onPreview,
   onRemove,
 }: FileItemCardProps) {
+  const t = useTranslations("form");
   const isImage = file.type?.startsWith("image/") || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(file.name);
 
   const handlePreview = useMemoizedFn(() => {
@@ -78,13 +79,13 @@ export const FileItemCard = memo(function FileItemCard({
           {file.status === "done" && (
             <span className={cn("flex items-center", FILE_STATUS_CLASSES.done)}>
               <CheckCircle2 className="mr-0.5 size-3" />
-              Ready
+              {t("upload_status_success")}
             </span>
           )}
           {file.status === "error" && (
             <span className={cn("flex items-center", FILE_STATUS_CLASSES.error)}>
               <AlertCircle className="mr-0.5 size-3" />
-              {file.error || "Failed"}
+              {file.error || t("upload_status_failed")}
             </span>
           )}
         </div>
@@ -106,7 +107,8 @@ export const FileItemCard = memo(function FileItemCard({
           <button
             type="button"
             onClick={handlePreview}
-            title="Preview"
+            title={t("upload_preview")}
+            aria-label={t("upload_preview")}
             className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-md p-1 transition-colors"
           >
             <Eye className="size-3.5" />
@@ -119,7 +121,8 @@ export const FileItemCard = memo(function FileItemCard({
             download={file.name}
             target="_blank"
             rel="noopener noreferrer"
-            title="Download"
+            title={t("upload_download")}
+            aria-label={t("upload_download")}
             className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-md p-1 transition-colors"
           >
             <Download className="size-3.5" />
@@ -130,7 +133,8 @@ export const FileItemCard = memo(function FileItemCard({
           <button
             type="button"
             onClick={handleRemove}
-            title="Delete"
+            title={t("upload_remove")}
+            aria-label={t("upload_remove")}
             className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive cursor-pointer rounded-md p-1 transition-colors"
           >
             <Trash2 className="size-3.5" />

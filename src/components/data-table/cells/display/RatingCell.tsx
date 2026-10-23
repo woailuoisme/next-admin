@@ -52,10 +52,7 @@ export const RatingCell = memo(function RatingCell({
   const resolvedActiveColor = color || activeColor || defaultIconColors[iconType] || defaultIconColors.star;
 
   return (
-    <div
-      className={cn("flex items-center gap-1.5", JUSTIFY_ALIGN_CLASSES[align], className)}
-      data-testid="rating-cell"
-    >
+    <div className={cn("flex items-center gap-1.5", JUSTIFY_ALIGN_CLASSES[align], className)} data-testid="rating-cell">
       <div className="flex items-center gap-0.5">
         {Array.from({ length: max }, (_, index) => {
           const starNumber = index + 1;

@@ -16,9 +16,7 @@ export function PickerShowcaseTab() {
     <TabsContent value="picker" className="space-y-4">
       <Card className="p-6">
         <div className="mb-4">
-          <h3 className="text-foreground text-base font-semibold">
-            表单高阶组件与坐标拾取器 (FormLocationPicker)
-          </h3>
+          <h3 className="text-foreground text-base font-semibold">表单高阶组件与坐标拾取器 (FormLocationPicker)</h3>
           <p className="text-muted-foreground text-xs">
             完整适配 Filament v5 / TanStack Form 体系：快捷热门城市预设、一键复制经纬度、标点拖拽与校验反馈
           </p>
@@ -57,9 +55,7 @@ export function PickerShowcaseTab() {
                 {formPickerVal.address && (
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">地址解析</span>
-                    <span className="text-foreground max-w-44 truncate text-right">
-                      {formPickerVal.address}
-                    </span>
+                    <span className="text-foreground max-w-44 truncate text-right">{formPickerVal.address}</span>
                   </div>
                 )}
               </div>
@@ -71,8 +67,7 @@ export function PickerShowcaseTab() {
                 <span>设计系统无缝融合</span>
               </div>
               <p className="text-muted-foreground mt-1 text-[11px]">
-                遵循全站 FieldWrapper 规范，支持 Zod 国际化校验报错、ColSpan 栅格排版与受控 TanStack Form
-                双向绑定。
+                遵循全站 FieldWrapper 规范，支持 Zod 国际化校验报错、ColSpan 栅格排版与受控 TanStack Form 双向绑定。
               </p>
             </div>
           </div>

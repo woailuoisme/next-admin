@@ -154,12 +154,12 @@ describe("next-intl i18n Architecture Tests", () => {
     const tZhProduct = createTranslator({
       locale: "zh",
       messages: DICTIONARY.zh,
-      namespace: "product",
+      namespace: "products",
     });
     const tEnProduct = createTranslator({
       locale: "en",
       messages: DICTIONARY.en,
-      namespace: "product",
+      namespace: "products",
     });
 
     expect(tZhProduct("status_active")).toBe("上架销售");

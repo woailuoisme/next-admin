@@ -15,7 +15,7 @@ import { MAP_NO_ATTRIBUTION } from "../shared/constants";
 import { MapAutoResizer } from "../shared/MapAutoResizer";
 import { MapEmptyState } from "../shared/MapEmptyState";
 import { MapSkeleton } from "../shared/MapSkeleton";
-import { transformCoordinates } from "../utils/coordinates";
+import { resolveCoordinateSystems, transformCoordinates } from "../utils/coordinates";
 import { COLOR_RAMP_PRESETS } from "./colorRamps";
 import { HeatmapLegend } from "./HeatmapLegend";
 import { HeatmapWebGLSourceLayer } from "./HeatmapWebGLSourceLayer";
@@ -51,9 +51,7 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapPro
 
   const rawData = useMemo(() => props.data ?? props.points ?? EMPTY_POINTS, [props.data, props.points]);
 
-  const sourceCoords = coordinateSystem;
-  const targetCoords = basemap === "amap" ? "GCJ02" : "WGS84";
-  const needsTransform = sourceCoords !== targetCoords;
+  const { sourceCoords, targetCoords, needsTransform } = resolveCoordinateSystems(coordinateSystem, basemap);
 
   // Normalize data with coordinate transforms
   const normalizedPoints = useMemo(() => {
@@ -107,18 +105,13 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapPro
     return `linear-gradient(to right, ${stops.map(([stop, color]) => `${color} ${stop * 100}%`).join(", ")})`;
   }, [stops]);
 
-  const basemapConfig = useMemo(
-    () => resolveBasemapConfig(basemap, customStyleUrl),
-    [basemap, customStyleUrl],
-  );
+  const basemapConfig = useMemo(() => resolveBasemapConfig(basemap, customStyleUrl), [basemap, customStyleUrl]);
   const hasNoData = isEmpty || (!isLoading && normalizedPoints.length === 0);
 
   // 高度交由外层容器决定（卡片取 MapCard.height、全屏取 fullscreenHeight、独立使用取 wrapper），
   // 内层统一 size-full，避免内层固定高度大于外层裁切框导致底部锚定元素被裁
   const mapBody = (
-    <div
-      className={cn("relative flex size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}
-    >
+    <div className={cn("relative flex size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}>
       {isLoading ? (
         <MapSkeleton height="100%" />
       ) : isError ? (
@@ -155,11 +148,7 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapPro
           </Map>
 
           {showLegend ? (
-            <HeatmapLegend
-              title={legendTitle}
-              pointCount={normalizedPoints.length}
-              legendGradient={legendGradient}
-            />
+            <HeatmapLegend title={legendTitle} pointCount={normalizedPoints.length} legendGradient={legendGradient} />
           ) : null}
 
           <div className="border-primary/20 bg-background/90 text-foreground absolute top-3 right-14 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-sm backdrop-blur-md">

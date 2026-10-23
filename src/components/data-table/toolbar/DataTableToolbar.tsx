@@ -48,6 +48,7 @@ function DataTableToolbarInner<TData = unknown>(props: InternalDataTableToolbarP
     showDensity,
     showExport,
     quickFilterPlaceholder,
+    quickFilterEntity,
   } = useToolbarState(props);
 
   const showActiveFiltersPills = filterConfig?.showActiveFiltersPills ?? true;
@@ -114,6 +115,7 @@ function DataTableToolbarInner<TData = unknown>(props: InternalDataTableToolbarP
               value={quickFilterValue}
               onChange={onQuickFilterChange}
               placeholder={quickFilterPlaceholder}
+              entity={quickFilterEntity}
             />
           )}
         </div>

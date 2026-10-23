@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, DollarSign, Package } from "lucide-react";
 
 import { StatCard, StatsGrid } from "@/components/stats";
+import { useTranslations } from "next-intl";
 
 export interface ProductMetricsSummary {
   total: number;
@@ -21,42 +22,43 @@ export interface ProductMetricsCardsProps {
 }
 
 export function ProductMetricsCards({ stats, isLoading = false }: ProductMetricsCardsProps) {
+  const t = useTranslations("products");
   return (
     <StatsGrid columns={4} isLoading={isLoading}>
       <StatCard
-        title="总商品 SKU"
+        title={t("metric_total_title")}
         value={stats.total}
         icon={Package}
         theme="chart-4"
-        description="系统录入的有效规格商品总数量"
+        description={t("metric_total_desc")}
         trend={{
           value: "+4.5%",
           direction: "up",
-          label: "较上季",
+          label: t("metric_total_trend"),
         }}
         sparklineData={stats.sparklines?.totalSku}
       />
       <StatCard
-        title="在架正常在售"
+        title={t("metric_active_title")}
         value={stats.activeCount}
         icon={CheckCircle2}
         theme="chart-2"
-        description="当前处于上架销售中的激活商品"
+        description={t("metric_active_desc")}
         trend={{
           value: "98.2%",
           direction: "neutral",
-          label: "健康率",
+          label: t("metric_active_trend"),
         }}
         sparklineData={stats.sparklines?.activeSku}
       />
       <StatCard
-        title="低库存预警"
+        title={t("metric_low_stock_title")}
         value={stats.lowStockCount}
         icon={AlertTriangle}
         theme="chart-3"
-        description="库存余量不足或已断货需紧急补仓的商品"
+        description={t("metric_low_stock_desc")}
         trend={{
-          value: stats.lowStockCount > 0 ? "需补货" : "正常",
+          value: stats.lowStockCount > 0 ? t("metric_low_stock_need_restock") : t("metric_low_stock_normal"),
           direction: stats.lowStockCount > 0 ? "down" : "neutral",
           isPositiveGood: false,
         }}
@@ -64,16 +66,16 @@ export function ProductMetricsCards({ stats, isLoading = false }: ProductMetrics
         sparklineType="bar"
       />
       <StatCard
-        title="SKU 平均单价"
+        title={t("metric_avg_price_title")}
         value={stats.avgPrice.toFixed(2)}
         prefix="$"
         icon={DollarSign}
         theme="chart-1"
-        description="在售商品的平均定价基准"
+        description={t("metric_avg_price_desc")}
         trend={{
           value: "+1.8%",
           direction: "up",
-          label: "同比",
+          label: t("metric_avg_price_trend"),
         }}
         sparklineData={stats.sparklines?.avgPrice}
       />

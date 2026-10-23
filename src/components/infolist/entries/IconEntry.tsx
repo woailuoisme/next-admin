@@ -18,11 +18,7 @@ const iconColorClasses: Record<EntrySemanticColor, string> = {
   neutral: "text-muted-foreground",
 };
 
-function getIconEntryLabel(
-  text: React.ReactNode | undefined,
-  rawValue: unknown,
-  valStr: string,
-): React.ReactNode {
+function getIconEntryLabel(text: React.ReactNode | undefined, rawValue: unknown, valStr: string): React.ReactNode {
   if (text !== undefined) {
     return <span className="text-sm font-medium">{text}</span>;
   }

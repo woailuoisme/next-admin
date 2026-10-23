@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Pause, Play, RotateCcw } from "lucide-react";
 import { memo } from "react";
 
@@ -24,6 +25,11 @@ export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
   onSeek,
   vehicle,
 }: RoutePlaybackScrubberProps) {
+  const t = useTranslations("map");
+
+  const playLabel = isPlaying ? t("route_pause") : t("route_play");
+  const resetLabel = t("route_reset");
+
   return (
     /*
 			右缘留出 56px：MapControls(bottom-right → bottom-10/right-2，按钮 size-8 即 32px，
@@ -37,8 +43,8 @@ export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
         size="icon"
         className="text-primary size-8 shrink-0"
         onClick={onTogglePlay}
-        title={isPlaying ? "Pause" : "Play"}
-        aria-label={isPlaying ? "Pause" : "Play"}
+        title={playLabel}
+        aria-label={playLabel}
       >
         {isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
       </Button>
@@ -48,8 +54,8 @@ export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
         size="icon"
         className="text-muted-foreground hover:text-foreground size-8 shrink-0"
         onClick={onReset}
-        title="Reset to start"
-        aria-label="Reset to start"
+        title={resetLabel}
+        aria-label={resetLabel}
       >
         <RotateCcw className="size-3.5" />
       </Button>
@@ -62,7 +68,7 @@ export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
           step={1}
           onValueChange={(val) => onSeek(val[0] / 100)}
           className="w-full cursor-pointer"
-          aria-label="Playback progress"
+          aria-label={t("route_progress_aria")}
         />
         <span className="text-muted-foreground w-10 text-right font-mono text-xs font-semibold">
           {Math.round(progress * 100)}%

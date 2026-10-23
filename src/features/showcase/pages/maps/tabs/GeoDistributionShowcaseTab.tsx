@@ -1,4 +1,4 @@
-import { GeoDistributionMap } from "@/components/map";
+import { LazyGeoDistributionMap } from "@/components/map";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_GEOJSON_DATA } from "../constants";
 import type { DemoStateProps } from "../types";
@@ -6,7 +6,7 @@ import type { DemoStateProps } from "../types";
 export function GeoDistributionShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
   return (
     <TabsContent value="geo" className="space-y-4">
-      <GeoDistributionMap
+      <LazyGeoDistributionMap
         data={MOCK_GEOJSON_DATA}
         valueKey="value"
         labelKey="name"

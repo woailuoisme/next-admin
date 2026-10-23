@@ -33,10 +33,7 @@ export function TableShowcasePage() {
   });
 
   const isAllSelected = useMemo(() => data.length > 0 && data.every((item) => item.isSelected), [data]);
-  const isSomeSelected = useMemo(
-    () => data.some((item) => item.isSelected) && !isAllSelected,
-    [data, isAllSelected],
-  );
+  const isSomeSelected = useMemo(() => data.some((item) => item.isSelected) && !isAllSelected, [data, isAllSelected]);
 
   const columns = useMemo(
     () =>
@@ -55,8 +52,8 @@ export function TableShowcasePage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Filament v5 Table Columns Showcase</h1>
         <p className="text-muted-foreground mt-1 text-xs">
-          Live gallery demonstrating 15 table column types alongside Filament v5 Capsule segmented pagination
-          and multi-layout Filter systems (Popover, Slide-over Sheet, Above Content, Deferred filters).
+          Live gallery demonstrating 15 table column types alongside Filament v5 Capsule segmented pagination and
+          multi-layout Filter systems (Popover, Slide-over Sheet, Above Content, Deferred filters).
         </p>
       </div>
 

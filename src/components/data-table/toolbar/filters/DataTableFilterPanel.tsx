@@ -20,7 +20,7 @@ function DataTableFilterPanelInner<TData = any>({
 }: DataTableFilterPanelProps<TData>) {
   const layout = filterConfig?.layout ?? "popover";
   const deferFilters = filterConfig?.deferFilters ?? false;
-  const sheetTitle = filterConfig?.sheetTitle ?? "Filters";
+  const sheetTitle = filterConfig?.sheetTitle;
   const sheetDescription = filterConfig?.sheetDescription ?? "Filter and refine table records.";
 
   const { filterableColumns, resolvedFilters } = useFilterInference({
@@ -49,8 +49,7 @@ function DataTableFilterPanelInner<TData = any>({
     deferFilters,
   });
 
-  const columnsCount =
-    filterConfig?.columns ?? (resolvedFilters.length >= 3 ? 3 : resolvedFilters.length >= 2 ? 2 : 1);
+  const columnsCount = filterConfig?.columns ?? (resolvedFilters.length >= 3 ? 3 : resolvedFilters.length >= 2 ? 2 : 1);
   const showQueryBuilder = Boolean(filterConfig?.showQueryBuilder);
 
   // Inline filter body (used by Popover & AboveContent)

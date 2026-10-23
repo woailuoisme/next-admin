@@ -12,6 +12,7 @@ import { deleteCategoryApi } from "../api";
 import { CategoryFormDialog } from "../components/CategoryFormDialog";
 import { CategoryTable } from "../components/CategoryTable";
 import { categoryQueries } from "../queries";
+import { useTranslations } from "next-intl";
 
 export interface CategoriesPageProps {
   search?: CategorySearchParams;
@@ -26,46 +27,34 @@ export function CategoriesPage({
   onEditCategory,
   onDeleteCategory,
 }: CategoriesPageProps) {
-  const {
-    rows,
-    total,
-    isLoading,
-    modal,
-    activeEditItem,
-    isFormOpen,
-    handleFormOpenChange,
-    deleteDialogProps,
-  } = useResourceManagement<Category, CategorySearchParams>({
-    search,
-    entityName: "Category",
-    queryOptions: categoryQueries.list,
-    deleteMutationFn: deleteCategoryApi,
-    invalidateQueryKeys: [categoryQueries.all()],
-    modalKeys: {
-      createKey: "createCategory",
-      editKey: "editCategoryId",
-      deleteKey: "deleteCategoryId",
-    },
-    onOpenCreate: onCreateCategory,
-    onOpenEdit: onEditCategory,
-    onOpenDelete: onDeleteCategory,
-  });
+  const t = useTranslations("categories");
+  const { rows, total, isLoading, modal, activeEditItem, isFormOpen, handleFormOpenChange, deleteDialogProps } =
+    useResourceManagement<Category, CategorySearchParams>({
+      search,
+      entityName: "Category",
+      queryOptions: categoryQueries.list,
+      deleteMutationFn: deleteCategoryApi,
+      invalidateQueryKeys: [categoryQueries.all()],
+      modalKeys: {
+        createKey: "createCategory",
+        editKey: "editCategoryId",
+        deleteKey: "deleteCategoryId",
+      },
+      onOpenCreate: onCreateCategory,
+      onOpenEdit: onEditCategory,
+      onOpenDelete: onDeleteCategory,
+    });
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Catalog Categories</h1>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            Structure store taxonomy to organize merchandise into discoverable departments.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("page_heading")}</h1>
+          <p className="text-muted-foreground mt-0.5 text-xs">{t("page_heading_desc")}</p>
         </div>
-        <Button
-          onClick={modal.openCreate}
-          className="h-9 cursor-pointer gap-1.5 text-xs font-semibold shadow-xs"
-        >
-          <Plus className="size-4" /> Add Category
+        <Button onClick={modal.openCreate} className="h-9 cursor-pointer gap-1.5 text-xs font-semibold shadow-xs">
+          <Plus className="size-4" /> {t("create_action")}
         </Button>
       </div>
 
@@ -79,11 +68,7 @@ export function CategoriesPage({
       />
 
       {/* Singleton Category Form Dialog (Create & Edit) */}
-      <CategoryFormDialog
-        open={isFormOpen}
-        onOpenChange={handleFormOpenChange}
-        categoryToEdit={activeEditItem}
-      />
+      <CategoryFormDialog open={isFormOpen} onOpenChange={handleFormOpenChange} categoryToEdit={activeEditItem} />
 
       {/* Unified Delete Dialog */}
       <DeleteDialog {...deleteDialogProps} />

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { Editor } from "@tiptap/react";
 
 import { useMemoizedFn } from "ahooks";
@@ -22,6 +23,7 @@ import type { RichEditorToolbarButton as ToolbarButtonId } from "./types";
 
 import { RichEditorLinkPopover } from "./RichEditorLinkPopover";
 import { RichEditorToolbarItem } from "./RichEditorToolbarItem";
+import type { MessageKeyOf } from "@/types/i18n";
 
 interface RichEditorToolbarProps {
   editor: Editor;
@@ -31,7 +33,7 @@ interface RichEditorToolbarProps {
 
 interface ActionButtonDef {
   id: ToolbarButtonId;
-  label: string;
+  labelKey: MessageKeyOf<"form">;
   Icon: React.ComponentType<{ className?: string }>;
   action: (editor: Editor) => void;
   isActive?: (editor: Editor) => boolean;
@@ -41,28 +43,28 @@ interface ActionButtonDef {
 const INLINE_BUTTONS: ActionButtonDef[] = [
   {
     id: "bold",
-    label: "Bold",
+    labelKey: "editor_bold",
     Icon: Bold,
     action: (ed) => ed.chain().focus().toggleBold().run(),
     isActive: (ed) => ed.isActive("bold"),
   },
   {
     id: "italic",
-    label: "Italic",
+    labelKey: "editor_italic",
     Icon: Italic,
     action: (ed) => ed.chain().focus().toggleItalic().run(),
     isActive: (ed) => ed.isActive("italic"),
   },
   {
     id: "strike",
-    label: "Strikethrough",
+    labelKey: "editor_strike",
     Icon: Strikethrough,
     action: (ed) => ed.chain().focus().toggleStrike().run(),
     isActive: (ed) => ed.isActive("strike"),
   },
   {
     id: "code",
-    label: "Inline Code",
+    labelKey: "editor_code",
     Icon: Code,
     action: (ed) => ed.chain().focus().toggleCode().run(),
     isActive: (ed) => ed.isActive("code"),
@@ -72,14 +74,14 @@ const INLINE_BUTTONS: ActionButtonDef[] = [
 const HEADING_BUTTONS: ActionButtonDef[] = [
   {
     id: "h2",
-    label: "Heading 2",
+    labelKey: "editor_heading2",
     Icon: Heading2,
     action: (ed) => ed.chain().focus().toggleHeading({ level: 2 }).run(),
     isActive: (ed) => ed.isActive("heading", { level: 2 }),
   },
   {
     id: "h3",
-    label: "Heading 3",
+    labelKey: "editor_heading3",
     Icon: Heading3,
     action: (ed) => ed.chain().focus().toggleHeading({ level: 3 }).run(),
     isActive: (ed) => ed.isActive("heading", { level: 3 }),
@@ -89,28 +91,28 @@ const HEADING_BUTTONS: ActionButtonDef[] = [
 const BLOCK_BUTTONS: ActionButtonDef[] = [
   {
     id: "bulletList",
-    label: "Bullet List",
+    labelKey: "editor_bullet_list",
     Icon: List,
     action: (ed) => ed.chain().focus().toggleBulletList().run(),
     isActive: (ed) => ed.isActive("bulletList"),
   },
   {
     id: "orderedList",
-    label: "Ordered List",
+    labelKey: "editor_ordered_list",
     Icon: ListOrdered,
     action: (ed) => ed.chain().focus().toggleOrderedList().run(),
     isActive: (ed) => ed.isActive("orderedList"),
   },
   {
     id: "blockquote",
-    label: "Blockquote",
+    labelKey: "editor_quote",
     Icon: Quote,
     action: (ed) => ed.chain().focus().toggleBlockquote().run(),
     isActive: (ed) => ed.isActive("blockquote"),
   },
   {
     id: "codeBlock",
-    label: "Code Block",
+    labelKey: "editor_code_block",
     Icon: FileCode,
     action: (ed) => ed.chain().focus().toggleCodeBlock().run(),
     isActive: (ed) => ed.isActive("codeBlock"),
@@ -120,14 +122,14 @@ const BLOCK_BUTTONS: ActionButtonDef[] = [
 const HISTORY_BUTTONS: ActionButtonDef[] = [
   {
     id: "undo",
-    label: "Undo",
+    labelKey: "editor_undo",
     Icon: Undo2,
     action: (ed) => ed.chain().focus().undo().run(),
     isDisabled: (ed) => !ed.can().undo(),
   },
   {
     id: "redo",
-    label: "Redo",
+    labelKey: "editor_redo",
     Icon: Redo2,
     action: (ed) => ed.chain().focus().redo().run(),
     isDisabled: (ed) => !ed.can().redo(),
@@ -136,18 +138,19 @@ const HISTORY_BUTTONS: ActionButtonDef[] = [
 
 interface ToolbarActionItemProps {
   btn: ActionButtonDef;
+  label: string;
   editor: Editor;
   disabled?: boolean;
 }
 
-const ToolbarActionItem = memo(function ToolbarActionItem({ btn, editor, disabled }: ToolbarActionItemProps) {
+const ToolbarActionItem = memo(function ToolbarActionItem({ btn, label, editor, disabled }: ToolbarActionItemProps) {
   const handleClick = useMemoizedFn(() => {
     btn.action(editor);
   });
 
   return (
     <RichEditorToolbarItem
-      label={btn.label}
+      label={label}
       isActive={btn.isActive?.(editor)}
       disabled={disabled || btn.isDisabled?.(editor)}
       onClick={handleClick}
@@ -161,11 +164,14 @@ function renderGroup(
   buttons: ActionButtonDef[],
   toolbarButtons: ToolbarButtonId[],
   editor: Editor,
+  t: (key: MessageKeyOf<"form">) => string,
   disabled?: boolean,
 ) {
   return buttons
     .filter((btn) => toolbarButtons.includes(btn.id))
-    .map((btn) => <ToolbarActionItem key={btn.id} btn={btn} editor={editor} disabled={disabled} />);
+    .map((btn) => (
+      <ToolbarActionItem key={btn.id} btn={btn} label={t(btn.labelKey)} editor={editor} disabled={disabled} />
+    ));
 }
 
 const ToolbarDivider = memo(function ToolbarDivider() {
@@ -177,6 +183,8 @@ export const RichEditorToolbar = memo(function RichEditorToolbar({
   toolbarButtons,
   disabled,
 }: RichEditorToolbarProps) {
+  const t = useTranslations("form");
+
   const hasInline = INLINE_BUTTONS.some((b) => toolbarButtons.includes(b.id));
   const hasHeading = HEADING_BUTTONS.some((b) => toolbarButtons.includes(b.id));
   const hasBlock = BLOCK_BUTTONS.some((b) => toolbarButtons.includes(b.id));
@@ -186,17 +194,17 @@ export const RichEditorToolbar = memo(function RichEditorToolbar({
   return (
     <div className="border-border/60 bg-muted/40 text-muted-foreground flex flex-wrap items-center gap-0.5 border-b p-1.5">
       {/* Inline group */}
-      {hasInline && renderGroup(INLINE_BUTTONS, toolbarButtons, editor, disabled)}
+      {hasInline && renderGroup(INLINE_BUTTONS, toolbarButtons, editor, t, disabled)}
 
       {hasInline && (hasHeading || hasBlock || hasInsert) && <ToolbarDivider />}
 
       {/* Headings group */}
-      {hasHeading && renderGroup(HEADING_BUTTONS, toolbarButtons, editor, disabled)}
+      {hasHeading && renderGroup(HEADING_BUTTONS, toolbarButtons, editor, t, disabled)}
 
       {hasHeading && (hasBlock || hasInsert) && <ToolbarDivider />}
 
       {/* Block & list group */}
-      {hasBlock && renderGroup(BLOCK_BUTTONS, toolbarButtons, editor, disabled)}
+      {hasBlock && renderGroup(BLOCK_BUTTONS, toolbarButtons, editor, t, disabled)}
 
       {hasBlock && hasInsert && <ToolbarDivider />}
 
@@ -205,7 +213,7 @@ export const RichEditorToolbar = memo(function RichEditorToolbar({
 
       {toolbarButtons.includes("horizontalRule") && (
         <RichEditorToolbarItem
-          label="Horizontal Rule"
+          label={t("editor_horizontal_rule")}
           disabled={disabled}
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
         >
@@ -217,7 +225,7 @@ export const RichEditorToolbar = memo(function RichEditorToolbar({
       <div className="ml-auto" />
 
       {/* History group */}
-      {hasHistory && renderGroup(HISTORY_BUTTONS, toolbarButtons, editor, disabled)}
+      {hasHistory && renderGroup(HISTORY_BUTTONS, toolbarButtons, editor, t, disabled)}
     </div>
   );
 });

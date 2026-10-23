@@ -11,12 +11,7 @@ import {
   TextInput,
 } from "@/components/form";
 
-import {
-  createDefaultAttribute,
-  createDefaultInvoiceItem,
-  getAttributeTitle,
-  TAG_SUGGESTIONS,
-} from "../constants";
+import { createDefaultAttribute, createDefaultInvoiceItem, getAttributeTitle, TAG_SUGGESTIONS } from "../constants";
 
 export interface AdvancedTabProps {
   // biome-ignore lint/suspicious/noExplicitAny: TanStack FormApi instance

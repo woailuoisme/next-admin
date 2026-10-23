@@ -106,15 +106,7 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
       disabled={disabled}
       readOnly={readOnly}
     >
-      {({
-        value,
-        onChange,
-        onBlur,
-        error: computedError,
-        disabled: isDisabled,
-        readOnly: isReadOnly,
-        meta,
-      }) => {
+      {({ value, onChange, onBlur, error: computedError, disabled: isDisabled, readOnly: isReadOnly, meta }) => {
         const currentValue = value as LocationPickerValue | undefined;
         const effectiveDisabled = isDisabled ?? disabled;
         const effectiveReadOnly = isReadOnly ?? readOnly;

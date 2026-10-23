@@ -60,9 +60,7 @@ export function useFilterInference<TData = any>({
       filterableColumns.find(
         (col) =>
           col.type !== "boolean" &&
-          !/^(id|created_at|updated_at|createdAt|updatedAt|avatar|image|icon|imageUrl|avatarUrl)$/i.test(
-            col.field,
-          ),
+          !/^(id|created_at|updated_at|createdAt|updatedAt|avatar|image|icon|imageUrl|avatarUrl)$/i.test(col.field),
       ) ||
       filterableColumns[0];
 

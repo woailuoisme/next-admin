@@ -7,7 +7,7 @@ import type { Order } from "@/features/orders";
 import type { Product } from "@/features/products";
 import type { Customer } from "@/features/users";
 
-import { createAdminUsers } from "./admin-user.factory";
+import { createAdminUsers } from "./adminUser.factory";
 import { createInitialCategories, syncCategoryProductCounts } from "./category.factory";
 import { createCustomers, syncCustomerStats } from "./customer.factory";
 import { createInitialNotifications } from "./notification.factory";
@@ -32,13 +32,7 @@ export interface GenerateMockDataOptions {
 }
 
 export function generateMockData(options: GenerateMockDataOptions = {}): MockDatabase {
-  const {
-    seed = 2026,
-    productCount = 100,
-    customerCount = 50,
-    orderCount = 200,
-    extraAdminCount = 4,
-  } = options;
+  const { seed = 2026, productCount = 100, customerCount = 50, orderCount = 200, extraAdminCount = 4 } = options;
 
   faker.seed(seed);
 
@@ -63,7 +57,7 @@ export function generateMockData(options: GenerateMockDataOptions = {}): MockDat
   };
 }
 
-export * from "./admin-user.factory";
+export * from "./adminUser.factory";
 export * from "./category.factory";
 export * from "./customer.factory";
 export * from "./notification.factory";

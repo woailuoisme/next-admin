@@ -72,21 +72,14 @@ export const EntryWrapper = React.memo(function EntryWrapper({
       <div
         className={cn(
           "min-w-0",
-          isInline
-            ? "flex flex-1 flex-col items-start text-left sm:w-2/3 sm:items-end sm:text-right"
-            : "w-full",
+          isInline ? "flex flex-1 flex-col items-start text-left sm:w-2/3 sm:items-end sm:text-right" : "w-full",
           contentClassName,
         )}
       >
         <div className="text-foreground w-full text-sm font-normal break-words">{children}</div>
 
         {helperText && (
-          <div
-            className={cn(
-              "mt-1 text-[11px] leading-relaxed text-muted-foreground/80",
-              isInline && "sm:text-right",
-            )}
-          >
+          <div className={cn("mt-1 text-[11px] leading-relaxed text-muted-foreground/80", isInline && "sm:text-right")}>
             {helperText}
           </div>
         )}

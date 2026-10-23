@@ -21,8 +21,8 @@ export function EmptyStateShowcaseSection({ columns }: EmptyStateShowcaseSection
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold">Filament v5 Tables Empty State Architecture</CardTitle>
         <CardDescription className="text-xs">
-          Pure UI Kit container and integrated DataTable overlay with dual typography, badge icons, action
-          buttons, and semantic colors.
+          Pure UI Kit container and integrated DataTable overlay with dual typography, badge icons, action buttons, and
+          semantic colors.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 pt-0">

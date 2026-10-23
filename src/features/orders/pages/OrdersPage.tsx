@@ -1,16 +1,21 @@
 "use client";
 
 import { countBy, meanBy } from "es-toolkit";
+import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
 import { useResourceManagement } from "@/components/data-table";
 
 import type { Order, OrderFilters, OrderListResponse } from "../types";
 
-import { OrderDetailsSheet } from "../components/OrderDetailsSheet";
 import { OrderMetricsCards } from "../components/OrderMetricsCards";
 import { OrdersTable } from "../components/OrdersTable";
 import { orderQueries } from "../queries";
+import { useTranslations } from "next-intl";
+
+const OrderDetailsSheet = dynamic(() => import("../components/OrderDetailsSheet").then((m) => m.OrderDetailsSheet), {
+  ssr: false,
+});
 
 export interface OrdersPageProps {
   search?: OrderFilters & { orderId?: string };
@@ -18,6 +23,7 @@ export interface OrdersPageProps {
 }
 
 export function OrdersPage({ search = {}, onSelectOrder }: OrdersPageProps) {
+  const t = useTranslations("orders");
   // Centralized Resource Management (Query, URL state, Drawer modal)
   const { rows, total, isLoading, rawResponse, modal, handleViewOpenChange } = useResourceManagement<
     Order,
@@ -42,10 +48,8 @@ export function OrdersPage({ search = {}, onSelectOrder }: OrdersPageProps) {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">订单履约 (Order Fulfillment)</h1>
-        <p className="text-muted-foreground mt-0.5 text-xs">
-          追踪全流程客户采购订单、发货流转及各状态履约进度
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("page_title")}</h1>
+        <p className="text-muted-foreground mt-0.5 text-xs">{t("page_description")}</p>
       </div>
 
       {/* KPI StatCards */}
@@ -66,11 +70,7 @@ export function OrdersPage({ search = {}, onSelectOrder }: OrdersPageProps) {
   );
 }
 
-export function computeOrderStats(
-  rows: Order[],
-  total?: number,
-  serverSummary?: OrderListResponse["summary"],
-) {
+export function computeOrderStats(rows: Order[], total?: number, serverSummary?: OrderListResponse["summary"]) {
   if (serverSummary) {
     return serverSummary;
   }

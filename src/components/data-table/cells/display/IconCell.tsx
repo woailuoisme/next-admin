@@ -55,9 +55,7 @@ export const IconCell = memo(function IconCell({
       if (typeof mapped === "object" && "icon" in mapped) {
         const opt = mapped as IconCellOption;
         const IconComponent = opt.icon;
-        iconNode = (
-          <IconComponent className={cn(sizeClasses[size], opt.color || "text-foreground", "shrink-0")} />
-        );
+        iconNode = <IconComponent className={cn(sizeClasses[size], opt.color || "text-foreground", "shrink-0")} />;
         if (opt.label) {
           if (!extractedLabel) extractedLabel = opt.label;
           if (!resolvedTooltip) resolvedTooltip = opt.label;

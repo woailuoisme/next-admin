@@ -1,7 +1,7 @@
 import type React from "react";
 
 import type { BaseCellProps } from "../../base";
-import type { UserOnlineStatus } from "./avatar-palette";
+import type { UserOnlineStatus } from "./avatarPalette";
 
 export type { UserOnlineStatus };
 

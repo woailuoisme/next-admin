@@ -95,9 +95,7 @@ function SelectInputInner<TValue extends string | number = string>({
                     className="text-xs"
                   >
                     {"icon" in option && option.icon && (
-                      <span className="mr-1.5 inline-flex size-3.5 items-center justify-center">
-                        {option.icon}
-                      </span>
+                      <span className="mr-1.5 inline-flex size-3.5 items-center justify-center">{option.icon}</span>
                     )}
                     <span>{option.label}</span>
                   </SelectItem>

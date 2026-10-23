@@ -3,11 +3,16 @@ import { Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
-import { AppProviders } from "@/components/providers/app-providers";
+import { AppProviders } from "@/components/providers/AppProviders";
 import { cn } from "cn";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+  fallback: ["system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -28,11 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [locale, messages] = await Promise.all([getLocale(), getMessages()]);
 
   return (
-    <html
-      lang={locale}
-      suppressHydrationWarning
-      className={cn("h-full font-sans antialiased", inter.variable)}
-    >
+    <html lang={locale} suppressHydrationWarning className={cn("h-full font-sans antialiased", inter.variable)}>
       <body className="flex min-h-full flex-col font-sans">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppProviders>{children}</AppProviders>

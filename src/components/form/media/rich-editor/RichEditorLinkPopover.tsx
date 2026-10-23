@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { Editor } from "@tiptap/react";
 
 import { useMemoizedFn } from "ahooks";
@@ -19,6 +20,7 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
   editor,
   disabled,
 }: RichEditorLinkPopoverProps) {
+  const t = useTranslations("form");
   const [open, setOpen] = useState(false);
   const closePopover = useMemoizedFn(() => setOpen(false));
   const [url, setUrl] = useState("");
@@ -76,20 +78,18 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <RichEditorToolbarItem
-          label={isLinked ? "Edit Link" : "Insert Link"}
-          isActive={isLinked}
-          disabled={disabled}
-        >
+        <RichEditorToolbarItem label={t("editor_link")} isActive={isLinked} disabled={disabled}>
           <LinkIcon className="size-3.5" />
         </RichEditorToolbarItem>
       </PopoverTrigger>
 
       <PopoverContent className="w-72 space-y-2.5 p-3" align="start">
         <div className="text-foreground flex items-center justify-between text-xs font-medium">
-          <span>设置超链接</span>
+          <span>{t("editor_link")}</span>
           {isLinked && (
-            <span className="text-muted-foreground max-w-[120px] truncate font-mono text-[10px]">已绑定</span>
+            <span className="text-muted-foreground max-w-[120px] truncate font-mono text-[10px]">
+              {t("editor_link")}
+            </span>
           )}
         </div>
 
@@ -97,7 +97,7 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
           value={url}
           onChange={handleUrlChange}
           onKeyDown={handleKeyDown}
-          placeholder="https://example.com"
+          placeholder={t("editor_link_url_placeholder")}
           className="h-7 font-mono text-xs"
           autoFocus
         />
@@ -112,12 +112,12 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
               className="text-destructive hover:bg-destructive/10 h-6 px-2 text-[11px]"
             >
               <Unlink className="mr-1 size-3" />
-              取消链接
+              {t("editor_link_remove")}
             </Button>
           )}
           <Button type="button" size="xs" onClick={handleApply} className="h-6 px-2 text-[11px]">
             <Check className="mr-1 size-3" />
-            应用
+            {t("editor_link_apply")}
           </Button>
         </div>
       </PopoverContent>

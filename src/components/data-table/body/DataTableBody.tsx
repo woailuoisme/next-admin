@@ -15,12 +15,8 @@ import type {
 } from "../core/types";
 
 import { defaultGetRowId, EMPTY_ARRAY, EMPTY_RECORD, NOOP } from "../core/constants";
-import { useOptionalDataTableContext } from "../core/data-table-context";
-import {
-  DataTableEmptyOverlay,
-  DataTableLoadingOverlay,
-  DataTableSkeletonRows,
-} from "../overlays/DataTableOverlays";
+import { useOptionalDataTableContext } from "../core/DataTableContext";
+import { DataTableEmptyOverlay, DataTableLoadingOverlay, DataTableSkeletonRows } from "../overlays/DataTableOverlays";
 import { DataTableRow } from "./DataTableRow";
 
 export interface DataTableBodyProps<TData extends Record<string, any> = Record<string, any>> {
@@ -60,9 +56,7 @@ export interface DataTableBodyProps<TData extends Record<string, any> = Record<s
   toggleRowExpanded?: (id: DataTableRowId) => void;
 }
 
-function DataTableBodyInner<TData extends Record<string, any> = Record<string, any>>(
-  props: DataTableBodyProps<TData>,
-) {
+function DataTableBodyInner<TData extends Record<string, any> = Record<string, any>>(props: DataTableBodyProps<TData>) {
   const ctx = useOptionalDataTableContext<TData>();
 
   const {
@@ -227,8 +221,6 @@ function DataTableBodyInner<TData extends Record<string, any> = Record<string, a
   );
 }
 
-export const DataTableBody = memo(DataTableBodyInner) as <
-  TData extends Record<string, any> = Record<string, any>,
->(
+export const DataTableBody = memo(DataTableBodyInner) as <TData extends Record<string, any> = Record<string, any>>(
   props: DataTableBodyProps<TData>,
 ) => ReactElement | null;

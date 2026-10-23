@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
 import { memo, type HTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
 
@@ -9,7 +10,7 @@ import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableRowId 
 
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
 import { EMPTY_ARRAY, EMPTY_RECORD, NOOP } from "../core/constants";
-import { useOptionalDataTableContext } from "../core/data-table-context";
+import { useOptionalDataTableContext } from "../core/DataTableContext";
 import { readCellValue } from "../core/utils";
 
 export interface DataTableRowProps<
@@ -67,6 +68,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
   ...rest
 }: DataTableRowProps<TData>) {
   const ctx = useOptionalDataTableContext<TData>();
+  const t = useTranslations("table");
 
   const visibleColumns = propVisibleColumns ?? ctx?.visibleColumns ?? EMPTY_ARRAY;
   const checkboxSelection = propCheckboxSelection ?? ctx?.checkboxSelection ?? false;
@@ -126,17 +128,12 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
         {renderExpandedRow && (
           <TableCell
             style={{
-              left:
-                checkboxSelection || pinnedLeftFields.length > 0
-                  ? checkboxSelection
-                    ? "44px"
-                    : "0px"
-                  : undefined,
+              left: checkboxSelection ? "44px" : pinnedLeftFields.length > 0 ? "0px" : undefined,
             }}
             className={cn(
               "w-9 px-1 text-center align-middle",
               (checkboxSelection || pinnedLeftFields.length > 0) &&
-                "sticky z-15 border-r border-border/70 bg-card/95 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]",
+                "sticky z-15 border-r border-border/70 bg-card/95 shadow-pin-left",
             )}
           >
             {canExpand ? (
@@ -148,13 +145,10 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
                 }}
                 className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring inline-flex size-6 cursor-pointer items-center justify-center rounded-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
                 aria-expanded={isExpanded}
-                aria-label={isExpanded ? "收起行明细" : "展开行明细"}
+                aria-label={isExpanded ? t("aria_collapse_detail") : t("aria_expand_detail")}
               >
                 <ChevronRight
-                  className={cn(
-                    "size-3.5 transition-transform duration-200",
-                    isExpanded && "rotate-90 text-primary",
-                  )}
+                  className={cn("size-3.5 transition-transform duration-200", isExpanded && "rotate-90 text-primary")}
                 />
               </button>
             ) : (
@@ -164,16 +158,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
         )}
 
         {visibleColumns.map((col, idx) => {
-          const {
-            field,
-            align = "left",
-            width,
-            minWidth,
-            maxWidth,
-            cellClassName,
-            renderCell,
-            valueFormatter,
-          } = col;
+          const { field, align = "left", width, minWidth, maxWidth, cellClassName, renderCell, valueFormatter } = col;
 
           const currentWidth = columnWidths[field] ?? width;
           const isLeftPinned = pinnedLeftFields.includes(field);
@@ -194,10 +179,8 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
               }}
               className={cn(
                 densityRowClass,
-                isLeftPinned &&
-                  "sticky z-15 border-r border-border/70 bg-card/95 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]",
-                isRightPinned &&
-                  "sticky z-15 border-l border-border/70 bg-card/95 shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.06)]",
+                isLeftPinned && "sticky z-15 border-r border-border/70 bg-card/95 shadow-pin-left",
+                isRightPinned && "sticky z-15 border-l border-border/70 bg-card/95 shadow-pin-right",
                 TEXT_ALIGN_CLASSES[align ?? "left"],
                 typeof cellClassName === "function"
                   ? cellClassName({
@@ -219,9 +202,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
                   index,
                 })
               ) : (
-                <span>
-                  {formattedValue !== null && formattedValue !== undefined ? String(formattedValue) : ""}
-                </span>
+                <span>{formattedValue !== null && formattedValue !== undefined ? String(formattedValue) : ""}</span>
               )}
             </TableCell>
           );
@@ -248,9 +229,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
   );
 }
 
-export const DataTableRow = memo(DataTableRowComponent) as (<
-  TData extends Record<string, any> = Record<string, any>,
->(
+export const DataTableRow = memo(DataTableRowComponent) as (<TData extends Record<string, any> = Record<string, any>>(
   props: DataTableRowProps<TData>,
 ) => ReactNode) & { displayName?: string };
 DataTableRow.displayName = "DataTableRow";

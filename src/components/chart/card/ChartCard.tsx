@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 
@@ -11,8 +12,22 @@ import type { ChartCardProps, ChartPeriodOption } from "./types";
 
 import { ChartEmptyState } from "../shared/ChartEmptyState";
 import { ChartSkeleton } from "../shared/ChartSkeleton";
+import type { MessageKeyOf } from "@/types/i18n";
 
 const EMPTY_PERIODS: ChartPeriodOption[] = [];
+
+const PERIOD_KEY_MAP: Record<string, MessageKeyOf<"chart">> = {
+  "7D": "period_7d",
+  "30D": "period_30d",
+  "90D": "period_90d",
+  "1Y": "period_1y",
+  "12M": "period_year",
+  day: "period_day",
+  week: "period_week",
+  month: "period_month",
+  year: "period_year",
+  all: "period_all",
+};
 
 export const ChartCard = memo(function ChartCard({
   title,
@@ -26,7 +41,7 @@ export const ChartCard = memo(function ChartCard({
   height = 300,
   isLoading = false,
   isEmpty = false,
-  emptyMessage = "暂无统计数据",
+  emptyMessage,
   errorMessage,
   onRetry,
   className,
@@ -34,13 +49,20 @@ export const ChartCard = memo(function ChartCard({
   showFullscreen = false,
   fullscreenHeight = 500,
 }: ChartCardProps) {
+  const t = useTranslations("chart");
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Normalize periods to ChartPeriodOption[]
   const normalizedPeriods = useMemo<ChartPeriodOption[]>(() => {
     if (!periods?.length) return EMPTY_PERIODS;
-    return periods.map((p) => (typeof p === "string" ? { label: p, value: p } : p));
-  }, [periods]);
+    return periods.map((p) => {
+      if (typeof p === "string") {
+        const i18nKey = PERIOD_KEY_MAP[p];
+        return { label: i18nKey ? t(i18nKey) : p, value: p };
+      }
+      return p;
+    });
+  }, [periods, t]);
 
   const currentPeriod = activePeriod ?? normalizedPeriods[0]?.value;
 
@@ -50,9 +72,7 @@ export const ChartCard = memo(function ChartCard({
         <CardHeader className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 space-y-1">
             <CardTitle className="text-base font-semibold tracking-tight">{title}</CardTitle>
-            {description && (
-              <CardDescription className="text-muted-foreground text-xs">{description}</CardDescription>
-            )}
+            {description && <CardDescription className="text-muted-foreground text-xs">{description}</CardDescription>}
           </div>
 
           <div className="flex shrink-0 flex-wrap items-center gap-1.5">
@@ -83,8 +103,8 @@ export const ChartCard = memo(function ChartCard({
                 onClick={() => setIsFullscreen(true)}
                 disabled={isLoading || isEmpty}
                 className="text-muted-foreground hover:text-foreground size-8"
-                title="全屏聚焦查看"
-                aria-label="全屏聚焦查看"
+                title={t("fullscreen_title")}
+                aria-label={t("fullscreen_title")}
               >
                 <Maximize2 className="size-3.5" />
               </Button>
@@ -107,7 +127,7 @@ export const ChartCard = memo(function ChartCard({
               {onRetry && (
                 <Button variant="outline" size="sm" onClick={onRetry} className="h-8 gap-1.5 text-xs">
                   <RefreshCw className="size-3.5" />
-                  重试
+                  {t("retry")}
                 </Button>
               )}
             </div>

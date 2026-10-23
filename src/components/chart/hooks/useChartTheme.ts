@@ -13,11 +13,7 @@ export interface UseChartThemeOptions {
 /**
  * Hook to derive a stable chart stroke color and a unique gradient ID
  */
-export function useChartTheme({
-  theme = "primary",
-  color,
-  gradientPrefix = "chart-grad",
-}: UseChartThemeOptions = {}) {
+export function useChartTheme({ theme = "primary", color, gradientPrefix = "chart-grad" }: UseChartThemeOptions = {}) {
   const rawId = useId();
   const gradientId = `${gradientPrefix}-${rawId.replace(/:/g, "")}`;
 

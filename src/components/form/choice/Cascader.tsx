@@ -389,10 +389,7 @@ function CascaderComponent({
           </span>
 
           <ChevronDown
-            className={cn(
-              "ml-2 size-4 shrink-0 opacity-50 transition-transform duration-200",
-              open && "rotate-180",
-            )}
+            className={cn("ml-2 size-4 shrink-0 opacity-50 transition-transform duration-200", open && "rotate-180")}
           />
 
           {isClearable && currentValue.length > 0 && !disabled && (
@@ -448,9 +445,7 @@ function CascaderComponent({
         {searchQuery.trim() ? (
           <div className="no-scrollbar max-h-64 min-w-[280px] overflow-y-auto p-1 text-sm">
             {searchResults.length === 0 ? (
-              <div className="text-muted-foreground flex h-24 items-center justify-center text-xs">
-                {emptyText}
-              </div>
+              <div className="text-muted-foreground flex h-24 items-center justify-center text-xs">{emptyText}</div>
             ) : (
               searchResults.map((item, idx) => {
                 const isSelected =
@@ -470,9 +465,7 @@ function CascaderComponent({
                       item.disabled && "pointer-events-none opacity-50",
                     )}
                   >
-                    <span className="truncate">
-                      {highlightMatch(item.labels.join(separator), searchQuery)}
-                    </span>
+                    <span className="truncate">{highlightMatch(item.labels.join(separator), searchQuery)}</span>
                     {isSelected && <Check className="text-primary size-3.5 shrink-0" />}
                   </button>
                 );
@@ -501,8 +494,7 @@ function CascaderComponent({
                       const optChildren = getOptionChildren(opt, fieldNames);
 
                       const isActive =
-                        activeOptionInCol &&
-                        String(getOptionValue(activeOptionInCol, fieldNames)) === String(optVal);
+                        activeOptionInCol && String(getOptionValue(activeOptionInCol, fieldNames)) === String(optVal);
 
                       const isSelectedInFinal =
                         currentValue.length > colIndex && String(currentValue[colIndex]) === String(optVal);

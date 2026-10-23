@@ -2,7 +2,7 @@ import { isNil } from "es-toolkit";
 import { ExternalLink } from "lucide-react";
 import { memo } from "react";
 
-import { CopyButton } from "@/components/copy-button";
+import { CopyButton } from "@/components/shared/CopyButton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -49,10 +49,7 @@ function highlightString(text: string, query?: string): React.ReactNode {
     <>
       {parts.map((part, i) =>
         part.toLowerCase() === query.trim().toLowerCase() ? (
-          <mark
-            key={i}
-            className="bg-primary/20 text-primary dark:bg-primary/30 rounded-xs px-0.5 font-medium"
-          >
+          <mark key={i} className="bg-primary/20 text-primary dark:bg-primary/30 rounded-xs px-0.5 font-medium">
             {part}
           </mark>
         ) : (
@@ -99,9 +96,7 @@ export const TextCell = memo(function TextCell({
         : "";
 
   const renderedTitle =
-    typeof resolvedTitle === "string" && highlightText
-      ? highlightString(resolvedTitle, highlightText)
-      : resolvedTitle;
+    typeof resolvedTitle === "string" && highlightText ? highlightString(resolvedTitle, highlightText) : resolvedTitle;
 
   const titleElement = (
     <span
@@ -137,9 +132,7 @@ export const TextCell = memo(function TextCell({
   );
 
   const renderedDescription =
-    typeof description === "string" && highlightText
-      ? highlightString(description, highlightText)
-      : description;
+    typeof description === "string" && highlightText ? highlightString(description, highlightText) : description;
 
   const content = (
     <div

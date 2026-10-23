@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn, useUnmountedRef } from "ahooks";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
 import { memo, useState } from "react";
@@ -27,7 +28,7 @@ export const DeleteDialog = memo(function DeleteDialog({
   title,
   description,
   confirmText,
-  cancelText = "Cancel",
+  cancelText,
   requireConfirmKeyword,
   confirmKeyword,
   autoFocusInput = true,
@@ -35,6 +36,7 @@ export const DeleteDialog = memo(function DeleteDialog({
   onConfirm,
   className,
 }: DeleteDialogProps) {
+  const t = useTranslations("dialog");
   const [confirmInput, setConfirmInput] = useState("");
   const [internalPending, setInternalPending] = useState(false);
   const [prevOpen, setPrevOpen] = useState(open);
@@ -53,7 +55,7 @@ export const DeleteDialog = memo(function DeleteDialog({
   const isActionPending = isPending || internalPending;
 
   const targetKeyword =
-    typeof requireConfirmKeyword === "string" ? requireConfirmKeyword : (confirmKeyword ?? "DELETE");
+    typeof requireConfirmKeyword === "string" ? requireConfirmKeyword : (confirmKeyword ?? t("delete_keyword"));
 
   const hasKeywordRequirement = Boolean(requireConfirmKeyword);
 
@@ -61,28 +63,22 @@ export const DeleteDialog = memo(function DeleteDialog({
     ? confirmInput.trim().toUpperCase() === targetKeyword.trim().toUpperCase()
     : true;
 
-  const resolvedTitle = title ?? (isBatch ? `Delete ${itemCount} ${entityName}s?` : `Delete ${entityName}?`);
+  const resolvedTitle =
+    title ??
+    (isBatch ? t("delete_batch_title", { count: itemCount, entityName }) : t("delete_item_title", { entityName }));
 
   const resolvedDescription =
     description ??
-    (isBatch ? (
-      <>
-        Are you sure you want to permanently delete{" "}
-        <span className="text-foreground font-semibold">
-          {itemCount} selected {entityName}s
-        </span>
-        ? This action cannot be undone.
-      </>
-    ) : entityTitle ? (
-      <>
-        Are you sure you want to delete <span className="text-foreground font-semibold">"{entityTitle}"</span>
-        ? This action cannot be undone.
-      </>
-    ) : (
-      `Are you sure you want to delete this ${entityName.toLowerCase()}? This action cannot be undone.`
-    ));
+    (isBatch
+      ? t("delete_batch_desc", { count: itemCount, entityName })
+      : entityTitle
+        ? t("delete_item_desc", {
+            entityName: typeof entityTitle === "string" ? `"${entityTitle}"` : entityName,
+          })
+        : t("delete_item_desc", { entityName: entityName.toLowerCase() }));
 
-  const resolvedConfirmText = confirmText ?? (isBatch ? `Delete ${itemCount} Items` : `Delete ${entityName}`);
+  const resolvedConfirmText = confirmText ?? t("delete_confirm_action");
+  const resolvedCancelText = cancelText ?? t("cancel");
 
   const handleConfirm = useMemoizedFn(async () => {
     if (!isKeywordMatched) return;
@@ -116,9 +112,7 @@ export const DeleteDialog = memo(function DeleteDialog({
                 <AlertTriangle className="text-destructive size-4" />
               )}
             </div>
-            <AlertDialogTitle className="text-foreground text-lg font-semibold">
-              {resolvedTitle}
-            </AlertDialogTitle>
+            <AlertDialogTitle className="text-foreground text-lg font-semibold">{resolvedTitle}</AlertDialogTitle>
           </div>
 
           <AlertDialogDescription className="text-muted-foreground text-xs leading-relaxed">
@@ -130,8 +124,7 @@ export const DeleteDialog = memo(function DeleteDialog({
         {hasKeywordRequirement ? (
           <div className="space-y-1.5 pt-1 pb-2">
             <Label className="text-muted-foreground text-xs">
-              Please type <span className="text-foreground font-mono font-bold">{targetKeyword}</span> to
-              confirm deletion:
+              {t("delete_keyword_prompt", { keyword: targetKeyword })}
             </Label>
             <Input
               value={confirmInput}
@@ -142,7 +135,7 @@ export const DeleteDialog = memo(function DeleteDialog({
                   handleConfirm();
                 }
               }}
-              placeholder={targetKeyword}
+              placeholder={t("delete_keyword_placeholder", { keyword: targetKeyword })}
               disabled={isActionPending}
               className="h-8 font-mono text-xs"
               autoFocus={autoFocusInput}
@@ -151,12 +144,8 @@ export const DeleteDialog = memo(function DeleteDialog({
         ) : null}
 
         <AlertDialogFooter className="gap-2 sm:gap-2">
-          <AlertDialogCancel
-            disabled={isActionPending}
-            onClick={() => onOpenChange(false)}
-            className="h-9 text-xs"
-          >
-            {cancelText}
+          <AlertDialogCancel disabled={isActionPending} onClick={() => onOpenChange(false)} className="h-9 text-xs">
+            {resolvedCancelText}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
@@ -166,11 +155,7 @@ export const DeleteDialog = memo(function DeleteDialog({
             disabled={isActionPending || !isKeywordMatched}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 h-9 gap-1.5 text-xs disabled:opacity-50"
           >
-            {isActionPending ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <Trash2 className="size-3.5" />
-            )}
+            {isActionPending ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
             <span>{resolvedConfirmText}</span>
           </AlertDialogAction>
         </AlertDialogFooter>

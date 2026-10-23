@@ -1,24 +1,29 @@
 import { useMemo, useState } from "react";
 
-import { AreaTrendChart, ChartCard } from "@/components/chart";
+import { ChartCard, LazyAreaTrendChart } from "@/components/chart";
 
 import type { MonthlyTrendPoint } from "../types";
+import { useTranslations } from "next-intl";
 
 interface RevenueChartProps {
   data?: MonthlyTrendPoint[];
   isLoading?: boolean;
 }
 
-const REVENUE_PERIODS = [
-  { label: "7天", value: "7D" },
-  { label: "30天", value: "30D" },
-  { label: "12月", value: "12M" },
-];
-
-const formatRevenueTooltip = (val: number) => `$${val.toLocaleString()}`;
+const formatRevenueTooltip = (val: number) => `$${new Intl.NumberFormat().format(val)}`;
 
 export function RevenueChart({ data = [], isLoading = false }: RevenueChartProps) {
+  const t = useTranslations("dashboard");
   const [activePeriod, setActivePeriod] = useState("12M");
+
+  const revenuePeriods = useMemo(
+    () => [
+      { label: t("period_7d"), value: "7D" },
+      { label: t("period_30d"), value: "30D" },
+      { label: t("period_12m"), value: "12M" },
+    ],
+    [t],
+  );
 
   // Map MonthlyTrendPoint data to AreaTrendChart data format
   const chartData = useMemo(
@@ -33,9 +38,9 @@ export function RevenueChart({ data = [], isLoading = false }: RevenueChartProps
 
   return (
     <ChartCard
-      title="营收走势 (Revenue Trajectory)"
-      description="全平台近 12 个月度总经营入账及销售波动分析"
-      periods={REVENUE_PERIODS}
+      title={t("revenue_chart_title")}
+      description={t("revenue_chart_desc")}
+      periods={revenuePeriods}
       activePeriod={activePeriod}
       onPeriodChange={setActivePeriod}
       height={300}
@@ -43,7 +48,7 @@ export function RevenueChart({ data = [], isLoading = false }: RevenueChartProps
       isEmpty={!data?.length}
       className="col-span-full lg:col-span-4"
     >
-      <AreaTrendChart
+      <LazyAreaTrendChart
         data={chartData}
         theme="chart-2"
         dataKey="value"

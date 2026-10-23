@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Inbox } from "lucide-react";
 import { type ComponentType, isValidElement, memo, type ReactNode } from "react";
 
@@ -57,8 +58,8 @@ const SIZE_CONFIGS: Record<
 };
 
 export const TableEmptyState = memo(function TableEmptyState({
-  heading = "No records found.",
-  description = "There is no data available to display right now.",
+  heading,
+  description,
   icon: IconProp = Inbox,
   iconColor = "muted",
   size = "md",
@@ -67,6 +68,9 @@ export const TableEmptyState = memo(function TableEmptyState({
   footer,
   className,
 }: TableEmptyStateProps) {
+  const t = useTranslations("table");
+  const finalHeading = heading === undefined ? t("empty_heading") : heading;
+  const finalDescription = description === undefined ? t("empty_description") : description;
   const sizeConfig = SIZE_CONFIGS[size] ?? SIZE_CONFIGS.md;
   const iconColorClass = ICON_COLOR_CLASSES[iconColor] ?? ICON_COLOR_CLASSES.muted;
 
@@ -144,14 +148,14 @@ export const TableEmptyState = memo(function TableEmptyState({
       )}
 
       <div className="space-y-1 text-center">
-        {heading && (
+        {finalHeading && (
           <p data-slot="empty-state-heading" className={sizeConfig.headingClass}>
-            {heading}
+            {finalHeading}
           </p>
         )}
-        {description && (
+        {finalDescription && (
           <p data-slot="empty-state-description" className={sizeConfig.descriptionClass}>
-            {description}
+            {finalDescription}
           </p>
         )}
       </div>
@@ -166,6 +170,3 @@ export const TableEmptyState = memo(function TableEmptyState({
     </div>
   );
 });
-
-// Alias for DataTable compatibility
-export const DataTableEmptyState = TableEmptyState;

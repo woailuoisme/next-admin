@@ -148,9 +148,7 @@ export const TextareaInput = memo(function TextareaInput({
             <span
               className={cn(
                 "text-[10px] tabular-nums",
-                maxLength && currentLength > maxLength
-                  ? "font-semibold text-destructive"
-                  : "text-muted-foreground",
+                maxLength && currentLength > maxLength ? "font-semibold text-destructive" : "text-muted-foreground",
               )}
             >
               {currentLength}

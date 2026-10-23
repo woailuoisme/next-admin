@@ -43,16 +43,13 @@ export const StatCardRoot = memo(function StatCardRoot({
       data-sparkline-layout={resolvedSparklineLayout}
       className={cn(
         "relative gap-0 overflow-hidden border-border/60 py-0 transition-all duration-200",
-        isInteractive &&
-          "group cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md",
+        isInteractive && "group cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md",
         className,
       )}
       onClick={onClick}
       {...props}
     >
-      <CardContent
-        className={cn("flex h-full flex-col justify-between", dStyles.cardPadding, dStyles.headerGap)}
-      >
+      <CardContent className={cn("flex h-full flex-col justify-between", dStyles.cardPadding, dStyles.headerGap)}>
         {children}
       </CardContent>
     </Card>

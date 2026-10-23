@@ -1,4 +1,4 @@
-import { ArcFlightMap } from "@/components/map";
+import { LazyArcFlightMap } from "@/components/map";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_FLIGHT_ARCS } from "../constants";
 import type { DemoStateProps } from "../types";
@@ -6,7 +6,7 @@ import type { DemoStateProps } from "../types";
 export function ArcFlightShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
   return (
     <TabsContent value="arc" className="space-y-4">
-      <ArcFlightMap
+      <LazyArcFlightMap
         arcs={MOCK_FLIGHT_ARCS}
         curvature={0.25}
         arcWidth={2.5}

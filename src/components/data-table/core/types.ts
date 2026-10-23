@@ -1,17 +1,9 @@
 import type React from "react";
-
 import type { DataTableEmptyStateConfig, DataTableEmptyStateContext } from "../empty-state";
 
 export type DataTableAlignment = "left" | "center" | "right";
 
-export type DataTableColType =
-  | "string"
-  | "number"
-  | "date"
-  | "dateTime"
-  | "boolean"
-  | "singleSelect"
-  | "actions";
+export type DataTableColType = "string" | "number" | "date" | "dateTime" | "boolean" | "singleSelect" | "actions";
 
 export interface DataTableRenderCellParams<TData = any, TValue = any> {
   value: TValue;
@@ -137,17 +129,10 @@ export interface DataTableCustomFilterDef {
   name?: string;
   columnField?: string;
   label?: string;
-  render: (props: {
-    value: any;
-    onChange: (val: any) => void;
-    filterItem?: DataTableFilterItem;
-  }) => React.ReactNode;
+  render: (props: { value: any; onChange: (val: any) => void; filterItem?: DataTableFilterItem }) => React.ReactNode;
 }
 
-export type DataTableFilterDefinition =
-  | DataTableSelectFilterDef
-  | DataTableTernaryFilterDef
-  | DataTableCustomFilterDef;
+export type DataTableFilterDefinition = DataTableSelectFilterDef | DataTableTernaryFilterDef | DataTableCustomFilterDef;
 
 export interface DataTableFilterConfig {
   layout?: DataTableFilterLayout;
@@ -222,6 +207,7 @@ export interface DataTableToolbarProps {
   showExport?: boolean;
   exportFileName?: string;
   quickFilterPlaceholder?: string;
+  quickFilterEntity?: string;
   filterConfig?: DataTableFilterConfig;
   filters?: DataTableFilterDefinition[];
   tabs?: DataTableTabItem<any>[];
@@ -316,6 +302,7 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
   // Advanced features
   showToolbar?: boolean;
   summaryRow?: boolean;
+  summaryLabel?: string;
   virtualize?: boolean;
   maxHeight?: number | string;
   onRowClick?: (row: TData, event: React.MouseEvent) => void;
@@ -326,10 +313,7 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
   tableClassName?: string;
   slots?: DataTableSlots;
   slotProps?: DataTableSlotProps;
-  emptyState?:
-    | React.ReactNode
-    | DataTableEmptyStateConfig
-    | ((context: DataTableEmptyStateContext) => React.ReactNode);
+  emptyState?: React.ReactNode | DataTableEmptyStateConfig | ((context: DataTableEmptyStateContext) => React.ReactNode);
   emptyMessage?: string;
   noResultsMessage?: string;
   resetFiltersText?: string;

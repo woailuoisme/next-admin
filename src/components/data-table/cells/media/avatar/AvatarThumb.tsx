@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 import type { AvatarThumbProps } from "./types";
 
-import { getAvatarPalette, STATUS_DOT_CLASSES, STATUS_DOT_LABELS } from "./avatar-palette";
+import { getAvatarPalette, STATUS_DOT_CLASSES, STATUS_DOT_LABELS } from "./avatarPalette";
 
 export const avatarSizeClasses = {
   xs: "size-6 text-[10px]",
@@ -39,8 +39,7 @@ function AvatarThumbInner({
   className,
 }: AvatarThumbProps) {
   const resolvedFallback =
-    fallback ||
-    (typeof name === "string" && name.trim().length > 0 ? name.trim().slice(0, 2).toUpperCase() : null);
+    fallback || (typeof name === "string" && name.trim().length > 0 ? name.trim().slice(0, 2).toUpperCase() : null);
 
   const seed =
     colorSeed ||
@@ -61,9 +60,7 @@ function AvatarThumbInner({
       <AvatarFallback
         className={cn(
           "font-medium uppercase",
-          palette
-            ? `${palette.bg} ${palette.text} ${palette.border} border`
-            : "bg-muted text-muted-foreground",
+          palette ? `${palette.bg} ${palette.text} ${palette.border} border` : "bg-muted text-muted-foreground",
         )}
       >
         {resolvedFallback || <User className="size-3.5" />}

@@ -2,7 +2,7 @@ import { isPlainObject } from "es-toolkit";
 import { create } from "zustand";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 
-import { clearQueryCache } from "@/lib/query-client";
+import { clearQueryCache } from "@/lib/queryClient";
 
 import type { AuthSession, AuthState } from "./types";
 
@@ -43,11 +43,12 @@ const customStorage: StateStorage = {
       }
       // Legacy raw AuthSession format { token, admin }
       if (isPlainObject(parsed) && "token" in parsed) {
-        syncAuthCookie((parsed as AuthSession).token);
+        const session = parsed as AuthSession;
+        syncAuthCookie(session.token);
         return JSON.stringify({
           state: {
-            session: parsed as AuthSession,
-            isAuthenticated: Boolean((parsed as AuthSession).token),
+            session,
+            isAuthenticated: Boolean(session.token),
           },
           version: 0,
         });
@@ -101,11 +102,10 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: AUTH_STORAGE_KEY,
       storage: createJSONStorage(() => customStorage),
-      partialize: (state) =>
-        ({
-          session: state.session,
-          isAuthenticated: state.isAuthenticated,
-        }) as AuthStore,
+      partialize: (state) => ({
+        session: state.session,
+        isAuthenticated: state.isAuthenticated,
+      }),
     },
   ),
 );

@@ -2,7 +2,7 @@ import { isNil } from "es-toolkit";
 import { Eye, EyeOff } from "lucide-react";
 import { memo, useEffect, useState } from "react";
 
-import { CopyButton } from "@/components/copy-button";
+import { CopyButton } from "@/components/shared/CopyButton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -10,11 +10,7 @@ import type { MaskedCellProps, MaskType } from "./types";
 
 import { TEXT_ALIGN_CLASSES } from "../base";
 
-export function formatMaskedValue(
-  val: string,
-  type: MaskType = "custom",
-  customMask?: (v: string) => string,
-): string {
+export function formatMaskedValue(val: string, type: MaskType = "custom", customMask?: (v: string) => string): string {
   if (!val) return "";
   if (customMask) return customMask(val);
 

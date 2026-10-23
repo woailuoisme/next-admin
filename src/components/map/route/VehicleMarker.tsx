@@ -28,9 +28,7 @@ export const VehicleMarker = memo(function VehicleMarker({ vehicle, progress }: 
           </div>
           <div>
             <h4 className="text-sm leading-tight font-semibold">{vehicle?.name || "Vehicle in transit"}</h4>
-            {vehicle?.licensePlate ? (
-              <p className="text-muted-foreground text-xs">{vehicle.licensePlate}</p>
-            ) : null}
+            {vehicle?.licensePlate ? <p className="text-muted-foreground text-xs">{vehicle.licensePlate}</p> : null}
           </div>
         </div>
         <div className="border-border mt-2.5 flex items-center justify-between border-t pt-2 text-xs">

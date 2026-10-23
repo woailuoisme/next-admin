@@ -333,14 +333,14 @@ export const MOCK_DENSE_LOCATIONS: LocationMarkerItem[] = Array.from({ length: 3
   badge: i % 5 === 0 ? "High Capacity" : undefined,
 }));
 
-/** 主 Tab 配置（图标 + 文案，纯静态） */
+/** 主 Tab 配置（图标 + 国际化文案键） */
 export const MAP_TABS = [
-  { value: "markers", icon: MapPin, label: "网点分布 (Markers)" },
-  { value: "route", icon: Navigation, label: "物流轨迹 (Route)" },
-  { value: "geo", icon: PieChart, label: "区划热力 (Choropleth)" },
-  { value: "arc", icon: Network, label: "干线飞线 (Arc)" },
-  { value: "heatmap", icon: Flame, label: "核密度热力 (GPU Heatmap)" },
-  { value: "bigdata", icon: Cpu, label: "海量降级 (320+ 点)" },
-  { value: "coords", icon: Globe, label: "双轨坐标与底图" },
-  { value: "picker", icon: Activity, label: "表单高阶拾取 (FormPicker)" },
+  { value: "markers", icon: MapPin, labelKey: "map_tab_markers" },
+  { value: "route", icon: Navigation, labelKey: "map_tab_route" },
+  { value: "geo", icon: PieChart, labelKey: "map_tab_geo" },
+  { value: "arc", icon: Network, labelKey: "map_tab_arc" },
+  { value: "heatmap", icon: Flame, labelKey: "map_tab_heatmap" },
+  { value: "bigdata", icon: Cpu, labelKey: "map_tab_bigdata" },
+  { value: "coords", icon: Globe, labelKey: "map_tab_coords" },
+  { value: "picker", icon: Activity, labelKey: "map_tab_picker" },
 ] as const;

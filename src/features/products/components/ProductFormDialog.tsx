@@ -27,13 +27,8 @@ interface ProductFormDialogProps {
   productIdToEdit?: string | null;
 }
 
-export function ProductFormDialog({
-  open,
-  onOpenChange,
-  productToEdit,
-  productIdToEdit,
-}: ProductFormDialogProps) {
-  const t = useTranslations("product");
+export function ProductFormDialog({ open, onOpenChange, productToEdit, productIdToEdit }: ProductFormDialogProps) {
+  const t = useTranslations("products");
   const createMutation = useCreateProductMutation();
   const updateMutation = useUpdateProductMutation();
 

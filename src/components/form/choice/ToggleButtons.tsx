@@ -4,13 +4,7 @@ import { memo } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
-import {
-  type BaseInputProps,
-  FieldConnector,
-  FieldWrapper,
-  type ToggleButtonOption,
-  useFieldId,
-} from "../core";
+import { type BaseInputProps, FieldConnector, FieldWrapper, type ToggleButtonOption, useFieldId } from "../core";
 
 const EMPTY_OPTIONS: ToggleButtonOption[] = [];
 

@@ -1,9 +1,9 @@
+import { useFormatter, useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Check, Copy } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { defaultNumberFormatter } from "@/components/chart/shared/formatters";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,8 @@ export const StatCardValue = memo(function StatCardValue({
   ...props
 }: StatCardValueProps) {
   const context = useStatCardContext();
+  const t = useTranslations("stats");
+  const format = useFormatter();
   const resolvedDensity = density ?? context.density ?? "compact";
   const dStyles = DENSITY_STYLES[resolvedDensity] ?? DENSITY_STYLES.compact;
   const [copied, setCopied] = useState(false);
@@ -55,7 +57,7 @@ export const StatCardValue = memo(function StatCardValue({
   } else if (formatter) {
     formattedContent = formatter(activeValue);
   } else if (typeof activeValue === "number") {
-    formattedContent = defaultNumberFormatter(activeValue);
+    formattedContent = format.number(activeValue);
   } else {
     formattedContent = activeValue;
   }
@@ -69,23 +71,19 @@ export const StatCardValue = memo(function StatCardValue({
     try {
       await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
-      toast.success("已复制到剪贴板");
+      toast.success(t("copied_success"));
       if (copyResetTimerRef.current) clearTimeout(copyResetTimerRef.current);
       copyResetTimerRef.current = setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast.error("复制失败");
+      toast.error(t("copied_failed"));
     }
   });
 
   return (
     <div className={cn("group/val flex items-baseline gap-1", className)} {...props}>
-      {prefix ? (
-        <span className={cn("font-semibold text-muted-foreground", dStyles.prefixText)}>{prefix}</span>
-      ) : null}
+      {prefix ? <span className={cn("font-semibold text-muted-foreground", dStyles.prefixText)}>{prefix}</span> : null}
 
-      <span
-        className={cn("font-mono font-bold tracking-tight text-foreground tabular-nums", dStyles.valueText)}
-      >
+      <span className={cn("font-mono font-bold tracking-tight text-foreground tabular-nums", dStyles.valueText)}>
         {formattedContent}
       </span>
 
@@ -100,17 +98,13 @@ export const StatCardValue = memo(function StatCardValue({
               type="button"
               className="text-muted-foreground/50 hover:bg-muted hover:text-foreground ml-1 inline-flex cursor-pointer items-center rounded p-0.5 opacity-0 transition-all group-hover/val:opacity-100 focus:opacity-100"
               onClick={handleCopy}
-              aria-label="复制数值"
+              aria-label={t("copy_value")}
             >
-              {copied ? (
-                <Check className="animate-in text-primary zoom-in h-3 w-3" />
-              ) : (
-                <Copy className="h-3 w-3" />
-              )}
+              {copied ? <Check className="animate-in text-primary zoom-in h-3 w-3" /> : <Copy className="h-3 w-3" />}
             </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="px-1.5 py-0.5 text-[10px]">
-            {copied ? "已复制" : "点击复制"}
+            {copied ? t("copied") : t("click_to_copy")}
           </TooltipContent>
         </Tooltip>
       ) : null}

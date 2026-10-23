@@ -54,10 +54,7 @@ export function ChartsShowcasePage() {
             <TrendingUp className="h-3.5 w-3.5" />
             趋势与混合 (Trend & Composed)
           </TabsTrigger>
-          <TabsTrigger
-            value="distribution"
-            className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
-          >
+          <TabsTrigger value="distribution" className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal">
             <PieChartIcon className="h-3.5 w-3.5" />
             分布与排名 (Distribution)
           </TabsTrigger>
@@ -65,10 +62,7 @@ export function ChartsShowcasePage() {
             <Gauge className="h-3.5 w-3.5" />
             度量与仪表盘 (Gauges & Radar)
           </TabsTrigger>
-          <TabsTrigger
-            value="enterprise"
-            className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
-          >
+          <TabsTrigger value="enterprise" className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal">
             <Briefcase className="h-3.5 w-3.5" />
             商业分析 (Enterprise)
           </TabsTrigger>

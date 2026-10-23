@@ -66,12 +66,7 @@ const responsiveColsMap: Record<"sm" | "md" | "lg" | "xl", Record<number, string
   },
 };
 
-export const FormGrid = memo(function FormGrid({
-  columns = 1,
-  gap = "md",
-  className,
-  children,
-}: FormGridProps) {
+export const FormGrid = memo(function FormGrid({ columns = 1, gap = "md", className, children }: FormGridProps) {
   const gridColsClass =
     typeof columns === "number"
       ? (numberColsMap[columns] ?? "grid-cols-1")

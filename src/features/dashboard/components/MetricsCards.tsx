@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { StatCard, StatsGrid } from "@/components/stats";
 
 import type { DashboardMetrics, DashboardSparklines, MonthlyTrendPoint } from "../types";
+import { useFormatter, useTranslations } from "next-intl";
 
 interface MetricsCardsProps {
   metrics?: DashboardMetrics;
@@ -14,23 +15,16 @@ interface MetricsCardsProps {
 
 const EMPTY_NUMBER_ARRAY: number[] = [];
 
-const currencyFormatter = new Intl.NumberFormat(undefined, {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-const integerFormatter = new Intl.NumberFormat(undefined);
-
 export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = false }: MetricsCardsProps) {
+  const t = useTranslations("dashboard");
+  const format = useFormatter();
   // hooks 必须先于提前返回：本组件可能从 loading 骨架态原地切换到数据态
-  const revenueSparkline = useMemo(() => {
-    const spark = sparklines?.revenue;
-    return spark?.length ? spark : (monthlyTrends?.map((t) => t.revenue) ?? EMPTY_NUMBER_ARRAY);
-  }, [sparklines, monthlyTrends]);
-
-  const ordersSparkline = useMemo(() => {
-    const spark = sparklines?.orders;
-    return spark?.length ? spark : (monthlyTrends?.map((t) => t.orders) ?? EMPTY_NUMBER_ARRAY);
+  const { revenueSparkline, ordersSparkline } = useMemo(() => {
+    const fromTrends = (pick: (point: MonthlyTrendPoint) => number) => monthlyTrends?.map(pick) ?? EMPTY_NUMBER_ARRAY;
+    return {
+      revenueSparkline: sparklines?.revenue?.length ? sparklines.revenue : fromTrends((point) => point.revenue),
+      ordersSparkline: sparklines?.orders?.length ? sparklines.orders : fromTrends((point) => point.orders),
+    };
   }, [sparklines, monthlyTrends]);
 
   const productsSparkline = sparklines?.products ?? EMPTY_NUMBER_ARRAY;
@@ -44,16 +38,16 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
     <StatsGrid columns={4} isLoading={isLoading}>
       {/* 1. Total Revenue */}
       <StatCard
-        title="总营收 (Revenue)"
-        value={currencyFormatter.format(metrics.totalRevenue)}
+        title={t("metric_revenue_title")}
+        value={format.number(metrics.totalRevenue, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         prefix="$"
         icon={DollarSign}
         theme="chart-2"
-        description="过去 12 个月内所有已确认交易的总入账金额"
+        description={t("metric_revenue_desc")}
         trend={{
           value: `+${metrics.revenueGrowth}%`,
           direction: metrics.revenueGrowth >= 0 ? "up" : "down",
-          label: "较上月",
+          label: t("metric_revenue_trend"),
           isPositiveGood: true,
         }}
         sparklineData={revenueSparkline}
@@ -62,15 +56,15 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
 
       {/* 2. Total Orders (with drilldown to /orders) */}
       <StatCard
-        title="总订单量 (Orders)"
-        value={integerFormatter.format(metrics.totalOrders)}
+        title={t("metric_orders_title")}
+        value={format.number(metrics.totalOrders)}
         icon={ShoppingCart}
         theme="chart-1"
-        description="平台全渠道支付成功的有效订单总量，支持点击下钻查看明细"
+        description={t("metric_orders_desc")}
         trend={{
           value: `+${metrics.ordersGrowth}%`,
           direction: metrics.ordersGrowth >= 0 ? "up" : "down",
-          label: "较上月",
+          label: t("metric_orders_trend"),
           isPositiveGood: true,
         }}
         sparklineData={ordersSparkline}
@@ -80,15 +74,15 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
 
       {/* 3. Catalog Products (with drilldown to /products) */}
       <StatCard
-        title="商品类目 (Products)"
+        title={t("metric_products_title")}
         value={metrics.totalProducts}
         icon={Package}
         theme="chart-4"
-        description="在线运营的有效 SKU 计数，点击查看商品目录"
+        description={t("metric_products_desc")}
         trend={{
-          value: `${metrics.lowStockCount} 件库存偏低`,
+          value: t("metric_low_stock", { count: metrics.lowStockCount }),
           direction: metrics.lowStockCount > 0 ? "down" : "neutral",
-          label: "预警",
+          label: t("metric_alert_label"),
           isPositiveGood: false,
         }}
         sparklineData={productsSparkline}
@@ -97,15 +91,15 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
 
       {/* 4. Active Customers */}
       <StatCard
-        title="活跃客户 (Customers)"
-        value={integerFormatter.format(metrics.totalCustomers)}
+        title={t("metric_customers_title")}
+        value={format.number(metrics.totalCustomers)}
         icon={Users}
         theme="chart-3"
-        description="近 30 天内在系统中有浏览或下单交互的独立客户数"
+        description={t("metric_customers_desc")}
         trend={{
           value: `+${metrics.customersGrowth ?? 8.2}%`,
           direction: "up",
-          label: "较上月",
+          label: t("metric_customers_trend"),
           isPositiveGood: true,
         }}
         sparklineData={customersSparkline}

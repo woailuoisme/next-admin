@@ -17,9 +17,7 @@ export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: Tr
       <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-foreground text-lg font-semibold">Time-Series Visualization Gallery</h2>
-          <p className="text-muted-foreground text-xs">
-            Smooth gradients, dual Y-axis support, and memoized tooltips.
-          </p>
+          <p className="text-muted-foreground text-xs">Smooth gradients, dual Y-axis support, and memoized tooltips.</p>
         </div>
         <div className="bg-muted/30 flex w-fit items-center gap-1 rounded-md border p-1">
           {TIME_RANGES.map((tr) => (

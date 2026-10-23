@@ -123,11 +123,7 @@ export function TableFilterControlsBar({
           size="sm"
           onClick={() =>
             setPaginationVariant(
-              paginationVariant === "capsule"
-                ? "shadcn"
-                : paginationVariant === "shadcn"
-                  ? "simple"
-                  : "capsule",
+              paginationVariant === "capsule" ? "shadcn" : paginationVariant === "shadcn" ? "simple" : "capsule",
             )
           }
           className="h-8 gap-1.5 text-xs"
@@ -135,19 +131,11 @@ export function TableFilterControlsBar({
           <span>Pagination:</span>
           <Badge
             variant={
-              paginationVariant === "capsule"
-                ? "default"
-                : paginationVariant === "shadcn"
-                  ? "outline"
-                  : "secondary"
+              paginationVariant === "capsule" ? "default" : paginationVariant === "shadcn" ? "outline" : "secondary"
             }
             className="text-[10px]"
           >
-            {paginationVariant === "capsule"
-              ? "Capsule v5"
-              : paginationVariant === "shadcn"
-                ? "Shadcn UI"
-                : "Simple"}
+            {paginationVariant === "capsule" ? "Capsule v5" : paginationVariant === "shadcn" ? "Shadcn UI" : "Simple"}
           </Badge>
         </Button>
       </div>
