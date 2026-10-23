@@ -50,6 +50,7 @@ vitest.config.ts
 .env
 .env.*
 !.env.example
+!.env.production
 
 # Docs (not needed at build time)
 README.md

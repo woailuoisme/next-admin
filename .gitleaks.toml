@@ -8,13 +8,7 @@ useDefault = true
 
 [allowlist]
 description = "全局白名单：忽略文档教程、测试用例、锁文件及公开演示 Key"
-paths = [
-  '''^\.agents/''',
-  '''^test/''',
-  '''\.lock$''',
-  '''\.md$''',
-  '''\.example$''',
-]
+paths = ['''^\.agents/''', '''^test/''', '''\.lock$''', '''\.md$''', '''\.example$''']
 stopwords = [
   # 文档示例密钥 (Dummy Keys in docs)
   "sk_live_abc123def456",

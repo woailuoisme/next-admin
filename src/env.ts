@@ -16,7 +16,7 @@ const envSchema = z.object({
 });
 
 const parsed = envSchema.safeParse({
-  APP_TITLE: process.env.NEXT_PUBLIC_APP_TITLE,
+  APP_TITLE: process.env.NEXT_PUBLIC_APP_TITLE || undefined,
   APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   ENABLE_MOCK: defaultEnableMock,
   API_URL: process.env.NEXT_PUBLIC_API_URL,

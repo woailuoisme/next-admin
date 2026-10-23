@@ -25,12 +25,6 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production
 
-# 预留 CI/CD 多环境动态注入的公共构建参数
-ARG NEXT_PUBLIC_APP_TITLE
-ARG NEXT_PUBLIC_APP_URL
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_ENABLE_MOCK
-
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
