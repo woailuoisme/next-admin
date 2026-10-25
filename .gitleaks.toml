@@ -18,4 +18,6 @@ stopwords = [
   # 公开地图演示 Key (Public Client-side Demo Keys)
   "09b3952ec0114dfc92d8522c5c541744",
   "cc29193551434f284ba897ba74b393eb",
+  # 演示用 Mock JWT (Mock Realtime Token)
+  "mock_signature",
 ]
