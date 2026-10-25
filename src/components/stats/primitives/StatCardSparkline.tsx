@@ -1,6 +1,6 @@
 import { memo } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { SparklineLayout, StatCardTheme, StatDensity } from "../shared/types";
 import type { SparklinePoint, SparklineType } from "../sparkline/types";

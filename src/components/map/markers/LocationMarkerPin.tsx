@@ -2,7 +2,7 @@ import { MapPin } from "lucide-react";
 import { memo } from "react";
 
 import { MapMarker, MarkerContent, MarkerPopup } from "@/components/ui/map";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { LocationMarkerItem } from "./types";
 

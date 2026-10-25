@@ -1,11 +1,11 @@
 import { useMemoizedFn } from "ahooks";
 import { Clock, X } from "lucide-react";
-import { memo, type ReactNode } from "react";
+import { memo } from "react";
 
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, useFieldId } from "../core";
+import { type BaseInputProps, FormFieldEngine } from "../core";
 
 export interface TimePickerInputProps extends BaseInputProps {
   value?: string;
@@ -16,7 +16,7 @@ export interface TimePickerInputProps extends BaseInputProps {
   clearable?: boolean;
 }
 
-interface TimePickerInputInnerProps {
+interface TimePickerControlProps {
   id: string;
   step: number;
   value: string;
@@ -25,10 +25,10 @@ interface TimePickerInputInnerProps {
   disabled?: boolean;
   placeholder?: string;
   clearable?: boolean;
-  computedError?: ReactNode;
+  hasError?: boolean;
 }
 
-const TimePickerInputInner = memo(function TimePickerInputInner({
+const TimePickerControl = memo(function TimePickerControl({
   id,
   step,
   value,
@@ -37,8 +37,8 @@ const TimePickerInputInner = memo(function TimePickerInputInner({
   disabled,
   placeholder,
   clearable,
-  computedError,
-}: TimePickerInputInnerProps) {
+  hasError,
+}: TimePickerControlProps) {
   const handleClear = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();
     onChange("");
@@ -64,7 +64,7 @@ const TimePickerInputInner = memo(function TimePickerInputInner({
         placeholder={placeholder}
         className={cn(
           "h-8 bg-transparent pr-7 pl-8 font-mono text-xs",
-          computedError && "border-destructive focus-visible:ring-destructive/20",
+          hasError && "border-destructive focus-visible:ring-destructive/20",
         )}
       />
       {clearable && value && !disabled && (
@@ -103,44 +103,39 @@ export const TimePickerInput = memo(function TimePickerInput({
   step = 60,
   clearable = true,
 }: TimePickerInputProps) {
-  const id = useFieldId(name, explicitId);
-
   return (
-    <FieldConnector<string>
+    <FormFieldEngine<string>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value = "", onChange, onBlur, error: computedError }) => (
-        <FieldWrapper
-          label={label}
+      {({ id, value = "", onChange, onBlur, disabled: isDisabled, hasError }) => (
+        <TimePickerControl
           id={id}
-          required={required}
-          hint={hint}
-          helperText={helperText}
-          tooltip={tooltip}
-          error={computedError}
-          colSpan={colSpan}
-          className={className}
-          hidden={hidden}
-        >
-          <TimePickerInputInner
-            id={id}
-            step={step}
-            value={value}
-            onChange={onChange}
-            onBlur={onBlur}
-            disabled={disabled}
-            placeholder={placeholder}
-            clearable={clearable}
-            computedError={computedError}
-          />
-        </FieldWrapper>
+          step={step}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          disabled={isDisabled}
+          placeholder={placeholder}
+          clearable={clearable}
+          hasError={hasError}
+        />
       )}
-    </FieldConnector>
+    </FormFieldEngine>
   );
 });

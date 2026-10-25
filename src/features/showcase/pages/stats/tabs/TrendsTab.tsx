@@ -1,4 +1,7 @@
-import { AreaTrendChart, BarTrendChart, ComposedTrendChart, LineTrendChart } from "@/components/chart";
+import { AreaTrendChart } from "@/components/chart/area/AreaTrendChart";
+import { BarTrendChart } from "@/components/chart/bar/BarTrendChart";
+import { ComposedTrendChart } from "@/components/chart/composed/ComposedTrendChart";
+import { LineTrendChart } from "@/components/chart/line/LineTrendChart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 

@@ -97,7 +97,7 @@ export function ResourceTable<
   return (
     <DataTable<TData>
       {...dataTableProps}
-      {...tableProps}
+      state={tableProps}
       columns={columns}
       getRowId={getRowId}
       filterModel={dataTableProps.filterModel ?? tableProps.filterModel}

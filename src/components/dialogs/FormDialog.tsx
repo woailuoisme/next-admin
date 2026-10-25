@@ -7,27 +7,14 @@ import { memo, type SubmitEvent, useEffect, useId, useMemo, useRef } from "react
 
 import { FormContext } from "@/components/form";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { DialogFooter } from "@/components/ui/dialog";
+import { SheetFooter } from "@/components/ui/sheet";
+import { cn } from "cn";
 
 import type { FormDialogProps } from "./types";
 
-import { FullscreenToggle } from "./FullscreenToggle";
-import { useDialogFullscreen } from "./hooks/useDialogFullscreen";
-import {
-  DIALOG_BODY_CLASS,
-  DIALOG_FOOTER_CLASS,
-  getDialogContentClassName,
-  getSheetContentClassName,
-} from "./sizeClasses";
+import { ModalFrame } from "./ModalFrame";
+import { DIALOG_BODY_CLASS, DIALOG_FOOTER_CLASS } from "./sizeClasses";
 
 export const FormDialog = memo(function FormDialog<TData = Record<string, unknown>>({
   open,
@@ -62,12 +49,6 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   const t = useTranslations("dialog");
   const formId = useId();
   const isEdit = mode ? mode === "edit" : Boolean(entity);
-
-  const { isFullscreen, toggleFullscreen } = useDialogFullscreen({
-    open,
-    fullscreen: controlledFullscreen,
-    onFullscreenChange,
-  });
 
   const prevOpenRef = useRef(false);
   const prevEntityIdRef = useRef<unknown>(undefined);
@@ -184,40 +165,21 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
     </form>
   );
 
-  if (variant === "sheet") {
-    return (
-      <Sheet open={open} onOpenChange={handleOpenChange}>
-        <SheetContent side="right" className={getSheetContentClassName({ widthClassName, size, className })}>
-          <SheetHeader className="border-border/60 shrink-0 border-b px-6 py-4 pr-16">
-            <SheetTitle>{resolvedTitle}</SheetTitle>
-            {description ? (
-              <SheetDescription className="text-muted-foreground text-xs leading-normal">
-                {description}
-              </SheetDescription>
-            ) : null}
-          </SheetHeader>
-          {renderFormContent(SheetFooter)}
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className={getDialogContentClassName({ isFullscreen, widthClassName, size, className })}>
-        {allowFullscreen ? <FullscreenToggle isFullscreen={isFullscreen} onToggle={toggleFullscreen} /> : null}
-
-        <DialogHeader className="border-border/60 shrink-0 border-b px-6 py-4 pr-16">
-          <DialogTitle>{resolvedTitle}</DialogTitle>
-          {description ? (
-            <DialogDescription className="text-muted-foreground text-xs leading-normal">
-              {description}
-            </DialogDescription>
-          ) : null}
-        </DialogHeader>
-
-        {renderFormContent(DialogFooter)}
-      </DialogContent>
-    </Dialog>
+    <ModalFrame
+      open={open}
+      onOpenChange={handleOpenChange}
+      variant={variant}
+      size={size}
+      widthClassName={widthClassName}
+      className={className}
+      allowFullscreen={allowFullscreen}
+      fullscreen={controlledFullscreen}
+      onFullscreenChange={onFullscreenChange}
+      title={resolvedTitle}
+      description={description}
+    >
+      {renderFormContent(variant === "sheet" ? SheetFooter : DialogFooter)}
+    </ModalFrame>
   );
 });

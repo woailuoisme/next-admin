@@ -56,24 +56,48 @@ function DataTableToolbarInner<TData = unknown>(props: InternalDataTableToolbarP
   return (
     <div className="border-border/50 flex flex-col border-b">
       {/* Top segmented status tabs (if configured) */}
-      {tabs && tabs.length > 0 && activeTab && (
+      {tabs && tabs.length > 0 && activeTab ? (
         <div className="bg-card/50 px-2.5 pt-2.5">
           <DataTableStatusTabs tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
         </div>
-      )}
+      ) : null}
 
       <div className="bg-card/50 flex flex-wrap items-center justify-between gap-3 p-2.5">
-        {/* Left controls: Columns, Filters, Density, Export */}
+        {/* Left controls: Quick filter & Saved Views */}
         <div className="flex flex-wrap items-center gap-2">
-          {showColumns && (
+          {showQuickFilter ? (
+            <DataTableQuickFilter
+              value={quickFilterValue}
+              onChange={onQuickFilterChange}
+              placeholder={quickFilterPlaceholder}
+              entity={quickFilterEntity}
+            />
+          ) : null}
+
+          {enableSavedViews && savedViews ? (
+            <DataTableSavedViews
+              views={savedViews}
+              activeViewId={activeViewId}
+              onApplyView={onApplyView}
+              onSaveCurrentView={onSaveCurrentView}
+              onDeleteView={onDeleteView}
+            />
+          ) : null}
+        </div>
+
+        {/* Right controls: Columns, Filters, Density, Export, Custom Actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          {customActions}
+
+          {showColumns ? (
             <DataTableColumnsPanel
               columns={columns}
               columnVisibility={columnVisibility}
               onColumnVisibilityChange={onColumnVisibilityChange}
             />
-          )}
+          ) : null}
 
-          {showFilters && filterConfig?.layout !== "aboveContent" && (
+          {showFilters && filterConfig?.layout !== "aboveContent" ? (
             <DataTableFilterPanel
               columns={columns}
               filterModel={filterModel}
@@ -82,54 +106,30 @@ function DataTableToolbarInner<TData = unknown>(props: InternalDataTableToolbarP
               filters={filters}
               data={data}
             />
-          )}
+          ) : null}
 
-          {showDensity && <DataTableDensityMenu density={density} onDensityChange={onDensityChange} />}
+          {showDensity ? <DataTableDensityMenu density={density} onDensityChange={onDensityChange} /> : null}
 
-          {showExport && (
+          {showExport ? (
             <DataTableExportMenu
               onExportExcel={onExportExcel}
               onExportCsv={onExportCsv}
               onExportJson={onExportJson}
               onPrint={onPrint}
             />
-          )}
-
-          {customActions}
-        </div>
-
-        {/* Right controls: Saved Views & Quick filter */}
-        <div className="flex items-center gap-2">
-          {enableSavedViews && savedViews && (
-            <DataTableSavedViews
-              views={savedViews}
-              activeViewId={activeViewId}
-              onApplyView={onApplyView}
-              onSaveCurrentView={onSaveCurrentView}
-              onDeleteView={onDeleteView}
-            />
-          )}
-
-          {showQuickFilter && (
-            <DataTableQuickFilter
-              value={quickFilterValue}
-              onChange={onQuickFilterChange}
-              placeholder={quickFilterPlaceholder}
-              entity={quickFilterEntity}
-            />
-          )}
+          ) : null}
         </div>
       </div>
 
       {/* Active filter badges / pills */}
-      {showActiveFiltersPills && (
+      {showActiveFiltersPills ? (
         <ActiveFilterPills
           filterModel={filterModel}
           onFilterModelChange={onFilterModelChange}
           columns={columns}
           filters={filters}
         />
-      )}
+      ) : null}
     </div>
   );
 }

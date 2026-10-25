@@ -1,7 +1,10 @@
 import { useTranslations } from "next-intl";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { memo, type ComponentType } from "react";
-import { cn } from "@/lib/utils";
+
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "cn";
 
 import type { PacingStatus } from "../progress-card/types";
 import type { StatCardTheme } from "../shared/types";
@@ -85,20 +88,22 @@ export const StatCardProgress = memo(function StatCardProgress({
 
   return (
     <div className={cn("space-y-2", className)}>
-      {/* Track & Filled Bar */}
-      <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
-        <div
-          className={cn("h-full rounded-full transition-all duration-500 ease-out", themeConfig.accentBar)}
-          style={{ width: `${calculatedProgress}%` }}
-        />
-      </div>
+      {/* Track & Filled Bar via Shadcn Progress primitive */}
+      <Progress
+        value={calculatedProgress}
+        className={cn(
+          "h-2 w-full",
+          themeConfig.accentBar && `[&>[data-slot=progress-indicator]]:${themeConfig.accentBar}`,
+        )}
+      />
 
       {/* Status row: Target Value + Pacing / Trend Info */}
       <div className="text-muted-foreground flex items-center justify-between gap-2 text-xs">
         <div>
           {targetValue !== undefined ? (
             <span>
-              Target: {prefix || ""}
+              {t("target_label")}
+              {prefix || ""}
               {targetDisplay}
               {suffix || ""}
             </span>
@@ -106,25 +111,27 @@ export const StatCardProgress = memo(function StatCardProgress({
         </div>
 
         {pacingInfo && (pacingLabel || pacingStatus) ? (
-          <div
+          <Badge
+            variant="outline"
             className={cn(
-              "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium",
+              "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
               pacingInfo.colorClass,
             )}
           >
             <pacingInfo.PacingIcon className="h-3 w-3" />
             <span>{pacingLabel || resolvePacingLabel(pacingInfo.status)}</span>
-          </div>
+          </Badge>
         ) : trend && trendInfo ? (
-          <div
+          <Badge
+            variant="outline"
             className={cn(
-              "inline-flex items-center gap-0.5 rounded-md border px-1.5 py-0.5 text-[11px] font-medium",
+              "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
               trendInfo.colorClass,
             )}
           >
             {DirIcon ? <DirIcon className="h-3 w-3" /> : null}
             <span>{trendInfo.displayValue}</span>
-          </div>
+          </Badge>
         ) : null}
       </div>
     </div>

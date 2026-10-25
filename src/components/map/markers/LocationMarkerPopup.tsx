@@ -53,9 +53,9 @@ export const LocationMarkerPopup = memo(function LocationMarkerPopup({ item }: L
           {item.coordinates[0].toFixed(4)}, {item.coordinates[1].toFixed(4)}
         </span>
         {item.category ? (
-          <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 font-sans font-medium">
+          <Badge variant="secondary" className="border-primary/20 bg-primary/10 text-primary px-1.5 py-0 text-[10px]">
             {item.category}
-          </span>
+          </Badge>
         ) : null}
       </div>
     </div>

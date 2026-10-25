@@ -5,6 +5,7 @@ export interface GlobalSearchProps {
 export interface GlobalSearchTriggerProps {
   onClick?: () => void;
   onMouseEnter?: () => void;
+  onFocus?: () => void;
   className?: string;
 
   triggerText?: string;

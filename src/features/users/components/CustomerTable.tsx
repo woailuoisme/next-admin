@@ -156,7 +156,7 @@ export function CustomerTable({ customers, loading, total, onToggleCustomerStatu
         }}
       >
         <Ban className="size-3.5" />
-        <span>Suspend ({selectedRows.length})</span>
+        <span>{t("batch_suspend", { count: selectedRows.length })}</span>
       </Button>
     </div>
   ));

@@ -2,8 +2,9 @@ import { useMemoizedFn } from "ahooks";
 import { memo } from "react";
 import { useTranslations } from "next-intl";
 
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { NotificationTabKey } from "../shared";
 import type { NotificationTabsProps } from "./types";
@@ -33,9 +34,12 @@ export const NotificationTabs = memo(function NotificationTabs({
             <TabsTrigger key={key} value={key} className={TAB_TRIGGER_CLASS}>
               <span>{t(labelKey)}</span>
               {key === "unread" && unreadCount > 0 && (
-                <span className="bg-primary/10 text-primary flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold">
+                <Badge
+                  variant="secondary"
+                  className="bg-primary/10 text-primary h-4 min-w-4 rounded-full border-0 px-1 text-[10px] font-semibold"
+                >
                   {unreadCount}
-                </span>
+                </Badge>
               )}
             </TabsTrigger>
           ))}

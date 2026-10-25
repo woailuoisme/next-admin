@@ -2,7 +2,8 @@
 
 import { Mail } from "lucide-react";
 
-import { FormGrid, FormSection, NumberInput, SliderInput, TextareaInput, TextInput } from "@/components/form";
+import { NumberInput, SliderInput, TextareaInput, TextInput } from "@/components/form/basic";
+import { FormGrid, FormSection } from "@/components/form/layout";
 
 import { formatRating } from "../constants";
 

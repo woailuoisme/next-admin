@@ -1,14 +1,13 @@
+import { useFormatter, useTranslations } from "next-intl";
 import { memo } from "react";
 import { Tooltip, Treemap } from "recharts";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ValueFormatter } from "../shared/formatters";
 import type { TreemapDistributionChartProps } from "./types";
 
 import { CHART_ON_FILL_TEXT } from "../shared/constants";
-import { useFormatter } from "next-intl";
-
 import { defaultNumberFormatter } from "../shared/formatters";
 import { ChartFrame } from "../shared/ChartFrame";
 import { useTreemapDistribution } from "./useTreemapDistribution";
@@ -111,6 +110,7 @@ const TreemapTooltipContent = memo(function TreemapTooltipContent({
   total,
   valueFormatter,
 }: TreemapTooltipContentProps) {
+  const t = useTranslations("chart");
   if (!active || !payload?.length) return null;
   const item = payload[0]?.payload;
   if (!item) return null;
@@ -130,7 +130,7 @@ const TreemapTooltipContent = memo(function TreemapTooltipContent({
         <span>{item.name}</span>
       </div>
       <div className="mt-1 flex items-baseline gap-2">
-        <span className="text-muted-foreground">数值:</span>
+        <span className="text-muted-foreground">{t("treemap_value")}:</span>
         <span className="text-foreground font-semibold tabular-nums">{valueFormatter(itemValue)}</span>
         <span className="text-muted-foreground text-xs">({percent.toFixed(1)}%)</span>
       </div>

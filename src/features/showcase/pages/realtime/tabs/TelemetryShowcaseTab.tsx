@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Activity, Cpu, HardDrive, type LucideIcon, Radio, Send, Zap } from "lucide-react";
 import type { ReactNode } from "react";
-import { AreaTrendChart } from "@/components/chart";
+import { AreaTrendChart } from "@/components/chart/area/AreaTrendChart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

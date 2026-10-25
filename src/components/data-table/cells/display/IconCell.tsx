@@ -3,7 +3,7 @@ import { CheckCircle2, Minus, XCircle } from "lucide-react";
 import { memo, type ReactNode } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { IconCellOption, IconCellProps } from "./types";
 
@@ -34,10 +34,10 @@ export const IconCell = memo(function IconCell({
   // 1. Boolean value mode
   if (typeof value === "boolean") {
     if (value) {
-      iconNode = <CheckCircle2 className={cn(sizeClasses[size], "shrink-0 text-emerald-500")} />;
+      iconNode = <CheckCircle2 className={cn(sizeClasses[size], "text-chart-2 shrink-0")} />;
       resolvedTooltip = resolvedTooltip || "是 / 已启用";
     } else {
-      iconNode = <XCircle className={cn(sizeClasses[size], "shrink-0 text-rose-500/80")} />;
+      iconNode = <XCircle className={cn(sizeClasses[size], "text-destructive shrink-0")} />;
       resolvedTooltip = resolvedTooltip || "否 / 未启用";
     }
   } else if (isNil(value)) {

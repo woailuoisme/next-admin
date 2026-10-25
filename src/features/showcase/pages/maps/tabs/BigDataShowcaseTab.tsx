@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LazyLocationMarkerMap } from "@/components/map";
+import { LazyLocationMarkerMap } from "@/components/map/lazy";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_DENSE_LOCATIONS } from "../constants";

@@ -231,7 +231,9 @@
     "category_electronics": "电子产品",
     "category_clothing": "服饰",
     "category_home": "家居",
-    "category_accessories": "配件"
+    "category_accessories": "配件",
+    "batch_export": "导出所选 ({count})",
+    "batch_delete": "批量删除 ({count})"
   },
   "search": {
     "placeholder": "搜索系统功能或数据...",
@@ -373,7 +375,29 @@
     "picker_selected_location": "已选位置",
     "picker_view_only": "仅查看位置",
     "picker_reverse_geocoding": "正在获取地址...",
-    "picker_address_not_found": "未能获取该坐标的有效详细地址"
+    "picker_address_not_found": "未能获取该坐标的有效详细地址",
+    "fullscreen_badge": "全屏聚焦视图",
+    "skeleton_loading": "正在载入矢量地理数据与底图资源...",
+    "heatmap_density": "热力密度 (KDE)",
+    "heatmap_gpu_badge": "GPU KDE 核密度渲染",
+    "heatmap_low": "低密度 (Low)",
+    "heatmap_medium": "中 (Med)",
+    "heatmap_high": "高密度 (High)",
+    "heatmap_points_count": "{count} 点",
+    "markers_list_title": "网点列表 ({count})",
+    "markers_cancel_selection": "取消选中",
+    "markers_search_placeholder": "搜索网点名称、地址或类型...",
+    "markers_clear_search": "清空搜索",
+    "markers_category_all": "全部 ({count})",
+    "markers_gpu_badge": "GPU 矢量加速 ({count} 点)",
+    "arc_flight_title": "航线流向与网络拓扑",
+    "arc_flight_desc": "枢纽辐射网络与流向监控",
+    "arc_flight_detail": "航线流向详情",
+    "arc_flight_origin": "起点",
+    "arc_flight_dest": "终点",
+    "arc_flight_volume": "流向业务量",
+    "geo_distribution_title": "区域指标分布",
+    "geo_distribution_desc": "空间地理数据密度与区域指标分层"
   },
   "chart": {
     "empty_title": "暂无统计数据",
@@ -393,7 +417,19 @@
     "period_1y": "1年",
     "legend_low": "低",
     "legend_high": "高",
-    "heatmap_legend_title": "活跃度"
+    "heatmap_legend_title": "活跃度",
+    "gauge_label": "达成率",
+    "funnel_value": "阶段数值",
+    "funnel_retention": "总体留存",
+    "funnel_dropoff": "上阶段流失",
+    "waterfall_change": "变动金额",
+    "waterfall_total": "当前累计",
+    "treemap_value": "数值",
+    "scatter_data_point": "数据点",
+    "scatter_z_axis": "权重",
+    "sparkline_trend_up": "上升",
+    "sparkline_trend_down": "下降",
+    "sparkline_trend_neutral": "平稳"
   },
   "stats": {
     "status_online": "运行正常",
@@ -413,7 +449,8 @@
     "copied_failed": "复制失败",
     "pacing_ahead": "超额达成",
     "pacing_on_track": "稳步推进",
-    "pacing_behind": "进度滞后"
+    "pacing_behind": "进度滞后",
+    "target_label": "目标: "
   },
   "infolist": {
     "empty_text": "暂无数据",
@@ -460,6 +497,7 @@
     "glitchtip_test_btn": "触发测试异常 (Test Error)"
   },
   "layout": {
+    "skip_to_content": "跳至主体内容",
     "search_placeholder": "搜索系统功能或数据...",
     "search_trigger": "搜索...",
     "search_empty": "未找到相关结果",
@@ -511,6 +549,9 @@
     "metric_aov_trend": "较上季",
     "print_selected": "打印所选",
     "export_json": "导出 JSON ({count})",
+    "detail_sheet_title": "订单详情",
+    "detail_sheet_desc": "订单详情与履约跟踪",
+    "detail_placed_on": "下单时间：{date}",
     "detail_fulfillment": "履约进度",
     "detail_updating": "正在更新履约状态...",
     "detail_customer_info": "客户信息",
@@ -630,7 +671,8 @@
     "action_activate": "启用",
     "action_suspend_tooltip": "停用客户",
     "action_activate_tooltip": "启用客户",
-    "unit_purchases": " 笔"
+    "unit_purchases": " 笔",
+    "batch_suspend": "批量停用 ({count})"
   },
   "dashboard": {
     "page_title": "运营仪表盘",

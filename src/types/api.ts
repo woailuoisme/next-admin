@@ -52,3 +52,16 @@ export interface ApiErrorDetail {
 export interface ApiErrorResponse {
   error: ApiErrorDetail;
 }
+
+/** 排序方向标准契约 */
+export type ApiSortDirection = "asc" | "desc";
+
+/** 通用列表与表格查询参数契约 */
+export interface ApiQueryParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortField?: string;
+  sortOrder?: ApiSortDirection;
+  filters?: Record<string, unknown>;
+}

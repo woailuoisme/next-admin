@@ -6,8 +6,10 @@ import { useMemo } from "react";
 
 import { useTranslations } from "next-intl";
 
-import { FormDialog } from "@/components/dialogs";
-import { FormSection, NumberInput, SelectInput, TextareaInput, TextInput } from "@/components/form";
+import { FormDialog } from "@/components/dialogs/FormDialog";
+import { NumberInput, TextareaInput, TextInput } from "@/components/form/basic";
+import { SelectInput } from "@/components/form/choice";
+import { FormSection } from "@/components/form/layout";
 import { categoryQueries } from "@/features/categories";
 import { slugify } from "@/lib/slug";
 
@@ -41,7 +43,10 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, productId
   const isEditing = Boolean(effectiveProduct);
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const { data: categories = [] } = useQuery(categoryQueries.list());
+  const { data: categories = [] } = useQuery({
+    ...categoryQueries.list(),
+    enabled: open,
+  });
 
   const defaultValues = useMemo<ProductInput>(
     () => ({

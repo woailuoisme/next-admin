@@ -3,6 +3,7 @@ import { memo, type ReactNode } from "react";
 
 import { HelpCircle } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface LabelHelpTooltipProps {
@@ -24,13 +25,15 @@ export const LabelHelpTooltip = memo(function LabelHelpTooltip({ content, helpTo
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
+        <Button
           type="button"
-          className="text-muted-foreground/70 hover:text-foreground inline-flex cursor-help transition-colors"
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground/70 hover:text-foreground inline-flex size-3.5 cursor-help p-0 transition-colors hover:bg-transparent"
           aria-label={resolvedAria}
         >
           <HelpCircle className="size-3.5" />
-        </button>
+        </Button>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs text-xs">
         {content}

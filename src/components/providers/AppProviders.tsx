@@ -26,9 +26,9 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
 }
 
 const TOASTER_ICONS = {
-  success: <CircleCheckIcon className="size-4 text-emerald-500" />,
-  info: <InfoIcon className="size-4 text-sky-500" />,
-  warning: <TriangleAlertIcon className="size-4 text-amber-500" />,
+  success: <CircleCheckIcon className="text-chart-2 size-4" />,
+  info: <InfoIcon className="text-chart-1 size-4" />,
+  warning: <TriangleAlertIcon className="text-chart-3 size-4" />,
   error: <OctagonXIcon className="text-destructive size-4" />,
   loading: <Loader2Icon className="text-primary size-4 animate-spin" />,
 };
@@ -63,7 +63,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
               </>
             ) : (
               <div className="flex h-screen w-full items-center justify-center">
-                <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+                <Loader2Icon className="text-primary size-7 animate-spin" />
               </div>
             )}
             <Toaster position="top-right" closeButton visibleToasts={4} icons={TOASTER_ICONS} theme={resolvedTheme} />

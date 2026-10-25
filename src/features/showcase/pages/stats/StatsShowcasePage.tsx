@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMemoizedFn } from "ahooks";
 import { Activity, AlertCircle, Layers, LineChart, PieChart } from "lucide-react";
 
-import { useLiveTicker } from "@/components/stats";
+import { useLiveTicker } from "@/components/stats/live-card/useLiveTicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { StatsHeaderBar } from "./components/StatsHeaderBar";

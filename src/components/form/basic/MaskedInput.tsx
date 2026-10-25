@@ -1,6 +1,6 @@
 import { useMemoizedFn } from "ahooks";
 import { X } from "lucide-react";
-import { type ChangeEvent, type ReactNode, memo, useId, useState } from "react";
+import { type ChangeEvent, type ReactNode, memo, useMemo } from "react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -10,9 +10,9 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "@/components/ui/input-group";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, resolveFieldHasError } from "../core";
+import { type BaseInputProps, FormFieldEngine } from "../core";
 
 export interface MaskedInputProps extends BaseInputProps {
   value?: string;
@@ -27,7 +27,7 @@ export interface MaskedInputProps extends BaseInputProps {
   inputClassName?: string;
 }
 
-interface MaskedInputInnerProps {
+interface MaskedControlProps {
   id: string;
   value?: string;
   onChange: (value: string) => void;
@@ -96,9 +96,9 @@ export function formatWithMask(rawInput: string, mask: string): { masked: string
   return { masked, unmasked };
 }
 
-const MaskedInputInner = memo(function MaskedInputInner({
+const MaskedControl = memo(function MaskedControl({
   id,
-  value,
+  value = "",
   onChange,
   onBlur,
   mask,
@@ -111,25 +111,16 @@ const MaskedInputInner = memo(function MaskedInputInner({
   suffix,
   inputClassName,
   hasError,
-}: MaskedInputInnerProps) {
-  const initial = formatWithMask(value ?? "", mask);
-  const [displayValue, setDisplayValue] = useState(initial.masked);
-  const [prevValue, setPrevValue] = useState(value);
-
-  if (value !== prevValue) {
-    setPrevValue(value);
-    setDisplayValue(formatWithMask(value ?? "", mask).masked);
-  }
+}: MaskedControlProps) {
+  const displayValue = useMemo(() => formatWithMask(value ?? "", mask).masked, [value, mask]);
 
   const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     const { masked, unmasked: cleanUnmasked } = formatWithMask(raw, mask);
-    setDisplayValue(masked);
     onChange(unmask ? cleanUnmasked : masked);
   });
 
   const handleClear = useMemoizedFn(() => {
-    setDisplayValue("");
     onChange("");
   });
 
@@ -214,7 +205,7 @@ export function MaskedInput({
   disabled,
   readOnly,
   value: controlledValue,
-  defaultValue,
+  defaultValue = "",
   onChange: controlledOnChange,
   onBlur: controlledOnBlur,
   mask,
@@ -224,55 +215,45 @@ export function MaskedInput({
   clearable = false,
   inputClassName,
 }: MaskedInputProps) {
-  const generatedId = useId();
-  const id = explicitId || generatedId;
-
   return (
-    <FieldConnector
+    <FormFieldEngine<string>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
+      readOnly={readOnly}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      disabled={disabled}
-      readOnly={readOnly}
-      render={({ value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, meta }) => {
-        const hasError = resolveFieldHasError(error, meta);
-
-        return (
-          <FieldWrapper
-            id={id}
-            label={label}
-            required={required}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={error}
-            meta={meta}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-          >
-            <MaskedInputInner
-              id={id}
-              value={typeof value === "string" ? value : ""}
-              onChange={onChange}
-              onBlur={onBlur}
-              mask={mask}
-              unmask={unmask}
-              placeholder={placeholder}
-              disabled={isDisabled}
-              readOnly={isReadOnly}
-              clearable={clearable}
-              prefix={prefix}
-              suffix={suffix}
-              inputClassName={inputClassName}
-              hasError={hasError}
-            />
-          </FieldWrapper>
-        );
-      }}
-    />
+    >
+      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+        <MaskedControl
+          id={id}
+          value={typeof value === "string" ? value : ""}
+          onChange={onChange}
+          onBlur={onBlur}
+          mask={mask}
+          unmask={unmask}
+          placeholder={placeholder}
+          disabled={isDisabled}
+          readOnly={isReadOnly}
+          clearable={clearable}
+          prefix={prefix}
+          suffix={suffix}
+          inputClassName={inputClassName}
+          hasError={hasError}
+        />
+      )}
+    </FormFieldEngine>
   );
 }

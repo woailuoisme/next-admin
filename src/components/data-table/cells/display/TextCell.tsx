@@ -4,7 +4,7 @@ import { memo } from "react";
 
 import { CopyButton } from "@/components/shared/CopyButton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { TextCellProps } from "./types";
 

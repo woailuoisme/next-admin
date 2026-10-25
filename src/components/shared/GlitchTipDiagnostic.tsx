@@ -7,6 +7,7 @@ import { memo } from "react";
 import { toast } from "sonner";
 import { cn } from "cn";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { isGlitchTipEnabled, triggerTestError } from "@/integrations/glitchtip";
 
@@ -45,7 +46,8 @@ export const GlitchTipDiagnostic = memo(function GlitchTipDiagnostic({
           <Activity className="text-primary size-3" />
           {titleText}
         </span>
-        <span
+        <Badge
+          variant="secondary"
           className={cn(
             "rounded px-1.5 py-0.5 text-[9px] font-semibold",
             isEnabled
@@ -54,7 +56,7 @@ export const GlitchTipDiagnostic = memo(function GlitchTipDiagnostic({
           )}
         >
           {statusText}
-        </span>
+        </Badge>
       </div>
       <Button
         type="button"

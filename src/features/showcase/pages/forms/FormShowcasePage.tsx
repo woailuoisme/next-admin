@@ -6,7 +6,7 @@ import { Calendar, CheckCircle2, Layers, MapPin, Palette, Send, ShieldCheck, Upl
 import { type SyntheticEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { FormTabs } from "@/components/form";
+import { FormTabs } from "@/components/form/layout";
 import { Button } from "@/components/ui/button";
 
 import { ResourceShowcaseSection } from "../../components/ResourceShowcaseSection";

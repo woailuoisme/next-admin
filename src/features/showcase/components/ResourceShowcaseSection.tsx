@@ -4,7 +4,9 @@ import { BadgeCheck, Check, Code2, Copy, Eye, Layers, Pencil, Plus, Sparkles } f
 import { memo, useState } from "react";
 import { toast } from "sonner";
 
-import { FormGrid, SelectInput, SwitchInput, TextInput } from "@/components/form";
+import { TextInput } from "@/components/form/basic";
+import { SelectInput, SwitchInput } from "@/components/form/choice";
+import { FormGrid } from "@/components/form/layout";
 import {
   ResourceFormHost,
   type ResourcePresentation,
@@ -46,10 +48,11 @@ const TIER_OPTIONS = [
  * 页面 chrome 状态配色（业务功能色统一收敛于此表）
  */
 const SHOWCASE_ACCENT_CLASSES = {
-  success: "text-emerald-500",
-  info: "text-sky-500",
-  warning: "text-amber-500",
-  successText: "text-emerald-600 dark:text-emerald-400",
+  success: "text-chart-2",
+  info: "text-primary",
+  warning: "text-chart-4",
+  successText: "text-chart-2",
+  successBorder: "border-chart-2/30",
 } as const;
 
 export const ResourceShowcaseSection = memo(function ResourceShowcaseSection() {
@@ -422,7 +425,7 @@ const ops = useResourceOperations<Customer>({
         badge={
           <Badge
             variant="outline"
-            className={`border-emerald-500/30 text-[10px] ${SHOWCASE_ACCENT_CLASSES.successText}`}
+            className={`${SHOWCASE_ACCENT_CLASSES.successBorder} text-[10px] ${SHOWCASE_ACCENT_CLASSES.successText}`}
           >
             ACTIVE ENTERPRISE
           </Badge>

@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { memo } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ActionItem, ActionsCellProps } from "./types";
 

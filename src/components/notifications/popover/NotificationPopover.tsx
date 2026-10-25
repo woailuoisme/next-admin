@@ -1,7 +1,7 @@
 import { memo } from "react";
 
 import { PopoverContent } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { NotificationPopoverProps } from "./types";
 

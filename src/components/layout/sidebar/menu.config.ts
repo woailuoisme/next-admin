@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 
 import { createNamespaceTranslator } from "@/i18n";
@@ -165,18 +166,18 @@ export function getFlatNavItems(groups: NavGroup[] = getSidebarMenuGroups()): Fl
 /**
  * Dynamic route title lookup based on current pathname
  */
-export function getRouteTitle(pathname: string, fallback?: string): string {
+export function getRouteTitle(pathname: string, fallback?: string, items?: FlatNavItem[]): string {
   const cleanPath = pathname.split("?")[0].replace(/\/+$/, "") || "/";
-  const items = getFlatNavItems();
+  const searchItems = items ?? getFlatNavItems();
 
   // Exact match first
-  const exact = items.find((item) => item.to === cleanPath);
+  const exact = searchItems.find((item) => item.to === cleanPath);
   if (exact) {
     return exact.title;
   }
 
   // Prefix match
-  const prefix = items.find((item) => item.to !== "/" && cleanPath.startsWith(`${item.to}/`));
+  const prefix = searchItems.find((item) => item.to !== "/" && cleanPath.startsWith(`${item.to}/`));
   if (prefix) {
     return prefix.title;
   }
@@ -192,6 +193,17 @@ export function getRouteTitle(pathname: string, fallback?: string): string {
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+/**
+ * React hook to retrieve the localized route title, reactive to locale changes
+ */
+export function useRouteTitle(pathname: string, fallback?: string): string {
+  const menuGroups = useSidebarMenuGroups();
+  return useMemo(() => {
+    const flatItems = getFlatNavItems(menuGroups);
+    return getRouteTitle(pathname, fallback, flatItems);
+  }, [menuGroups, pathname, fallback]);
 }
 
 /**

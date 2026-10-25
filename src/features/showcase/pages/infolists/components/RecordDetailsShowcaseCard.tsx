@@ -15,7 +15,7 @@ import {
 } from "@/components/infolist";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 import { SAMPLE_USER_DATA } from "../constants";
 
 interface RecordDetailsShowcaseCardProps {

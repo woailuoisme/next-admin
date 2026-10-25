@@ -92,6 +92,7 @@ export function useBatchMutation<TItem, TResult = unknown>(
     const results: TResult[] = [];
     const failedItems: { item: TItem; error: Error }[] = [];
     let completed = 0;
+    let isSettled = false;
     const poolSize = clamp(concurrency, 1, items.length);
 
     return new Promise<TResult[]>((resolve, reject) => {
@@ -121,7 +122,8 @@ export function useBatchMutation<TItem, TResult = unknown>(
             completed++;
             setProgress({ current: completed, total: items.length });
 
-            if (completed >= items.length || isCancelledRef.current) {
+            if ((completed >= items.length || isCancelledRef.current) && !isSettled) {
+              isSettled = true;
               try {
                 const { successMessage, errorMessage, onError, onSuccess } = optionsRef.current;
 

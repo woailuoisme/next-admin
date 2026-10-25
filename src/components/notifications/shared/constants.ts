@@ -17,20 +17,20 @@ export const NOTIFICATION_TABS: readonly {
   { key: "system", labelKey: "tab_system", category: "system" },
 ];
 
-/** 通知严重级别徽章配色：业务状态色统一收敛于此常量表 */
+/** 通知严重级别徽章配色：业务状态色统一收敛于此常量表，严格使用语义化设计令牌 */
 export const SEVERITY_BADGE_CLASSES: Record<NotificationSeverity, string> = {
   error: "bg-destructive/10 text-destructive dark:bg-destructive/20",
-  warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 dark:bg-amber-500/20",
-  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 dark:bg-emerald-500/20",
-  info: "bg-sky-500/10 text-sky-600 dark:text-sky-400 dark:bg-sky-500/20",
+  warning: "bg-chart-3/15 text-chart-3",
+  success: "bg-chart-2/15 text-chart-2",
+  info: "bg-chart-1/15 text-chart-1",
 };
 
-/** 通知图标前景色：业务状态色统一收敛于此常量表 */
+/** 通知图标前景色：业务状态色统一收敛于此常量表，适配暗黑模式与动态主题 */
 const NOTIFICATION_ICON_CLASSES = {
-  order: "size-3.5 text-emerald-600 dark:text-emerald-400",
-  customer: "size-3.5 text-sky-600 dark:text-sky-400",
+  order: "size-3.5 text-chart-2",
+  customer: "size-3.5 text-chart-1",
   error: "size-3.5 text-destructive",
-  warning: "size-3.5 text-amber-600 dark:text-amber-400",
+  warning: "size-3.5 text-chart-3",
   default: "size-3.5 text-primary",
 } as const;
 

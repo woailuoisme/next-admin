@@ -22,28 +22,25 @@ import { memo, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
-import type { KeyValueInputInnerProps, KeyValueInputProps, KeyValueRowItem } from "./types";
+import type { KeyValueInputProps, KeyValueRowItem } from "./types";
 
-import { FieldConnector, FieldWrapper, useFieldId } from "../../core";
+import { FormFieldEngine } from "../../core";
 import { KeyValueRawEditor } from "./KeyValueRawEditor";
 import { KeyValueRow } from "./KeyValueRow";
 import { createKvRow, findDuplicateKeys, markDuplicateRows, parseToRows, rowsToPairs, rowsToRecord } from "./parsers";
 
 const EMPTY_RECORD: Record<string, string> = {};
 
-const KeyValueInputInner = memo(function KeyValueInputInner({
-  id,
-  label,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
+interface KeyValueControlProps extends Omit<KeyValueInputProps, "form" | "defaultValue" | "value" | "onChange"> {
+  id: string;
+  value?: Record<string, string> | any[];
+  onChange: (val: Record<string, string> | any[]) => void;
+  onBlur?: () => void;
+  hasError?: boolean;
+}
+
+const KeyValueControl = memo(function KeyValueControl({
   disabled,
   value,
   onChange,
@@ -65,7 +62,7 @@ const KeyValueInputInner = memo(function KeyValueInputInner({
   reorderable = true,
   maxItems,
   minItems = 0,
-}: KeyValueInputInnerProps) {
+}: KeyValueControlProps) {
   const t = useTranslations("form");
   const keyPlaceholder = propKeyPlaceholder ?? t("keyvalue_key_placeholder");
   const valuePlaceholder = propValuePlaceholder ?? t("keyvalue_value_placeholder");
@@ -147,131 +144,116 @@ const KeyValueInputInner = memo(function KeyValueInputInner({
   const rowIds = useMemo(() => rows.map((r) => r._id), [rows]);
 
   return (
-    <FieldWrapper
-      label={label}
-      id={id}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-    >
-      <TooltipProvider>
-        <div className="w-full space-y-2 pt-1">
-          {/* 顶栏操作区：重复键警示与 Raw 视图切换 */}
-          <div className="flex min-h-6 items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              {hasDuplicates && !allowDuplicateKeys ? (
-                <Badge variant="destructive" className="h-5 gap-1 px-1.5 text-[10px] font-normal">
-                  <span>存在 {duplicateKeySet.size} 个重复键名</span>
-                </Badge>
+    <div className="w-full space-y-2 pt-1">
+      {/* 顶栏操作区：重复键警示与 Raw 视图切换 */}
+      <div className="flex min-h-6 items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          {hasDuplicates && !allowDuplicateKeys ? (
+            <Badge variant="destructive" className="h-5 gap-1 px-1.5 text-[10px] font-normal">
+              <span>存在 {duplicateKeySet.size} 个重复键名</span>
+            </Badge>
+          ) : null}
+        </div>
+
+        {enableRawMode && !disabled ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            onClick={() => setIsRawMode((prev) => !prev)}
+            className="text-muted-foreground hover:text-foreground h-6 gap-1 text-[11px]"
+          >
+            {isRawMode ? (
+              <>
+                <Table2 className="size-3" />
+                <span>表格模式</span>
+              </>
+            ) : (
+              <>
+                <Code2 className="size-3" />
+                <span>源码模式</span>
+              </>
+            )}
+          </Button>
+        ) : null}
+      </div>
+
+      {/* 视图分发：Raw 源码编辑 vs 表格行编辑 */}
+      {isRawMode && enableRawMode ? (
+        <KeyValueRawEditor
+          rows={rows}
+          defaultFormat={defaultRawFormat}
+          disabled={disabled}
+          onChange={emitChange}
+          onClose={() => setIsRawMode(false)}
+        />
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={rowIds} strategy={verticalListSortingStrategy}>
+            <div className="border-border/80 bg-card overflow-hidden rounded-lg border shadow-2xs">
+              <table className="w-full caption-bottom border-collapse text-xs">
+                <thead>
+                  <tr className="border-border/60 bg-muted/40 text-muted-foreground border-b font-medium select-none">
+                    {reorderable && !disabled ? (
+                      <th className="border-border/60 w-8 border-r px-2 py-2 text-center" />
+                    ) : null}
+                    <th className="border-border/60 text-muted-foreground border-r px-3 py-2 text-left font-medium">
+                      {keyLabel || "Key"}
+                    </th>
+                    <th
+                      className="text-muted-foreground px-3 py-2 text-left font-medium"
+                      colSpan={canDelete && !disabled ? 2 : 1}
+                    >
+                      {valueLabel || "Value"}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-border/40 divide-y">
+                  {rows.map((row) => (
+                    <KeyValueRow
+                      key={row._id}
+                      row={row}
+                      keyPlaceholder={keyPlaceholder}
+                      valuePlaceholder={valuePlaceholder}
+                      keySuggestions={keySuggestions}
+                      disabled={disabled}
+                      canEditKeys={canEditKeys}
+                      canDelete={canDelete && rows.length > minItems}
+                      reorderable={reorderable}
+                      masked={masked}
+                      onKeyChange={handleKeyChange}
+                      onValueChange={handleValChange}
+                      onRemove={removePair}
+                      onBlur={onBlur}
+                    />
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Filament 5 官方原生一体化贯通式底部加行栏 */}
+              {isAddAllowed ? (
+                <button
+                  type="button"
+                  onClick={addPair}
+                  className="border-border/60 bg-card text-foreground hover:bg-muted/40 active:bg-muted/60 flex h-9 w-full cursor-pointer items-center justify-center gap-1.5 border-t px-3 text-xs font-medium transition-colors"
+                >
+                  <Plus className="text-muted-foreground size-3.5" />
+                  <span>{addButtonText}</span>
+                </button>
               ) : null}
             </div>
-
-            {enableRawMode && !disabled ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                onClick={() => setIsRawMode((prev) => !prev)}
-                className="text-muted-foreground hover:text-foreground h-6 gap-1 text-[11px]"
-              >
-                {isRawMode ? (
-                  <>
-                    <Table2 className="size-3" />
-                    <span>表格模式</span>
-                  </>
-                ) : (
-                  <>
-                    <Code2 className="size-3" />
-                    <span>源码模式</span>
-                  </>
-                )}
-              </Button>
-            ) : null}
-          </div>
-
-          {/* 视图分发：Raw 源码编辑 vs 表格行编辑 */}
-          {isRawMode && enableRawMode ? (
-            <KeyValueRawEditor
-              rows={rows}
-              defaultFormat={defaultRawFormat}
-              disabled={disabled}
-              onChange={emitChange}
-              onClose={() => setIsRawMode(false)}
-            />
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              modifiers={[restrictToVerticalAxis]}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext items={rowIds} strategy={verticalListSortingStrategy}>
-                <div className="border-border/80 bg-card overflow-hidden rounded-lg border shadow-2xs">
-                  <table className="w-full caption-bottom border-collapse text-xs">
-                    <thead>
-                      <tr className="border-border/60 bg-muted/40 text-muted-foreground border-b font-medium select-none">
-                        {reorderable && !disabled ? (
-                          <th className="border-border/60 w-8 border-r px-2 py-2 text-center" />
-                        ) : null}
-                        <th className="border-border/60 text-muted-foreground border-r px-3 py-2 text-left font-medium">
-                          {keyLabel || "Key"}
-                        </th>
-                        <th
-                          className="text-muted-foreground px-3 py-2 text-left font-medium"
-                          colSpan={canDelete && !disabled ? 2 : 1}
-                        >
-                          {valueLabel || "Value"}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-border/40 divide-y">
-                      {rows.map((row) => (
-                        <KeyValueRow
-                          key={row._id}
-                          row={row}
-                          keyPlaceholder={keyPlaceholder}
-                          valuePlaceholder={valuePlaceholder}
-                          keySuggestions={keySuggestions}
-                          disabled={disabled}
-                          canEditKeys={canEditKeys}
-                          canDelete={canDelete && rows.length > minItems}
-                          reorderable={reorderable}
-                          masked={masked}
-                          onKeyChange={handleKeyChange}
-                          onValueChange={handleValChange}
-                          onRemove={removePair}
-                          onBlur={onBlur}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {/* Filament 5 官方原生一体化贯通式底部加行栏 */}
-                  {isAddAllowed ? (
-                    <button
-                      type="button"
-                      onClick={addPair}
-                      className="border-border/60 bg-card text-foreground hover:bg-muted/40 active:bg-muted/60 flex h-9 w-full cursor-pointer items-center justify-center gap-1.5 border-t px-3 text-xs font-medium transition-colors"
-                    >
-                      <Plus className="text-muted-foreground size-3.5" />
-                      <span>{addButtonText}</span>
-                    </button>
-                  ) : null}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
-        </div>
-      </TooltipProvider>
-    </FieldWrapper>
+          </SortableContext>
+        </DndContext>
+      )}
+    </div>
   );
 });
-KeyValueInputInner.displayName = "KeyValueInputInner";
+KeyValueControl.displayName = "KeyValueControl";
 
 export const KeyValueInput = memo(function KeyValueInput({
   name,
@@ -310,34 +292,34 @@ export const KeyValueInput = memo(function KeyValueInput({
   maxItems,
   minItems = 0,
 }: KeyValueInputProps) {
-  const id = useFieldId(name, explicitId);
-
   return (
-    <FieldConnector<any>
+    <FormFieldEngine<any>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value, onChange, onBlur, error: computedError }) => (
-        <KeyValueInputInner
+      {({ id, value, onChange, onBlur, disabled: isDisabled, hasError }) => (
+        <KeyValueControl
           id={id}
-          label={label}
-          required={required}
-          hint={hint}
-          helperText={helperText}
-          tooltip={tooltip}
-          error={computedError}
-          colSpan={colSpan}
-          className={className}
-          hidden={hidden}
-          disabled={disabled}
+          disabled={isDisabled}
           value={value}
           onChange={onChange}
           onBlur={onBlur}
+          hasError={hasError}
           valueType={valueType}
           keyPlaceholder={keyPlaceholder}
           valuePlaceholder={valuePlaceholder}
@@ -358,7 +340,7 @@ export const KeyValueInput = memo(function KeyValueInput({
           minItems={minItems}
         />
       )}
-    </FieldConnector>
+    </FormFieldEngine>
   );
 });
 KeyValueInput.displayName = "KeyValueInput";

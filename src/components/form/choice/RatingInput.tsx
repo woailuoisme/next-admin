@@ -1,10 +1,10 @@
 import { useMemoizedFn } from "ahooks";
 import { Star } from "lucide-react";
-import { type ComponentType, type KeyboardEvent, type MouseEvent, memo, useId, useState } from "react";
+import { type ComponentType, type KeyboardEvent, type MouseEvent, memo, useState } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, resolveFieldHasError } from "../core";
+import { type BaseInputProps, FormFieldEngine } from "../core";
 
 export interface RatingInputProps extends BaseInputProps {
   value?: number | null;
@@ -20,7 +20,7 @@ export interface RatingInputProps extends BaseInputProps {
   icon?: ComponentType<{ className?: string }>;
 }
 
-interface RatingInputInnerProps {
+interface RatingControlProps {
   id: string;
   value?: number | null;
   onChange: (value: number | null) => void;
@@ -43,15 +43,12 @@ const SIZE_MAP = {
   lg: "size-6",
 };
 
-/**
- * 评分星标配色（已选/未选两态统一收敛于此表）
- */
 const RATING_STAR_CLASSES = {
   empty: "text-muted-foreground/30 transition-colors",
   filled: "fill-amber-500 text-amber-500 transition-colors",
 } as const;
 
-const RatingInputInner = memo(function RatingInputInner({
+const RatingControl = memo(function RatingControl({
   id,
   value = 0,
   onChange,
@@ -66,7 +63,7 @@ const RatingInputInner = memo(function RatingInputInner({
   disabled = false,
   readOnly = false,
   hasError,
-}: RatingInputInnerProps) {
+}: RatingControlProps) {
   const [hoverValue, setHoverValue] = useState<number | null>(null);
 
   const activeValue = hoverValue ?? value ?? 0;
@@ -215,56 +212,45 @@ export function RatingInput({
   size = "md",
   icon,
 }: RatingInputProps) {
-  const generatedId = useId();
-  const id = explicitId || generatedId;
-
   return (
-    <FieldConnector
+    <FormFieldEngine<number | null>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
+      readOnly={readOnly}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      disabled={disabled}
-      readOnly={readOnly}
-      render={({ value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, meta }) => {
-        const hasError = resolveFieldHasError(error, meta);
-        const numValue = typeof value === "number" ? value : null;
-
-        return (
-          <FieldWrapper
-            id={id}
-            label={label}
-            required={required}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={error}
-            meta={meta}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-          >
-            <RatingInputInner
-              id={id}
-              value={numValue}
-              onChange={onChange}
-              onBlur={onBlur}
-              count={count}
-              allowHalf={allowHalf}
-              allowClear={allowClear}
-              tooltips={tooltips}
-              showScore={showScore}
-              size={size}
-              icon={icon}
-              disabled={isDisabled}
-              readOnly={isReadOnly}
-              hasError={hasError}
-            />
-          </FieldWrapper>
-        );
-      }}
-    />
+    >
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+        <RatingControl
+          id={id}
+          value={typeof value === "number" ? value : null}
+          onChange={onChange}
+          onBlur={onBlur}
+          count={count}
+          allowHalf={allowHalf}
+          allowClear={allowClear}
+          tooltips={tooltips}
+          showScore={showScore}
+          size={size}
+          icon={icon}
+          disabled={isDisabled}
+          readOnly={isReadOnly}
+          hasError={hasError}
+        />
+      )}
+    </FormFieldEngine>
   );
 }

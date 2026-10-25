@@ -191,7 +191,7 @@ export function ProductTable({
             onClick={() => exportProductsJson(selectedRows, clearSelection)}
           >
             <Download className="size-3.5" />
-            <span>Export ({selectedRows.length})</span>
+            <span>{t("batch_export", { count: selectedRows.length })}</span>
           </Button>
           {onBatchDelete && (
             <Button
@@ -204,7 +204,7 @@ export function ProductTable({
               }}
             >
               <Trash2 className="size-3.5" />
-              <span>Delete ({selectedRows.length})</span>
+              <span>{t("batch_delete", { count: selectedRows.length })}</span>
             </Button>
           )}
         </div>

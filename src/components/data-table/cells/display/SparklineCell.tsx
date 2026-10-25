@@ -1,7 +1,7 @@
 import { memo, useId, useState } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { SparklineCellProps } from "./types";
 
@@ -66,7 +66,7 @@ export const SparklineCell = memo(function SparklineCell({
   const effectiveHeight = height - paddingY * 2;
 
   const isUp = data[data.length - 1] >= data[0];
-  const autoColorClass = isUp ? "text-emerald-500 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400";
+  const autoColorClass = isUp ? "text-chart-2" : "text-destructive";
 
   const resolvedColorClass = color ? "" : autoColorClass;
   const isTooltipOpen = interactive ? hoveredIndex !== null : undefined;

@@ -23,6 +23,7 @@ next-env.d.ts
 coverage/
 test-results/
 playwright-report/
+.vitest/
 
 # Environment files
 # 只有 .env.example 进版本库；其余由本地 / CI / 部署平台注入

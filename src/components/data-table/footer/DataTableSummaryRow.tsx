@@ -3,7 +3,7 @@ import { round, sumBy } from "es-toolkit";
 import { memo, type ReactElement } from "react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { DataTableColDef } from "../core/types";
 

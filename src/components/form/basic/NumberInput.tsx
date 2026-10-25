@@ -4,9 +4,9 @@ import { type ChangeEvent, type ReactNode, memo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { FieldConnector, FieldWrapper, useFieldId, type BaseInputProps } from "../core";
+import { FormFieldEngine, type BaseInputProps } from "../core";
 
 export interface NumberInputProps extends BaseInputProps {
   value?: number | null;
@@ -164,48 +164,43 @@ export const NumberInput = memo(function NumberInput({
   suffix,
   steppers = true,
 }: NumberInputProps) {
-  const id = useFieldId(name, explicitId);
-
   return (
-    <FieldConnector<number | null>
+    <FormFieldEngine<number | null>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value, onChange, onBlur, error: computedError }) => (
-        <FieldWrapper
-          label={label}
+      {({ id, value, onChange, onBlur, disabled: isDisabled, hasError }) => (
+        <NumberInputInner
           id={id}
-          required={required}
-          hint={hint}
-          helperText={helperText}
-          tooltip={tooltip}
-          error={computedError}
-          colSpan={colSpan}
-          className={className}
-          hidden={hidden}
-        >
-          <NumberInputInner
-            id={id}
-            value={value}
-            onChange={onChange}
-            onBlur={onBlur}
-            min={min}
-            max={max}
-            step={step}
-            prefix={prefix}
-            suffix={suffix}
-            steppers={steppers}
-            disabled={disabled}
-            placeholder={placeholder}
-            hasError={Boolean(computedError)}
-          />
-        </FieldWrapper>
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          min={min}
+          max={max}
+          step={step}
+          prefix={prefix}
+          suffix={suffix}
+          steppers={steppers}
+          disabled={isDisabled}
+          placeholder={placeholder}
+          hasError={hasError}
+        />
       )}
-    </FieldConnector>
+    </FormFieldEngine>
   );
 });

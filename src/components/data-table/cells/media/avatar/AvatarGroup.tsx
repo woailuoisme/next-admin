@@ -1,9 +1,10 @@
 import { memo } from "react";
 
 import { AvatarGroup as UiAvatarGroup, AvatarGroupCount } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { AvatarItem } from "./types";
 
@@ -45,17 +46,20 @@ function StackedAvatarGroupInner({ items, maxStacked = 3, size = "sm", shape = "
         </Tooltip>
       ))}
 
-      {remainingCount > 0 && (
+      {remainingCount > 0 ? (
         <Popover>
           <PopoverTrigger asChild>
-            <button
+            <Button
               type="button"
-              className="focus-visible:ring-ring cursor-pointer rounded-full outline-hidden transition-transform hover:z-10 hover:scale-105 focus-visible:ring-2"
+              variant="ghost"
+              size="icon"
+              className="focus-visible:ring-ring size-auto cursor-pointer rounded-full p-0 outline-hidden transition-transform hover:z-10 hover:scale-105 hover:bg-transparent focus-visible:ring-2"
+              aria-label={`查看剩余 ${remainingCount} 位成员`}
             >
               <AvatarGroupCount className={cn(avatarSizeClasses[size], avatarShapeClasses[shape])}>
                 +{remainingCount}
               </AvatarGroupCount>
-            </button>
+            </Button>
           </PopoverTrigger>
           <PopoverContent align="start" className="w-64 p-3 shadow-lg">
             <div className="mb-2 flex items-center justify-between border-b pb-1.5 text-xs">
@@ -87,7 +91,7 @@ function StackedAvatarGroupInner({ items, maxStacked = 3, size = "sm", shape = "
             </div>
           </PopoverContent>
         </Popover>
-      )}
+      ) : null}
     </UiAvatarGroup>
   );
 }

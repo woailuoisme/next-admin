@@ -232,7 +232,33 @@ export interface DataTableSlotProps {
   loadingOverlay?: Record<string, unknown>;
 }
 
+/**
+ * TableStateAdapter (State Seam):
+ * Unified table state interface consolidating data, pagination, sorting, and search coordination
+ * behind a single authoritative adapter.
+ */
+export interface TableStateAdapter<TData = any> {
+  data: TData[];
+  total: number;
+  loading: boolean;
+  paginationMode?: "client" | "server";
+  page: number;
+  pageSize: number;
+  sortModel?: DataTableSortModel;
+  filterModel?: DataTableFilterModel;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+  onSortChange: (field: string, direction: "asc" | "desc" | null) => void;
+  onSearchChange?: (val: string) => void;
+}
+
 export interface DataTableProps<TData = any> extends DataTableExpansionProps<TData> {
+  /**
+   * Unified table state adapter (Recommended).
+   * When provided, binds data, pagination, sorting, and search behind a single deep seam.
+   */
+  state?: TableStateAdapter<TData>;
+
   rows?: TData[];
   data?: TData[];
   columns: DataTableColDef<TData>[];

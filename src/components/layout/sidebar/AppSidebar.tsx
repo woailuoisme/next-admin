@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 import { Sidebar, SidebarFooter, SidebarRail } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 import { useAuthSession } from "@/stores/auth";
 
 import type { NavGroup, SidebarUser } from "./types";
@@ -13,11 +13,11 @@ import { NavMain } from "./nav-main";
 import { NavUser } from "./NavUser";
 import { SidebarHeader } from "./SidebarHeader";
 
-interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   customGroups?: NavGroup[];
 }
 
-export function AppSidebar({ className, customGroups, ...props }: AppSidebarProps) {
+export const AppSidebar = memo(function AppSidebar({ className, customGroups, ...props }: AppSidebarProps) {
   const session = useAuthSession();
   const admin = session?.admin;
   const userRole = admin?.role;
@@ -40,7 +40,7 @@ export function AppSidebar({ className, customGroups, ...props }: AppSidebarProp
   }, [admin, userRole]);
 
   return (
-    <Sidebar collapsible="icon" className={cn("border-r border-sidebar-border", className)} {...props}>
+    <Sidebar collapsible="icon" className={cn("border-sidebar-border border-r", className)} {...props}>
       <SidebarHeader />
       <NavMain groups={menuGroups} />
       <SidebarFooter>
@@ -49,4 +49,4 @@ export function AppSidebar({ className, customGroups, ...props }: AppSidebarProp
       <SidebarRail />
     </Sidebar>
   );
-}
+});

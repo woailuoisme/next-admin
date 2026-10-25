@@ -20,11 +20,13 @@ export const orderQueries = {
     queryOptions({
       queryKey: orderKeys.list(filters),
       queryFn: () => fetchOrders(filters),
+      staleTime: 30 * 1000,
     }),
   detail: (id: string) =>
     queryOptions({
       queryKey: orderKeys.detail(id),
       queryFn: () => fetchOrderDetails(id),
       enabled: Boolean(id),
+      staleTime: 30 * 1000,
     }),
 };

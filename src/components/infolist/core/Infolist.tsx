@@ -1,7 +1,6 @@
 import * as React from "react";
 
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { InfolistProps } from "./types";
 
@@ -12,13 +11,11 @@ export const Infolist = React.forwardRef<HTMLDivElement, InfolistProps>(function
   ref,
 ) {
   return (
-    <TooltipProvider>
-      <InfolistProvider record={record} orientation={orientation} dense={dense}>
-        <div ref={ref} className={cn("w-full space-y-6 text-foreground", className)} {...props}>
-          {children}
-        </div>
-      </InfolistProvider>
-    </TooltipProvider>
+    <InfolistProvider record={record} orientation={orientation} dense={dense}>
+      <div ref={ref} className={cn("w-full space-y-6 text-foreground", className)} {...props}>
+        {children}
+      </div>
+    </InfolistProvider>
   );
 });
 

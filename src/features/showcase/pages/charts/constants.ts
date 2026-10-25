@@ -19,25 +19,25 @@ export const DEMO_STATE_LABELS: Record<DemoState, string> = {
 export const FEATURE_HIGHLIGHTS = [
   {
     icon: Layers,
-    iconClass: "bg-blue-500/10 text-blue-500",
+    iconClass: "bg-primary/10 text-primary",
     title: "单一职责架构",
     description: "每个图表独立子目录、类型与 Hook 分离",
   },
   {
     icon: Sparkles,
-    iconClass: "bg-emerald-500/10 text-emerald-500",
+    iconClass: "bg-chart-2/10 text-chart-2",
     title: "Vercel 性能最佳实践",
     description: "常量提升、Tooltip Memo、MemoizedFn 优化",
   },
   {
     icon: Compass,
-    iconClass: "bg-violet-500/10 text-violet-500",
+    iconClass: "bg-chart-3/10 text-chart-3",
     title: "现代化工具链驱动",
     description: "集成 es-toolkit 运算与 ahooks 响应式监听",
   },
   {
     icon: CheckCircle2,
-    iconClass: "bg-amber-500/10 text-amber-500",
+    iconClass: "bg-chart-4/10 text-chart-4",
     title: "向下 100% 兼容",
     description: "@/components/stats 无损桥接重导出",
   },

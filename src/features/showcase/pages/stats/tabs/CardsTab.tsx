@@ -15,17 +15,14 @@ import {
   Users,
 } from "lucide-react";
 
-import {
-  LiveStatCard,
-  MultiMetricStatCard,
-  ProgressStatCard,
-  Sparkline,
-  type SparklineLayout,
-  StatCard,
-  type StatDensity,
-  StatsGrid,
-  type useLiveTicker,
-} from "@/components/stats";
+import { StatsGrid } from "@/components/stats/grid/StatsGrid";
+import { LiveStatCard } from "@/components/stats/live-card/LiveStatCard";
+import type { useLiveTicker } from "@/components/stats/live-card/useLiveTicker";
+import { MultiMetricStatCard } from "@/components/stats/multi-metric-card/MultiMetricStatCard";
+import { ProgressStatCard } from "@/components/stats/progress-card/ProgressStatCard";
+import type { SparklineLayout, StatDensity } from "@/components/stats/shared/types";
+import { Sparkline } from "@/components/stats/sparkline/MiniSparkline";
+import { StatCard } from "@/components/stats/stat-card/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

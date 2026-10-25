@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Flame } from "lucide-react";
 import { memo } from "react";
 
@@ -7,19 +8,20 @@ interface HeatmapLegendProps {
   legendGradient: string;
 }
 
-export const HeatmapLegend = memo(function HeatmapLegend({
-  title = "热力密度 (KDE)",
-  pointCount,
-  legendGradient,
-}: HeatmapLegendProps) {
+export const HeatmapLegend = memo(function HeatmapLegend({ title, pointCount, legendGradient }: HeatmapLegendProps) {
+  const t = useTranslations("map");
+  const resolvedTitle = title ?? t("heatmap_density");
+
   return (
     <div className="border-border/70 bg-background/90 absolute bottom-6 left-4 z-10 flex min-w-[200px] flex-col gap-1.5 rounded-lg border p-2.5 shadow-md backdrop-blur-md">
       <div className="text-foreground flex items-center justify-between gap-2 text-xs font-semibold">
         <div className="flex items-center gap-1.5">
           <Flame className="text-primary size-3.5" />
-          <span>{title}</span>
+          <span>{resolvedTitle}</span>
         </div>
-        <span className="text-muted-foreground text-[10px] font-normal">{pointCount} 点</span>
+        <span className="text-muted-foreground text-[10px] font-normal">
+          {t("heatmap_points_count", { count: pointCount })}
+        </span>
       </div>
 
       {/* Gradient Color Bar */}
@@ -29,9 +31,9 @@ export const HeatmapLegend = memo(function HeatmapLegend({
       />
 
       <div className="text-muted-foreground flex justify-between text-[10px] font-medium">
-        <span>低密度 (Low)</span>
-        <span>中 (Med)</span>
-        <span>高密度 (High)</span>
+        <span>{t("heatmap_low")}</span>
+        <span>{t("heatmap_medium")}</span>
+        <span>{t("heatmap_high")}</span>
       </div>
     </div>
   );

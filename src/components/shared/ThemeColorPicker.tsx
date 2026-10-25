@@ -153,12 +153,14 @@ export const ThemeColorPicker = memo(function ThemeColorPicker({ className, titl
               {MODE_OPTIONS.map(({ mode: optMode, labelKey, Icon }) => {
                 const isSelected = mode === optMode;
                 return (
-                  <button
+                  <Button
                     key={optMode}
                     type="button"
+                    variant={isSelected ? "secondary" : "outline"}
+                    size="sm"
                     onClick={() => setMode(optMode)}
                     className={cn(
-                      "flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-lg border text-[11px] transition-all",
+                      "h-7 cursor-pointer items-center justify-center gap-1.5 rounded-lg border text-[11px] transition-all",
                       isSelected
                         ? "border-primary bg-primary/10 font-semibold text-primary shadow-xs"
                         : "border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -166,7 +168,7 @@ export const ThemeColorPicker = memo(function ThemeColorPicker({ className, titl
                   >
                     <Icon className="h-3.5 w-3.5" />
                     <span>{t(labelKey)}</span>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -182,19 +184,21 @@ export const ThemeColorPicker = memo(function ThemeColorPicker({ className, titl
               {RADIUS_OPTIONS.map((opt) => {
                 const isRadiusActive = radius === opt.value;
                 return (
-                  <button
+                  <Button
                     key={opt.value}
                     type="button"
+                    variant={isRadiusActive ? "default" : "outline"}
+                    size="sm"
                     onClick={() => setRadius(opt.value)}
                     className={cn(
-                      "flex h-6 cursor-pointer items-center justify-center rounded border font-mono text-[10px] transition-all",
+                      "h-6 cursor-pointer items-center justify-center rounded border font-mono text-[10px] transition-all p-0",
                       isRadiusActive
                         ? "border-primary bg-primary font-semibold text-primary-foreground shadow-xs"
                         : "border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     {opt.value}
-                  </button>
+                  </Button>
                 );
               })}
             </div>

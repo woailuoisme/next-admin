@@ -3,7 +3,8 @@ import type React from "react";
 import { RefreshCw, ZoomIn } from "lucide-react";
 import { memo, useState } from "react";
 
-import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "cn";
 
 export const sizeClasses = {
   xs: "size-6 text-[10px]",
@@ -89,6 +90,7 @@ function ImageThumbInner({
           idx > 0 && "-ml-2.5",
         )}
         title="图片加载失败，点击重试"
+        aria-label="图片加载失败，点击重试"
       >
         <RefreshCw className="size-3 transition-transform group-hover/failed:rotate-90" />
       </button>
@@ -98,7 +100,7 @@ function ImageThumbInner({
   const imageElement = (
     <>
       {/* Shimmer skeleton before image is loaded */}
-      {!isLoaded && <div className={cn("absolute inset-0 z-0 animate-pulse bg-muted/70", shapeClasses[shape])} />}
+      {!isLoaded ? <Skeleton className={cn("absolute inset-0 z-0", shapeClasses[shape])} /> : null}
       <img
         src={imgUrl}
         alt={alt}
@@ -140,7 +142,7 @@ function ImageThumbInner({
         )}
       >
         {imageElement}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30 text-white opacity-0 transition-opacity group-hover/img:opacity-100">
+        <div className="bg-foreground/30 text-background pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover/img:opacity-100">
           <ZoomIn className="size-3.5 drop-shadow-sm" />
         </div>
       </button>

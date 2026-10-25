@@ -2,7 +2,7 @@ import { Sparkles } from "lucide-react";
 import { memo } from "react";
 import { useTranslations } from "next-intl";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { NotificationEmptyStateProps } from "./types";
 

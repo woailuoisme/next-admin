@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { memo } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { DateCellProps } from "./types";
 

@@ -1,6 +1,9 @@
 import { CheckCircle2 } from "lucide-react";
 
-import { DonutDistributionChart, HorizontalBarChart, RadarMetricChart, RadialGaugeChart } from "@/components/chart";
+import { DonutDistributionChart } from "@/components/chart/donut/DonutDistributionChart";
+import { HorizontalBarChart } from "@/components/chart/horizontal-bar/HorizontalBarChart";
+import { RadarMetricChart } from "@/components/chart/radar/RadarMetricChart";
+import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { DISTRIBUTION_DATA, HORIZONTAL_RANKINGS, RADAR_METRICS } from "../constants";
@@ -63,7 +66,7 @@ export function DistributionTab() {
           <CardContent className="flex flex-col items-center justify-center gap-2 pt-2">
             <RadialGaugeChart value={87.4} max={100} height={210} theme="primary" label="Overall Score" unit="%" />
             <div className="text-muted-foreground flex items-center gap-2 text-xs">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              <CheckCircle2 className="text-chart-2 size-4" />
               Passed 48/52 quality gates
             </div>
           </CardContent>

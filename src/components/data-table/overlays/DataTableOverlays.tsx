@@ -3,7 +3,7 @@ import { ArrowUpDown, FilterX, Loader2, RotateCcw } from "lucide-react";
 import { type CSSProperties, isValidElement, memo, type ReactElement, type ReactNode, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { DataTableColDef, DataTableSlots } from "../core/types";
 import type { TableEmptyStateConfig, TableEmptyStateContext, TableEmptyStateProps } from "../empty-state";

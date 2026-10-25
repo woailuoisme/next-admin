@@ -3,7 +3,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { type DragEvent, memo } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { FileUploadItem } from "./types";
 

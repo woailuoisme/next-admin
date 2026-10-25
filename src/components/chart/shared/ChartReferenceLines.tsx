@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ReferenceLine } from "recharts";
 
 import type { ChartReferenceLine } from "./types";
@@ -12,7 +13,7 @@ export interface ChartReferenceLinesProps {
  * 渲染一组图表参考线（目标线 / 基准线）
  * 统一默认虚线样式、描边色与标签位置，避免各图表重复实现
  */
-export function ChartReferenceLines({ lines }: ChartReferenceLinesProps) {
+export const ChartReferenceLines = memo(function ChartReferenceLines({ lines }: ChartReferenceLinesProps) {
   if (!lines?.length) {
     return null;
   }
@@ -41,4 +42,4 @@ export function ChartReferenceLines({ lines }: ChartReferenceLinesProps) {
       ))}
     </>
   );
-}
+});

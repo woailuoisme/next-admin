@@ -5,7 +5,9 @@ import { KeyRound, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
-import { DEFAULT_PASSWORD_REQUIREMENTS, Form, PasswordStrengthMeter, TextInput } from "@/components/form";
+import { TextInput } from "@/components/form/basic";
+import { Form } from "@/components/form/core";
+import { DEFAULT_PASSWORD_REQUIREMENTS, PasswordStrengthMeter } from "@/components/form/security";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MessageKeyOf } from "@/types/i18n";
 

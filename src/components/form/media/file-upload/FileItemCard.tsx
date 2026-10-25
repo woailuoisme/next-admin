@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { AlertCircle, CheckCircle2, Download, Eye, Loader2, Trash2 } from "lucide-react";
 import { memo } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { FileUploadItem } from "./types";
 

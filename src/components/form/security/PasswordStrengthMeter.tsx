@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Check, X } from "lucide-react";
 import { memo, useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { PasswordRequirement } from "../core";
 import type { MessageKeyOf } from "@/types/i18n";

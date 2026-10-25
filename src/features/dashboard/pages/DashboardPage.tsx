@@ -4,7 +4,8 @@ import { useMemoizedFn } from "ahooks";
 import { RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "cn";
 
 import type { DashboardTimeRange } from "../types";
 
@@ -60,32 +61,20 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <fieldset
-            aria-label={t("period_aria")}
-            className="bg-muted/40 m-0 flex items-center rounded-lg border p-0.5 text-xs"
-          >
-            {DASHBOARD_TIME_RANGE_OPTIONS.map((item) => (
-              <label
-                key={item.value}
-                className={cn(
-                  "cursor-pointer rounded-md px-2.5 py-1 font-medium transition-all select-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1",
-                  range === item.value
-                    ? "bg-background font-semibold text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <input
-                  type="radio"
-                  name="dashboard-time-range"
+          <Tabs value={range} onValueChange={(val) => handleRangeChange(val as DashboardTimeRange)} className="w-auto">
+            <TabsList aria-label={t("period_aria")} className="h-8 p-0.5">
+              {DASHBOARD_TIME_RANGE_OPTIONS.map((item) => (
+                <TabsTrigger
+                  key={item.value}
                   value={item.value}
-                  checked={range === item.value}
-                  onChange={() => handleRangeChange(item.value)}
-                  className="sr-only"
-                />
-                {t(item.labelKey)}
-              </label>
-            ))}
-          </fieldset>
+                  onClick={() => handleRangeChange(item.value)}
+                  className="px-2.5 py-1 text-xs"
+                >
+                  {t(item.labelKey)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
 
           <Button
             variant="outline"

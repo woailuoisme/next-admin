@@ -1,7 +1,14 @@
 import { DollarSign, Server, TrendingUp, Zap } from "lucide-react";
 
-import { ComposedTrendChart, DonutDistributionChart, HorizontalBarChart, RadialGaugeChart } from "@/components/chart";
-import { LiveStatCard, MultiMetricStatCard, ProgressStatCard, StatCard, type useLiveTicker } from "@/components/stats";
+import { ComposedTrendChart } from "@/components/chart/composed/ComposedTrendChart";
+import { DonutDistributionChart } from "@/components/chart/donut/DonutDistributionChart";
+import { HorizontalBarChart } from "@/components/chart/horizontal-bar/HorizontalBarChart";
+import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
+import { LiveStatCard } from "@/components/stats/live-card/LiveStatCard";
+import type { useLiveTicker } from "@/components/stats/live-card/useLiveTicker";
+import { MultiMetricStatCard } from "@/components/stats/multi-metric-card/MultiMetricStatCard";
+import { ProgressStatCard } from "@/components/stats/progress-card/ProgressStatCard";
+import { StatCard } from "@/components/stats/stat-card/StatCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 

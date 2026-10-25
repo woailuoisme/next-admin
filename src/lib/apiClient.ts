@@ -15,17 +15,17 @@ export function toSearchParams(params: unknown): string {
     if (Array.isArray(value)) {
       for (const item of value) {
         if (item !== null && item !== undefined && item !== "") {
-          searchParams.append(`${key}[]`, String(item));
+          searchParams.append(`${key}[]`, item instanceof Date ? item.toISOString() : String(item));
         }
       }
     } else if (isPlainObject(value)) {
       for (const [subKey, subVal] of Object.entries(value)) {
         if (subVal !== null && subVal !== undefined && subVal !== "") {
-          searchParams.append(`${key}[${subKey}]`, String(subVal));
+          searchParams.append(`${key}[${subKey}]`, subVal instanceof Date ? subVal.toISOString() : String(subVal));
         }
       }
     } else {
-      searchParams.set(key, String(value));
+      searchParams.set(key, value instanceof Date ? value.toISOString() : String(value));
     }
   }
 
@@ -75,7 +75,10 @@ function handleUnauthorized() {
   if (unauthorizedHandler) {
     unauthorizedHandler();
   } else if (!window.location.pathname.startsWith("/login")) {
-    window.location.href = "/login";
+    const currentPath = window.location.pathname + window.location.search;
+    const redirectUrl =
+      currentPath && currentPath !== "/" ? `/login?from=${encodeURIComponent(currentPath)}` : "/login";
+    window.location.href = redirectUrl;
   }
 }
 

@@ -3,7 +3,7 @@ import { memo } from "react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { NotificationFooterProps } from "./types";
 

@@ -1,6 +1,8 @@
 import { Clock, DollarSign, PackageCheck, ShoppingCart } from "lucide-react";
 
-import { type SparklineLayout, StatCard, type StatDensity, StatsGrid } from "@/components/stats";
+import { StatsGrid } from "@/components/stats/grid/StatsGrid";
+import type { SparklineLayout, StatDensity } from "@/components/stats/shared/types";
+import { StatCard } from "@/components/stats/stat-card/StatCard";
 import { useTranslations } from "next-intl";
 
 export interface OrderMetricsSummary {
@@ -30,12 +32,16 @@ export function OrderMetricsCards({
   sparklineLayout = "inline",
 }: OrderMetricsCardsProps) {
   const t = useTranslations("orders");
+  const total = stats?.total ?? 0;
+  const pendingCount = stats?.pendingCount ?? 0;
+  const deliveredCount = stats?.deliveredCount ?? 0;
+  const avgOrderValue = stats?.avgOrderValue ?? 0;
 
   return (
     <StatsGrid columns={4} isLoading={isLoading} density={density} sparklineLayout={sparklineLayout}>
       <StatCard
         title={t("metric_total_title")}
-        value={stats.total.toLocaleString()}
+        value={total.toLocaleString()}
         icon={ShoppingCart}
         theme="chart-1"
         description={t("metric_total_desc")}
@@ -44,25 +50,25 @@ export function OrderMetricsCards({
           direction: "up",
           label: t("metric_total_trend"),
         }}
-        sparklineData={stats.sparklines?.totalOrders}
+        sparklineData={stats?.sparklines?.totalOrders}
         sparklineType="bar"
       />
       <StatCard
         title={t("metric_pending_title")}
-        value={stats.pendingCount}
+        value={pendingCount}
         icon={Clock}
         theme="chart-3"
         description={t("metric_pending_desc")}
         trend={{
-          value: stats.pendingCount > 0 ? t("metric_pending_need_action") : t("metric_pending_cleared"),
-          direction: stats.pendingCount > 0 ? "neutral" : "up",
+          value: pendingCount > 0 ? t("metric_pending_need_action") : t("metric_pending_cleared"),
+          direction: pendingCount > 0 ? "neutral" : "up",
           isPositiveGood: false,
         }}
-        sparklineData={stats.sparklines?.pending}
+        sparklineData={stats?.sparklines?.pending}
       />
       <StatCard
         title={t("metric_delivered_title")}
-        value={stats.deliveredCount}
+        value={deliveredCount}
         icon={PackageCheck}
         theme="chart-2"
         description={t("metric_delivered_desc")}
@@ -71,11 +77,11 @@ export function OrderMetricsCards({
           direction: "up",
           label: t("metric_delivered_trend"),
         }}
-        sparklineData={stats.sparklines?.delivered}
+        sparklineData={stats?.sparklines?.delivered}
       />
       <StatCard
         title={t("metric_aov_title")}
-        value={stats.avgOrderValue.toFixed(2)}
+        value={avgOrderValue.toFixed(2)}
         prefix="$"
         icon={DollarSign}
         theme="chart-4"
@@ -85,7 +91,7 @@ export function OrderMetricsCards({
           direction: "up",
           label: t("metric_aov_trend"),
         }}
-        sparklineData={stats.sparklines?.avgOrderValue}
+        sparklineData={stats?.sparklines?.avgOrderValue}
       />
     </StatsGrid>
   );

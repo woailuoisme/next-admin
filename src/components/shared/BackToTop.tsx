@@ -6,6 +6,7 @@ import { useEventListener, useMemoizedFn } from "ahooks";
 import { clamp } from "es-toolkit";
 import { ArrowUp } from "lucide-react";
 import { type CSSProperties, type MouseEvent, type ReactNode, memo, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 
@@ -198,19 +199,19 @@ export const BackToTop = memo(function BackToTop({
   const strokeDashoffset = CIRCUMFERENCE - (progress / 100) * CIRCUMFERENCE;
 
   const buttonElement = (
-    <button
+    <Button
       type="button"
+      variant="outline"
+      size="icon"
       onClick={handleClick}
       aria-label={buttonAriaLabel}
       style={style}
       className={cn(
         "group fixed right-5 bottom-5 z-50 md:right-8 md:bottom-8",
-        "flex size-9 items-center justify-center md:size-10",
-        "cursor-pointer rounded-full select-none",
-        "border border-border/60 bg-background/85 text-foreground shadow-md backdrop-blur-md",
+        "size-9 md:size-10 cursor-pointer rounded-full select-none",
+        "border-border/60 bg-background/85 text-foreground shadow-md backdrop-blur-md",
         "transition-all duration-300 ease-out",
         "hover:scale-105 hover:border-primary/50 hover:bg-accent/90 hover:shadow-lg active:scale-95",
-        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
         "animate-in duration-200 fade-in-0 zoom-in-90",
         className,
       )}
@@ -255,7 +256,7 @@ export const BackToTop = memo(function BackToTop({
           aria-hidden="true"
         />
       )}
-    </button>
+    </Button>
   );
 
   if (resolvedTooltip) {

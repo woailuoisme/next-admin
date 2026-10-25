@@ -4,11 +4,11 @@ import { useMemoizedFn } from "ahooks";
 import { ArrowLeft, RefreshCw, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { OtpInput } from "@/components/form";
+import { OtpInput } from "@/components/form/security";
 import type { MessageKeyOf } from "@/types/i18n";
 
 import { resolveResetErrorKey, useForgotPasswordMutation, useVerifyOtpMutation } from "../hooks";
@@ -31,11 +31,19 @@ export function VerifyOtpForm({ flow }: VerifyOtpFormProps) {
   const [errorKey, setErrorKey] = useState<MessageKeyOf<"auth"> | null>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
+  const cooldownTargetRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (cooldown <= 0) return;
-    const timer = setTimeout(() => setCooldown((seconds) => seconds - 1), 1000);
-    return () => clearTimeout(timer);
+    if (cooldownTargetRef.current === null) {
+      cooldownTargetRef.current = Date.now() + cooldown * 1000;
+    }
+    const timer = setInterval(() => {
+      const target = cooldownTargetRef.current ?? Date.now();
+      const remaining = Math.max(0, Math.ceil((target - Date.now()) / 1000));
+      setCooldown(remaining);
+    }, 1000);
+    return () => clearInterval(timer);
   }, [cooldown]);
 
   const submitCode = useMemoizedFn(async (value: string) => {
@@ -60,6 +68,7 @@ export function VerifyOtpForm({ flow }: VerifyOtpFormProps) {
     try {
       await resendMutation.mutateAsync({ email: flow.email });
       setCode("");
+      cooldownTargetRef.current = Date.now() + RESEND_COOLDOWN_SECONDS * 1000;
       setCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (error) {
       setErrorKey((await resolveResetErrorKey(error)) ?? "error_request_failed");

@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 import { useMemoizedFn } from "ahooks";
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 
 import { Popover } from "@/components/ui/popover";
 import {
@@ -38,7 +38,10 @@ export const NotificationBell = memo(function NotificationBell({ className }: No
   const queryClient = useQueryClient();
 
   const { category: filterCategory, unreadOnly: filterUnread } = resolveNotificationTabFilters(activeTab);
-  const filters = { category: filterCategory, unreadOnly: filterUnread };
+  const filters = useMemo(
+    () => ({ category: filterCategory, unreadOnly: filterUnread }),
+    [filterCategory, filterUnread],
+  );
 
   // 闭合态：轻量未读数
   const { data: countData } = useUnreadNotificationCount();
@@ -57,10 +60,10 @@ export const NotificationBell = memo(function NotificationBell({ className }: No
   const items = listData?.items ?? EMPTY_ITEMS;
   const totalCount = listData?.total ?? 0;
 
-  // 鼠标悬停预拉取
+  // 鼠标悬停预拉取 (bundle-preload & TanStack Query 推荐最佳实践)
   const handlePrefetch = useMemoizedFn(() => {
     void queryClient
-      .query({
+      .prefetchQuery({
         queryKey: notificationKeys.list(filters),
         queryFn: () => fetchNotifications(filters),
         staleTime: 10000,
@@ -72,7 +75,7 @@ export const NotificationBell = memo(function NotificationBell({ className }: No
     if (!item.read) {
       markAsReadMutation.mutate(item.id);
     }
-    if (item.actionUrl) {
+    if (item.actionUrl && item.actionUrl.startsWith("/") && !item.actionUrl.startsWith("//")) {
       setOpen(false);
       router.push(item.actionUrl);
     }

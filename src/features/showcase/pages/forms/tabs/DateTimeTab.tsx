@@ -1,6 +1,7 @@
 "use client";
 
-import { DatePickerInput, DateRangePickerInput, FormGrid, FormSection, TimePickerInput } from "@/components/form";
+import { DatePickerInput, DateRangePickerInput, TimePickerInput } from "@/components/form/datetime";
+import { FormGrid, FormSection } from "@/components/form/layout";
 
 export interface DateTimeTabProps {
   // biome-ignore lint/suspicious/noExplicitAny: TanStack FormApi instance

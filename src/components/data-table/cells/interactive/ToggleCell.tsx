@@ -4,7 +4,7 @@ import { memo, startTransition, useOptimistic, useState } from "react";
 import { toast } from "sonner";
 
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ToggleCellProps } from "./types";
 

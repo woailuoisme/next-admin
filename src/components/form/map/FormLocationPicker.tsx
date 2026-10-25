@@ -9,8 +9,7 @@ import type { CoordinateSystem } from "../../map/utils/coordinates";
 import type { BaseInputProps } from "../core/types";
 
 import { LocationPicker } from "../../map/picker/LocationPicker";
-import { FieldConnector } from "../core/FieldConnector";
-import { FieldWrapper } from "../core/FieldWrapper";
+import { FormFieldEngine } from "../core/FormFieldEngine";
 
 export interface FormLocationPickerProps extends BaseInputProps {
   /** Current coordinates value: { lng, lat, address? } */
@@ -95,24 +94,29 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
   }, []);
 
   return (
-    <FieldConnector
+    <FormFieldEngine<LocationPickerValue>
       name={name}
       form={props.form}
+      label={label}
+      id={props.id}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
+      readOnly={readOnly}
       value={props.value}
       defaultValue={props.defaultValue}
       onChange={props.onChange}
       onBlur={props.onBlur}
-      error={error}
-      disabled={disabled}
-      readOnly={readOnly}
     >
-      {({ value, onChange, onBlur, error: computedError, disabled: isDisabled, readOnly: isReadOnly, meta }) => {
-        const currentValue = value as LocationPickerValue | undefined;
-        const effectiveDisabled = isDisabled ?? disabled;
-        const effectiveReadOnly = isReadOnly ?? readOnly;
-
+      {({ value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly }) => {
         const handlePresetSelect = (presetCoords: { lng: number; lat: number }) => {
-          if (effectiveDisabled || effectiveReadOnly) return;
+          if (isDisabled || isReadOnly) return;
           const updated: LocationPickerValue = {
             lng: presetCoords.lng,
             lat: presetCoords.lat,
@@ -123,78 +127,62 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
         };
 
         return (
-          <FieldWrapper
-            id={props.id || name}
-            label={label}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={computedError}
-            meta={meta}
-            required={required}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-          >
-            <div className="flex flex-col gap-2">
-              {/* Quick Preset City Chips & Search Bar */}
-              {showAddressSearch && (
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-muted-foreground text-[11px] font-medium">常用预设:</span>
-                    {QUICK_PRESETS.map((preset) => (
-                      <button
-                        key={preset.label}
-                        type="button"
-                        disabled={effectiveDisabled || effectiveReadOnly}
-                        onClick={() => handlePresetSelect(preset.coords)}
-                        className="border-border/70 bg-muted/40 text-muted-foreground hover:border-primary/40 hover:bg-primary/10 hover:text-primary rounded-md border px-2 py-0.5 text-[11px] transition-colors disabled:pointer-events-none disabled:opacity-50"
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {showCopyButton && currentValue && (
-                    <Button
+          <div className="flex flex-col gap-2">
+            {showAddressSearch && (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-muted-foreground text-[11px] font-medium">常用预设:</span>
+                  {QUICK_PRESETS.map((preset) => (
+                    <button
+                      key={preset.label}
                       type="button"
-                      variant="ghost"
-                      size="xs"
-                      className="text-muted-foreground hover:text-foreground h-6 text-[11px]"
-                      onClick={() => handleCopy(currentValue)}
-                      title="复制坐标"
+                      disabled={isDisabled || isReadOnly}
+                      onClick={() => handlePresetSelect(preset.coords)}
+                      className="border-border/70 bg-muted/40 text-muted-foreground hover:border-primary/40 hover:bg-primary/10 hover:text-primary rounded-md border px-2 py-0.5 text-[11px] transition-colors disabled:pointer-events-none disabled:opacity-50"
                     >
-                      {copied ? (
-                        <>
-                          <Check className="text-primary size-3" />
-                          <span className="text-primary font-medium">已复制</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="size-3" />
-                          <span>复制经纬度</span>
-                        </>
-                      )}
-                    </Button>
-                  )}
+                      {preset.label}
+                    </button>
+                  ))}
                 </div>
-              )}
 
-              {/* Core Location Picker Map */}
-              <LocationPicker
-                {...restPickerProps}
-                value={currentValue}
-                onChange={(val) => {
-                  onChange(val);
-                  onBlur?.();
-                }}
-                disabled={effectiveDisabled}
-                readOnly={effectiveReadOnly}
-              />
-            </div>
-          </FieldWrapper>
+                {showCopyButton && value && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    className="text-muted-foreground hover:text-foreground h-6 text-[11px]"
+                    onClick={() => handleCopy(value)}
+                    title="复制坐标"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="text-primary size-3" />
+                        <span className="text-primary font-medium">已复制</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="size-3" />
+                        <span>复制经纬度</span>
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            )}
+
+            <LocationPicker
+              {...restPickerProps}
+              value={value}
+              onChange={(val) => {
+                onChange(val);
+                onBlur?.();
+              }}
+              disabled={isDisabled}
+              readOnly={isReadOnly}
+            />
+          </div>
         );
       }}
-    </FieldConnector>
+    </FormFieldEngine>
   );
 });

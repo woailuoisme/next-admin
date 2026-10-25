@@ -1,4 +1,4 @@
-import { LazyLocationMarkerMap } from "@/components/map";
+import { LazyLocationMarkerMap } from "@/components/map/lazy";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_LOCATIONS } from "../constants";
 import type { DemoStateProps } from "../types";

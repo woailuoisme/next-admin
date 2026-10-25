@@ -10,7 +10,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { NavSubItem } from "../types";
 import type { NavMainCollapsibleProps } from "./types";
@@ -19,6 +19,40 @@ import { NavBadge } from "./NavBadge";
 import { isPathActive } from "./utils";
 
 const EMPTY_SUB_ITEMS: NavSubItem[] = [];
+
+interface NavMainSubItemRowProps {
+  subItem: NavSubItem;
+  isActive: boolean;
+}
+
+const NavMainSubItemRow = memo(function NavMainSubItemRow({ subItem, isActive }: NavMainSubItemRowProps) {
+  return (
+    <SidebarMenuSubItem className="relative">
+      {/* Connecting tree timeline dot */}
+      <span
+        className={cn(
+          "ring-sidebar absolute top-1/2 -left-[10.5px] -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 transition-all duration-200",
+          isActive
+            ? "bg-primary ring-primary/25 size-2"
+            : "bg-muted-foreground/40 group-hover/menu-sub-item:bg-foreground size-1.5",
+        )}
+      />
+      <SidebarMenuSubButton
+        asChild
+        isActive={isActive}
+        className={cn(
+          "relative justify-between rounded-md pr-2 pl-3 transition-colors",
+          isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+        )}
+      >
+        <Link href={subItem.to} className="flex w-full items-center justify-between">
+          <span className="truncate">{subItem.title}</span>
+          <NavBadge badge={subItem.badge} className="ml-auto" />
+        </Link>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
+  );
+});
 
 export const NavMainCollapsible = memo(function NavMainCollapsible({
   item,
@@ -40,36 +74,9 @@ export const NavMainCollapsible = memo(function NavMainCollapsible({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub>
-            {subItems.map((subItem) => {
-              const isSubActive = isPathActive(subItem.to, currentPath);
-
-              return (
-                <SidebarMenuSubItem key={subItem.to} className="relative">
-                  {/* Connecting tree timeline dot */}
-                  <span
-                    className={cn(
-                      "absolute top-1/2 -left-[10.5px] -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-sidebar transition-all duration-200",
-                      isSubActive
-                        ? "size-2 bg-primary ring-primary/25"
-                        : "size-1.5 bg-muted-foreground/40 group-hover/menu-sub-item:bg-foreground",
-                    )}
-                  />
-                  <SidebarMenuSubButton
-                    asChild
-                    isActive={isSubActive}
-                    className={cn(
-                      "relative justify-between rounded-md pr-2 pl-3 transition-colors",
-                      isSubActive && "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
-                    )}
-                  >
-                    <Link href={subItem.to} className="flex w-full items-center justify-between">
-                      <span className="truncate">{subItem.title}</span>
-                      <NavBadge badge={subItem.badge} className="ml-auto" />
-                    </Link>
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
-              );
-            })}
+            {subItems.map((subItem) => (
+              <NavMainSubItemRow key={subItem.to} subItem={subItem} isActive={isPathActive(subItem.to, currentPath)} />
+            ))}
           </SidebarMenuSub>
         </CollapsibleContent>
       </SidebarMenuItem>

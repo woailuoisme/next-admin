@@ -3,7 +3,7 @@ import { memo } from "react";
 
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ProgressCellProps } from "./types";
 
@@ -27,9 +27,9 @@ function TargetMarker({ percentage }: { percentage?: number }) {
 
 function getIndicatorColorClass(colorByValue: boolean, percentage: number): string | undefined {
   if (!colorByValue) return undefined;
-  if (percentage >= 80) return "[&>[data-slot=progress-indicator]]:bg-emerald-500";
-  if (percentage >= 40) return "[&>[data-slot=progress-indicator]]:bg-amber-500";
-  return "[&>[data-slot=progress-indicator]]:bg-rose-500";
+  if (percentage >= 80) return "[&>[data-slot=progress-indicator]]:bg-chart-2";
+  if (percentage >= 40) return "[&>[data-slot=progress-indicator]]:bg-chart-4";
+  return "[&>[data-slot=progress-indicator]]:bg-destructive";
 }
 
 export const ProgressCell = memo(function ProgressCell({

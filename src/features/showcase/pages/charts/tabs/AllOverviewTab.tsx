@@ -1,14 +1,12 @@
-import {
-  AreaTrendChart,
-  BarTrendChart,
-  CHART_PALETTE,
-  ChartCard,
-  ComposedTrendChart,
-  DonutDistributionChart,
-  HorizontalBarChart,
-  RadarMetricChart,
-  RadialGaugeChart,
-} from "@/components/chart";
+import { AreaTrendChart } from "@/components/chart/area/AreaTrendChart";
+import { BarTrendChart } from "@/components/chart/bar/BarTrendChart";
+import { ChartCard } from "@/components/chart/card/ChartCard";
+import { ComposedTrendChart } from "@/components/chart/composed/ComposedTrendChart";
+import { DonutDistributionChart } from "@/components/chart/donut/DonutDistributionChart";
+import { HorizontalBarChart } from "@/components/chart/horizontal-bar/HorizontalBarChart";
+import { RadarMetricChart } from "@/components/chart/radar/RadarMetricChart";
+import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
+import { CHART_PALETTE } from "@/components/chart/shared/theme";
 import { TabsContent } from "@/components/ui/tabs";
 import {
   ARCHITECTURE_RADAR_DATA,
@@ -174,7 +172,7 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
                 {
                   dataKey: "benchmark",
                   name: "行业基准",
-                  color: "#94a3b8",
+                  color: "var(--muted-foreground)",
                 },
               ]}
             />

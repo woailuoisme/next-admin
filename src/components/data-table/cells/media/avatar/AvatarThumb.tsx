@@ -2,7 +2,7 @@ import { User } from "lucide-react";
 import { memo } from "react";
 
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { AvatarThumbProps } from "./types";
 

@@ -1,10 +1,11 @@
 import { useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
-import { memo, type HTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
+import { memo, useMemo, type HTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableRowId } from "../core/types";
 
@@ -75,6 +76,8 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
   const isRowSelectable = propIsRowSelectable ?? ctx?.isRowSelectable;
   const pinnedLeftFields = propPinnedLeftFields ?? ctx?.pinnedLeftFields ?? EMPTY_ARRAY;
   const pinnedRightFields = propPinnedRightFields ?? ctx?.pinnedRightFields ?? EMPTY_ARRAY;
+  const pinnedLeftSet = useMemo(() => new Set(pinnedLeftFields), [pinnedLeftFields]);
+  const pinnedRightSet = useMemo(() => new Set(pinnedRightFields), [pinnedRightFields]);
   const leftOffsets = propLeftOffsets ?? ctx?.leftOffsets ?? EMPTY_RECORD;
   const rightOffsets = propRightOffsets ?? ctx?.rightOffsets ?? EMPTY_RECORD;
   const columnWidths = propColumnWidths ?? ctx?.columnWidths ?? EMPTY_RECORD;
@@ -137,20 +140,22 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
             )}
           >
             {canExpand ? (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggleExpand?.(rowId);
                 }}
-                className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring inline-flex size-6 cursor-pointer items-center justify-center rounded-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer rounded-xs transition-colors"
                 aria-expanded={isExpanded}
                 aria-label={isExpanded ? t("aria_collapse_detail") : t("aria_expand_detail")}
               >
                 <ChevronRight
                   className={cn("size-3.5 transition-transform duration-200", isExpanded && "rotate-90 text-primary")}
                 />
-              </button>
+              </Button>
             ) : (
               <span className="inline-block size-6" />
             )}
@@ -161,8 +166,8 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
           const { field, align = "left", width, minWidth, maxWidth, cellClassName, renderCell, valueFormatter } = col;
 
           const currentWidth = columnWidths[field] ?? width;
-          const isLeftPinned = pinnedLeftFields.includes(field);
-          const isRightPinned = pinnedRightFields.includes(field);
+          const isLeftPinned = pinnedLeftSet.has(field);
+          const isRightPinned = pinnedRightSet.has(field);
 
           const rawValue = readCellValue(row, col);
           const formattedValue = valueFormatter ? valueFormatter(rawValue, row) : rawValue;
@@ -171,11 +176,11 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
             <TableCell
               key={col.id ?? `${field}_${idx}`}
               style={{
-                width: currentWidth ? `${currentWidth}px` : undefined,
+                width: `var(--col-w-${field}, ${currentWidth ? `${currentWidth}px` : "auto"})`,
                 minWidth: minWidth ? `${minWidth}px` : undefined,
                 maxWidth: maxWidth ? `${maxWidth}px` : undefined,
-                left: isLeftPinned ? `${leftOffsets[field]}px` : undefined,
-                right: isRightPinned ? `${rightOffsets[field]}px` : undefined,
+                left: isLeftPinned ? `var(--col-left-${field}, ${leftOffsets[field]}px)` : undefined,
+                right: isRightPinned ? `var(--col-right-${field}, ${rightOffsets[field]}px)` : undefined,
               }}
               className={cn(
                 densityRowClass,

@@ -1,6 +1,6 @@
 import { forwardRef, memo, type ReactNode } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 export interface RichEditorToolbarItemProps extends React.ComponentPropsWithoutRef<"button"> {
   label: string;

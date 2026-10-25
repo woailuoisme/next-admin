@@ -3,9 +3,10 @@ import { useMemoizedFn } from "ahooks";
 import { ArrowRight, Check, Clock, ExternalLink, Trash2 } from "lucide-react";
 import { memo } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { NotificationItemRowProps } from "./types";
 
@@ -133,13 +134,14 @@ export const NotificationItemRow = memo(function NotificationItemRow({
         {/* 实体轻量标签入口 */}
         {item.actionLabel && (
           <div className="pt-0.5">
-            <span
+            <Badge
+              variant="outline"
               onClick={handleExternalAction}
-              className="bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium transition-colors"
+              className="bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium transition-colors"
             >
               <span>{item.actionLabel}</span>
               <ArrowRight className="size-2.5" />
-            </span>
+            </Badge>
           </div>
         )}
       </div>

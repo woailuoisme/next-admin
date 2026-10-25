@@ -1,15 +1,10 @@
 "use client";
 
-import {
-  ColorPickerInput,
-  FormGrid,
-  FormSection,
-  KeyValueInput,
-  NumberInput,
-  Repeater,
-  TagsInput,
-  TextInput,
-} from "@/components/form";
+import { NumberInput, TextInput } from "@/components/form/basic";
+import { TagsInput } from "@/components/form/choice";
+import { KeyValueInput, Repeater } from "@/components/form/composite";
+import { FormGrid, FormSection } from "@/components/form/layout";
+import { ColorPickerInput } from "@/components/form/media";
 
 import { createDefaultAttribute, createDefaultInvoiceItem, getAttributeTitle, TAG_SUGGESTIONS } from "../constants";
 

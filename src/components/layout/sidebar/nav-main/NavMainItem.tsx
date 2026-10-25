@@ -8,13 +8,17 @@ import type { NavMainItemProps } from "./types";
 import { NavBadge } from "./NavBadge";
 import { isPathActive } from "./utils";
 
-export const NavMainItem = memo(function NavMainItem({ item, currentPath }: NavMainItemProps) {
+export const NavMainItem = memo(function NavMainItem({
+  item,
+  isActive: controlledActive,
+  currentPath,
+}: NavMainItemProps) {
   if (!item.to) {
     return null;
   }
 
   const Icon = item.icon;
-  const isActive = isPathActive(item.to, currentPath);
+  const isActive = controlledActive ?? isPathActive(item.to, currentPath);
 
   return (
     <SidebarMenuItem>

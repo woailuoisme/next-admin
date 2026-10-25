@@ -3,9 +3,12 @@ import { useMemoizedFn } from "ahooks";
 import { Columns3 } from "lucide-react";
 import { memo, useMemo, useState, type ReactElement } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 
 import type { DataTableColDef } from "../../core/types";
 import type { DataTableColumnsPanelProps } from "../types";
@@ -70,16 +73,16 @@ function DataTableColumnsPanelInner<TData = unknown>({
         <Button variant="outline" size="sm" className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs">
           <Columns3 className="size-3.5" />
           <span>{t("columns_button")}</span>
-          <span className="py-0.2 bg-muted rounded-full px-1.5 font-mono text-[10px]">
+          <Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
             {visibleCount}/{toggleableColumns.length}
-          </span>
+          </Badge>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 p-3 shadow-lg">
         <div className="space-y-3">
           <div className="flex items-center justify-between border-b pb-2">
             <span className="text-foreground text-xs font-semibold">{t("columns_title")}</span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <Button
                 variant="ghost"
                 size="sm"
@@ -88,7 +91,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
               >
                 {t("columns_show_all")}
               </Button>
-              <span className="text-muted-foreground/40">|</span>
+              <Separator orientation="vertical" className="h-3" />
               <Button
                 variant="ghost"
                 size="sm"
@@ -100,15 +103,15 @@ function DataTableColumnsPanelInner<TData = unknown>({
             </div>
           </div>
 
-          {toggleableColumns.length > 6 && (
-            <input
+          {toggleableColumns.length > 6 ? (
+            <Input
               type="text"
               placeholder={t("columns_search_placeholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border-input focus:ring-ring h-7 w-full rounded-md border bg-transparent px-2 text-xs focus:ring-1 focus:outline-hidden"
+              className="h-7 w-full text-xs"
             />
-          )}
+          ) : null}
 
           <div className="max-h-60 space-y-1.5 overflow-y-auto pr-1">
             {filteredColumns.map((col: DataTableColDef<TData>, idx: number) => {

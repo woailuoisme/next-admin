@@ -1,10 +1,10 @@
 import { useMemoizedFn } from "ahooks";
-import { type KeyboardEvent, memo, useId } from "react";
+import { type KeyboardEvent, memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, resolveFieldHasError, type SegmentedOption } from "../core";
+import { type BaseInputProps, FormFieldEngine, type SegmentedOption } from "../core";
 
 export interface SegmentedControlProps<T extends string | number = string> extends BaseInputProps {
   value?: T;
@@ -16,7 +16,7 @@ export interface SegmentedControlProps<T extends string | number = string> exten
   fullWidth?: boolean;
 }
 
-interface SegmentedControlInnerProps<T extends string | number = string> {
+interface SegmentedControlGroupProps<T extends string | number = string> {
   id: string;
   value?: T;
   onChange: (value: T) => void;
@@ -35,7 +35,7 @@ const SIZE_STYLES = {
   lg: "h-9 text-sm px-4 gap-2.5",
 };
 
-const SegmentedControlInner = memo(function SegmentedControlInner<T extends string | number = string>({
+const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends string | number = string>({
   id,
   value,
   onChange,
@@ -46,7 +46,7 @@ const SegmentedControlInner = memo(function SegmentedControlInner<T extends stri
   disabled = false,
   readOnly = false,
   hasError,
-}: SegmentedControlInnerProps<T>) {
+}: SegmentedControlGroupProps<T>) {
   const handleSelect = useMemoizedFn((optValue: T, optDisabled?: boolean) => {
     if (disabled || readOnly || optDisabled) return;
     onChange(optValue);
@@ -128,7 +128,7 @@ const SegmentedControlInner = memo(function SegmentedControlInner<T extends stri
       })}
     </div>
   );
-}) as <T extends string | number = string>(props: SegmentedControlInnerProps<T>) => React.ReactElement;
+}) as <T extends string | number = string>(props: SegmentedControlGroupProps<T>) => React.ReactElement;
 
 export function SegmentedControl<T extends string | number = string>({
   name,
@@ -153,51 +153,41 @@ export function SegmentedControl<T extends string | number = string>({
   size = "md",
   fullWidth = false,
 }: SegmentedControlProps<T>) {
-  const generatedId = useId();
-  const id = explicitId || generatedId;
-
   return (
-    <FieldConnector
+    <FormFieldEngine<T>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
+      readOnly={readOnly}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      disabled={disabled}
-      readOnly={readOnly}
-      render={({ value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, meta }) => {
-        const hasError = resolveFieldHasError(error, meta);
-
-        return (
-          <FieldWrapper
-            id={id}
-            label={label}
-            required={required}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={error}
-            meta={meta}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-          >
-            <SegmentedControlInner<T>
-              id={id}
-              value={value as T | undefined}
-              onChange={onChange as (val: T) => void}
-              onBlur={onBlur}
-              options={options}
-              size={size}
-              fullWidth={fullWidth}
-              disabled={isDisabled}
-              readOnly={isReadOnly}
-              hasError={hasError}
-            />
-          </FieldWrapper>
-        );
-      }}
-    />
+    >
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+        <SegmentedControlGroup<T>
+          id={id}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          options={options}
+          size={size}
+          fullWidth={fullWidth}
+          disabled={isDisabled}
+          readOnly={isReadOnly}
+          hasError={hasError}
+        />
+      )}
+    </FormFieldEngine>
   );
 }

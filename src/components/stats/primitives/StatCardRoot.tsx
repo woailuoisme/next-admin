@@ -2,7 +2,7 @@ import Link from "next/link";
 import { memo, useMemo } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { StatCardRootProps } from "./types";
 

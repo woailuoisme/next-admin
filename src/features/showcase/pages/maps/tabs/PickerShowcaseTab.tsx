@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { useState } from "react";
-import { FormLocationPicker } from "@/components/form";
-import type { LocationPickerValue } from "@/components/map";
+import { FormLocationPicker } from "@/components/form/map";
+import type { LocationPickerValue } from "@/components/map/picker/types";
 import { Card } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
 

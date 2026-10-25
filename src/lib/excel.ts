@@ -1,13 +1,13 @@
 import { toast } from "sonner";
 
-export interface ExcelColumnDefinition<TData = any> {
+export interface ExcelColumnDefinition<TData = unknown> {
   field: string;
   headerName: string;
   width?: number;
-  valueFormatter?: (value: any, row: TData) => unknown;
+  valueFormatter?: (value: unknown, row: TData) => unknown;
 }
 
-export interface ExportToExcelOptions<TData = any> {
+export interface ExportToExcelOptions<TData = unknown> {
   fileName?: string;
   sheetName?: string;
   columns: ExcelColumnDefinition<TData>[];
@@ -20,13 +20,15 @@ export interface ExportToExcelOptions<TData = any> {
  * 动态异步加载 exceljs 并导出带有样式、自适应列宽、冻结表头的专业 .xlsx 文件
  * 采用 Code Splitting 策略，首屏零打包开销
  */
-export async function exportToExcel<TData = any>({
+export async function exportToExcel<TData = unknown>({
   fileName = "export-data",
   sheetName = "Sheet1",
   columns,
   data,
   headerBgColor = "FFF4F4F5",
 }: ExportToExcelOptions<TData>): Promise<void> {
+  if (typeof window === "undefined") return;
+
   if (!data || data.length === 0) {
     toast.error("No data available to export");
     return;
@@ -60,7 +62,8 @@ export async function exportToExcel<TData = any>({
       let maxLen = col.headerName ? col.headerName.length * 1.5 : 10;
       const sampleRows = data.slice(0, 30);
       for (const row of sampleRows) {
-        const val = col.valueFormatter ? col.valueFormatter((row as any)[col.field], row) : (row as any)[col.field];
+        const raw = (row as Record<string, unknown>)[col.field];
+        const val = col.valueFormatter ? col.valueFormatter(raw, row) : raw;
         if (val !== undefined && val !== null) {
           const strLen = String(val).length;
           if (strLen > maxLen) {
@@ -107,7 +110,7 @@ export async function exportToExcel<TData = any>({
     for (const item of data) {
       const rowData: Record<string, unknown> = {};
       for (const col of validCols) {
-        const raw = (item as any)[col.field];
+        const raw = (item as Record<string, unknown>)[col.field];
         const formatted = col.valueFormatter ? col.valueFormatter(raw, item) : raw;
         rowData[col.field] = formatted ?? "";
       }

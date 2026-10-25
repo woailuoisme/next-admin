@@ -1,11 +1,11 @@
 import { useMemoizedFn } from "ahooks";
-import { type ChangeEvent, type FocusEvent, memo, useId, useState } from "react";
+import { type ChangeEvent, memo, useState } from "react";
 
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, resolveFieldHasError } from "../core";
+import { type BaseInputProps, FormFieldEngine } from "../core";
 
 export interface CurrencyInputProps extends BaseInputProps {
   value?: number | null;
@@ -77,16 +77,12 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
   inputClassName,
   hasError,
 }: CurrencyInputInnerProps) {
-  const [displayValue, setDisplayValue] = useState(() => formatAmount(value, decimals));
-  const [prevValue, setPrevValue] = useState(value);
   const [isFocused, setIsFocused] = useState(false);
+  const [editingValue, setEditingValue] = useState<string | null>(null);
 
-  if (value !== prevValue) {
-    setPrevValue(value);
-    if (!isFocused) {
-      setDisplayValue(formatAmount(value, decimals));
-    }
-  }
+  const displayValue = isFocused
+    ? (editingValue ?? (value == null ? "" : String(value)))
+    : formatAmount(value, decimals);
 
   const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
     let raw = e.target.value;
@@ -95,7 +91,7 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
     }
     // Strip characters except digits, dot and minus
     const clean = raw.replaceAll(/[^0-9.-]/g, "");
-    setDisplayValue(clean);
+    setEditingValue(clean);
 
     const parsed = parseAmount(clean);
     if (parsed == null) {
@@ -117,20 +113,25 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
 
   const handleFocus = useMemoizedFn(() => {
     setIsFocused(true);
-    // In focus, display without thousand separators for easy editing
-    if (value != null && !Number.isNaN(value)) {
-      setDisplayValue(value.toString());
-    }
+    setEditingValue(value == null ? "" : String(value));
   });
 
-  const handleBlur = useMemoizedFn((e: FocusEvent<HTMLInputElement>) => {
+  const handleBlur = useMemoizedFn(() => {
     setIsFocused(false);
-    const parsed = parseAmount(e.target.value);
-    setDisplayValue(formatAmount(parsed, decimals));
+    setEditingValue(null);
+
+    // Format and clamp on blur
+    if (value != null) {
+      if (min != null && value < min) {
+        onChange(min);
+      } else if (max != null && value > max) {
+        onChange(max);
+      }
+    }
     onBlur?.();
   });
 
-  const hasCurrenciesSelect = Boolean(currencies && currencies.length > 1);
+  const hasMultiCurrency = Boolean(currencies && currencies.length > 1);
 
   return (
     <InputGroup
@@ -140,15 +141,16 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
         disabled && "pointer-events-none opacity-50",
       )}
     >
-      {hasCurrenciesSelect ? (
-        <InputGroupAddon align="inline-start" className="border-r p-0">
+      {/* Currency Symbol or Selector Addon */}
+      {hasMultiCurrency ? (
+        <InputGroupAddon align="inline-start" className="p-0">
           <Select value={currency} onValueChange={onCurrencyChange} disabled={disabled || readOnly}>
-            <SelectTrigger className="h-8 border-none bg-transparent px-2 text-xs font-semibold shadow-none focus:ring-0">
-              <SelectValue />
+            <SelectTrigger className="h-full rounded-r-none border-0 bg-transparent px-2.5 font-mono text-xs font-semibold shadow-none focus:ring-0">
+              <SelectValue>{currency}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {currencies!.map((curr) => (
-                <SelectItem key={curr} value={curr} className="text-xs">
+                <SelectItem key={curr} value={curr} className="font-mono text-xs font-medium">
                   {curr}
                 </SelectItem>
               ))}
@@ -157,10 +159,13 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
         </InputGroupAddon>
       ) : (
         <InputGroupAddon align="inline-start">
-          <InputGroupText className="text-muted-foreground text-xs font-semibold">{currencySymbol}</InputGroupText>
+          <InputGroupText className="font-mono text-xs font-semibold select-none">
+            {currencySymbol || currency}
+          </InputGroupText>
         </InputGroupAddon>
       )}
 
+      {/* Amount Input Field */}
       <InputGroupInput
         id={id}
         type="text"
@@ -173,12 +178,13 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
         disabled={disabled}
         readOnly={readOnly}
         aria-invalid={hasError}
-        className={cn("text-right tabular-nums", inputClassName)}
+        className={cn("font-mono text-xs", inputClassName)}
       />
 
-      {!hasCurrenciesSelect && currency && (
+      {/* ISO Currency code suffix when single currency */}
+      {!hasMultiCurrency && currency && (
         <InputGroupAddon align="inline-end">
-          <InputGroupText className="text-muted-foreground text-[11px] font-medium uppercase">
+          <InputGroupText className="text-muted-foreground font-mono text-[11px] font-medium select-none">
             {currency}
           </InputGroupText>
         </InputGroupAddon>
@@ -187,7 +193,7 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
   );
 });
 
-export function CurrencyInput({
+export const CurrencyInput = memo(function CurrencyInput({
   name,
   form,
   label,
@@ -204,7 +210,7 @@ export function CurrencyInput({
   disabled,
   readOnly,
   value: controlledValue,
-  defaultValue,
+  defaultValue = null,
   onChange: controlledOnChange,
   onBlur: controlledOnBlur,
   currency = "USD",
@@ -217,59 +223,52 @@ export function CurrencyInput({
   allowNegative = false,
   inputClassName,
 }: CurrencyInputProps) {
-  const generatedId = useId();
-  const id = explicitId || generatedId;
-
   return (
-    <FieldConnector
+    <FormFieldEngine<number | null>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
+      readOnly={readOnly}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      disabled={disabled}
-      readOnly={readOnly}
-      render={({ value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, meta }) => {
-        const hasError = resolveFieldHasError(error, meta);
+    >
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => {
         const numValue = typeof value === "number" ? value : null;
 
         return (
-          <FieldWrapper
+          <CurrencyInputInner
             id={id}
-            label={label}
-            required={required}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={error}
-            meta={meta}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-          >
-            <CurrencyInputInner
-              id={id}
-              value={numValue}
-              onChange={onChange}
-              onBlur={onBlur}
-              currency={currency}
-              currencies={currencies}
-              onCurrencyChange={onCurrencyChange}
-              currencySymbol={currencySymbol}
-              decimals={decimals}
-              min={min}
-              max={max}
-              allowNegative={allowNegative}
-              placeholder={placeholder}
-              disabled={isDisabled}
-              readOnly={isReadOnly}
-              inputClassName={inputClassName}
-              hasError={hasError}
-            />
-          </FieldWrapper>
+            value={numValue}
+            onChange={onChange}
+            onBlur={onBlur}
+            currency={currency}
+            currencies={currencies}
+            onCurrencyChange={onCurrencyChange}
+            currencySymbol={currencySymbol}
+            decimals={decimals}
+            min={min}
+            max={max}
+            allowNegative={allowNegative}
+            placeholder={placeholder}
+            disabled={isDisabled}
+            readOnly={isReadOnly}
+            inputClassName={inputClassName}
+            hasError={hasError}
+          />
         );
       }}
-    />
+    </FormFieldEngine>
   );
-}
+});

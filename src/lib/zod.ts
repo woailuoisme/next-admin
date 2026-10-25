@@ -1,6 +1,6 @@
 import { locales, z } from "zod";
 
-import { getLocale } from "@/i18n";
+import { getLocale } from "@/i18n/config";
 
 type ZodConfig = Parameters<typeof z.config>[0];
 

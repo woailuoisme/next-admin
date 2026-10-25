@@ -98,32 +98,35 @@ export function useResourceOperations<TData = unknown, TSearch = unknown>(
     router.push(targetPath);
   });
 
-  /** page 模式跳转目标路由；无可用路由时保持静止（不回退弹窗） */
-  const dispatch = (presentation: ResourcePresentation, targetPath: string | null, openModal: () => void) => {
-    if (presentation !== "page") {
-      openModal();
-    } else if (targetPath) {
-      executeNavigation(targetPath);
-    }
-  };
-
   const createPath = pagePaths?.create ? pagePaths.create(basePath ?? "") : basePath ? `${basePath}/create` : null;
 
   const openCreate = useMemoizedFn(() => {
-    onCreate?.();
-    dispatch(createPresentation, createPath, modalState.openCreate);
+    if (createPresentation === "page") {
+      onCreate?.();
+      if (createPath) executeNavigation(createPath);
+    } else {
+      modalState.openCreate();
+    }
   });
 
   const openEdit = useMemoizedFn((id: string) => {
-    onEdit?.(id);
-    const path = pagePaths?.edit ? pagePaths.edit(basePath ?? "", id) : basePath ? `${basePath}/${id}/edit` : null;
-    dispatch(editPresentation, path, () => modalState.openEdit(id));
+    if (editPresentation === "page") {
+      onEdit?.(id);
+      const path = pagePaths?.edit ? pagePaths.edit(basePath ?? "", id) : basePath ? `${basePath}/${id}/edit` : null;
+      if (path) executeNavigation(path);
+    } else {
+      modalState.openEdit(id);
+    }
   });
 
   const openView = useMemoizedFn((id: string) => {
-    onView?.(id);
-    const path = pagePaths?.view ? pagePaths.view(basePath ?? "", id) : basePath ? `${basePath}/${id}` : null;
-    dispatch(viewPresentation, path, () => modalState.openView(id));
+    if (viewPresentation === "page") {
+      onView?.(id);
+      const path = pagePaths?.view ? pagePaths.view(basePath ?? "", id) : basePath ? `${basePath}/${id}` : null;
+      if (path) executeNavigation(path);
+    } else {
+      modalState.openView(id);
+    }
   });
 
   return {

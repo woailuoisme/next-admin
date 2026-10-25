@@ -2,7 +2,7 @@ import { memo, type ReactNode } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { SparklineLayout, StatDensity } from "../shared/types";
 

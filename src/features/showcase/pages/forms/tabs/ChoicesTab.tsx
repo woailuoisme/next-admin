@@ -9,16 +9,14 @@ import {
   CheckboxGroup,
   CheckboxInput,
   ComboboxInput,
-  FormFieldset,
-  FormGrid,
-  FormSection,
   RadioGroupInput,
   SelectInput,
   SwitchInput,
   ToggleButtons,
   TreeSelectInput,
   type TreeSelectNode,
-} from "@/components/form";
+} from "@/components/form/choice";
+import { FormFieldset, FormGrid, FormSection } from "@/components/form/layout";
 
 import {
   DEPARTMENT_OPTIONS,

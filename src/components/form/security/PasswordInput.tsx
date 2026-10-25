@@ -1,17 +1,11 @@
 import { useMemoizedFn } from "ahooks";
 import { ArrowUpSquare, Eye, EyeOff, X } from "lucide-react";
-import { type ChangeEvent, type KeyboardEvent, memo, useId, useState } from "react";
+import { type ChangeEvent, type KeyboardEvent, memo, useState } from "react";
 
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import {
-  type BaseInputProps,
-  FieldConnector,
-  FieldWrapper,
-  type PasswordRequirement,
-  resolveFieldHasError,
-} from "../core";
+import { type BaseInputProps, FormFieldEngine, type PasswordRequirement } from "../core";
 import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
 
 export interface PasswordInputProps extends BaseInputProps {
@@ -60,22 +54,12 @@ const PasswordInputInner = memo(function PasswordInputInner({
   const [visible, setVisible] = useState(false);
   const toggleVisible = useMemoizedFn(() => setVisible((prev) => !prev));
   const [capsLockActive, setCapsLockActive] = useState(false);
-  const [localValue, setLocalValue] = useState(value ?? "");
-  const [prevValue, setPrevValue] = useState(value);
-
-  if (value !== prevValue) {
-    setPrevValue(value);
-    setLocalValue(value ?? "");
-  }
 
   const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
-    const nextVal = e.target.value;
-    setLocalValue(nextVal);
-    onChange(nextVal);
+    onChange(e.target.value);
   });
 
   const handleClear = useMemoizedFn(() => {
-    setLocalValue("");
     onChange("");
   });
 
@@ -85,10 +69,11 @@ const PasswordInputInner = memo(function PasswordInputInner({
     }
   });
 
-  const hasValue = Boolean(localValue);
+  const stringVal = value ?? "";
+  const hasValue = stringVal.length > 0;
 
   return (
-    <div className="w-full space-y-1.5">
+    <div className="w-full space-y-2">
       <InputGroup
         className={cn(
           "w-full rounded-md",
@@ -99,59 +84,71 @@ const PasswordInputInner = memo(function PasswordInputInner({
         <InputGroupInput
           id={id}
           type={visible ? "text" : "password"}
-          value={localValue}
+          value={stringVal}
           onChange={handleInputChange}
           onKeyDown={checkCapsLock}
           onKeyUp={checkCapsLock}
-          onBlur={onBlur}
+          onBlur={() => {
+            setCapsLockActive(false);
+            onBlur?.();
+          }}
           placeholder={placeholder}
           disabled={disabled}
           readOnly={readOnly}
           autoComplete={autoComplete}
           aria-invalid={hasError}
-          className={inputClassName}
+          className={cn("pr-2 text-xs", inputClassName)}
         />
 
+        {/* CapsLock Indicator Addon */}
         {capsLockActive && !disabled && (
-          <InputGroupAddon align="inline-end" className="pr-1">
-            <span
-              title="Caps Lock is active"
-              className="bg-muted text-muted-foreground flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px]"
-            >
-              <ArrowUpSquare className="size-3 text-amber-500" />
-              <span className="hidden sm:inline">CAPS</span>
-            </span>
+          <InputGroupAddon align="inline-end" title="Caps Lock is ON" className="text-amber-500">
+            <ArrowUpSquare className="size-3.5 animate-pulse" />
           </InputGroupAddon>
         )}
 
+        {/* Clear Button Addon */}
         {clearable && hasValue && !disabled && !readOnly && (
           <InputGroupAddon align="inline-end">
-            <InputGroupButton size="icon-xs" variant="ghost" onClick={handleClear} aria-label="Clear password">
+            <InputGroupButton
+              type="button"
+              size="icon-xs"
+              variant="ghost"
+              onClick={handleClear}
+              aria-label="Clear password"
+            >
               <X className="size-3" />
             </InputGroupButton>
           </InputGroupAddon>
         )}
 
+        {/* Password Visibility Toggle */}
         {!disabled && (
           <InputGroupAddon align="inline-end">
             <InputGroupButton
+              type="button"
               size="icon-xs"
               variant="ghost"
               onClick={toggleVisible}
               aria-label={visible ? "Hide password" : "Show password"}
             >
-              {visible ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+              {visible ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
             </InputGroupButton>
           </InputGroupAddon>
         )}
       </InputGroup>
 
-      {showStrength && <PasswordStrengthMeter password={localValue} requirements={requirements} />}
+      {/* Visual Strength Meter */}
+      {showStrength && hasValue && (
+        <div className="pt-1">
+          <PasswordStrengthMeter password={stringVal} requirements={requirements} />
+        </div>
+      )}
     </div>
   );
 });
 
-export function PasswordInput({
+export const PasswordInput = memo(function PasswordInput({
   name,
   form,
   label,
@@ -168,7 +165,7 @@ export function PasswordInput({
   disabled,
   readOnly,
   value: controlledValue,
-  defaultValue,
+  defaultValue = "",
   onChange: controlledOnChange,
   onBlur: controlledOnBlur,
   clearable = false,
@@ -177,54 +174,44 @@ export function PasswordInput({
   inputClassName,
   autoComplete,
 }: PasswordInputProps) {
-  const generatedId = useId();
-  const id = explicitId || generatedId;
-
   return (
-    <FieldConnector
+    <FormFieldEngine<string>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
+      readOnly={readOnly}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      disabled={disabled}
-      readOnly={readOnly}
-      render={({ value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, meta }) => {
-        const hasError = resolveFieldHasError(error, meta);
-
-        return (
-          <FieldWrapper
-            id={id}
-            label={label}
-            required={required}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={error}
-            meta={meta}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-          >
-            <PasswordInputInner
-              id={id}
-              value={typeof value === "string" ? value : ""}
-              onChange={onChange}
-              onBlur={onBlur}
-              placeholder={placeholder}
-              disabled={isDisabled}
-              readOnly={isReadOnly}
-              clearable={clearable}
-              showStrength={showStrength}
-              requirements={requirements}
-              inputClassName={inputClassName}
-              autoComplete={autoComplete}
-              hasError={hasError}
-            />
-          </FieldWrapper>
-        );
-      }}
-    />
+    >
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+        <PasswordInputInner
+          id={id}
+          value={typeof value === "string" ? value : ""}
+          onChange={onChange}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          disabled={isDisabled}
+          readOnly={isReadOnly}
+          clearable={clearable}
+          showStrength={showStrength}
+          requirements={requirements}
+          inputClassName={inputClassName}
+          autoComplete={autoComplete}
+          hasError={hasError}
+        />
+      )}
+    </FormFieldEngine>
   );
-}
+});

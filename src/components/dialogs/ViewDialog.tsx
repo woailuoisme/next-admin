@@ -6,27 +6,14 @@ import { Edit, Loader2 } from "lucide-react";
 import { memo, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { SheetDescription, SheetFooter, SheetTitle } from "@/components/ui/sheet";
+import { cn } from "cn";
 
 import type { ViewDialogProps } from "./types";
 
-import { FullscreenToggle } from "./FullscreenToggle";
-import { useDialogFullscreen } from "./hooks/useDialogFullscreen";
-import {
-  DIALOG_BODY_CLASS,
-  DIALOG_FOOTER_CLASS,
-  getDialogContentClassName,
-  getSheetContentClassName,
-} from "./sizeClasses";
+import { ModalFrame } from "./ModalFrame";
+import { DIALOG_BODY_CLASS, DIALOG_FOOTER_CLASS } from "./sizeClasses";
 
 interface ViewHeaderProps {
   title: ReactNode;
@@ -104,12 +91,6 @@ export const ViewDialog = memo(function ViewDialog({
 }: ViewDialogProps) {
   const t = useTranslations("dialog");
 
-  const { isFullscreen, toggleFullscreen } = useDialogFullscreen({
-    open,
-    fullscreen: controlledFullscreen,
-    onFullscreenChange,
-  });
-
   const resolvedTitle = title ?? t("view_title", { entityName: "Record" });
   const resolvedEditText = editText ?? t("edit");
   const resolvedCloseText = closeText ?? t("close");
@@ -138,49 +119,33 @@ export const ViewDialog = memo(function ViewDialog({
     </>
   );
 
-  if (variant === "sheet") {
-    return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className={getSheetContentClassName({ widthClassName, size, className })}>
-          <SheetHeader className="border-border/60 border-b px-6 py-4">
-            <ViewHeader
-              title={resolvedTitle}
-              description={description}
-              badge={badge}
-              extraActions={extraActions}
-              onEdit={onEdit}
-              editText={resolvedEditText}
-              TitleComponent={SheetTitle}
-              DescriptionComponent={SheetDescription}
-            />
-          </SheetHeader>
-
-          {renderPanel(SheetFooter)}
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={getDialogContentClassName({ isFullscreen, widthClassName, size, className })}>
-        {allowFullscreen ? <FullscreenToggle isFullscreen={isFullscreen} onToggle={toggleFullscreen} /> : null}
-
-        <DialogHeader className="border-border/60 shrink-0 border-b px-6 py-4 pr-16">
-          <ViewHeader
-            title={resolvedTitle}
-            description={description}
-            badge={badge}
-            extraActions={extraActions}
-            onEdit={onEdit}
-            editText={resolvedEditText}
-            TitleComponent={DialogTitle}
-            DescriptionComponent={DialogDescription}
-          />
-        </DialogHeader>
-
-        {renderPanel(DialogFooter)}
-      </DialogContent>
-    </Dialog>
+    <ModalFrame
+      open={open}
+      onOpenChange={onOpenChange}
+      variant={variant}
+      size={size}
+      widthClassName={widthClassName}
+      className={className}
+      allowFullscreen={allowFullscreen}
+      fullscreen={controlledFullscreen}
+      onFullscreenChange={onFullscreenChange}
+      title={resolvedTitle}
+      description={description}
+      headerSlot={
+        <ViewHeader
+          title={resolvedTitle}
+          description={description}
+          badge={badge}
+          extraActions={extraActions}
+          onEdit={onEdit}
+          editText={resolvedEditText}
+          TitleComponent={variant === "sheet" ? SheetTitle : DialogTitle}
+          DescriptionComponent={variant === "sheet" ? SheetDescription : DialogDescription}
+        />
+      }
+    >
+      {renderPanel(variant === "sheet" ? SheetFooter : DialogFooter)}
+    </ModalFrame>
   );
 });

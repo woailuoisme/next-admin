@@ -1,14 +1,12 @@
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
-import {
-  AreaTrendChart,
-  ChartCard,
-  FunnelConversionChart,
-  HeatmapMatrixChart,
-  MetricSparkline,
-  ScatterMetricChart,
-  TreemapDistributionChart,
-  WaterfallFinancialChart,
-} from "@/components/chart";
+import { AreaTrendChart } from "@/components/chart/area/AreaTrendChart";
+import { ChartCard } from "@/components/chart/card/ChartCard";
+import { FunnelConversionChart } from "@/components/chart/funnel/FunnelConversionChart";
+import { HeatmapMatrixChart } from "@/components/chart/heatmap/HeatmapMatrixChart";
+import { ScatterMetricChart } from "@/components/chart/scatter/ScatterMetricChart";
+import { MetricSparkline } from "@/components/chart/sparkline/MetricSparkline";
+import { TreemapDistributionChart } from "@/components/chart/treemap/TreemapDistributionChart";
+import { WaterfallFinancialChart } from "@/components/chart/waterfall/WaterfallFinancialChart";
 import { Card } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
 import {

@@ -1,11 +1,19 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { Route } from "next";
-import { ArrowLeft, ChevronRight } from "lucide-react";
-import { memo, type ReactNode } from "react";
+import { ArrowLeft } from "lucide-react";
+import React, { memo, type ReactNode } from "react";
 
+import {
+  Breadcrumb,
+  BreadcrumbItem as UiBreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { BreadcrumbItem } from "./types";
 
@@ -40,26 +48,32 @@ export const ResourcePageHeader = memo(function ResourcePageHeader({
   return (
     <div className={cn("flex flex-col gap-3 border-b border-border/70 pb-5", className)}>
       {breadcrumbs && breadcrumbs.length > 0 ? (
-        <nav aria-label={t("breadcrumb_aria")} className="text-muted-foreground flex items-center gap-1.5 text-xs">
-          {breadcrumbs.map((item, index) => {
-            const isLast = index === breadcrumbs.length - 1;
-            const itemKey = item.href
-              ? `${item.href}-${index}`
-              : `${typeof item.label === "string" ? item.label : index}`;
-            return (
-              <div key={itemKey} className="flex items-center gap-1.5">
-                {index > 0 ? <ChevronRight className="text-muted-foreground/60 size-3 shrink-0" /> : null}
-                {item.href && !isLast ? (
-                  <Link href={item.href as Route} className="hover:text-foreground font-medium transition-colors">
-                    {item.label}
-                  </Link>
-                ) : (
-                  <span className={cn(isLast && "font-semibold text-foreground")}>{item.label}</span>
-                )}
-              </div>
-            );
-          })}
-        </nav>
+        <Breadcrumb aria-label={t("breadcrumb_aria")} className="text-xs">
+          <BreadcrumbList className="gap-1.5 text-xs">
+            {breadcrumbs.map((item, index) => {
+              const isLast = index === breadcrumbs.length - 1;
+              const itemKey = item.href
+                ? `${item.href}-${index}`
+                : `${typeof item.label === "string" ? item.label : index}`;
+              return (
+                <React.Fragment key={itemKey}>
+                  {index > 0 ? <BreadcrumbSeparator className="[&>svg]:size-3" /> : null}
+                  <UiBreadcrumbItem>
+                    {item.href && !isLast ? (
+                      <BreadcrumbLink asChild className="hover:text-foreground text-xs font-medium transition-colors">
+                        <Link href={item.href as Route}>{item.label}</Link>
+                      </BreadcrumbLink>
+                    ) : (
+                      <BreadcrumbPage className={cn("text-xs", isLast && "font-semibold text-foreground")}>
+                        {item.label}
+                      </BreadcrumbPage>
+                    )}
+                  </UiBreadcrumbItem>
+                </React.Fragment>
+              );
+            })}
+          </BreadcrumbList>
+        </Breadcrumb>
       ) : null}
 
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">

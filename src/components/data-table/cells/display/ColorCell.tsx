@@ -3,8 +3,9 @@ import { isNil } from "es-toolkit";
 import { Check, Copy } from "lucide-react";
 import { memo, useEffect, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ColorCellProps } from "./types";
 
@@ -69,23 +70,25 @@ export const ColorCell = memo(function ColorCell({
         <span className="absolute inset-0" style={{ backgroundColor: value }} />
       </span>
       {showHex && <span className="text-foreground/90 font-mono text-xs uppercase tabular-nums">{value}</span>}
-      {copyable && (
+      {copyable ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={handleCopy}
-              className="text-muted-foreground hover:text-foreground cursor-pointer rounded p-0.5 transition-colors"
+              className="text-muted-foreground hover:text-foreground size-5 cursor-pointer rounded p-0 transition-colors"
               aria-label="Copy color hex code"
             >
-              {copied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
-            </button>
+              {copied ? <Check className="text-chart-2 size-3" /> : <Copy className="size-3" />}
+            </Button>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">
             {copied ? "已复制" : "复制颜色代码"}
           </TooltipContent>
         </Tooltip>
-      )}
+      ) : null}
     </div>
   );
 });

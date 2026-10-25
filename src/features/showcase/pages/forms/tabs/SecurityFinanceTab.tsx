@@ -1,15 +1,10 @@
 "use client";
 
-import {
-  CurrencyInput,
-  FormGrid,
-  FormSection,
-  MaskedInput,
-  OtpInput,
-  PasswordInput,
-  RatingInput,
-  SegmentedControl,
-} from "@/components/form";
+import { MaskedInput } from "@/components/form/basic";
+import { RatingInput, SegmentedControl } from "@/components/form/choice";
+import { CurrencyInput } from "@/components/form/finance";
+import { FormGrid, FormSection } from "@/components/form/layout";
+import { OtpInput, PasswordInput } from "@/components/form/security";
 
 export interface SecurityFinanceTabProps {
   // biome-ignore lint/suspicious/noExplicitAny: TanStack FormApi instance

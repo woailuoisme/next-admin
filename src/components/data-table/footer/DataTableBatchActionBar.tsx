@@ -3,6 +3,7 @@ import { CheckSquare2, X } from "lucide-react";
 import { memo, type ReactElement, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export interface DataTableBatchActionBarProps<TData = unknown> {
   selectedRows: TData[];
@@ -26,7 +27,7 @@ function DataTableBatchActionBarInner<TData = unknown>({
         <span className="text-xs font-semibold">{t("batch_selected", { count: selectedRows.length })}</span>
       </div>
 
-      <div className="bg-border h-4 w-px" />
+      <Separator orientation="vertical" className="h-4" />
 
       {batchActions && <div className="flex items-center gap-2">{batchActions(selectedRows, onClearSelection)}</div>}
 

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { memo } from "react";
 import { Funnel, FunnelChart, LabelList, Tooltip } from "recharts";
 
@@ -28,6 +29,7 @@ const FunnelTooltipContent = memo(function FunnelTooltipContent({
   payload,
   valueFormatter,
 }: FunnelTooltipContentProps) {
+  const t = useTranslations("chart");
   if (!active || !payload?.length) return null;
   const item = payload[0]?.payload;
   if (!item) return null;
@@ -40,19 +42,19 @@ const FunnelTooltipContent = memo(function FunnelTooltipContent({
       </div>
       <div className="mt-2 space-y-1">
         <div className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">阶段数值:</span>
+          <span className="text-muted-foreground">{t("funnel_value")}:</span>
           <span className="font-mono font-medium">{valueFormatter(item.value)}</span>
         </div>
         <div className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">总体留存:</span>
+          <span className="text-muted-foreground">{t("funnel_retention")}:</span>
           <span className="text-primary font-mono font-semibold">{item.conversionRate}%</span>
         </div>
-        {item.dropoffRate > 0 && (
+        {item.dropoffRate > 0 ? (
           <div className="flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">上阶段流失:</span>
+            <span className="text-muted-foreground">{t("funnel_dropoff")}:</span>
             <span className="text-destructive font-mono font-medium">-{item.dropoffRate}%</span>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

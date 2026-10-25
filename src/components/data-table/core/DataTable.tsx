@@ -4,7 +4,7 @@ import { useMemoizedFn } from "ahooks";
 import { useMemo, useRef, useState } from "react";
 
 import { Table, TableFooter } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type {
   DataTableDensity,
@@ -50,11 +50,12 @@ const DENSITY_ROW_HEIGHTS: Record<DataTableDensity, number> = {
 };
 
 export function DataTable<TData extends Record<string, any> = Record<string, any>>({
+  state,
   rows: rawRows,
-  data,
+  data: propData,
   columns,
   getRowId = defaultGetRowId<TData>,
-  loading = false,
+  loading: propLoading = false,
 
   // Selection
   checkboxSelection = false,
@@ -76,13 +77,13 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   // Pagination
   pagination,
   initialPaginationModel,
-  paginationMode = "client",
+  paginationMode: propPaginationMode = "client",
   rowCount: customRowCount,
-  total,
-  page,
-  pageSize,
-  onPageChange,
-  onPageSizeChange,
+  total: propTotal,
+  page: propPage,
+  pageSize: propPageSize,
+  onPageChange: propOnPageChange,
+  onPageSizeChange: propOnPageSizeChange,
   paginationModel: controlledPaginationModel,
   onPaginationModelChange,
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
@@ -91,15 +92,15 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
 
   // Sorting
   sortingMode = "client",
-  sortModel: controlledSortModel,
+  sortModel: propSortModel,
   onSortModelChange,
-  onSortChange,
+  onSortChange: propOnSortChange,
 
   // Filtering
   filterMode = "client",
-  filterModel: controlledFilterModel,
+  filterModel: propFilterModel,
   onFilterModelChange,
-  onSearchChange,
+  onSearchChange: propOnSearchChange,
   filterConfig,
   filters,
 
@@ -148,7 +149,12 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   const resolvedNoResultsMessage = noResultsMessage ?? t("no_results_heading");
   const resolvedResetFiltersText = resetFiltersText ?? t("reset_filters_action");
 
-  const rows = data ?? rawRows ?? (EMPTY_ARRAY as unknown as TData[]);
+  // Reconcile unified TableStateAdapter seam with backward-compatible loose props
+  const rows = state?.data ?? propData ?? rawRows ?? (EMPTY_ARRAY as unknown as TData[]);
+  const loading = state?.loading ?? propLoading;
+  const paginationMode = state?.paginationMode ?? propPaginationMode;
+  const controlledSortModel = state?.sortModel ?? propSortModel;
+  const controlledFilterModel = state?.filterModel ?? propFilterModel;
 
   // ==================== Resolved Expansion Options ====================
   const renderExpandedRow = propRenderExpandedRow ?? expansionProps?.renderExpandedRow;
@@ -197,10 +203,13 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     return normalizedColumns.filter((col) => !col.hidden && columnVisibility[col.field] !== false);
   }, [normalizedColumns, columnVisibility]);
 
-  // ==================== Column Resizing (useDataTableResize) ====================
+  // ==================== Table Container Ref & Column Resizing ====================
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
   const { columnWidths, handleResizeStart } = useDataTableResize({
     columns: normalizedColumns,
     storageKey,
+    containerRef: tableContainerRef,
   });
 
   // ==================== Sorting (useDataTableSorting) ====================
@@ -218,7 +227,9 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
 
   const handleSortClick = useMemoizedFn((field: string) => {
     baseHandleSortClick(field);
-    onSortChange?.(field, resolveNextSortDirection(sortModel, field));
+    const nextDir = resolveNextSortDirection(sortModel, field);
+    state?.onSortChange?.(field, nextDir);
+    propOnSortChange?.(field, nextDir);
   });
 
   // ==================== Filtering (useDataTableFiltering) ====================
@@ -239,7 +250,8 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
 
   const handleQuickFilterChange = useMemoizedFn((val: string) => {
     baseHandleQuickFilterChange(val);
-    onSearchChange?.(val);
+    state?.onSearchChange?.(val);
+    propOnSearchChange?.(val);
   });
 
   const isFiltered = Boolean(quickFilterText.trim() || (filterModel.items && filterModel.items.length > 0));
@@ -293,12 +305,14 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
 
   // ==================== Pagination State ====================
   const [internalPagination, setInternalPagination] = useState<DataTablePaginationModel>({
-    page: page ?? initialPaginationModel?.page ?? pagination?.page ?? 1,
-    pageSize: pageSize ?? initialPaginationModel?.pageSize ?? pagination?.pageSize ?? DEFAULT_PAGE_SIZE,
+    page: state?.page ?? propPage ?? initialPaginationModel?.page ?? pagination?.page ?? 1,
+    pageSize:
+      state?.pageSize ?? propPageSize ?? initialPaginationModel?.pageSize ?? pagination?.pageSize ?? DEFAULT_PAGE_SIZE,
   });
 
-  const effectivePage = page ?? controlledPaginationModel?.page ?? internalPagination.page;
-  const effectivePageSize = pageSize ?? controlledPaginationModel?.pageSize ?? internalPagination.pageSize;
+  const effectivePage = state?.page ?? propPage ?? controlledPaginationModel?.page ?? internalPagination.page;
+  const effectivePageSize =
+    state?.pageSize ?? propPageSize ?? controlledPaginationModel?.pageSize ?? internalPagination.pageSize;
 
   const paginationModel = useMemo(
     () => ({ page: effectivePage, pageSize: effectivePageSize }),
@@ -308,15 +322,18 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   const handlePaginationModelChange = useMemoizedFn((model: DataTablePaginationModel) => {
     setInternalPagination(model);
     if (model.page !== effectivePage) {
-      onPageChange?.(model.page);
+      state?.onPageChange?.(model.page);
+      propOnPageChange?.(model.page);
     }
     if (model.pageSize !== effectivePageSize) {
-      onPageSizeChange?.(model.pageSize);
+      state?.onPageSizeChange?.(model.pageSize);
+      propOnPageSizeChange?.(model.pageSize);
     }
     onPaginationModelChange?.(model);
   });
 
-  const totalRowCount = paginationMode === "server" ? (total ?? customRowCount ?? rows.length) : processedRows.length;
+  const totalRowCount =
+    paginationMode === "server" ? (state?.total ?? propTotal ?? customRowCount ?? rows.length) : processedRows.length;
 
   const pagedRows = useMemo(() => {
     if (paginationMode === "server") {
@@ -382,7 +399,6 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   }, [loading, resolvedLoadingText, t, totalRowCount, isFiltered, selectedFullRows.length]);
 
   // ==================== Virtualization ====================
-  const tableContainerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line react/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: pagedRows.length,
@@ -395,6 +411,24 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   const onSelectAllOnPage = useMemoizedFn((checked: boolean) => {
     handleSelectAll(checked, pagedRows);
   });
+
+  // Layout Seam: Drive column widths & pinning offsets via container CSS variables for 60-120FPS isolation
+  const containerColumnStyles = useMemo<Record<string, string>>(() => {
+    const styles: Record<string, string> = {};
+    for (const col of visibleColumns) {
+      const w = columnWidths[col.field] ?? col.width;
+      if (w !== undefined) {
+        styles[`--col-w-${col.field}`] = `${w}px`;
+      }
+      if (leftOffsets[col.field] !== undefined) {
+        styles[`--col-left-${col.field}`] = `${leftOffsets[col.field]}px`;
+      }
+      if (rightOffsets[col.field] !== undefined) {
+        styles[`--col-right-${col.field}`] = `${rightOffsets[col.field]}px`;
+      }
+    }
+    return styles;
+  }, [visibleColumns, columnWidths, leftOffsets, rightOffsets]);
 
   // Context Provider Value for deep tree re-render isolation & zero props-drilling
   const contextValue = useMemo<DataTableContextValue<TData>>(
@@ -523,12 +557,13 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
           ref={tableContainerRef}
           style={{
             maxHeight: maxHeight ?? (virtualize ? "560px" : undefined),
+            ...(containerColumnStyles as React.CSSProperties),
           }}
           className="relative w-full max-w-full min-w-0 overflow-auto [&_[data-slot=table-container]]:overflow-visible"
         >
-          {loading && pagedRows.length > 0 && (
+          {loading && pagedRows.length > 0 ? (
             <DataTableBackdropLoader slots={slots} loadingText={resolvedLoadingText} />
-          )}
+          ) : null}
 
           <Table className={cn("w-full border-collapse", tableClassName)} aria-busy={loading}>
             <DataTableHeader
@@ -582,7 +617,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
               onRowClick={onRowClick}
             />
 
-            {summaryRow && pagedRows.length > 0 && !loading && (
+            {summaryRow && pagedRows.length > 0 && !loading ? (
               <TableFooter className="border-border/80 bg-muted/90 sticky bottom-0 z-20 border-t-2 backdrop-blur-xs">
                 <DataTableSummaryRow
                   columns={visibleColumns}
@@ -592,12 +627,12 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
                   summaryLabel={summaryLabel}
                 />
               </TableFooter>
-            )}
+            ) : null}
           </Table>
         </div>
 
         {/* Pagination Footer */}
-        {!hidePagination && (
+        {!hidePagination ? (
           <DataTablePagination
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationModelChange}
@@ -605,16 +640,16 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
             pageSizeOptions={pageSizeOptions}
             variant={paginationVariant}
           />
-        )}
+        ) : null}
 
         {/* Floating Batch Action Bar */}
-        {checkboxSelection && selectedFullRows.length > 0 && (
+        {checkboxSelection && selectedFullRows.length > 0 ? (
           <DataTableBatchActionBar
             selectedRows={selectedFullRows}
             onClearSelection={clearSelection}
             batchActions={batchActions}
           />
-        )}
+        ) : null}
 
         {/* WCAG 2.1 AA Screen Reader Live Region for status announcements */}
         <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">

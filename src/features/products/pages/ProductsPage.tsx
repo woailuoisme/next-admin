@@ -1,12 +1,11 @@
 "use client";
 
-import { countBy, meanBy } from "es-toolkit";
 import { Plus } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
 import { useResourceManagement } from "@/components/data-table";
-import { DeleteDialog } from "@/components/dialogs";
+import { DeleteDialog } from "@/components/dialogs/DeleteDialog";
 import { Button } from "@/components/ui/button";
 import { categoryKeys } from "@/features/categories/queries";
 import { dashboardKeys } from "@/features/dashboard/queries";
@@ -107,9 +106,21 @@ export function computeProductStats(rows: Product[], total?: number, serverSumma
     return serverSummary;
   }
   const totalCount = total ?? rows.length;
-  const activeCount = countBy(rows, (p) => p.status).active ?? 0;
-  const lowStockCount = rows.filter((p) => p.stock <= 15 || p.status === "out_of_stock").length;
-  const avgPrice = rows.length > 0 ? meanBy(rows, (p) => p.price) : 0;
+  let activeCount = 0;
+  let lowStockCount = 0;
+  let sumPrice = 0;
+
+  for (const p of rows) {
+    if (p.status === "active") {
+      activeCount++;
+    }
+    if (p.stock <= 15 || p.status === "out_of_stock") {
+      lowStockCount++;
+    }
+    sumPrice += p.price ?? 0;
+  }
+
+  const avgPrice = rows.length > 0 ? sumPrice / rows.length : 0;
 
   return {
     total: totalCount,

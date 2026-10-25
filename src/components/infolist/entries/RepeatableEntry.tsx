@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import * as React from "react";
 
 import { TableEmptyState } from "@/components/data-table";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { RepeatableEntryProps } from "./types";
 
@@ -25,6 +25,17 @@ const tableGridColClasses = {
 };
 
 const EMPTY_ITEMS: unknown[] = [];
+
+function resolveItemKey<T>(item: T, idx: number, keyExtractor?: (item: T, idx: number) => React.Key): React.Key {
+  if (keyExtractor) return keyExtractor(item, idx);
+  if (item && typeof item === "object") {
+    const rec = item as Record<string, unknown>;
+    if (rec.id != null) return String(rec.id);
+    if (rec._id != null) return String(rec._id);
+    if (rec.key != null) return String(rec.key);
+  }
+  return idx;
+}
 
 interface RepeatableCardItemProps {
   title?: React.ReactNode;
@@ -55,7 +66,7 @@ function RepeatableCardItem({
         <div
           onClick={collapsible ? toggleCollapsed : undefined}
           className={cn(
-            "flex items-center justify-between border-b border-border/60 bg-muted/40 px-4 py-2.5 text-xs font-semibold select-none",
+            "border-border/60 bg-muted/40 flex items-center justify-between border-b px-4 py-2.5 text-xs font-semibold select-none",
             collapsible ? "cursor-pointer transition-colors hover:bg-muted/60" : "",
           )}
         >
@@ -76,7 +87,7 @@ function RepeatableCardItem({
   );
 }
 
-export function RepeatableEntry<T = any>({
+function RepeatableEntryInner<T = any>({
   name,
   value: explicitValue,
   variant = "card",
@@ -88,6 +99,7 @@ export function RepeatableEntry<T = any>({
   defaultCollapsed = false,
   emptyHeading,
   emptyDescription,
+  keyExtractor,
   children,
   ...wrapperProps
 }: RepeatableEntryProps<T>) {
@@ -130,19 +142,22 @@ export function RepeatableEntry<T = any>({
               </div>
             )}
             <div className="divide-border/60 divide-y">
-              {items.map((item, idx) => (
-                <div key={idx} className="hover:bg-muted/30 flex items-center gap-4 p-3 text-xs transition-colors">
-                  {itemTitle && (
-                    <div
-                      className={cn("shrink-0 truncate font-medium text-foreground select-none", resolvedTitleWidth)}
-                      title={typeof itemTitle(item, idx) === "string" ? String(itemTitle(item, idx)) : undefined}
-                    >
-                      {itemTitle(item, idx)}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">{children(item, idx)}</div>
-                </div>
-              ))}
+              {items.map((item, idx) => {
+                const key = resolveItemKey(item, idx, keyExtractor);
+                return (
+                  <div key={key} className="hover:bg-muted/30 flex items-center gap-4 p-3 text-xs transition-colors">
+                    {itemTitle && (
+                      <div
+                        className={cn("text-foreground shrink-0 truncate font-medium select-none", resolvedTitleWidth)}
+                        title={typeof itemTitle(item, idx) === "string" ? String(itemTitle(item, idx)) : undefined}
+                      >
+                        {itemTitle(item, idx)}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">{children(item, idx)}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -155,21 +170,28 @@ export function RepeatableEntry<T = any>({
           variant === "grid" ? cn("grid gap-3", gridColClasses[gridCols] ?? gridColClasses[2]) : "flex flex-col gap-3",
         )}
       >
-        {items.map((item, idx) => (
-          <RepeatableCardItem
-            key={idx}
-            title={itemTitle ? itemTitle(item, idx) : t("item_title", { index: String(idx + 1) })}
-            collapsible={collapsible}
-            defaultCollapsed={defaultCollapsed}
-            expandLabel={t("expand")}
-            collapseLabel={t("collapse")}
-          >
-            {children(item, idx)}
-          </RepeatableCardItem>
-        ))}
+        {items.map((item, idx) => {
+          const key = resolveItemKey(item, idx, keyExtractor);
+          return (
+            <RepeatableCardItem
+              key={key}
+              title={itemTitle ? itemTitle(item, idx) : t("item_title", { index: String(idx + 1) })}
+              collapsible={collapsible}
+              defaultCollapsed={defaultCollapsed}
+              expandLabel={t("expand")}
+              collapseLabel={t("collapse")}
+            >
+              {children(item, idx)}
+            </RepeatableCardItem>
+          );
+        })}
       </div>
     );
   };
 
   return <EntryWrapper {...wrapperProps}>{renderContent()}</EntryWrapper>;
 }
+
+export const RepeatableEntry = React.memo(RepeatableEntryInner) as <T = any>(
+  props: RepeatableEntryProps<T>,
+) => React.ReactElement;

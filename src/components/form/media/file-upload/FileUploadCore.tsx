@@ -1,7 +1,7 @@
 import { useMemoizedFn } from "ahooks";
 import { memo, useState } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { FileUploadCoreProps } from "./types";
 

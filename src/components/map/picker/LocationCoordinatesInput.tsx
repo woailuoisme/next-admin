@@ -48,13 +48,11 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
   // 仅在「确认」时提交
   const [lngDraft, setLngDraft] = useState(() => toDraft(value?.lng));
   const [latDraft, setLatDraft] = useState(() => toDraft(value?.lat));
-  const [prevLng, setPrevLng] = useState(value?.lng);
-  const [prevLat, setPrevLat] = useState(value?.lat);
+  const [prevCoordinates, setPrevCoordinates] = useState(() => ({ lng: value?.lng, lat: value?.lat }));
 
   // 外部值变化（地图选点 / 地名搜索 / 快捷城市 / 重置）时同步草稿
-  if (value?.lng !== prevLng || value?.lat !== prevLat) {
-    setPrevLng(value?.lng);
-    setPrevLat(value?.lat);
+  if (value?.lng !== prevCoordinates.lng || value?.lat !== prevCoordinates.lat) {
+    setPrevCoordinates({ lng: value?.lng, lat: value?.lat });
     setLngDraft(toDraft(value?.lng));
     setLatDraft(toDraft(value?.lat));
   }

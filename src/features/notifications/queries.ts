@@ -26,6 +26,8 @@ export const notificationQueries = {
       queryKey: notificationKeys.list(),
       queryFn: () => fetchNotifications(),
       select: selectUnreadCount,
+      staleTime: 10 * 1000,
       refetchInterval: 30000,
+      refetchIntervalInBackground: false,
     }),
 };

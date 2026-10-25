@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { memo, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ResourceFormHostProps } from "./types";
 
@@ -46,6 +46,7 @@ export const ResourceFormPage = memo(function ResourceFormPage({
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
+      e.returnValue = "";
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);

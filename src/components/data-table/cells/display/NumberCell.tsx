@@ -3,7 +3,7 @@ import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { useFormatter } from "next-intl";
 import { memo } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { NumberCellProps } from "./types";
 
@@ -52,15 +52,15 @@ type TrendDirection = "increase" | "decrease" | "neutral";
 
 /** 趋势方向 → 文本配色（业务状态色统一收敛于此表） */
 const TREND_TEXT_CLASSES: Record<TrendDirection, string> = {
-  increase: "text-emerald-600 dark:text-emerald-400",
-  decrease: "text-rose-600 dark:text-rose-400",
+  increase: "text-chart-2",
+  decrease: "text-destructive",
   neutral: "text-muted-foreground",
 };
 
 /** 趋势箭头 → 图标配色 */
 const TREND_ICON_CLASSES: Record<"up" | "down", string> = {
-  up: "text-emerald-500",
-  down: "text-rose-500",
+  up: "text-chart-2",
+  down: "text-destructive",
 };
 
 function getTrendColor(trend: boolean, isPositive: boolean, isNegative: boolean): string {

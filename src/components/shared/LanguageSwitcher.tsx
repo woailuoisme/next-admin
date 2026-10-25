@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { setUserLocale, type SupportedLocale } from "@/i18n";
+import { setUserLocale, type SupportedLocale } from "@/i18n/config";
 import { setupZodLocale } from "@/lib/zod";
 
 export interface LanguageSwitcherProps {

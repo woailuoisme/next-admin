@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { MapSkeleton } from "@/components/map";
+import { MapSkeleton } from "@/components/map/shared/MapSkeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapFeatureHighlights } from "./components/MapFeatureHighlights";
 import { MapHeaderBar } from "./components/MapHeaderBar";

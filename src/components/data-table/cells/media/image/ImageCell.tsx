@@ -1,15 +1,20 @@
 import { useMemoizedFn } from "ahooks";
 import { FileText, ImageIcon, Package, User } from "lucide-react";
+import dynamic from "next/dynamic";
 import { memo, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ImageCellProps, ImagePlaceholderType } from "./types";
 
 import { TEXT_ALIGN_CLASSES } from "../../base";
-import { ImageLightboxModal } from "./ImageLightboxModal";
 import { aspectClasses, ImageThumb, shapeClasses, sizeClasses } from "./ImageThumb";
+
+const ImageLightboxModal = dynamic(() => import("./ImageLightboxModal").then((mod) => mod.ImageLightboxModal), {
+  ssr: false,
+});
 
 const EMPTY_IMAGES: string[] = [];
 
@@ -112,9 +117,9 @@ function ImageCellInner({
             onPreview={() => setActivePreviewUrl(url)}
           />
         ))}
-        {remainingCount > 0 && (
-          <button
-            type="button"
+        {remainingCount > 0 ? (
+          <Badge
+            variant="secondary"
             onClick={(e) => {
               e.stopPropagation();
               if (preview) {
@@ -122,14 +127,14 @@ function ImageCellInner({
               }
             }}
             className={cn(
-              "z-10 -ml-2.5 flex items-center justify-center rounded-full border border-border bg-muted/90 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground shadow-xs select-none",
+              "z-10 -ml-2.5 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground shadow-xs select-none",
               preview && "cursor-pointer transition-transform hover:scale-105 hover:bg-muted",
             )}
             title={`全部 ${images.length} 张图片`}
           >
             +{remainingCount}
-          </button>
-        )}
+          </Badge>
+        ) : null}
       </div>
     </div>
   );

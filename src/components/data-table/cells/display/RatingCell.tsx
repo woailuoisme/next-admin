@@ -2,7 +2,7 @@ import { isNil } from "es-toolkit";
 import { Flame, Heart, Star, ThumbsUp } from "lucide-react";
 import { memo } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { RatingCellProps } from "./types";
 
@@ -22,9 +22,9 @@ const iconComponents = {
 };
 
 const defaultIconColors = {
-  star: "text-amber-500 fill-amber-500",
-  heart: "text-rose-500 fill-rose-500",
-  flame: "text-orange-500 fill-orange-500",
+  star: "text-chart-4 fill-chart-4",
+  heart: "text-destructive fill-destructive",
+  flame: "text-chart-3 fill-chart-3",
   thumb: "text-primary fill-primary",
 };
 

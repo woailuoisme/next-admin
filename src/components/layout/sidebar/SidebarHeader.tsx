@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useTranslations } from "next-intl";
 import { SidebarHeader as BaseSidebarHeader } from "@/components/ui/sidebar";
 
@@ -7,7 +8,7 @@ export interface SidebarHeaderProps {
   logoText?: string;
 }
 
-export function SidebarHeader({ title, subtitle, logoText }: SidebarHeaderProps) {
+export const SidebarHeader = memo(function SidebarHeader({ title, subtitle, logoText }: SidebarHeaderProps) {
   const t = useTranslations("layout");
   const effectiveTitle = title ?? t("sidebar_title");
   const effectiveSubtitle = subtitle ?? t("sidebar_subtitle");
@@ -26,4 +27,4 @@ export function SidebarHeader({ title, subtitle, logoText }: SidebarHeaderProps)
       </div>
     </BaseSidebarHeader>
   );
-}
+});

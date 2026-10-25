@@ -4,7 +4,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { memo, useEffect } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { RichEditorToolbarButton } from "./types";
 

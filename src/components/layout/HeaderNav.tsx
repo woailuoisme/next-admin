@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { memo } from "react";
 
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
-import { getRouteTitle } from "@/components/layout/sidebar/menu.config";
+import { useRouteTitle } from "@/components/layout/sidebar/menu.config";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ThemeColorPicker } from "@/components/shared/ThemeColorPicker";
 import ThemeToggle from "@/components/shared/ThemeToggle";
@@ -24,7 +24,7 @@ import { GlobalSearch } from "./search/GlobalSearch";
 
 export const HeaderNav = memo(function HeaderNav() {
   const pathname = usePathname();
-  const pageTitle = getRouteTitle(pathname);
+  const pageTitle = useRouteTitle(pathname);
 
   return (
     <header className="border-border/60 bg-background/95 sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b px-4 backdrop-blur-md">

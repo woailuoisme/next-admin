@@ -1,12 +1,17 @@
+import dynamic from "next/dynamic";
 import * as React from "react";
 
-import { ImageLightboxModal } from "@/components/data-table";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ImageEntryProps } from "./types";
 
 import { EntryWrapper } from "../core/EntryWrapper";
 import { useInfolistFieldValue } from "../core/InfolistContext";
+
+const DynamicImageLightboxModal = dynamic(
+  () => import("@/components/data-table/cells/media/image/ImageLightboxModal").then((mod) => mod.ImageLightboxModal),
+  { ssr: false },
+);
 
 const sizeClasses = {
   sm: "size-8",
@@ -63,7 +68,7 @@ export const ImageEntry = React.memo(function ImageEntry({
       <div className="flex flex-wrap items-center gap-2">
         {images.map((url, idx) => (
           <button
-            key={idx}
+            key={`${url}-${idx}`}
             type="button"
             disabled={!lightbox}
             onClick={() => lightbox && setActiveLightboxUrl(url)}
@@ -84,8 +89,12 @@ export const ImageEntry = React.memo(function ImageEntry({
         ))}
       </div>
 
-      {lightbox && (
-        <ImageLightboxModal previewUrl={activeLightboxUrl} alt={alt} onClose={() => setActiveLightboxUrl(null)} />
+      {lightbox && Boolean(activeLightboxUrl) && (
+        <DynamicImageLightboxModal
+          previewUrl={activeLightboxUrl}
+          alt={alt}
+          onClose={() => setActiveLightboxUrl(null)}
+        />
       )}
     </EntryWrapper>
   );

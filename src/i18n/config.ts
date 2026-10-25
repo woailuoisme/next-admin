@@ -28,3 +28,5 @@ export function setUserLocale(locale: SupportedLocale): void {
     document.cookie = `${LOCALE_COOKIE_NAME}=${locale}; path=/; max-age=31536000; SameSite=Lax`;
   }
 }
+
+export { getUserLocale as getLocale, setUserLocale as setLocale };

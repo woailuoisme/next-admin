@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { BASEMAP_OPTIONS, type BasemapStyleKey, type CoordinateSystem, LazyLocationMarkerMap } from "@/components/map";
+import { LazyLocationMarkerMap } from "@/components/map/lazy";
+import { BASEMAP_OPTIONS, type BasemapStyleKey } from "@/components/map/presets/basemaps";
+import type { CoordinateSystem } from "@/components/map/utils/coordinates";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_LOCATIONS } from "../constants";

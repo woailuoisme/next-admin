@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { CopyButton } from "@/components/shared/CopyButton";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { CodeEntryProps } from "./types";
 

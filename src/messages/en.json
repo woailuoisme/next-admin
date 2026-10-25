@@ -231,7 +231,9 @@
     "category_electronics": "Electronics",
     "category_clothing": "Clothing",
     "category_home": "Home",
-    "category_accessories": "Accessories"
+    "category_accessories": "Accessories",
+    "batch_export": "Export ({count})",
+    "batch_delete": "Delete ({count})"
   },
   "search": {
     "placeholder": "Search features or data...",
@@ -373,7 +375,29 @@
     "picker_selected_location": "Selected Location",
     "picker_view_only": "View only",
     "picker_reverse_geocoding": "Reverse geocoding address...",
-    "picker_address_not_found": "Address not found for coordinates"
+    "picker_address_not_found": "Address not found for coordinates",
+    "fullscreen_badge": "Fullscreen Focus View",
+    "skeleton_loading": "Loading geospatial vector data and basemap resources...",
+    "heatmap_density": "Heatmap Density (KDE)",
+    "heatmap_gpu_badge": "GPU KDE Kernel Density",
+    "heatmap_low": "Low",
+    "heatmap_medium": "Med",
+    "heatmap_high": "High",
+    "heatmap_points_count": "{count} pts",
+    "markers_list_title": "Locations ({count})",
+    "markers_cancel_selection": "Deselect",
+    "markers_search_placeholder": "Search location name, address or type...",
+    "markers_clear_search": "Clear search",
+    "markers_category_all": "All ({count})",
+    "markers_gpu_badge": "GPU Vector Accelerated ({count} pts)",
+    "arc_flight_title": "Flight & Arc Topology",
+    "arc_flight_desc": "Hub-and-spoke flow and flight route network",
+    "arc_flight_detail": "Flight Arc Detail",
+    "arc_flight_origin": "Origin",
+    "arc_flight_dest": "Destination",
+    "arc_flight_volume": "Flow / Volume",
+    "geo_distribution_title": "Regional Distribution",
+    "geo_distribution_desc": "Geospatial data density and regional metrics"
   },
   "chart": {
     "empty_title": "No chart data available",
@@ -393,7 +417,19 @@
     "period_1y": "1 Year",
     "legend_low": "Low",
     "legend_high": "High",
-    "heatmap_legend_title": "Activity"
+    "heatmap_legend_title": "Activity",
+    "gauge_label": "Achievement Rate",
+    "funnel_value": "Stage Value",
+    "funnel_retention": "Overall Retention",
+    "funnel_dropoff": "Previous Stage Dropoff",
+    "waterfall_change": "Change Amount",
+    "waterfall_total": "Running Total",
+    "treemap_value": "Value",
+    "scatter_data_point": "Data Point",
+    "scatter_z_axis": "Weight",
+    "sparkline_trend_up": "Upward",
+    "sparkline_trend_down": "Downward",
+    "sparkline_trend_neutral": "Neutral"
   },
   "stats": {
     "status_online": "Operational",
@@ -413,7 +449,8 @@
     "copied_failed": "Copy failed",
     "pacing_ahead": "Ahead of schedule",
     "pacing_on_track": "On track",
-    "pacing_behind": "Behind schedule"
+    "pacing_behind": "Behind schedule",
+    "target_label": "Target: "
   },
   "infolist": {
     "empty_text": "No data",
@@ -460,6 +497,7 @@
     "glitchtip_test_btn": "Trigger Test Error"
   },
   "layout": {
+    "skip_to_content": "Skip to main content",
     "search_placeholder": "Search features, pages or data...",
     "search_trigger": "Search...",
     "search_empty": "No matching results found",
@@ -511,6 +549,9 @@
     "metric_aov_trend": "vs last quarter",
     "print_selected": "Print Selected",
     "export_json": "Export JSON ({count})",
+    "detail_sheet_title": "Order Details",
+    "detail_sheet_desc": "Order details and fulfillment tracking",
+    "detail_placed_on": "Placed on {date}",
     "detail_fulfillment": "Fulfillment Progress",
     "detail_updating": "Updating fulfillment state...",
     "detail_customer_info": "Customer Information",
@@ -630,7 +671,8 @@
     "action_activate": "Activate",
     "action_suspend_tooltip": "Suspend Customer",
     "action_activate_tooltip": "Activate Customer",
-    "unit_purchases": " purchases"
+    "unit_purchases": " purchases",
+    "batch_suspend": "Suspend ({count})"
   },
   "dashboard": {
     "page_title": "Executive Dashboard",

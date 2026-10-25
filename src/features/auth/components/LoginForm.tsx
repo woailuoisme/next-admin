@@ -5,7 +5,8 @@ import { Lock, Mail } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
-import { Form, TextInput } from "@/components/form";
+import { TextInput } from "@/components/form/basic";
+import { Form } from "@/components/form/core";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { useLoginMutation } from "../hooks";

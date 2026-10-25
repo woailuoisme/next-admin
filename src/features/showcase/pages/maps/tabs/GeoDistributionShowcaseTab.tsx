@@ -1,4 +1,4 @@
-import { LazyGeoDistributionMap } from "@/components/map";
+import { LazyGeoDistributionMap } from "@/components/map/lazy";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_GEOJSON_DATA } from "../constants";
 import type { DemoStateProps } from "../types";

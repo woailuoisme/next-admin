@@ -1,8 +1,9 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { memo, useMemo, useState } from "react";
 
 import { Map, MapControls, MapGeoJSON, type MapGeoJSONEvent } from "@/components/ui/map";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { GeoDistributionMapProps } from "./types";
 
@@ -27,7 +28,7 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
   borderColor,
   borderWidth = 1,
   showLegend = true,
-  legendTitle = "Metric Distribution",
+  legendTitle,
   onFeatureClick,
   cardProps,
   center = CHINA_MAP_CENTER,
@@ -44,6 +45,8 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
   error,
   onRetry,
 }: GeoDistributionMapProps) {
+  const t = useTranslations("map");
+  const effectiveLegendTitle = legendTitle ?? t("geo_distribution_title");
   const [hoveredInfo, setHoveredInfo] = useState<{
     name: string;
     value?: number;
@@ -149,7 +152,7 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
 
           <GeoDistributionHoverCard info={hoveredInfo} unit={unit} />
 
-          {showLegend ? <GeoDistributionLegend legendTitle={legendTitle} legendSteps={legendSteps} /> : null}
+          {showLegend ? <GeoDistributionLegend legendTitle={effectiveLegendTitle} legendSteps={legendSteps} /> : null}
         </>
       )}
     </div>
@@ -159,8 +162,8 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
     return (
       <MapCard
         height={height}
-        title={cardProps.title || "Regional Distribution"}
-        description={cardProps.description || "Geospatial data density and regional metrics"}
+        title={cardProps.title || t("geo_distribution_title")}
+        description={cardProps.description || t("geo_distribution_desc")}
         fullscreenable={cardProps.fullscreenable}
         isLoading={isLoading}
         isError={isError}

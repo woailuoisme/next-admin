@@ -1,6 +1,7 @@
 "use client";
 
-import { FileUploadInput, FormGrid, FormSection, LazyRichEditorInput } from "@/components/form";
+import { FormGrid, FormSection } from "@/components/form/layout";
+import { FileUploadInput, LazyRichEditorInput } from "@/components/form/media";
 
 export interface MediaTabProps {
   // biome-ignore lint/suspicious/noExplicitAny: TanStack FormApi instance

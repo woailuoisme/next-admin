@@ -20,11 +20,13 @@ export const productQueries = {
     queryOptions({
       queryKey: productKeys.list(filters),
       queryFn: () => fetchProducts(filters),
+      staleTime: 30 * 1000,
     }),
   detail: (id: string) =>
     queryOptions({
       queryKey: productKeys.detail(id),
       queryFn: () => fetchProductById(id),
       enabled: Boolean(id),
+      staleTime: 30 * 1000,
     }),
 };

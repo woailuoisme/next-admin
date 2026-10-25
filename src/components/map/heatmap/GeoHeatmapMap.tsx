@@ -1,10 +1,12 @@
 import type * as GeoJSON from "geojson";
 
+import { useTranslations } from "next-intl";
 import { Layers } from "lucide-react";
 import { memo, useMemo } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Map, MapControls } from "@/components/ui/map";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { Coordinates } from "../shared/types";
 import type { GeoHeatmapMapProps } from "./types";
@@ -25,6 +27,7 @@ const EMPTY_POINTS: HeatmapPoint[] = [];
 const DEFAULT_BEIJING_CENTER: Coordinates = [116.4074, 39.9042];
 
 export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapProps) {
+  const t = useTranslations("map");
   const {
     height = 500,
     zoom = 11,
@@ -39,7 +42,7 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapPro
     customColorRamp,
     opacity = 0.85,
     showLegend = true,
-    legendTitle = "热力密度 (KDE)",
+    legendTitle,
     cardProps,
     className,
     isLoading = false,
@@ -48,6 +51,7 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapPro
     error,
     onRetry,
   } = props;
+  const effectiveLegendTitle = legendTitle ?? t("heatmap_density");
 
   const rawData = useMemo(() => props.data ?? props.points ?? EMPTY_POINTS, [props.data, props.points]);
 
@@ -148,13 +152,20 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapPro
           </Map>
 
           {showLegend ? (
-            <HeatmapLegend title={legendTitle} pointCount={normalizedPoints.length} legendGradient={legendGradient} />
+            <HeatmapLegend
+              title={effectiveLegendTitle}
+              pointCount={normalizedPoints.length}
+              legendGradient={legendGradient}
+            />
           ) : null}
 
-          <div className="border-primary/20 bg-background/90 text-foreground absolute top-3 right-14 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-sm backdrop-blur-md">
+          <Badge
+            variant="secondary"
+            className="border-primary/20 bg-background/90 text-foreground absolute top-3 right-14 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-xs backdrop-blur-md"
+          >
             <Layers className="text-primary size-3" />
-            <span>GPU KDE 核密度渲染</span>
-          </div>
+            <span>{t("heatmap_gpu_badge")}</span>
+          </Badge>
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
+import { useTranslations } from "next-intl";
 import { memo } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { HorizontalBarChartProps } from "./types";
 
@@ -9,11 +10,12 @@ import { useHorizontalBar } from "./useHorizontalBar";
 
 export const HorizontalBarChart = memo(function HorizontalBarChart(props: HorizontalBarChartProps) {
   const { showPercentage = true, height, className } = props;
+  const t = useTranslations("chart");
 
   const { items, hasData, valueFormatter, percentageFormatter } = useHorizontalBar(props);
 
   if (!hasData) {
-    return <ChartEmptyState message="暂无排行数据" height={height ?? 200} className={className} />;
+    return <ChartEmptyState message={t("empty_title")} height={height ?? 200} className={className} />;
   }
 
   return (

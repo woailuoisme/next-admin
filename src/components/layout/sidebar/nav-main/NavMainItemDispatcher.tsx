@@ -7,15 +7,16 @@ import type { NavMainItemProps } from "./types";
 import { NavMainCollapsible } from "./NavMainCollapsible";
 import { NavMainDropdown } from "./NavMainDropdown";
 import { NavMainItem } from "./NavMainItem";
-import { hasActiveSubItem } from "./utils";
+import { hasActiveSubItem, isPathActive } from "./utils";
 
 export const NavMainItemDispatcher = memo(function NavMainItemDispatcher({ item, currentPath }: NavMainItemProps) {
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === "collapsed" && !isMobile;
 
-  // Case 1: Direct link without child items
+  // Case 1: Direct link without child items - passes derived isActive to skip re-renders
   if (!item.items || item.items.length === 0) {
-    return <NavMainItem item={item} currentPath={currentPath} />;
+    const isActive = isPathActive(item.to, currentPath);
+    return <NavMainItem item={item} isActive={isActive} />;
   }
 
   const isChildActive = hasActiveSubItem(item, currentPath);

@@ -119,6 +119,8 @@ export interface RepeatableEntryProps<T = any> extends EntryBaseProps {
   /** Empty state description */
   emptyHeading?: string;
   emptyDescription?: string;
+  /** Custom key extractor for list items (defaults to item.id || item._id || index) */
+  keyExtractor?: (item: T, index: number) => React.Key;
   /** Render function for each item */
   children: (item: T, index: number) => React.ReactNode;
 }

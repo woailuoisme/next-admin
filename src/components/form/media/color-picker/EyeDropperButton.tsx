@@ -3,7 +3,7 @@ import { Pipette } from "lucide-react";
 import { memo, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { EyeDropperButtonProps, EyeDropperInstance } from "./types";
 

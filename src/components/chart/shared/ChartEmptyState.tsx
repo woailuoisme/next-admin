@@ -3,7 +3,7 @@ import type { ComponentType, ReactNode } from "react";
 
 import { BarChart3 } from "lucide-react";
 import { memo } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 export interface ChartEmptyStateProps {
   message?: string;

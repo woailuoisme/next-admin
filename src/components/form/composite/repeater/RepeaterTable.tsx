@@ -6,7 +6,7 @@ import { Fragment, isValidElement, memo, type ReactNode, useState } from "react"
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { RepeaterHeaderColumn, RepeaterItemHelpers } from "./types";
 

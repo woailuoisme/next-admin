@@ -1,7 +1,8 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { memo } from "react";
 
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "cn";
 
 import type { StatCardTrendData } from "../stat-card/types";
 
@@ -16,9 +17,10 @@ export const TrendTag = memo(function TrendTag({ trend }: TrendTagProps) {
   if (!trendInfo) return null;
 
   return (
-    <span
+    <Badge
+      variant="outline"
       className={cn(
-        "inline-flex items-center gap-0.5 rounded-md border px-1.5 py-0.5 text-[11px] font-medium",
+        "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
         trendInfo.colorClass,
       )}
     >
@@ -26,6 +28,6 @@ export const TrendTag = memo(function TrendTag({ trend }: TrendTagProps) {
       {trendInfo.dir === "down" ? <ArrowDownRight className="h-3 w-3" /> : null}
       {trendInfo.dir === "neutral" ? <Minus className="h-3 w-3" /> : null}
       <span>{trend.value}</span>
-    </span>
+    </Badge>
   );
 });

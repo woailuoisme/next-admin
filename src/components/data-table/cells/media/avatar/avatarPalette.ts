@@ -91,10 +91,10 @@ export function getAvatarPalette(seed?: string | null): AvatarPaletteItem {
 export type UserOnlineStatus = "online" | "offline" | "busy" | "away";
 
 export const STATUS_DOT_CLASSES: Record<UserOnlineStatus, string> = {
-  online: "bg-emerald-500",
-  busy: "bg-rose-500",
-  away: "bg-amber-500",
-  offline: "bg-slate-400 dark:bg-slate-500",
+  online: "bg-chart-2",
+  busy: "bg-destructive",
+  away: "bg-chart-4",
+  offline: "bg-muted-foreground/60",
 };
 
 export const STATUS_DOT_LABELS: Record<UserOnlineStatus, string> = {

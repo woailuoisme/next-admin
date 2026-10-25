@@ -3,3 +3,4 @@ export * from "./FormContext";
 export * from "./fieldState";
 export * from "./FieldWrapper";
 export * from "./FieldConnector";
+export * from "./FormFieldEngine";

@@ -11,6 +11,7 @@ import type { GlobalSearchTriggerProps } from "./types";
 export const GlobalSearchTrigger = memo(function GlobalSearchTrigger({
   onClick,
   onMouseEnter,
+  onFocus,
   className,
   triggerText,
   ariaLabel,
@@ -26,6 +27,7 @@ export const GlobalSearchTrigger = memo(function GlobalSearchTrigger({
       size="sm"
       onClick={onClick}
       onMouseEnter={onMouseEnter}
+      onFocus={onFocus ?? onMouseEnter}
       className={cn(
         "group relative size-8 shrink-0 cursor-pointer justify-center rounded-lg border-border/70 bg-muted/30 p-0 text-xs font-normal text-muted-foreground transition-all hover:border-border hover:bg-muted/50 hover:text-foreground sm:size-auto sm:h-8 sm:w-48 sm:justify-between sm:px-2.5 md:w-56 lg:w-72",
         className,

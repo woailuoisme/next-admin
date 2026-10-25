@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { useLatest } from "ahooks";
 import {
   Centrifuge,
   type ConnectedContext,
@@ -187,9 +188,18 @@ export function useCentrifugeStatus(): RealtimeStatusState & {
   };
 }
 
-export function useCentrifuge() {
-  const status = useCentrifugeStatus();
-  return { centrifuge: status.centrifuge, isConnected: status.isConnected };
+export function useCentrifuge(): {
+  centrifuge: Centrifuge | null;
+  isConnected: boolean;
+} {
+  const client = getCentrifuge();
+  // 遵循 rerender-derived-state 准则：仅订阅单一布尔状态，杜绝因 RTT 测速抖动引发全组件级重渲染
+  const isConnected = useSyncExternalStore(
+    subscribeToStatus,
+    () => currentStatusSnapshot.isConnected,
+    () => false,
+  );
+  return { centrifuge: client, isConnected };
 }
 
 export interface UseSubscriptionOptions<T = unknown> {
@@ -199,6 +209,8 @@ export interface UseSubscriptionOptions<T = unknown> {
   onSubscribed?: () => void;
   onError?: (err: unknown) => void;
 }
+
+const channelSubscribersCount = new Map<string, number>();
 
 export function useSubscription<T = unknown>(
   channel: string | undefined,
@@ -211,10 +223,8 @@ export function useSubscription<T = unknown>(
       ? { ...options, onPublication: onPublicationOrOptions }
       : onPublicationOrOptions || {};
 
-  const optionsRef = useRef(resolvedOptions);
-  useEffect(() => {
-    optionsRef.current = resolvedOptions;
-  });
+  // 遵循 advanced-use-latest 准则：在渲染期同步捕获最新回调引用，规避微任务与异步到达竞态
+  const optionsRef = useLatest(resolvedOptions);
 
   useEffect(() => {
     if (!channel || typeof window === "undefined") return;
@@ -223,6 +233,7 @@ export function useSubscription<T = unknown>(
 
     try {
       const sub = client.getSubscription(channel) ?? client.newSubscription(channel);
+      channelSubscribersCount.set(channel, (channelSubscribersCount.get(channel) ?? 0) + 1);
 
       const pubHandler = (ctx: PublicationContext) => {
         optionsRef.current.onPublication?.({
@@ -264,13 +275,17 @@ export function useSubscription<T = unknown>(
         sub.removeListener("subscribed", subscribedHandler);
         sub.removeListener("error", errorHandler);
 
-        if (sub.listeners("publication").length === 0) {
+        const remaining = (channelSubscribersCount.get(channel) ?? 1) - 1;
+        if (remaining <= 0) {
+          channelSubscribersCount.delete(channel);
           sub.unsubscribe();
           client.removeSubscription(sub);
+        } else {
+          channelSubscribersCount.set(channel, remaining);
         }
       };
     } catch (e) {
       console.warn(`[Centrifuge] Error subscribing to ${channel}:`, e);
     }
-  }, [channel]);
+  }, [channel, optionsRef]);
 }

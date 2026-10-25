@@ -1,8 +1,9 @@
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { memo, useMemo, useState } from "react";
 
 import { Map, MapArc, type MapArcEvent, MapControls } from "@/components/ui/map";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ArcFlightMapProps, FlightArcItem } from "./types";
 
@@ -44,6 +45,7 @@ export const ArcFlightMap = memo(function ArcFlightMap({
   error,
   onRetry,
 }: ArcFlightMapProps) {
+  const t = useTranslations("map");
   const [hoveredArc, setHoveredArc] = useState<FlightArcItem | null>(null);
 
   const { normalizedArcs, computedCenter, uniqueNodes } = useArcTopology({
@@ -96,12 +98,12 @@ export const ArcFlightMap = memo(function ArcFlightMap({
         <MapEmptyState
           height="100%"
           type="error"
-          message={error?.message || "Failed to load flight arc data"}
+          message={error?.message || t("error_default")}
           onAction={onRetry}
-          actionLabel="Retry"
+          actionLabel={t("retry")}
         />
       ) : hasEmptyData ? (
-        <MapEmptyState height="100%" type="no-data" message="No flight or topology routes available" />
+        <MapEmptyState height="100%" type="no-data" message={t("empty_desc")} />
       ) : (
         <>
           <Map
@@ -141,8 +143,8 @@ export const ArcFlightMap = memo(function ArcFlightMap({
     return (
       <MapCard
         height={height}
-        title={cardProps.title || "Flight & Arc Topology"}
-        description={cardProps.description || "Hub-and-spoke flow and flight route network"}
+        title={cardProps.title || t("arc_flight_title")}
+        description={cardProps.description || t("arc_flight_desc")}
         fullscreenable={cardProps.fullscreenable}
         isLoading={isLoading}
         isError={isError}

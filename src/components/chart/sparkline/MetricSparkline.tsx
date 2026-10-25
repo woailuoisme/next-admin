@@ -1,6 +1,7 @@
+import { useTranslations } from "next-intl";
 import { memo, useId } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { MetricSparklineProps } from "./types";
 
@@ -20,6 +21,7 @@ export const MetricSparkline = memo(function MetricSparkline({
   className,
   ariaLabel,
 }: MetricSparklineProps) {
+  const t = useTranslations("chart");
   const gradId = useId();
   const viewBoxWidth = 100;
   const viewBoxHeight = 32;
@@ -51,7 +53,14 @@ export const MetricSparkline = memo(function MetricSparkline({
         : "var(--muted-foreground)"
     : color || "var(--primary)";
 
-  const defaultLabel = `走势微图: 起始 ${first}, 当前 ${last}, 趋势 ${trend === "up" ? "上升" : trend === "down" ? "下降" : "平稳"}`;
+  const trendText =
+    trend === "up"
+      ? t("sparkline_trend_up")
+      : trend === "down"
+        ? t("sparkline_trend_down")
+        : t("sparkline_trend_neutral");
+
+  const defaultLabel = `走势微图: 起始 ${first}, 当前 ${last}, 趋势 ${trendText}`;
 
   return (
     <div

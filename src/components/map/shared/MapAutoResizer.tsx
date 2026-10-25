@@ -40,7 +40,7 @@ export const MapAutoResizer = memo(function MapAutoResizer({ debounceMs = 50 }: 
     }
 
     // 2. Window resize fallback
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize, { passive: true });
 
     // 3. Tab visibility restoration
     const handleVisibilityChange = () => {

@@ -25,7 +25,7 @@ const STATUS_CONFIG: Record<
 > = {
   delivered: {
     labelKey: "status_delivered",
-    className: "border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-medium",
+    className: "border-chart-2/30 bg-chart-2/10 text-chart-2 dark:bg-chart-2/20 font-medium",
   },
   shipped: {
     labelKey: "status_shipped",
@@ -33,11 +33,11 @@ const STATUS_CONFIG: Record<
   },
   processing: {
     labelKey: "status_processing",
-    className: "border-foreground/15 bg-secondary text-secondary-foreground font-medium",
+    className: "border-border bg-secondary text-secondary-foreground font-medium",
   },
   pending: {
     labelKey: "status_pending",
-    className: "border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-300 font-medium",
+    className: "border-chart-4/30 bg-chart-4/10 text-chart-4 dark:bg-chart-4/20 font-medium",
   },
   cancelled: {
     labelKey: "status_cancelled",

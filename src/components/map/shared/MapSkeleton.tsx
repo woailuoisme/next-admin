@@ -1,7 +1,8 @@
+import { useTranslations } from "next-intl";
 import { Loader2, MapPin } from "lucide-react";
 import { memo } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 export interface MapSkeletonProps {
   height?: number | string;
@@ -9,20 +10,19 @@ export interface MapSkeletonProps {
   message?: string;
 }
 
-export const MapSkeleton = memo(function MapSkeleton({
-  height = 400,
-  className,
-  message = "正在载入矢量地理数据与底图资源...",
-}: MapSkeletonProps) {
+export const MapSkeleton = memo(function MapSkeleton({ height = 400, className, message }: MapSkeletonProps) {
+  const t = useTranslations("map");
+  const resolvedMessage = message ?? t("skeleton_loading");
+
   return (
     <div
       className={cn(
-        "relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-border/50 bg-muted/20 select-none",
+        "border-border/50 bg-muted/20 relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border select-none",
         className,
       )}
       style={{ height }}
       role="status"
-      aria-label={message}
+      aria-label={resolvedMessage}
     >
       {/* Grid texture representing map coordinates */}
       <div
@@ -42,7 +42,7 @@ export const MapSkeleton = memo(function MapSkeleton({
 
         <div className="text-muted-foreground flex items-center gap-2 text-xs">
           <Loader2 className="text-primary size-3.5 animate-spin" />
-          <span>{message}</span>
+          <span>{resolvedMessage}</span>
         </div>
       </div>
     </div>

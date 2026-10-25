@@ -1,10 +1,10 @@
 import { useTranslations } from "next-intl";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import { memo, type MouseEvent, type ReactElement, type ReactNode } from "react";
+import { memo, useMemo, type MouseEvent, type ReactElement, type ReactNode } from "react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableSortModel } from "../core/types";
 
@@ -44,6 +44,8 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
   const columnWidths = props.columnWidths ?? ctx?.columnWidths ?? EMPTY_RECORD;
   const pinnedLeftFields = props.pinnedLeftFields ?? ctx?.pinnedLeftFields ?? EMPTY_ARRAY;
   const pinnedRightFields = props.pinnedRightFields ?? ctx?.pinnedRightFields ?? EMPTY_ARRAY;
+  const pinnedLeftSet = useMemo(() => new Set(pinnedLeftFields), [pinnedLeftFields]);
+  const pinnedRightSet = useMemo(() => new Set(pinnedRightFields), [pinnedRightFields]);
   const leftOffsets = props.leftOffsets ?? ctx?.leftOffsets ?? EMPTY_RECORD;
   const rightOffsets = props.rightOffsets ?? ctx?.rightOffsets ?? EMPTY_RECORD;
   const sortModel = props.sortModel ?? EMPTY_ARRAY;
@@ -96,8 +98,8 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
           } = col;
 
           const currentWidth = columnWidths[field] ?? width;
-          const isLeftPinned = pinnedLeftFields.includes(field);
-          const isRightPinned = pinnedRightFields.includes(field);
+          const isLeftPinned = pinnedLeftSet.has(field);
+          const isRightPinned = pinnedRightSet.has(field);
           const sortItem = sortModel.find((s: { field: string }) => s.field === field);
 
           return (
@@ -113,11 +115,11 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
                       : undefined
               }
               style={{
-                width: currentWidth ? `${currentWidth}px` : undefined,
+                width: `var(--col-w-${field}, ${currentWidth ? `${currentWidth}px` : "auto"})`,
                 minWidth: `${minWidth}px`,
                 maxWidth: maxWidth ? `${maxWidth}px` : undefined,
-                left: isLeftPinned ? `${leftOffsets[field]}px` : undefined,
-                right: isRightPinned ? `${rightOffsets[field]}px` : undefined,
+                left: isLeftPinned ? `var(--col-left-${field}, ${leftOffsets[field]}px)` : undefined,
+                right: isRightPinned ? `var(--col-right-${field}, ${rightOffsets[field]}px)` : undefined,
               }}
               className={cn(
                 "group/header relative text-xs font-semibold whitespace-nowrap text-foreground transition-colors select-none",

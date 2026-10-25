@@ -1,7 +1,8 @@
+import { useTranslations } from "next-intl";
 import { memo } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Tooltip, XAxis, YAxis } from "recharts";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { WaterfallFinancialChartProps } from "./types";
 
@@ -35,6 +36,7 @@ const WaterfallTooltipContent = memo(function WaterfallTooltipContent({
   payload,
   valueFormatter,
 }: WaterfallTooltipContentProps) {
+  const t = useTranslations("chart");
   if (!active || !payload?.length) return null;
   const item = payload[0]?.payload;
   if (!item) return null;
@@ -50,7 +52,7 @@ const WaterfallTooltipContent = memo(function WaterfallTooltipContent({
       </div>
       <div className="mt-2 space-y-1">
         <div className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">变动金额:</span>
+          <span className="text-muted-foreground">{t("waterfall_change")}:</span>
           <span
             className={cn(
               "font-mono font-medium",
@@ -66,7 +68,7 @@ const WaterfallTooltipContent = memo(function WaterfallTooltipContent({
           </span>
         </div>
         <div className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">当前累计:</span>
+          <span className="text-muted-foreground">{t("waterfall_total")}:</span>
           <span className="text-foreground font-mono font-semibold">{valueFormatter(item.runningTotal)}</span>
         </div>
       </div>

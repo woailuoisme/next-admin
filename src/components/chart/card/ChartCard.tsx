@@ -1,18 +1,23 @@
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ChartCardProps, ChartPeriodOption } from "./types";
 
 import { ChartEmptyState } from "../shared/ChartEmptyState";
 import { ChartSkeleton } from "../shared/ChartSkeleton";
 import type { MessageKeyOf } from "@/types/i18n";
+
+const ChartFullscreenDialog = dynamic(
+  () => import("./ChartFullscreenDialog").then((mod) => mod.ChartFullscreenDialog),
+  { ssr: false },
+);
 
 const EMPTY_PERIODS: ChartPeriodOption[] = [];
 
@@ -143,23 +148,17 @@ export const ChartCard = memo(function ChartCard({
         </CardContent>
       </Card>
 
-      {/* Fullscreen Focus Dialog */}
-      {showFullscreen && (
-        <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
-          {/* 补 `sm:max-w-5xl`：DialogContent 基础含 `sm:max-w-sm`，裸 `max-w-5xl` 不在同一
-				    合并组内会被它击败 → ≥640px 时被压到 24rem。全屏查看须显式覆盖。 */}
-          <DialogContent className="max-w-5xl p-6 sm:max-w-5xl sm:rounded-xl">
-            <DialogHeader className="pb-2">
-              <DialogTitle className="text-lg font-semibold tracking-tight">{title}</DialogTitle>
-              {description && (
-                <DialogDescription className="text-muted-foreground text-xs">{description}</DialogDescription>
-              )}
-            </DialogHeader>
-            <div className="w-full min-w-0 pt-2" style={{ height: fullscreenHeight }}>
-              {isFullscreen ? children : null}
-            </div>
-          </DialogContent>
-        </Dialog>
+      {/* Fullscreen Focus Dialog (Lazy loaded on demand) */}
+      {showFullscreen && isFullscreen && (
+        <ChartFullscreenDialog
+          open={isFullscreen}
+          onOpenChange={setIsFullscreen}
+          title={title}
+          description={description}
+          fullscreenHeight={fullscreenHeight}
+        >
+          {children}
+        </ChartFullscreenDialog>
       )}
     </>
   );

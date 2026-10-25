@@ -1,8 +1,10 @@
+import { useTranslations } from "next-intl";
 import { Cpu } from "lucide-react";
 import { memo, useDeferredValue, useMemo } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Map, MapControls } from "@/components/ui/map";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { LocationMarkerItem, LocationMarkerMapProps } from "./types";
 
@@ -22,6 +24,7 @@ import { useLocationMarkers } from "./useLocationMarkers";
 const EMPTY_MARKERS: LocationMarkerItem[] = [];
 
 export const LocationMarkerMap = memo(function LocationMarkerMap(props: LocationMarkerMapProps) {
+  const t = useTranslations("map");
   const {
     height = 500,
     zoom = 11,
@@ -135,10 +138,13 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
             </Map>
 
             {isCanvasTier ? (
-              <div className="border-primary/20 bg-background/90 text-foreground absolute top-3 right-14 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-sm backdrop-blur-md">
+              <Badge
+                variant="secondary"
+                className="border-primary/20 bg-background/90 text-foreground absolute top-3 right-14 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-xs backdrop-blur-md"
+              >
                 <Cpu className="text-primary size-3 animate-pulse" />
-                <span>GPU 矢量加速 ({filteredData.length} 点)</span>
-              </div>
+                <span>{t("markers_gpu_badge", { count: filteredData.length })}</span>
+              </Badge>
             ) : null}
 
             <LocationMarkerSearchOverlay

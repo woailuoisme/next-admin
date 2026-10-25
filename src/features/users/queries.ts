@@ -18,5 +18,6 @@ export const customerQueries = {
     queryOptions({
       queryKey: customerKeys.list(filters),
       queryFn: () => fetchCustomers(filters),
+      staleTime: 30 * 1000,
     }),
 };

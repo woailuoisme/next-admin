@@ -4,7 +4,7 @@ import { memo, startTransition, useOptimistic, useState } from "react";
 import { toast } from "sonner";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { SelectCellProps } from "./types";
 

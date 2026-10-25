@@ -3,8 +3,9 @@ import type React from "react";
 import { Check, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 interface InlineEditInputProps {
   value: string;
@@ -84,14 +85,16 @@ export function InlineEditInput({
         )}
       </div>
       {suffix && <span className="text-muted-foreground flex shrink-0 items-center text-xs">{suffix}</span>}
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         onMouseDown={(e) => {
           e.preventDefault();
           onCommit();
         }}
         className={cn(
-          "cursor-pointer p-1 transition-colors",
+          "size-6 cursor-pointer p-0 transition-colors",
           error ? "cursor-not-allowed text-muted-foreground/40" : "text-primary hover:text-primary/80",
         )}
         disabled={Boolean(error)}
@@ -99,19 +102,21 @@ export function InlineEditInput({
         aria-label="确认修改"
       >
         <Check className="size-3" />
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         onMouseDown={(e) => {
           e.preventDefault();
           onCancel();
         }}
-        className="text-muted-foreground hover:text-foreground cursor-pointer p-1 transition-colors"
+        className="text-muted-foreground hover:text-foreground size-6 cursor-pointer p-0 transition-colors"
         title="取消 (Esc)"
         aria-label="取消修改"
       >
         <X className="size-3" />
-      </button>
+      </Button>
     </div>
   );
 }

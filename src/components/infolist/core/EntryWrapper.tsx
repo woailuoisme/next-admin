@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { COL_SPAN_CLASSES } from "@/components/shared/grid";
 import { LabelHelpTooltip } from "@/components/shared/LabelHelpTooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { EntryWrapperProps } from "./types";
 

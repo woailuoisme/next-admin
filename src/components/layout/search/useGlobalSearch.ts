@@ -1,11 +1,23 @@
 import { useKeyPress, useMemoizedFn } from "ahooks";
 import { useState } from "react";
 
-export function useGlobalSearch() {
+export interface UseGlobalSearchOptions {
+  onPrefetch?: () => void;
+}
+
+export function useGlobalSearch(options: UseGlobalSearchOptions = {}) {
+  const { onPrefetch } = options;
   const [open, setOpen] = useState(false);
 
-  const handleOpen = useMemoizedFn(() => setOpen(true));
-  const toggle = useMemoizedFn(() => setOpen((prev) => !prev));
+  const handleOpen = useMemoizedFn(() => {
+    onPrefetch?.();
+    setOpen(true);
+  });
+
+  const toggle = useMemoizedFn(() => {
+    onPrefetch?.();
+    setOpen((prev) => !prev);
+  });
 
   useKeyPress(
     ["meta.k", "ctrl.k", "/"],

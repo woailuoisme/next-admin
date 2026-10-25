@@ -1,19 +1,24 @@
-export * from "./area";
-export * from "./bar";
 export * from "./card";
-export * from "./composed";
-export * from "./donut";
-export * from "./funnel";
-export * from "./heatmap";
 export * from "./hooks";
-export * from "./horizontal-bar";
-export * from "./lazy";
-export * from "./line";
-export * from "./radar";
-export * from "./radial-gauge";
-export * from "./scatter";
-export * from "./shared";
-export * from "./sparkline";
-export * from "./treemap";
 export * from "./types";
-export * from "./waterfall";
+export * from "./shared";
+
+// Lazy-loaded charts by default for isolated code splitting and zero barrel leakage
+export {
+  LazyAreaTrendChart as AreaTrendChart,
+  LazyBarTrendChart as BarTrendChart,
+  LazyComposedTrendChart as ComposedTrendChart,
+  LazyDonutDistributionChart as DonutDistributionChart,
+  LazyFunnelConversionChart as FunnelConversionChart,
+  LazyHeatmapMatrixChart as HeatmapMatrixChart,
+  LazyHorizontalBarChart as HorizontalBarChart,
+  LazyLineTrendChart as LineTrendChart,
+  LazyMetricSparkline as MetricSparkline,
+  LazyRadarMetricChart as RadarMetricChart,
+  LazyRadialGaugeChart as RadialGaugeChart,
+  LazyScatterMetricChart as ScatterMetricChart,
+  LazyTreemapDistributionChart as TreemapDistributionChart,
+  LazyWaterfallFinancialChart as WaterfallFinancialChart,
+} from "./lazy";
+
+export * from "./lazy";

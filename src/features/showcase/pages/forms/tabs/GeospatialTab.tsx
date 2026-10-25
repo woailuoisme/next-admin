@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 
-import { type BasemapPreset, type CoordinateSystem, FormLocationPicker, FormSection } from "@/components/form";
-import { cn } from "@/lib/utils";
+import { FormSection } from "@/components/form/layout";
+import { type BasemapPreset, type CoordinateSystem, FormLocationPicker } from "@/components/form/map";
+import { cn } from "cn";
 
 import { BASEMAP_SELECT_OPTIONS, COORDINATE_SYSTEM_OPTIONS } from "../constants";
 

@@ -6,7 +6,7 @@ import { Check, Copy } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { DataListItem as DataListItemType, DataListProps } from "./types";
 

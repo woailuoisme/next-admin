@@ -23,17 +23,13 @@ export const ColorPickerContent = memo(function ColorPickerContent({
   disabled,
   showEyeDropper = true,
 }: ColorPickerContentProps) {
-  const [draft, setDraft] = useState(value);
-  const [prevValue, setPrevValue] = useState(value);
-
-  if (value !== prevValue) {
-    setPrevValue(value);
-    setDraft(value);
-  }
+  // draft is only non-null when the user is actively typing an in-progress hex code
+  const [draft, setDraft] = useState<string | null>(null);
+  const currentText = draft ?? value;
 
   const handleNativeChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
     const next = e.target.value;
-    setDraft(next);
+    setDraft(null);
     onChange(next);
   });
 
@@ -50,13 +46,13 @@ export const ColorPickerContent = memo(function ColorPickerContent({
   });
 
   const handleBlur = useMemoizedFn(() => {
-    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(draft)) {
-      onChange(draft);
-    } else if (draft === "" || draft === "#") {
-      onChange("");
-    } else {
-      // 非法输入失焦时恢复为上一有效值
-      setDraft(value);
+    if (draft !== null) {
+      if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(draft)) {
+        onChange(draft);
+      } else if (draft === "" || draft === "#") {
+        onChange("");
+      }
+      setDraft(null);
     }
     onBlur?.();
   });
@@ -64,19 +60,20 @@ export const ColorPickerContent = memo(function ColorPickerContent({
   const handleKeyDown = useMemoizedFn((e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(draft)) {
+      if (draft !== null && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(draft)) {
         onChange(draft);
+        setDraft(null);
       }
     }
   });
 
   const handleSelectPreset = useMemoizedFn((color: string) => {
-    setDraft(color);
+    setDraft(null);
     onChange(color);
   });
 
   const fallbackColor = (() => {
-    const trimmed = (draft || value).trim();
+    const trimmed = currentText.trim();
     if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) {
       return trimmed.toLowerCase();
     }
@@ -107,7 +104,7 @@ export const ColorPickerContent = memo(function ColorPickerContent({
 
         {/* Text Input for HEX code */}
         <Input
-          value={draft}
+          value={currentText}
           onChange={handleTextInputChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}

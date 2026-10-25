@@ -54,7 +54,7 @@ export const KeyValueEntry = React.memo(function KeyValueEntry({
             </thead>
             <tbody className="divide-border/60 divide-y">
               {entries.map(({ key, value }, idx) => (
-                <tr key={idx} className="hover:bg-muted/30 transition-colors">
+                <tr key={`${key}-${idx}`} className="hover:bg-muted/30 transition-colors">
                   <td className="text-muted-foreground px-3 py-2 font-mono font-medium break-all">{key}</td>
                   <td className="text-foreground px-3 py-2 break-all">{formatDisplayValue(value)}</td>
                 </tr>
@@ -68,7 +68,7 @@ export const KeyValueEntry = React.memo(function KeyValueEntry({
     return (
       <div className="divide-border/60 border-border/80 bg-muted/20 divide-y rounded-lg border px-3 py-1 text-xs">
         {entries.map(({ key, value }, idx) => (
-          <div key={idx} className="flex items-baseline justify-between gap-4 py-1.5">
+          <div key={`${key}-${idx}`} className="flex items-baseline justify-between gap-4 py-1.5">
             <span className="text-muted-foreground shrink-0 font-mono font-medium">{key}</span>
             <span className="text-foreground truncate text-right">{formatDisplayValue(value)}</span>
           </div>

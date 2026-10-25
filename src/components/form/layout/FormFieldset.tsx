@@ -1,7 +1,7 @@
 import { memo, type ReactNode } from "react";
 
 import { FieldLegend, FieldSet } from "@/components/ui/field";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { GridColumns } from "../core";
 

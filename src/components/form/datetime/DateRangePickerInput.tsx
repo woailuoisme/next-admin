@@ -8,9 +8,9 @@ import { memo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { type BaseInputProps, type DateRangeValue, FieldConnector, FieldWrapper, useFieldId } from "../core";
+import { type BaseInputProps, type DateRangeValue, FormFieldEngine } from "../core";
 import { parseDate } from "./dateUtils";
 
 export interface DateRangePickerInputProps extends BaseInputProps {
@@ -22,43 +22,29 @@ export interface DateRangePickerInputProps extends BaseInputProps {
   clearable?: boolean;
 }
 
-interface DateRangePickerInputInnerProps {
+interface DateRangePickerControlProps {
   id: string;
-  label?: React.ReactNode;
-  required?: boolean;
-  hint?: React.ReactNode;
-  helperText?: React.ReactNode;
-  tooltip?: React.ReactNode;
-  computedError?: React.ReactNode;
-  colSpan?: BaseInputProps["colSpan"];
-  className?: string;
-  hidden?: boolean;
   placeholder: string;
   disabled?: boolean;
   dateFormat: string;
   clearable: boolean;
   value?: DateRangeValue;
   onChange: (value: DateRangeValue | undefined) => void;
+  onBlur?: () => void;
+  hasError?: boolean;
 }
 
-const DateRangePickerInputInner = memo(function DateRangePickerInputInner({
+const DateRangePickerControl = memo(function DateRangePickerControl({
   id,
-  label,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  computedError,
-  colSpan,
-  className,
-  hidden,
   placeholder,
   disabled,
   dateFormat,
   clearable,
   value,
   onChange,
-}: DateRangePickerInputInnerProps) {
+  onBlur,
+  hasError,
+}: DateRangePickerControlProps) {
   const [open, setOpen] = useState(false);
 
   const fromDate = parseDate(value?.from);
@@ -89,56 +75,44 @@ const DateRangePickerInputInner = memo(function DateRangePickerInputInner({
   }
 
   return (
-    <FieldWrapper
-      label={label}
-      id={id}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={computedError}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-    >
-      <div className="relative flex w-full items-center">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              id={id}
-              type="button"
-              variant="outline"
-              disabled={disabled}
-              className={cn(
-                "h-8 w-full justify-start rounded-md bg-transparent px-2.5 pr-8 text-left text-xs font-normal",
-                !fromDate && "text-muted-foreground",
-                computedError && "border-destructive focus-visible:ring-destructive/20",
-              )}
-            >
-              <div className="flex items-center gap-2 truncate">
-                <CalendarIcon className="text-muted-foreground size-3.5 shrink-0" />
-                <span className="truncate">{displayLabel}</span>
-              </div>
-            </Button>
-          </PopoverTrigger>
-
-          <PopoverContent className="w-auto rounded-xl p-0" align="start">
-            <Calendar mode="range" numberOfMonths={2} selected={rangeSelected} onSelect={handleSelect} />
-          </PopoverContent>
-        </Popover>
-
-        {clearable && (fromDate || toDate) && !disabled && (
-          <button
+    <div className="relative flex w-full items-center">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            id={id}
             type="button"
-            onClick={handleClear}
-            className="text-muted-foreground/70 hover:text-destructive absolute right-2 cursor-pointer rounded-sm p-0.5 transition-colors"
-            aria-label="清除日期范围"
+            variant="outline"
+            disabled={disabled}
+            onBlur={onBlur}
+            className={cn(
+              "h-8 w-full justify-start rounded-md bg-transparent px-2.5 pr-8 text-left text-xs font-normal",
+              !fromDate && "text-muted-foreground",
+              hasError && "border-destructive focus-visible:ring-destructive/20",
+            )}
           >
-            <X className="size-3" />
-          </button>
-        )}
-      </div>
-    </FieldWrapper>
+            <div className="flex items-center gap-2 truncate">
+              <CalendarIcon className="text-muted-foreground size-3.5 shrink-0" />
+              <span className="truncate">{displayLabel}</span>
+            </div>
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-auto rounded-xl p-0" align="start">
+          <Calendar mode="range" numberOfMonths={2} selected={rangeSelected} onSelect={handleSelect} />
+        </PopoverContent>
+      </Popover>
+
+      {clearable && (fromDate || toDate) && !disabled && (
+        <button
+          type="button"
+          onClick={handleClear}
+          className="text-muted-foreground/70 hover:text-destructive absolute right-2 cursor-pointer rounded-sm p-0.5 transition-colors"
+          aria-label="清除日期范围"
+        >
+          <X className="size-3" />
+        </button>
+      )}
+    </div>
   );
 });
 
@@ -164,38 +138,39 @@ export const DateRangePickerInput = memo(function DateRangePickerInput({
   dateFormat = "yyyy-MM-dd",
   clearable = true,
 }: DateRangePickerInputProps) {
-  const id = useFieldId(name, explicitId);
-
   return (
-    <FieldConnector<DateRangeValue | undefined>
+    <FormFieldEngine<DateRangeValue | undefined>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value, onChange, error: computedError }) => (
-        <DateRangePickerInputInner
+      {({ id, value, onChange, onBlur, disabled: isDisabled, hasError }) => (
+        <DateRangePickerControl
           id={id}
-          label={label}
-          required={required}
-          hint={hint}
-          helperText={helperText}
-          tooltip={tooltip}
-          computedError={computedError}
-          colSpan={colSpan}
-          className={className}
-          hidden={hidden}
           placeholder={placeholder}
-          disabled={disabled}
+          disabled={isDisabled}
           dateFormat={dateFormat}
           clearable={clearable}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
+          hasError={hasError}
         />
       )}
-    </FieldConnector>
+    </FormFieldEngine>
   );
 });

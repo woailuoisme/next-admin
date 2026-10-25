@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { DonutDistributionChartProps, EnrichedDonutSliceData } from "./types";
 
@@ -18,7 +18,11 @@ interface DonutTooltipContentProps {
   valueFormatter: (val: number) => string;
 }
 
-function DonutTooltipContent({ active, payload, valueFormatter }: DonutTooltipContentProps) {
+const DonutTooltipContent = memo(function DonutTooltipContent({
+  active,
+  payload,
+  valueFormatter,
+}: DonutTooltipContentProps) {
   if (active && payload?.length) {
     const item = payload[0].payload;
     return (
@@ -35,7 +39,7 @@ function DonutTooltipContent({ active, payload, valueFormatter }: DonutTooltipCo
     );
   }
   return null;
-}
+});
 
 export const DonutDistributionChart = memo(function DonutDistributionChart(props: DonutDistributionChartProps) {
   const { innerRadius = 60, outerRadius = 85, height = 260, showLegend = true, className } = props;

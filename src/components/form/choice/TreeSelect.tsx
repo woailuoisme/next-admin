@@ -11,11 +11,11 @@ import {
   useRef,
   useState,
 } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChevronDown, ChevronRight, Check, Folder, FolderOpen, FileText, Loader2, Search, X } from "lucide-react";
 
 // ==========================================
@@ -901,33 +901,31 @@ function TreeSelectComponent({
         })}
 
         {omittedCount > 0 && (
-          <TooltipProvider delayDuration={150}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <Badge
-                    variant="outline"
-                    className="border-border bg-background text-muted-foreground hover:bg-accent inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-normal"
-                  >
-                    +{omittedCount}...
-                  </Badge>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs text-xs">
-                {maxTagPlaceholder ? (
-                  maxTagPlaceholder(rawValues.slice(maxTagCount))
-                ) : (
-                  <div className="flex flex-wrap gap-1">
-                    {rawValues.slice(maxTagCount).map((k) => (
-                      <span key={String(k)} className="bg-muted/60 rounded-xs px-1 py-0.5">
-                        {nodeMap.get(k)?.label ?? String(k)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Badge
+                  variant="outline"
+                  className="border-border bg-background text-muted-foreground hover:bg-accent inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-normal"
+                >
+                  +{omittedCount}...
+                </Badge>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs text-xs">
+              {maxTagPlaceholder ? (
+                maxTagPlaceholder(rawValues.slice(maxTagCount))
+              ) : (
+                <div className="flex flex-wrap gap-1">
+                  {rawValues.slice(maxTagCount).map((k) => (
+                    <span key={String(k)} className="bg-muted/60 rounded-xs px-1 py-0.5">
+                      {nodeMap.get(k)?.label ?? String(k)}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </TooltipContent>
+          </Tooltip>
         )}
       </div>
     );

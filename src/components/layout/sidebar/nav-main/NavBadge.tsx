@@ -1,27 +1,30 @@
-import { cn } from "@/lib/utils";
+import { memo } from "react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "cn";
 
-interface NavBadgeProps {
+export interface NavBadgeProps {
   badge?: string | number;
   className?: string;
 }
 
 /**
  * 导航项徽章（计数 / 状态标记）
- * 统一导航树三处渲染路径的样式来源
+ * 统一复用基础组件库 Badge，符合设计系统规范
  */
-export function NavBadge({ badge, className }: NavBadgeProps) {
+export const NavBadge = memo(function NavBadge({ badge, className }: NavBadgeProps) {
   if (badge === undefined) {
     return null;
   }
 
   return (
-    <span
+    <Badge
+      variant="secondary"
       className={cn(
-        "rounded-md border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary",
+        "border-primary/20 bg-primary/10 text-primary h-4.5 rounded-md px-1.5 py-0 text-[10px] font-semibold select-none",
         className,
       )}
     >
       {badge}
-    </span>
+    </Badge>
   );
-}
+});

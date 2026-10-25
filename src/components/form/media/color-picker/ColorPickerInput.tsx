@@ -4,12 +4,16 @@ import { memo, useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { FieldConnector, FieldWrapper, useFieldId } from "../../core";
+import { FormFieldEngine } from "../../core";
 import { ColorPickerContent } from "./ColorPickerContent";
 import { ColorTrigger } from "./ColorTrigger";
 import { type ColorPickerInnerProps, type ColorPickerInputProps, DEFAULT_COLOR_PRESETS } from "./types";
 
-const ColorPickerInputInner = memo(function ColorPickerInputInner({
+interface ColorPickerControlProps extends Omit<ColorPickerInnerProps, "computedError"> {
+  hasError?: boolean;
+}
+
+const ColorPickerControl = memo(function ColorPickerControl({
   id,
   value,
   onChange,
@@ -19,8 +23,8 @@ const ColorPickerInputInner = memo(function ColorPickerInputInner({
   presets,
   clearable = true,
   showEyeDropper = true,
-  computedError,
-}: ColorPickerInnerProps) {
+  hasError,
+}: ColorPickerControlProps) {
   const [open, setOpen] = useState(false);
 
   const handleClear = useMemoizedFn((e: React.MouseEvent) => {
@@ -35,13 +39,7 @@ const ColorPickerInputInner = memo(function ColorPickerInputInner({
     <div className="relative flex w-full items-center">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <ColorTrigger
-            id={id}
-            value={value}
-            placeholder={placeholder}
-            disabled={disabled}
-            hasError={Boolean(computedError)}
-          />
+          <ColorTrigger id={id} value={value} placeholder={placeholder} disabled={disabled} hasError={hasError} />
         </PopoverTrigger>
 
         <PopoverContent className="w-auto p-0" align="start">
@@ -93,45 +91,40 @@ export const ColorPickerInput = memo(function ColorPickerInput({
   clearable = true,
   showEyeDropper = true,
 }: ColorPickerInputProps) {
-  const id = useFieldId(name, explicitId);
-
   return (
-    <FieldConnector<string>
+    <FormFieldEngine<string>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value = "", onChange, onBlur, error: computedError }) => (
-        <FieldWrapper
-          label={label}
+      {({ id, value = "", onChange, onBlur, disabled: isDisabled, hasError }) => (
+        <ColorPickerControl
           id={id}
-          required={required}
-          hint={hint}
-          helperText={helperText}
-          tooltip={tooltip}
-          error={computedError}
-          colSpan={colSpan}
-          className={className}
-          hidden={hidden}
-        >
-          <ColorPickerInputInner
-            id={id}
-            value={value}
-            onChange={onChange}
-            onBlur={onBlur}
-            disabled={disabled}
-            placeholder={placeholder}
-            presets={presets}
-            clearable={clearable}
-            showEyeDropper={showEyeDropper}
-            computedError={computedError}
-          />
-        </FieldWrapper>
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          disabled={isDisabled}
+          placeholder={placeholder}
+          presets={presets}
+          clearable={clearable}
+          showEyeDropper={showEyeDropper}
+          hasError={hasError}
+        />
       )}
-    </FieldConnector>
+    </FormFieldEngine>
   );
 });

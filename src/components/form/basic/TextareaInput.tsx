@@ -2,9 +2,9 @@ import { useDebounceFn, useMemoizedFn } from "ahooks";
 import { type ChangeEvent, memo, useState } from "react";
 
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, useFieldId } from "../core";
+import { type BaseInputProps, FormFieldEngine } from "../core";
 
 export interface TextareaInputProps extends BaseInputProps {
   value?: string;
@@ -33,7 +33,7 @@ interface TextareaInputInnerProps {
   textareaClassName?: string;
 }
 
-const TextareaInputInner = memo(function TextareaInputInner({
+const StandardTextareaInner = memo(function StandardTextareaInner({
   id,
   value,
   onChange,
@@ -44,38 +44,65 @@ const TextareaInputInner = memo(function TextareaInputInner({
   disabled,
   readOnly,
   hasError,
-  debounceMs,
+  textareaClassName,
+}: TextareaInputInnerProps) {
+  const handleTextareaChange = useMemoizedFn((e: ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value);
+  });
+
+  return (
+    <Textarea
+      id={id}
+      rows={rows}
+      maxLength={maxLength}
+      value={value ?? ""}
+      onChange={handleTextareaChange}
+      onBlur={onBlur}
+      placeholder={placeholder}
+      disabled={disabled}
+      readOnly={readOnly}
+      aria-invalid={hasError}
+      className={cn(
+        "min-h-[80px] resize-y rounded-md",
+        hasError && "border-destructive ring-destructive/20",
+        disabled && "pointer-events-none opacity-50",
+        textareaClassName,
+      )}
+    />
+  );
+});
+
+const DebouncedTextareaInner = memo(function DebouncedTextareaInner({
+  id,
+  value,
+  onChange,
+  onBlur,
+  rows = 3,
+  maxLength,
+  placeholder,
+  disabled,
+  readOnly,
+  hasError,
+  debounceMs = 300,
   textareaClassName,
 }: TextareaInputInnerProps) {
   const [localValue, setLocalValue] = useState(value ?? "");
-  const [prevValue, setPrevValue] = useState(value);
-
-  if (value !== prevValue) {
-    setPrevValue(value);
-    setLocalValue(value ?? "");
-  }
 
   const debouncedOnChange = useDebounceFn(
     (val: string) => {
       onChange(val);
     },
-    { wait: debounceMs ?? 0 },
+    { wait: debounceMs },
   );
 
   const handleTextareaChange = useMemoizedFn((e: ChangeEvent<HTMLTextAreaElement>) => {
     const nextVal = e.target.value;
     setLocalValue(nextVal);
-    if (debounceMs && debounceMs > 0) {
-      debouncedOnChange.run(nextVal);
-    } else {
-      onChange(nextVal);
-    }
+    debouncedOnChange.run(nextVal);
   });
 
   const handleBlur = useMemoizedFn(() => {
-    if (debounceMs && debounceMs > 0) {
-      debouncedOnChange.flush();
-    }
+    debouncedOnChange.flush();
     onBlur?.();
   });
 
@@ -101,6 +128,13 @@ const TextareaInputInner = memo(function TextareaInputInner({
   );
 });
 
+const TextareaInputInner = memo(function TextareaInputInner(props: TextareaInputInnerProps) {
+  if ((props.debounceMs ?? 0) > 0) {
+    return <DebouncedTextareaInner {...props} />;
+  }
+  return <StandardTextareaInner {...props} />;
+});
+
 export const TextareaInput = memo(function TextareaInput({
   name,
   form,
@@ -118,7 +152,7 @@ export const TextareaInput = memo(function TextareaInput({
   disabled,
   readOnly,
   value: controlledValue,
-  defaultValue,
+  defaultValue = "",
   onChange: controlledOnChange,
   onBlur: controlledOnBlur,
   rows = 3,
@@ -127,48 +161,32 @@ export const TextareaInput = memo(function TextareaInput({
   debounceMs,
   textareaClassName,
 }: TextareaInputProps) {
-  const id = useFieldId(name, explicitId);
-
   return (
-    <FieldConnector<string>
+    <FormFieldEngine<string>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
+      readOnly={readOnly}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value = "", onChange, onBlur, error: computedError }) => {
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => {
         const currentLength = (value ?? "").length;
 
-        const effectiveHint =
-          hint ||
-          (showCount ? (
-            <span
-              className={cn(
-                "text-[10px] tabular-nums",
-                maxLength && currentLength > maxLength ? "font-semibold text-destructive" : "text-muted-foreground",
-              )}
-            >
-              {currentLength}
-              {maxLength ? ` / ${maxLength}` : " 字"}
-            </span>
-          ) : null);
-
         return (
-          <FieldWrapper
-            label={label}
-            id={id}
-            required={required}
-            hint={effectiveHint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={computedError}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-          >
+          <div className="w-full space-y-1">
             <TextareaInputInner
               id={id}
               rows={rows}
@@ -177,15 +195,27 @@ export const TextareaInput = memo(function TextareaInput({
               onChange={onChange}
               onBlur={onBlur}
               placeholder={placeholder}
-              disabled={disabled}
-              readOnly={readOnly}
-              hasError={Boolean(computedError)}
+              disabled={isDisabled}
+              readOnly={isReadOnly}
+              hasError={hasError}
               debounceMs={debounceMs}
               textareaClassName={textareaClassName}
             />
-          </FieldWrapper>
+
+            {showCount && (
+              <div
+                className={cn(
+                  "text-right text-[10px] tabular-nums",
+                  maxLength && currentLength > maxLength ? "font-semibold text-destructive" : "text-muted-foreground",
+                )}
+              >
+                {currentLength}
+                {maxLength ? ` / ${maxLength}` : " 字"}
+              </div>
+            )}
+          </div>
         );
       }}
-    </FieldConnector>
+    </FormFieldEngine>
   );
 });

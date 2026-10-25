@@ -1,6 +1,5 @@
 "use client";
 
-import { countBy, meanBy } from "es-toolkit";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
@@ -75,10 +74,20 @@ export function computeOrderStats(rows: Order[], total?: number, serverSummary?:
     return serverSummary;
   }
   const totalCount = total ?? rows.length;
-  const counts = countBy(rows, (o) => o.status);
-  const pendingCount = (counts.pending ?? 0) + (counts.processing ?? 0);
-  const deliveredCount = counts.delivered ?? 0;
-  const avgOrderValue = rows.length > 0 ? meanBy(rows, (o) => o.total ?? 0) : 0;
+  let pendingCount = 0;
+  let deliveredCount = 0;
+  let sumTotal = 0;
+
+  for (const o of rows) {
+    if (o.status === "pending" || o.status === "processing") {
+      pendingCount++;
+    } else if (o.status === "delivered") {
+      deliveredCount++;
+    }
+    sumTotal += o.total ?? 0;
+  }
+
+  const avgOrderValue = rows.length > 0 ? sumTotal / rows.length : 0;
 
   return {
     total: totalCount,

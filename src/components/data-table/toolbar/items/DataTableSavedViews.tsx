@@ -3,9 +3,11 @@ import { useMemoizedFn } from "ahooks";
 import { Bookmark, Check, Plus, Trash2 } from "lucide-react";
 import { type FormEvent, memo, useMemo, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { DataTableSavedView } from "../../core/types";
 
@@ -57,9 +59,11 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
         >
           <Bookmark className="size-3.5" />
           <span>{activeView ? activeView.name : t("views_title")}</span>
-          {views.length > 0 && (
-            <span className="bg-muted rounded-full px-1.5 font-mono text-[10px]">{views.length}</span>
-          )}
+          {views.length > 0 ? (
+            <Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
+              {views.length}
+            </Badge>
+          ) : null}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 p-3 shadow-lg">
@@ -82,13 +86,13 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
           {/* Create new view form */}
           {isCreating && (
             <form onSubmit={handleSave} className="bg-muted/40 space-y-1.5 rounded-md p-2">
-              <input
+              <Input
                 type="text"
                 autoFocus
                 placeholder={t("views_name_placeholder")}
                 value={newViewName}
                 onChange={(e) => setNewViewName(e.target.value)}
-                className="border-input bg-background focus:ring-ring h-7 w-full rounded-md border px-2 text-xs focus:ring-1 focus:outline-hidden"
+                className="h-7 w-full text-xs"
               />
               <div className="flex items-center justify-end gap-1.5 pt-1">
                 <Button
@@ -132,29 +136,31 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
                     <div className="flex min-w-0 items-center gap-2">
                       <Bookmark className="size-3.5 shrink-0 opacity-60" />
                       <span className="truncate">{v.name}</span>
-                      {v.isSystem && (
-                        <span className="bg-muted text-muted-foreground rounded px-1 text-[9px] uppercase">
+                      {v.isSystem ? (
+                        <Badge variant="secondary" className="px-1 py-0 text-[9px] uppercase">
                           {t("views_default")}
-                        </span>
-                      )}
+                        </Badge>
+                      ) : null}
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1">
-                      {isActive && <Check className="text-primary size-3.5" />}
-                      {!v.isSystem && onDeleteView && (
-                        <button
+                      {isActive ? <Check className="text-primary size-3.5" /> : null}
+                      {!v.isSystem && onDeleteView ? (
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon"
                           onClick={(e) => {
                             e.stopPropagation();
                             onDeleteView(v.id);
                           }}
-                          className="text-muted-foreground/50 hover:text-destructive rounded p-0.5 opacity-0 transition-opacity group-hover/view:opacity-100"
+                          className="text-muted-foreground/50 hover:text-destructive size-5 rounded p-0.5 opacity-0 transition-opacity group-hover/view:opacity-100"
                           title="Delete view"
                           aria-label={`Delete ${v.name}`}
                         >
                           <Trash2 className="size-3" />
-                        </button>
-                      )}
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
                 );

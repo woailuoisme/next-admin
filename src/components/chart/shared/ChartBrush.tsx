@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Brush } from "recharts";
 
 import type { ChartBrushConfig } from "./types";
@@ -17,7 +18,7 @@ export interface ChartBrushProps {
  * 趋势图底部的时间轴缩放刷选框
  * 统一收敛 boolean / 对象两种配置形态与默认样式
  */
-export function ChartBrush({ showBrush, xAxisKey, tickFormatter }: ChartBrushProps) {
+export const ChartBrush = memo(function ChartBrush({ showBrush, xAxisKey, tickFormatter }: ChartBrushProps) {
   if (!showBrush) {
     return null;
   }
@@ -35,4 +36,4 @@ export function ChartBrush({ showBrush, xAxisKey, tickFormatter }: ChartBrushPro
       tickFormatter={tickFormatter}
     />
   );
-}
+});

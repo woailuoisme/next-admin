@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { type HeatmapColorRamp, LazyGeoHeatmapMap } from "@/components/map";
+import { LazyGeoHeatmapMap } from "@/components/map/lazy";
+import type { HeatmapColorRamp } from "@/components/map/heatmap/types";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_HEATMAP_POINTS } from "../constants";

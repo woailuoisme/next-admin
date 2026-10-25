@@ -3,7 +3,8 @@ import { isNil } from "es-toolkit";
 import { BadgeCheck, Check, Copy, User } from "lucide-react";
 import { memo, useState } from "react";
 
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { cn } from "cn";
 
 import type { UserCellProps } from "./types";
 
@@ -122,17 +123,19 @@ export const UserCell = memo(function UserCell({
         {subtitle && (
           <div className="group/sub mt-0.5 flex min-w-0 items-center gap-1">
             <span className="text-muted-foreground/80 truncate text-[11px]">{subtitle}</span>
-            {copyableSubtitle && typeof subtitle === "string" && (
-              <button
+            {copyableSubtitle && typeof subtitle === "string" ? (
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={handleCopySubtitle}
-                className="text-muted-foreground/50 hover:bg-muted hover:text-foreground cursor-pointer rounded p-0.5 opacity-0 transition-opacity group-hover/user-cell:opacity-100"
+                className="text-muted-foreground/50 hover:bg-muted hover:text-foreground size-4 cursor-pointer rounded p-0 opacity-0 transition-opacity group-hover/user-cell:opacity-100"
                 title="复制副文本"
                 aria-label="复制"
               >
-                {copied ? <Check className="size-2.5 text-emerald-500" /> : <Copy className="size-2.5" />}
-              </button>
-            )}
+                {copied ? <Check className="text-chart-2 size-2.5" /> : <Copy className="size-2.5" />}
+              </Button>
+            ) : null}
           </div>
         )}
       </div>

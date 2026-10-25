@@ -1,8 +1,9 @@
 import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { DataTableQuickFilterProps } from "../types";
 
@@ -35,16 +36,18 @@ export function DataTableQuickFilter({
         onChange={(e) => handleSearchChange(e.target.value)}
         className="h-8 pr-7 pl-8 text-xs"
       />
-      {search && (
-        <button
+      {search ? (
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={handleClearSearch}
-          className="text-muted-foreground hover:text-foreground absolute top-2 right-2 cursor-pointer"
+          className="text-muted-foreground hover:text-foreground absolute top-1 right-1 size-6 cursor-pointer"
           aria-label={t("quick_filter_clear")}
         >
           <X className="size-3.5" />
-        </button>
-      )}
+        </Button>
+      ) : null}
     </div>
   );
 }

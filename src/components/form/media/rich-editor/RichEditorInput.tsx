@@ -1,109 +1,74 @@
 import { memo } from "react";
 
-import { FieldConnector, FieldWrapper, useFieldId } from "../../core";
+import { FormFieldEngine } from "../../core";
 import { TipTapCore } from "./TipTapCore";
 import { DEFAULT_TOOLBAR, type RichEditorInputProps } from "./types";
 
-interface RichEditorInputInnerProps extends RichEditorInputProps {
-  id: string;
-  value: string | undefined;
-  onChange: (value: string) => void;
-  onBlur?: () => void;
-  computedError?: React.ReactNode;
-}
-
-const RichEditorInputInner = memo(function RichEditorInputInner({
-  id,
+export const RichEditorInput = memo(function RichEditorInput({
+  name,
+  form,
+  id: explicitId,
   label,
   required,
   hint,
   helperText,
   tooltip,
-  computedError,
+  error,
   colSpan,
   className,
   hidden,
   placeholder,
   disabled,
   readOnly,
-  value,
-  onChange,
-  onBlur,
+  value: controlledValue,
+  defaultValue = "",
+  onChange: controlledOnChange,
+  onBlur: controlledOnBlur,
   format = "html",
   toolbarButtons = DEFAULT_TOOLBAR,
   minHeight = 160,
   maxHeight,
   editorClassName,
-}: RichEditorInputInnerProps) {
-  const hasError = Boolean(computedError);
-
+}: RichEditorInputProps) {
   return (
-    <FieldWrapper
+    <FormFieldEngine<string>
+      name={name}
+      form={form}
       label={label}
-      id={id}
+      id={explicitId}
       required={required}
       hint={hint}
       helperText={helperText}
       tooltip={tooltip}
-      error={computedError}
+      error={error}
       colSpan={colSpan}
       className={className}
       hidden={hidden}
-    >
-      <TipTapCore
-        id={id}
-        value={value ?? ""}
-        onChange={onChange}
-        onBlur={onBlur}
-        format={format}
-        placeholder={placeholder}
-        toolbarButtons={toolbarButtons}
-        minHeight={minHeight}
-        maxHeight={maxHeight}
-        disabled={disabled}
-        readOnly={readOnly}
-        hasError={hasError}
-        className={editorClassName}
-      />
-    </FieldWrapper>
-  );
-});
-
-export const RichEditorInput = memo(function RichEditorInput({
-  name,
-  form,
-  id: explicitId,
-  value: controlledValue,
-  defaultValue,
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
-  error,
-  ...restProps
-}: RichEditorInputProps) {
-  const id = useFieldId(name, explicitId);
-
-  return (
-    <FieldConnector<string>
-      name={name}
-      form={form}
+      disabled={disabled}
+      readOnly={readOnly}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value = "", onChange, onBlur, error: computedError }) => (
-        <RichEditorInputInner
-          {...restProps}
+      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+        <TipTapCore
           id={id}
-          name={name}
-          form={form}
-          value={value}
+          value={value ?? ""}
           onChange={onChange}
           onBlur={onBlur}
-          computedError={computedError}
+          format={format}
+          placeholder={placeholder}
+          toolbarButtons={toolbarButtons}
+          minHeight={minHeight}
+          maxHeight={maxHeight}
+          disabled={isDisabled}
+          readOnly={isReadOnly}
+          hasError={hasError}
+          className={editorClassName}
         />
       )}
-    </FieldConnector>
+    </FormFieldEngine>
   );
 });
+RichEditorInput.displayName = "RichEditorInput";

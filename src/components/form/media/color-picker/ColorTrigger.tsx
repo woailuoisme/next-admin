@@ -1,7 +1,7 @@
 import { forwardRef, memo } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { ColorTriggerProps } from "./types";
 

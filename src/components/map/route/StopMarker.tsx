@@ -3,7 +3,7 @@ import { memo, type ComponentType } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { MapMarker, MarkerContent, MarkerPopup } from "@/components/ui/map";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { RouteStop, RouteStopStatus } from "./types";
 
@@ -26,7 +26,7 @@ const STOP_STATUS_STYLES: Record<
   }
 > = {
   completed: {
-    marker: "bg-emerald-500 text-white",
+    marker: "bg-chart-2 text-primary-foreground",
     Icon: CheckCircle2,
     badge: "default",
   },

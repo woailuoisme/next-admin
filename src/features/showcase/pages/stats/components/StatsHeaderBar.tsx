@@ -1,6 +1,6 @@
 import { RefreshCw } from "lucide-react";
 
-import type { useLiveTicker } from "@/components/stats";
+import type { useLiveTicker } from "@/components/stats/live-card/useLiveTicker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 

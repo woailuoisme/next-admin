@@ -4,8 +4,9 @@ import { Check, Copy } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { StatCardValueProps } from "./types";
 
@@ -94,14 +95,16 @@ export const StatCardValue = memo(function StatCardValue({
       {copyable && value !== null && value !== undefined ? (
         <Tooltip delayDuration={150}>
           <TooltipTrigger asChild>
-            <button
+            <Button
               type="button"
-              className="text-muted-foreground/50 hover:bg-muted hover:text-foreground ml-1 inline-flex cursor-pointer items-center rounded p-0.5 opacity-0 transition-all group-hover/val:opacity-100 focus:opacity-100"
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground/50 hover:bg-muted hover:text-foreground ml-1 inline-flex size-4 cursor-pointer items-center rounded p-0.5 opacity-0 transition-all group-hover/val:opacity-100 focus:opacity-100"
               onClick={handleCopy}
               aria-label={t("copy_value")}
             >
               {copied ? <Check className="animate-in text-primary zoom-in h-3 w-3" /> : <Copy className="h-3 w-3" />}
-            </button>
+            </Button>
           </TooltipTrigger>
           <TooltipContent side="top" className="px-1.5 py-0.5 text-[10px]">
             {copied ? t("copied") : t("click_to_copy")}

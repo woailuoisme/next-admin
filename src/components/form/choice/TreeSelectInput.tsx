@@ -1,7 +1,7 @@
 import { memo } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { FieldConnector, FieldWrapper, useFieldId, type BaseInputProps } from "../core";
+import { FormFieldEngine, type BaseInputProps } from "../core";
 import {
   TreeSelect,
   type TreeSelectFieldNames,
@@ -96,73 +96,64 @@ function TreeSelectInputInner({
   size = "default",
   filterTreeNode,
 }: TreeSelectInputProps) {
-  const id = useFieldId(name, explicitId);
-
   const isMultiple = multiple || treeCheckable;
   const normalizedDefaultValue = defaultValue !== undefined ? defaultValue : isMultiple ? EMPTY_ARRAY : undefined;
 
   return (
-    <FieldConnector<TreeSelectValue | TreeSelectValue[] | undefined>
+    <FormFieldEngine<TreeSelectValue | TreeSelectValue[] | undefined>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
       value={controlledValue}
       defaultValue={normalizedDefaultValue}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value, onChange, error: computedError }) => {
-        const hasError = Boolean(computedError);
-
-        return (
-          <FieldWrapper
-            label={label}
-            id={id}
-            required={required}
-            error={computedError}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            colSpan={colSpan}
-            hidden={hidden}
-            className={className}
-          >
-            <TreeSelect
-              id={id}
-              treeData={treeData}
-              value={value}
-              onChange={(nextVal, nodes, extra) => {
-                onChange(nextVal);
-                controlledOnChange?.(nextVal, nodes, extra);
-              }}
-              placeholder={placeholder}
-              searchPlaceholder={searchPlaceholder}
-              emptyText={emptyText}
-              disabled={disabled}
-              allowClear={allowClear}
-              clearable={clearable}
-              multiple={multiple}
-              treeCheckable={treeCheckable}
-              showCheckedStrategy={showCheckedStrategy}
-              onlyLeafSelectable={onlyLeafSelectable}
-              treeLine={treeLine}
-              showIcon={showIcon}
-              showSearch={showSearch}
-              treeDefaultExpandAll={treeDefaultExpandAll}
-              treeExpandedKeys={treeExpandedKeys}
-              onTreeExpand={onTreeExpand}
-              loadData={loadData}
-              fieldNames={fieldNames}
-              maxTagCount={maxTagCount}
-              maxTagPlaceholder={maxTagPlaceholder}
-              size={size}
-              filterTreeNode={filterTreeNode}
-              className={cn(hasError && "border-destructive focus-visible:ring-destructive", triggerClassName)}
-              popupClassName={popupClassName}
-            />
-          </FieldWrapper>
-        );
-      }}
-    </FieldConnector>
+      {({ id, value, onChange, disabled: isDisabled, hasError }) => (
+        <TreeSelect
+          id={id}
+          treeData={treeData}
+          value={value}
+          onChange={(nextVal, nodes, extra) => {
+            onChange(nextVal);
+            controlledOnChange?.(nextVal, nodes, extra);
+          }}
+          placeholder={placeholder}
+          searchPlaceholder={searchPlaceholder}
+          emptyText={emptyText}
+          disabled={isDisabled}
+          allowClear={allowClear}
+          clearable={clearable}
+          multiple={multiple}
+          treeCheckable={treeCheckable}
+          showCheckedStrategy={showCheckedStrategy}
+          onlyLeafSelectable={onlyLeafSelectable}
+          treeLine={treeLine}
+          showIcon={showIcon}
+          showSearch={showSearch}
+          treeDefaultExpandAll={treeDefaultExpandAll}
+          treeExpandedKeys={treeExpandedKeys}
+          onTreeExpand={onTreeExpand}
+          loadData={loadData}
+          fieldNames={fieldNames}
+          maxTagCount={maxTagCount}
+          maxTagPlaceholder={maxTagPlaceholder}
+          size={size}
+          filterTreeNode={filterTreeNode}
+          className={cn(hasError && "border-destructive focus-visible:ring-destructive", triggerClassName)}
+          popupClassName={popupClassName}
+        />
+      )}
+    </FormFieldEngine>
   );
 }
 

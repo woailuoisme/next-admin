@@ -1,4 +1,4 @@
-import { LazyArcFlightMap } from "@/components/map";
+import { LazyArcFlightMap } from "@/components/map/lazy";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_FLIGHT_ARCS } from "../constants";
 import type { DemoStateProps } from "../types";

@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemoizedFn } from "ahooks";
 import { Clock, Loader2 } from "lucide-react";
+import { useMemo } from "react";
 
-import { DataList, ViewDialog } from "@/components/dialogs";
+import { DataList } from "@/components/dialogs/DataList";
+import { ViewDialog } from "@/components/dialogs/ViewDialog";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,6 +31,17 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
   });
   const statusMutation = useUpdateOrderStatusMutation();
 
+  const statusLabelMap = useMemo<Record<string, string>>(
+    () => ({
+      pending: t("status_pending"),
+      processing: t("status_processing"),
+      shipped: t("status_shipped"),
+      delivered: t("status_delivered"),
+      cancelled: t("status_cancelled"),
+    }),
+    [t],
+  );
+
   const handleStatusChange = useMemoizedFn(async (newStatus: OrderStatus) => {
     if (order) {
       await statusMutation.mutateAsync({ id: order.id, status: newStatus });
@@ -42,14 +55,14 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
       variant="sheet"
       open={open}
       onOpenChange={onOpenChange}
-      title={order?.orderNumber ?? "Order Details"}
+      title={order?.orderNumber ?? t("detail_sheet_title")}
       description={
-        order ? `Placed on ${new Date(order.createdAt).toLocaleString()}` : "Order details and fulfillment tracking"
+        order ? t("detail_placed_on", { date: new Date(order.createdAt).toLocaleString() }) : t("detail_sheet_desc")
       }
       badge={
         order && (
-          <Badge variant="outline" className="text-xs font-semibold capitalize">
-            {order.status}
+          <Badge variant="outline" className="text-xs font-semibold">
+            {statusLabelMap[order.status] ?? order.status}
           </Badge>
         )
       }

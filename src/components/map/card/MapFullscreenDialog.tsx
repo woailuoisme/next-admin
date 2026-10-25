@@ -1,10 +1,11 @@
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-
 import { memo } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-interface MapFullscreenDialogProps {
+export interface MapFullscreenDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: ReactNode;
@@ -21,6 +22,8 @@ export const MapFullscreenDialog = memo(function MapFullscreenDialog({
   fullscreenHeight = "calc(90vh - 80px)",
   children,
 }: MapFullscreenDialogProps) {
+  const t = useTranslations("map");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/*
@@ -39,9 +42,9 @@ export const MapFullscreenDialog = memo(function MapFullscreenDialog({
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <span>{title}</span>
-            <span className="border-primary/20 bg-primary/10 text-primary rounded-md border px-2 py-0.5 text-xs font-normal">
-              全屏聚焦视图
-            </span>
+            <Badge variant="secondary" className="border-primary/20 bg-primary/10 text-primary">
+              {t("fullscreen_badge")}
+            </Badge>
           </DialogTitle>
           {description ? <DialogDescription className="text-xs">{description}</DialogDescription> : null}
         </DialogHeader>

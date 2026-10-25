@@ -3,7 +3,7 @@ import { Inbox } from "lucide-react";
 import { type ComponentType, isValidElement, memo, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type {
   TableEmptyStateAction,
@@ -15,9 +15,9 @@ import type {
 const ICON_COLOR_CLASSES: Record<TableEmptyStateIconColor, string> = {
   muted: "bg-muted/70 text-muted-foreground/80 border-border/50",
   primary: "bg-primary/10 text-primary border-primary/20",
-  warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  warning: "bg-chart-4/10 text-chart-4 border-chart-4/20",
   destructive: "bg-destructive/10 text-destructive border-destructive/20",
-  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  success: "bg-chart-2/10 text-chart-2 border-chart-2/20",
 };
 
 const SIZE_CONFIGS: Record<

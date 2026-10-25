@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
+import DashboardLoading from "@/app/(app)/loading";
 import { StatsShowcasePage } from "@/features/showcase/pages/StatsShowcasePage";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -12,5 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function Page() {
-  return <StatsShowcasePage />;
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <StatsShowcasePage />
+    </Suspense>
+  );
 }

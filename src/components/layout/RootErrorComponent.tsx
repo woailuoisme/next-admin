@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ChevronDown, Home, RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { captureException } from "@/integrations/glitchtip";
@@ -32,7 +32,7 @@ function getErrorMessage(err: unknown): string {
   return "";
 }
 
-export function RootErrorComponent({
+export const RootErrorComponent = memo(function RootErrorComponent({
   error,
   reset,
   info,
@@ -123,4 +123,4 @@ export function RootErrorComponent({
       )}
     </div>
   );
-}
+});

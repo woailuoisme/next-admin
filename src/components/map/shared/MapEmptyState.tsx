@@ -3,7 +3,7 @@ import { AlertCircle, MapPinOff, RefreshCw } from "lucide-react";
 import { memo, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 export interface MapEmptyStateProps {
   height?: number | string;

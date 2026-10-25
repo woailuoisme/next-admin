@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { HeatmapMatrixChartProps } from "./types";
 
@@ -78,7 +78,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
         viewBox={`0 0 ${actualSvgWidth} ${actualSvgHeight}`}
         className="h-auto max-h-[480px] w-full overflow-visible"
         role="img"
-        aria-label={`Heatmap matrix showing ${legendTitle}`}
+        aria-label={`Heatmap matrix showing ${resolvedLegendTitle}`}
       >
         {/* X Axis Labels (Top) */}
         {computedXLabels.map((xVal, colIndex) => {
@@ -157,7 +157,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
         )}
 
         {/* Bottom Legend */}
-        {showLegend && (
+        {showLegend ? (
           <g transform={`translate(${LABEL_LEFT_WIDTH}, ${actualSvgHeight - 20})`}>
             <text x={0} y={9} className="fill-muted-foreground text-[10px] font-medium">
               {resolvedLegendTitle}: {t("legend_low")} ({valueFormatter(min)})
@@ -178,11 +178,11 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
               {t("legend_high")} ({valueFormatter(max)})
             </text>
           </g>
-        )}
+        ) : null}
       </svg>
 
       {/* Floating Tooltip */}
-      {hoveredCell && showTooltip && (
+      {hoveredCell && showTooltip ? (
         <div
           className="border-border/50 bg-background/95 pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-[calc(100%+8px)] rounded-lg border px-3 py-2 text-xs shadow-xl backdrop-blur-md transition-opacity duration-150"
           style={{
@@ -197,11 +197,11 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
             </span>
           </div>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-muted-foreground">{legendTitle}:</span>
+            <span className="text-muted-foreground">{resolvedLegendTitle}:</span>
             <span className="text-foreground font-semibold tabular-nums">{valueFormatter(hoveredCell.cell.value)}</span>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 });

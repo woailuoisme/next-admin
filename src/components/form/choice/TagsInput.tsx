@@ -4,9 +4,9 @@ import { type KeyboardEvent, memo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, useFieldId } from "../core";
+import { type BaseInputProps, FormFieldEngine } from "../core";
 
 const EMPTY_TAGS: string[] = [];
 const EMPTY_SUGGESTIONS: string[] = [];
@@ -20,7 +20,7 @@ export interface TagsInputProps extends BaseInputProps {
   suggestions?: string[];
 }
 
-interface TagsInputInnerProps {
+interface TagsInputControlProps {
   id: string;
   currentTags: string[];
   onChange: (tags: string[]) => void;
@@ -32,7 +32,7 @@ interface TagsInputInnerProps {
   suggestions?: string[];
 }
 
-const TagsInputInner = memo(function TagsInputInner({
+const TagsInputControl = memo(function TagsInputControl({
   id,
   currentTags,
   onChange,
@@ -42,7 +42,7 @@ const TagsInputInner = memo(function TagsInputInner({
   hasError,
   maxTags,
   suggestions = EMPTY_SUGGESTIONS,
-}: TagsInputInnerProps) {
+}: TagsInputControlProps) {
   const [inputValue, setInputValue] = useState("");
 
   const addTag = useMemoizedFn((rawText: string) => {
@@ -117,7 +117,6 @@ const TagsInputInner = memo(function TagsInputInner({
         )}
       </div>
 
-      {/* 快捷推荐标签 */}
       {unusedSuggestions.length > 0 && !disabled && (
         <div className="flex flex-wrap items-center gap-1 pt-1.5">
           <span className="text-muted-foreground mr-0.5 text-[10px]">建议:</span>
@@ -159,48 +158,39 @@ export const TagsInput = memo(function TagsInput({
   maxTags,
   suggestions = EMPTY_SUGGESTIONS,
 }: TagsInputProps) {
-  const id = useFieldId(name, explicitId);
-
   return (
-    <FieldConnector<string[]>
+    <FormFieldEngine<string[]>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value = EMPTY_TAGS, onChange, onBlur, error: computedError }) => {
-        const currentTags = Array.isArray(value) ? value : EMPTY_TAGS;
-
-        return (
-          <FieldWrapper
-            label={label}
-            id={id}
-            required={required}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={computedError}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-          >
-            <TagsInputInner
-              id={id}
-              currentTags={currentTags}
-              onChange={onChange}
-              onBlur={onBlur}
-              placeholder={placeholder}
-              disabled={disabled}
-              hasError={Boolean(computedError)}
-              maxTags={maxTags}
-              suggestions={suggestions}
-            />
-          </FieldWrapper>
-        );
-      }}
-    </FieldConnector>
+      {({ id, value = EMPTY_TAGS, onChange, onBlur, disabled: isDisabled, hasError }) => (
+        <TagsInputControl
+          id={id}
+          currentTags={Array.isArray(value) ? value : EMPTY_TAGS}
+          onChange={onChange}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          disabled={isDisabled}
+          hasError={hasError}
+          maxTags={maxTags}
+          suggestions={suggestions}
+        />
+      )}
+    </FormFieldEngine>
   );
 });

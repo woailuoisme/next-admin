@@ -34,7 +34,7 @@ function getUserInitials(name: string): string {
     .slice(0, 2);
 }
 
-export function NavUserSkeleton() {
+export const NavUserSkeleton = memo(function NavUserSkeleton() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -48,7 +48,7 @@ export function NavUserSkeleton() {
       </SidebarMenuItem>
     </SidebarMenu>
   );
-}
+});
 
 export interface NavUserProps {
   user?: SidebarUser | null;
@@ -57,7 +57,7 @@ export interface NavUserProps {
 }
 
 /** 头像 + 姓名/邮箱组合（侧栏按钮与下拉菜单头部共用） */
-function UserIdentity({ user, initials }: { user: SidebarUser; initials: string }) {
+const UserIdentity = memo(function UserIdentity({ user, initials }: { user: SidebarUser; initials: string }) {
   return (
     <>
       <Avatar className="h-8 w-8 rounded-lg after:rounded-lg [&_img]:rounded-lg">
@@ -70,7 +70,7 @@ function UserIdentity({ user, initials }: { user: SidebarUser; initials: string 
       </div>
     </>
   );
-}
+});
 
 export const NavUser = memo(function NavUser({ user, defaultOpen }: NavUserProps) {
   const t = useTranslations("layout");

@@ -406,7 +406,7 @@ export function BroadcasterShowcaseTab() {
               </div>
 
               {isPaused && (
-                <Badge variant="outline" className="text-[10px] text-amber-500">
+                <Badge variant="outline" className="border-chart-4/30 text-chart-4 text-[10px]">
                   已暂停滚动更新
                 </Badge>
               )}
@@ -437,9 +437,9 @@ export function BroadcasterShowcaseTab() {
                               ) : msg.level === "warning" ? (
                                 <Badge
                                   variant="outline"
-                                  className="h-5 border-amber-500/30 px-1.5 text-[10px] text-amber-500"
+                                  className="border-chart-4/30 text-chart-4 h-5 px-1.5 text-[10px]"
                                 >
-                                  <AlertCircle className="mr-1 h-3 w-3" />
+                                  <AlertCircle className="mr-1 size-3" />
                                   WARNING
                                 </Badge>
                               ) : msg.level === "error" ? (

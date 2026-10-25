@@ -2,11 +2,11 @@ import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { debounce, type DebouncedFunction } from "es-toolkit";
 import { LocateFixed, MapPin } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Map, MapControls, MapMarker, MarkerContent, MarkerPopup } from "@/components/ui/map";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { CoordinateSystem } from "../utils/coordinates";
 import type { LocationPickerProps, LocationPickerValue } from "./types";
@@ -26,7 +26,7 @@ const DEFAULT_BEIJING: LocationPickerValue = { lng: 116.4074, lat: 39.9042 };
 /** 逆地理编码防抖：拖动结束后再补全地址，避免拖动过程连续请求 */
 const REVERSE_GEOCODE_DEBOUNCE_MS = 400;
 
-export function LocationPicker({
+export const LocationPicker = memo(function LocationPicker({
   coordinateSystem,
   value: controlledValue,
   defaultValue = DEFAULT_BEIJING,
@@ -342,4 +342,4 @@ export function LocationPicker({
       ) : null}
     </div>
   );
-}
+});

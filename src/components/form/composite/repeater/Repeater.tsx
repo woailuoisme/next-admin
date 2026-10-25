@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 
 import type { RepeaterProps } from "./types";
 
-import { FieldConnector, FieldWrapper, useFieldId } from "../../core";
+import { FormFieldEngine } from "../../core";
 import { RepeaterRow } from "./RepeaterRow";
 import { RepeaterTable } from "./RepeaterTable";
 import { useRepeaterController } from "./useRepeaterController";
@@ -309,65 +309,60 @@ export const Repeater = memo(function Repeater<T = unknown>({
   renderSummary,
   renderExtraActions,
 }: RepeaterProps<T>) {
-  const id = useFieldId(name, explicitId);
-
   return (
-    <FieldConnector<T[]>
+    <FormFieldEngine<T[]>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value = DEFAULT_EMPTY_ARRAY as T[], onChange, error: computedError }) => {
+      {({ value = DEFAULT_EMPTY_ARRAY as T[], onChange, disabled: isDisabled }) => {
         const items = Array.isArray(value) ? value : (DEFAULT_EMPTY_ARRAY as T[]);
 
         return (
-          <FieldWrapper
-            label={label}
-            id={id}
-            required={required}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={computedError}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-          >
-            <RepeaterInner<T>
-              items={items}
-              onChange={onChange}
-              disabled={disabled}
-              layout={layout}
-              headers={headers}
-              createItem={createItem}
-              cloneItem={cloneItem}
-              renderItem={renderItem}
-              itemTitle={itemTitle}
-              getItemKey={getItemKey}
-              addButtonText={addButtonText}
-              emptyText={emptyText}
-              showEmptyAddButton={showEmptyAddButton}
-              minItems={minItems}
-              maxItems={maxItems}
-              collapsible={collapsible}
-              defaultCollapsed={defaultCollapsed}
-              reorderable={reorderable}
-              canAdd={canAdd}
-              canDelete={canDelete}
-              canDuplicate={canDuplicate}
-              confirmDelete={confirmDelete}
-              itemErrors={itemErrors}
-              autoExpandOnError={autoExpandOnError}
-              renderSummary={renderSummary}
-              renderExtraActions={renderExtraActions}
-            />
-          </FieldWrapper>
+          <RepeaterInner<T>
+            items={items}
+            onChange={onChange}
+            disabled={isDisabled}
+            layout={layout}
+            headers={headers}
+            createItem={createItem}
+            cloneItem={cloneItem}
+            renderItem={renderItem}
+            itemTitle={itemTitle}
+            getItemKey={getItemKey}
+            addButtonText={addButtonText}
+            emptyText={emptyText}
+            showEmptyAddButton={showEmptyAddButton}
+            minItems={minItems}
+            maxItems={maxItems}
+            collapsible={collapsible}
+            defaultCollapsed={defaultCollapsed}
+            reorderable={reorderable}
+            canAdd={canAdd}
+            canDelete={canDelete}
+            canDuplicate={canDuplicate}
+            confirmDelete={confirmDelete}
+            itemErrors={itemErrors}
+            autoExpandOnError={autoExpandOnError}
+            renderSummary={renderSummary}
+            renderExtraActions={renderExtraActions}
+          />
         );
       }}
-    </FieldConnector>
+    </FormFieldEngine>
   );
 }) as <T = unknown>(props: RepeaterProps<T>) => ReactNode;

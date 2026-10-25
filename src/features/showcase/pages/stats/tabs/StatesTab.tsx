@@ -1,4 +1,8 @@
-import { LiveStatCard, MultiMetricStatCard, ProgressStatCard, StatCard, type useLiveTicker } from "@/components/stats";
+import { LiveStatCard } from "@/components/stats/live-card/LiveStatCard";
+import type { useLiveTicker } from "@/components/stats/live-card/useLiveTicker";
+import { MultiMetricStatCard } from "@/components/stats/multi-metric-card/MultiMetricStatCard";
+import { ProgressStatCard } from "@/components/stats/progress-card/ProgressStatCard";
+import { StatCard } from "@/components/stats/stat-card/StatCard";
 import { Button } from "@/components/ui/button";
 
 import { DEMO_STATES } from "../constants";

@@ -1,11 +1,11 @@
 import { useMemoizedFn } from "ahooks";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { Fragment, memo, useId, useMemo } from "react";
+import { Fragment, memo, useMemo } from "react";
 
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { type BaseInputProps, FieldConnector, FieldWrapper, resolveFieldHasError } from "../core";
+import { type BaseInputProps, FormFieldEngine } from "../core";
 
 export interface OtpInputProps extends BaseInputProps {
   value?: string;
@@ -24,7 +24,7 @@ export interface OtpInputProps extends BaseInputProps {
   slotClassName?: string;
 }
 
-interface OtpInputInnerProps {
+interface OtpControlProps {
   id: string;
   value?: string;
   onChange: (value: string) => void;
@@ -44,7 +44,7 @@ interface OtpInputInnerProps {
   hasError?: boolean;
 }
 
-const OtpInputInner = memo(function OtpInputInner({
+const OtpControl = memo(function OtpControl({
   id,
   value = "",
   onChange,
@@ -62,7 +62,7 @@ const OtpInputInner = memo(function OtpInputInner({
   containerClassName,
   slotClassName,
   hasError,
-}: OtpInputInnerProps) {
+}: OtpControlProps) {
   const handleValueChange = useMemoizedFn((nextValue: string) => {
     onChange(nextValue);
     if (nextValue.length === length) {
@@ -149,7 +149,7 @@ export function OtpInput({
   disabled,
   readOnly,
   value: controlledValue,
-  defaultValue,
+  defaultValue = "",
   onChange: controlledOnChange,
   onBlur: controlledOnBlur,
   length = 6,
@@ -163,59 +163,49 @@ export function OtpInput({
   containerClassName,
   slotClassName,
 }: OtpInputProps) {
-  const generatedId = useId();
-  const id = explicitId || generatedId;
-
   return (
-    <FieldConnector
+    <FormFieldEngine<string>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
+      readOnly={readOnly}
+      align={align}
       value={controlledValue}
       defaultValue={defaultValue}
       onChange={controlledOnChange}
       onBlur={controlledOnBlur}
-      disabled={disabled}
-      readOnly={readOnly}
-      render={({ value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, meta }) => {
-        const hasError = resolveFieldHasError(error, meta);
-
-        return (
-          <FieldWrapper
-            id={id}
-            label={label}
-            required={required}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={error}
-            meta={meta}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-            align={align}
-          >
-            <OtpInputInner
-              id={id}
-              value={typeof value === "string" ? value : ""}
-              onChange={onChange}
-              onBlur={onBlur}
-              length={length}
-              groupSize={groupSize}
-              separator={separator}
-              align={align}
-              mask={mask}
-              numericOnly={numericOnly}
-              autoFocus={autoFocus}
-              disabled={isDisabled}
-              readOnly={isReadOnly}
-              onComplete={onComplete}
-              containerClassName={containerClassName}
-              slotClassName={slotClassName}
-              hasError={hasError}
-            />
-          </FieldWrapper>
-        );
-      }}
-    />
+    >
+      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+        <OtpControl
+          id={id}
+          value={typeof value === "string" ? value : ""}
+          onChange={onChange}
+          onBlur={onBlur}
+          length={length}
+          groupSize={groupSize}
+          separator={separator}
+          align={align}
+          mask={mask}
+          numericOnly={numericOnly}
+          autoFocus={autoFocus}
+          disabled={isDisabled}
+          readOnly={isReadOnly}
+          onComplete={onComplete}
+          containerClassName={containerClassName}
+          slotClassName={slotClassName}
+          hasError={hasError}
+        />
+      )}
+    </FormFieldEngine>
   );
 }

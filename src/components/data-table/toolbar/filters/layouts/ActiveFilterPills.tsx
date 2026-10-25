@@ -2,6 +2,9 @@ import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import React from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
 import type {
   DataTableColDef,
   DataTableFilterDefinition,
@@ -9,6 +12,8 @@ import type {
   DataTableFilterModel,
   DataTableSelectFilterOption,
 } from "../../../core/types";
+
+const DEFAULT_FILTERS: DataTableFilterDefinition[] = [];
 
 export interface ActiveFilterPillsProps<TData = any> {
   filterModel: DataTableFilterModel;
@@ -21,7 +26,7 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
   filterModel,
   onFilterModelChange,
   columns,
-  filters = [],
+  filters = DEFAULT_FILTERS,
 }) => {
   const t = useTranslations("table");
 
@@ -119,53 +124,61 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
       <span className="text-muted-foreground mr-1 text-[11px] font-medium">{t("filter_active_label")}</span>
 
       {/* Quick filter pill */}
-      {quickFilterValues.length > 0 && (
-        <span
-          className="border-primary/20 bg-primary/10 text-primary inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium"
+      {quickFilterValues.length > 0 ? (
+        <Badge
+          variant="outline"
+          className="border-primary/20 bg-primary/10 text-primary inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium"
           data-testid="active-filter-pill-quick-search"
         >
           <span>{t("filter_quick_search_label", { value: quickFilterValues.join(" ") })}</span>
-          <button
+          <Button
             type="button"
-            className="hover:bg-primary/20 cursor-pointer rounded-full p-0.5 transition-colors"
+            variant="ghost"
+            size="icon"
+            className="hover:bg-primary/20 size-3.5 cursor-pointer rounded-full p-0 transition-colors"
             onClick={handleRemoveQuickFilter}
             aria-label={t("quick_filter_clear")}
           >
-            <X className="h-3 w-3" />
-          </button>
-        </span>
-      )}
+            <X className="size-3" />
+          </Button>
+        </Badge>
+      ) : null}
 
       {/* Filter items pills */}
       {activeItems.map((item, idx) => (
-        <span
+        <Badge
           key={item.id ?? `${item.field}_${item.operator}_${idx}`}
-          className="border-primary/20 bg-primary/10 text-primary inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium"
+          variant="outline"
+          className="border-primary/20 bg-primary/10 text-primary inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium"
           data-testid={`active-filter-pill-${item.id ?? idx}`}
         >
           <span>{getPillText(item)}</span>
-          <button
+          <Button
             type="button"
-            className="hover:bg-primary/20 cursor-pointer rounded-full p-0.5 transition-colors"
+            variant="ghost"
+            size="icon"
+            className="hover:bg-primary/20 size-3.5 cursor-pointer rounded-full p-0 transition-colors"
             onClick={() => handleRemoveItem(item)}
             aria-label={`${t("filter_remove_rule")} ${item.field}`}
           >
-            <X className="h-3 w-3" />
-          </button>
-        </span>
+            <X className="size-3" />
+          </Button>
+        </Badge>
       ))}
 
       {/* Clear All button */}
-      {totalActive >= 2 && (
-        <button
+      {totalActive >= 2 ? (
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={handleClearAll}
-          className="text-muted-foreground hover:text-destructive ml-1 cursor-pointer text-xs underline underline-offset-2 transition-colors"
+          className="text-muted-foreground hover:text-destructive ml-1 h-auto cursor-pointer p-0 text-xs underline underline-offset-2 transition-colors"
           data-testid="clear-all-active-filters-btn"
         >
           {t("filter_clear_all")}
-        </button>
-      )}
+        </Button>
+      ) : null}
     </div>
   );
 };

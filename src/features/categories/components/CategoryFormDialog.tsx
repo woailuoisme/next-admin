@@ -3,7 +3,7 @@ import { useMemoizedFn } from "ahooks";
 import { useMemo } from "react";
 
 import { FormDialog } from "@/components/dialogs";
-import { TextareaInput, TextInput } from "@/components/form";
+import { TextareaInput, TextInput } from "@/components/form/basic";
 import { slugify } from "@/lib/slug";
 
 import type { Category, CategoryInput } from "../types";

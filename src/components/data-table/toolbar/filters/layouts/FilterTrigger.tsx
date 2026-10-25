@@ -2,8 +2,9 @@ import { useTranslations } from "next-intl";
 import { Filter } from "lucide-react";
 import React from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 export interface FilterTriggerProps extends React.ComponentProps<typeof Button> {
   activeCount?: number;
@@ -23,11 +24,14 @@ export const FilterTrigger = React.forwardRef<HTMLButtonElement, FilterTriggerPr
       >
         <Filter className="size-3.5" />
         <span>{t("filter_trigger")}</span>
-        {activeCount > 0 && (
-          <span className="bg-primary/15 text-primary flex size-4.5 items-center justify-center rounded-full font-mono text-[10px] font-semibold">
+        {activeCount > 0 ? (
+          <Badge
+            variant="secondary"
+            className="bg-primary/15 text-primary flex size-4.5 items-center justify-center rounded-full p-0 font-mono text-[10px] font-semibold"
+          >
             {activeCount}
-          </span>
-        )}
+          </Badge>
+        ) : null}
       </Button>
     );
   },

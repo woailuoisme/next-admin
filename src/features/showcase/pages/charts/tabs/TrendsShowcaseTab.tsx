@@ -1,4 +1,7 @@
-import { BarTrendChart, CHART_PALETTE, ChartCard, LineTrendChart } from "@/components/chart";
+import { BarTrendChart } from "@/components/chart/bar/BarTrendChart";
+import { ChartCard } from "@/components/chart/card/ChartCard";
+import { LineTrendChart } from "@/components/chart/line/LineTrendChart";
+import { CHART_PALETTE } from "@/components/chart/shared/theme";
 import { TabsContent } from "@/components/ui/tabs";
 import { CURRENCY_FORMATTER, PERIOD_OPTIONS } from "../constants";
 import type { ChartStateProps, TimeRange, TrendDataPoint } from "../types";

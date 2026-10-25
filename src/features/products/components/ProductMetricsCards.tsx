@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, DollarSign, Package } from "lucide-react";
 
-import { StatCard, StatsGrid } from "@/components/stats";
+import { StatsGrid } from "@/components/stats/grid/StatsGrid";
+import { StatCard } from "@/components/stats/stat-card/StatCard";
 import { useTranslations } from "next-intl";
 
 export interface ProductMetricsSummary {
@@ -23,11 +24,16 @@ export interface ProductMetricsCardsProps {
 
 export function ProductMetricsCards({ stats, isLoading = false }: ProductMetricsCardsProps) {
   const t = useTranslations("products");
+  const total = stats?.total ?? 0;
+  const activeCount = stats?.activeCount ?? 0;
+  const lowStockCount = stats?.lowStockCount ?? 0;
+  const avgPrice = stats?.avgPrice ?? 0;
+
   return (
     <StatsGrid columns={4} isLoading={isLoading}>
       <StatCard
         title={t("metric_total_title")}
-        value={stats.total}
+        value={total}
         icon={Package}
         theme="chart-4"
         description={t("metric_total_desc")}
@@ -36,11 +42,11 @@ export function ProductMetricsCards({ stats, isLoading = false }: ProductMetrics
           direction: "up",
           label: t("metric_total_trend"),
         }}
-        sparklineData={stats.sparklines?.totalSku}
+        sparklineData={stats?.sparklines?.totalSku}
       />
       <StatCard
         title={t("metric_active_title")}
-        value={stats.activeCount}
+        value={activeCount}
         icon={CheckCircle2}
         theme="chart-2"
         description={t("metric_active_desc")}
@@ -49,25 +55,25 @@ export function ProductMetricsCards({ stats, isLoading = false }: ProductMetrics
           direction: "neutral",
           label: t("metric_active_trend"),
         }}
-        sparklineData={stats.sparklines?.activeSku}
+        sparklineData={stats?.sparklines?.activeSku}
       />
       <StatCard
         title={t("metric_low_stock_title")}
-        value={stats.lowStockCount}
+        value={lowStockCount}
         icon={AlertTriangle}
         theme="chart-3"
         description={t("metric_low_stock_desc")}
         trend={{
-          value: stats.lowStockCount > 0 ? t("metric_low_stock_need_restock") : t("metric_low_stock_normal"),
-          direction: stats.lowStockCount > 0 ? "down" : "neutral",
+          value: lowStockCount > 0 ? t("metric_low_stock_need_restock") : t("metric_low_stock_normal"),
+          direction: lowStockCount > 0 ? "down" : "neutral",
           isPositiveGood: false,
         }}
-        sparklineData={stats.sparklines?.lowStock}
+        sparklineData={stats?.sparklines?.lowStock}
         sparklineType="bar"
       />
       <StatCard
         title={t("metric_avg_price_title")}
-        value={stats.avgPrice.toFixed(2)}
+        value={avgPrice.toFixed(2)}
         prefix="$"
         icon={DollarSign}
         theme="chart-1"
@@ -77,7 +83,7 @@ export function ProductMetricsCards({ stats, isLoading = false }: ProductMetrics
           direction: "up",
           label: t("metric_avg_price_trend"),
         }}
-        sparklineData={stats.sparklines?.avgPrice}
+        sparklineData={stats?.sparklines?.avgPrice}
       />
     </StatsGrid>
   );

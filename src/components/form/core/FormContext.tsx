@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, type ReactNode, type SubmitEvent } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 export interface FormContextValue {
   form?: any;

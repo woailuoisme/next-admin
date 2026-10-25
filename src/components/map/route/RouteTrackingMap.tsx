@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { memo, useMemo } from "react";
 
 import { Map, MapControls, MapRoute, RouteProgress } from "@/components/ui/map";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { RouteTrackingMapProps } from "./types";
 

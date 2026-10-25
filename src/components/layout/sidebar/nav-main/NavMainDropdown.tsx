@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { NavSubItem } from "../types";
 import type { NavMainDropdownProps } from "./types";
@@ -19,6 +19,39 @@ import { NavBadge } from "./NavBadge";
 import { isPathActive } from "./utils";
 
 const EMPTY_SUB_ITEMS: NavSubItem[] = [];
+
+interface NavMainDropdownItemRowProps {
+  subItem: NavSubItem;
+  isActive: boolean;
+}
+
+const NavMainDropdownItemRow = memo(function NavMainDropdownItemRow({
+  subItem,
+  isActive,
+}: NavMainDropdownItemRowProps) {
+  return (
+    <DropdownMenuItem
+      asChild
+      className={cn(
+        "cursor-pointer rounded-md px-2.5 py-1.5 text-xs transition-colors focus:bg-accent focus:text-accent-foreground",
+        isActive && "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
+      )}
+    >
+      <Link href={subItem.to} className="flex w-full items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "size-1.5 rounded-full transition-all",
+              isActive ? "scale-125 bg-primary ring-2 ring-primary/20" : "bg-muted-foreground/40",
+            )}
+          />
+          <span className="font-normal">{subItem.title}</span>
+        </div>
+        <NavBadge badge={subItem.badge} />
+      </Link>
+    </DropdownMenuItem>
+  );
+});
 
 export const NavMainDropdown = memo(function NavMainDropdown({
   item,
@@ -55,33 +88,13 @@ export const NavMainDropdown = memo(function NavMainDropdown({
             <NavBadge badge={item.badge} />
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-border/50 my-1" />
-          {subItems.map((subItem) => {
-            const isSubActive = isPathActive(subItem.to, currentPath);
-
-            return (
-              <DropdownMenuItem
-                key={subItem.to}
-                asChild
-                className={cn(
-                  "cursor-pointer rounded-md px-2.5 py-1.5 text-xs transition-colors focus:bg-accent focus:text-accent-foreground",
-                  isSubActive && "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
-                )}
-              >
-                <Link href={subItem.to} className="flex w-full items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "size-1.5 rounded-full transition-all",
-                        isSubActive ? "scale-125 bg-primary ring-2 ring-primary/20" : "bg-muted-foreground/40",
-                      )}
-                    />
-                    <span className="font-normal">{subItem.title}</span>
-                  </div>
-                  <NavBadge badge={subItem.badge} />
-                </Link>
-              </DropdownMenuItem>
-            );
-          })}
+          {subItems.map((subItem) => (
+            <NavMainDropdownItemRow
+              key={subItem.to}
+              subItem={subItem}
+              isActive={isPathActive(subItem.to, currentPath)}
+            />
+          ))}
         </DropdownMenuContent>
       </DropdownMenu>
     </SidebarMenuItem>

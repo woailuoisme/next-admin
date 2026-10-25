@@ -1,7 +1,7 @@
 import { memo } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-import { FieldConnector, FieldWrapper, useFieldId, type BaseInputProps } from "../core";
+import { FormFieldEngine, type BaseInputProps } from "../core";
 import { Cascader, type CascaderFieldNames, type CascaderOption } from "./Cascader";
 
 export type { CascaderFieldNames, CascaderOption };
@@ -66,63 +66,54 @@ function CascaderInputInner({
   popupClassName,
   size = "default",
 }: CascaderInputProps) {
-  const id = useFieldId(name, explicitId);
-
   return (
-    <FieldConnector<(string | number)[]>
+    <FormFieldEngine<(string | number)[]>
       name={name}
       form={form}
+      label={label}
+      id={explicitId}
+      required={required}
+      hint={hint}
+      helperText={helperText}
+      tooltip={tooltip}
+      error={error}
+      colSpan={colSpan}
+      className={className}
+      hidden={hidden}
+      disabled={disabled}
       value={controlledValue}
       defaultValue={defaultValue}
       onBlur={controlledOnBlur}
-      error={error}
     >
-      {({ value, onChange, error: computedError }) => {
-        const hasError = Boolean(computedError);
-
-        return (
-          <FieldWrapper
-            label={label}
-            id={id}
-            required={required}
-            hint={hint}
-            helperText={helperText}
-            tooltip={tooltip}
-            error={computedError}
-            colSpan={colSpan}
-            className={className}
-            hidden={hidden}
-          >
-            <Cascader
-              id={id}
-              options={options}
-              value={Array.isArray(value) ? value : DEFAULT_VALUE}
-              onChange={(newVals, selectedOptions) => {
-                onChange(newVals);
-                controlledOnChange?.(newVals, selectedOptions);
-              }}
-              expandTrigger={expandTrigger}
-              changeOnSelect={changeOnSelect}
-              loadData={loadData}
-              showSearch={showSearch}
-              fieldNames={fieldNames}
-              placeholder={placeholder}
-              searchPlaceholder={searchPlaceholder}
-              emptyText={emptyText}
-              allowClear={allowClear}
-              clearable={clearable}
-              separator={separator}
-              displayRender={displayRender}
-              disabled={disabled}
-              size={size}
-              aria-invalid={hasError}
-              className={cn(triggerClassName)}
-              popupClassName={popupClassName}
-            />
-          </FieldWrapper>
-        );
-      }}
-    </FieldConnector>
+      {({ id, value, onChange, disabled: isDisabled, hasError }) => (
+        <Cascader
+          id={id}
+          options={options}
+          value={Array.isArray(value) ? value : DEFAULT_VALUE}
+          onChange={(newVals, selectedOptions) => {
+            onChange(newVals);
+            controlledOnChange?.(newVals, selectedOptions);
+          }}
+          expandTrigger={expandTrigger}
+          changeOnSelect={changeOnSelect}
+          loadData={loadData}
+          showSearch={showSearch}
+          fieldNames={fieldNames}
+          placeholder={placeholder}
+          searchPlaceholder={searchPlaceholder}
+          emptyText={emptyText}
+          allowClear={allowClear}
+          clearable={clearable}
+          separator={separator}
+          displayRender={displayRender}
+          disabled={isDisabled}
+          size={size}
+          aria-invalid={hasError}
+          className={cn(triggerClassName)}
+          popupClassName={popupClassName}
+        />
+      )}
+    </FormFieldEngine>
   );
 }
 

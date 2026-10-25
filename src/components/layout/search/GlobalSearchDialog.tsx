@@ -17,11 +17,12 @@ import {
 } from "@/components/ui/command";
 import { Kbd } from "@/components/ui/kbd";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useAuthSession } from "@/stores/auth";
 import { usePreferencesStore } from "@/stores/preferences";
 
 import type { GlobalSearchDialogProps } from "./types";
 
-import { getFlatNavItems, useSidebarMenuGroups } from "../sidebar/menu.config";
+import { getAuthorizedMenu, getFlatNavItems, useSidebarMenuGroups } from "../sidebar/menu.config";
 
 export const GlobalSearchDialog = memo(function GlobalSearchDialog({
   open,
@@ -34,7 +35,11 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
   const { toggleSidebar } = useSidebar();
   const setMode = usePreferencesStore((s) => s.setMode);
 
-  const menuGroups = useSidebarMenuGroups();
+  const session = useAuthSession();
+  const userRole = session?.admin?.role;
+
+  const rawMenuGroups = useSidebarMenuGroups();
+  const menuGroups = useMemo(() => getAuthorizedMenu(rawMenuGroups, userRole), [rawMenuGroups, userRole]);
   const navItems = useMemo(() => getFlatNavItems(menuGroups), [menuGroups]);
 
   const handleNavigate = useMemoizedFn((to: string) => {
@@ -168,7 +173,7 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
             </span>
           </div>
           <div className="text-muted-foreground/60 flex items-center gap-1 text-[10px]">
-            <span>TanStack Dashboard</span>
+            <span>{t("sidebar_title")}</span>
           </div>
         </div>
       </Command>

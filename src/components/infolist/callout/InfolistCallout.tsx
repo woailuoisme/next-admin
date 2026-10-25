@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { COL_SPAN_CLASSES } from "@/components/shared/grid";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { CalloutAction, CalloutColor, CalloutProps } from "./types";
 
@@ -36,19 +36,21 @@ const calloutColorStyles: Record<
     container: "border-sky-500/25 bg-sky-500/5 text-foreground dark:bg-sky-500/10",
     icon: "text-sky-600 dark:text-sky-400",
     title: "text-sky-700 dark:text-sky-300",
-    actionDefault: "bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500",
+    actionDefault: "border border-sky-500/30 bg-sky-500/15 text-sky-800 hover:bg-sky-500/25 dark:text-sky-200",
   },
   success: {
     container: "border-emerald-500/25 bg-emerald-500/5 text-foreground dark:bg-emerald-500/10",
     icon: "text-emerald-600 dark:text-emerald-400",
     title: "text-emerald-700 dark:text-emerald-300",
-    actionDefault: "bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500",
+    actionDefault:
+      "border border-emerald-500/30 bg-emerald-500/15 text-emerald-800 hover:bg-emerald-500/25 dark:text-emerald-200",
   },
   warning: {
     container: "border-amber-500/25 bg-amber-500/5 text-foreground dark:bg-amber-500/10",
     icon: "text-amber-600 dark:text-amber-400",
     title: "text-amber-700 dark:text-amber-300",
-    actionDefault: "bg-amber-600 text-white hover:bg-amber-700 dark:bg-amber-500",
+    actionDefault:
+      "border border-amber-500/30 bg-amber-500/15 text-amber-800 hover:bg-amber-500/25 dark:text-amber-200",
   },
   destructive: {
     container: "border-destructive/25 bg-destructive/5 text-foreground dark:bg-destructive/10",

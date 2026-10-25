@@ -8,9 +8,14 @@ import type { DataTableColDef } from "../core/types";
 export interface UseDataTableResizeOptions<TData = any> {
   columns: DataTableColDef<TData>[];
   storageKey?: string;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export function useDataTableResize<TData = any>({ columns, storageKey }: UseDataTableResizeOptions<TData>) {
+export function useDataTableResize<TData = any>({
+  columns,
+  storageKey,
+  containerRef,
+}: UseDataTableResizeOptions<TData>) {
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
     if (!storageKey || typeof window === "undefined") {
       return EMPTY_RECORD;
@@ -54,23 +59,26 @@ export function useDataTableResize<TData = any>({ columns, storageKey }: UseData
     const maxWidth = targetCol?.maxWidth ?? 9999;
 
     let rafId: number | null = null;
-    let latestWidths: Record<string, number> = columnWidths;
+    let latestWidths: Record<string, number> = { ...columnWidths };
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!resizingColRef.current) return;
       const delta = moveEvent.clientX - resizingColRef.current.startX;
       const newWidth = clamp(resizingColRef.current.startWidth + delta, minWidth, maxWidth);
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        setColumnWidths((prev) => {
-          const updated = {
-            ...prev,
-            [resizingColRef.current!.field]: newWidth,
-          };
-          latestWidths = updated;
-          return updated;
+      const field = resizingColRef.current.field;
+      latestWidths = {
+        ...latestWidths,
+        [field]: newWidth,
+      };
+
+      if (containerRef?.current) {
+        containerRef.current.style.setProperty(`--col-w-${field}`, `${newWidth}px`);
+      } else {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          setColumnWidths(latestWidths);
         });
-      });
+      }
     };
 
     const handleMouseUp = () => {
@@ -78,6 +86,7 @@ export function useDataTableResize<TData = any>({ columns, storageKey }: UseData
       resizingColRef.current = null;
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      setColumnWidths(latestWidths);
       persistWidths(latestWidths);
     };
 

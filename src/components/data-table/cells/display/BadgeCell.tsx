@@ -3,16 +3,16 @@ import { memo, type ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { BadgeCellOption, BadgeCellProps, BadgeVariantType } from "./types";
 
 import { JUSTIFY_ALIGN_CLASSES } from "../base";
 
 const semanticVariants: Record<string, string> = {
-  success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 dark:bg-emerald-500/20",
-  warning: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 dark:bg-amber-500/20",
-  info: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400 dark:bg-sky-500/20",
+  success: "border-chart-2/30 bg-chart-2/10 text-chart-2 dark:bg-chart-2/20",
+  warning: "border-chart-4/30 bg-chart-4/10 text-chart-4 dark:bg-chart-4/20",
+  info: "border-chart-1/30 bg-chart-1/10 text-chart-1 dark:bg-chart-1/20",
 };
 
 function renderSingleBadge(

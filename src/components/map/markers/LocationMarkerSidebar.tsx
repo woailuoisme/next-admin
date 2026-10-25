@@ -1,9 +1,10 @@
+import { useTranslations } from "next-intl";
 import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { LocationMarkerItem } from "./types";
 
@@ -18,10 +19,12 @@ export const LocationMarkerSidebar = memo(function LocationMarkerSidebar({
   selectedMarker,
   onSelectMarker,
 }: LocationMarkerSidebarProps) {
+  const t = useTranslations("map");
+
   return (
     <div className="border-border/60 bg-card hidden w-72 flex-col border-l md:flex">
       <div className="border-border/40 text-foreground flex items-center justify-between border-b p-3 text-xs font-semibold">
-        <span>网点列表 ({filteredData.length})</span>
+        <span>{t("markers_list_title", { count: filteredData.length })}</span>
         {selectedMarker ? (
           <Button
             variant="ghost"
@@ -29,7 +32,7 @@ export const LocationMarkerSidebar = memo(function LocationMarkerSidebar({
             className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-[11px]"
             onClick={() => onSelectMarker(null)}
           >
-            取消选中
+            {t("markers_cancel_selection")}
           </Button>
         ) : null}
       </div>

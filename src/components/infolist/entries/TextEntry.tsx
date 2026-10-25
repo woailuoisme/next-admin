@@ -2,7 +2,8 @@ import { ExternalLink } from "lucide-react";
 import * as React from "react";
 
 import { CopyButton } from "@/components/shared/CopyButton";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "cn";
 
 import type { EntrySemanticColor, TextEntryProps } from "./types";
 
@@ -18,6 +19,52 @@ export const badgeColorClasses: Record<EntrySemanticColor, string> = {
   info: "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
   neutral: "border-border bg-muted/60 text-muted-foreground",
 };
+
+const NUMBER_FORMATTER_CACHE = new Map<string, Intl.NumberFormat>();
+const DATE_FORMATTER_CACHE = new Map<string, Intl.DateTimeFormat>();
+
+function getNumberFormatter(currency?: string, decimals?: number, isCurrency = false): Intl.NumberFormat {
+  const key = `${isCurrency ? "c" : "n"}:${currency ?? ""}:${decimals ?? ""}`;
+  let formatter = NUMBER_FORMATTER_CACHE.get(key);
+  if (!formatter) {
+    formatter = isCurrency
+      ? new Intl.NumberFormat(undefined, {
+          style: "currency",
+          currency: currency || "USD",
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        })
+      : new Intl.NumberFormat(undefined, {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        });
+    if (NUMBER_FORMATTER_CACHE.size < 100) {
+      NUMBER_FORMATTER_CACHE.set(key, formatter);
+    }
+  }
+  return formatter;
+}
+
+const DEFAULT_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+};
+
+function getDateFormatter(options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const resolved = options ?? DEFAULT_DATE_OPTIONS;
+  const key = JSON.stringify(resolved);
+  let formatter = DATE_FORMATTER_CACHE.get(key);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(undefined, resolved);
+    if (DATE_FORMATTER_CACHE.size < 100) {
+      DATE_FORMATTER_CACHE.set(key, formatter);
+    }
+  }
+  return formatter;
+}
 
 interface FormatContentOptions {
   format: TextEntryProps["format"];
@@ -43,52 +90,30 @@ function renderFormattedContent({
   switch (format) {
     case "badge":
       return (
-        <span
+        <Badge
+          variant="outline"
           className={cn(
-            "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium tracking-tight transition-colors",
+            "text-xs font-medium tracking-tight transition-colors",
             badgeColorClasses[color] ?? badgeColorClasses.neutral,
           )}
         >
           {rawValue}
-        </span>
+        </Badge>
       );
 
     case "currency": {
       const num = Number(rawValue);
-      return Number.isNaN(num)
-        ? String(rawValue)
-        : new Intl.NumberFormat(undefined, {
-            style: "currency",
-            currency,
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals,
-          }).format(num);
+      return Number.isNaN(num) ? String(rawValue) : getNumberFormatter(currency, decimals, true).format(num);
     }
 
     case "number": {
       const num = Number(rawValue);
-      return Number.isNaN(num)
-        ? String(rawValue)
-        : new Intl.NumberFormat(undefined, {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals,
-          }).format(num);
+      return Number.isNaN(num) ? String(rawValue) : getNumberFormatter(undefined, decimals, false).format(num);
     }
 
     case "date": {
       const date = new Date(rawValue);
-      return Number.isNaN(date.getTime())
-        ? String(rawValue)
-        : new Intl.DateTimeFormat(
-            undefined,
-            dateOptions ?? {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            },
-          ).format(date);
+      return Number.isNaN(date.getTime()) ? String(rawValue) : getDateFormatter(dateOptions).format(date);
     }
 
     case "url": {

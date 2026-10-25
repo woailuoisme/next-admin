@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { memo, useMemo } from "react";
 import { CartesianGrid, ReferenceLine, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 
@@ -42,6 +43,7 @@ const ScatterTooltipContent = memo(function ScatterTooltipContent({
   yFormatter,
   zFormatter,
 }: ScatterTooltipContentProps) {
+  const t = useTranslations("chart");
   if (!active || !payload?.length) return null;
   const point = payload[0]?.payload;
   if (!point) return null;
@@ -50,7 +52,7 @@ const ScatterTooltipContent = memo(function ScatterTooltipContent({
     <div className="border-border/60 bg-popover/95 text-popover-foreground rounded-lg border p-2.5 text-xs shadow-md backdrop-blur-xs select-none">
       <div className="flex items-center gap-2 font-semibold">
         <span className="size-2.5 rounded-full" style={{ backgroundColor: point.fill || "var(--primary)" }} />
-        <span>{point.name || point.category || "数据点"}</span>
+        <span>{point.name || point.category || t("scatter_data_point")}</span>
       </div>
       <div className="mt-2 space-y-1">
         <div className="flex items-center justify-between gap-4">
@@ -73,6 +75,7 @@ const ScatterTooltipContent = memo(function ScatterTooltipContent({
 });
 
 export const ScatterMetricChart = memo(function ScatterMetricChart(props: ScatterMetricChartProps) {
+  const t = useTranslations("chart");
   const {
     xAxisName: rawXName,
     yAxisName: rawYName,
@@ -92,7 +95,7 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
 
   const xAxisName = rawXName || xAxisLabel || "X";
   const yAxisName = rawYName || yAxisLabel || "Y";
-  const zAxisName = rawZName || zAxisLabel || "权重";
+  const zAxisName = rawZName || zAxisLabel || t("scatter_z_axis");
 
   const referenceLines = useMemo(
     () => [

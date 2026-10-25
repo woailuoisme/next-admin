@@ -1,4 +1,7 @@
-import { CHART_PALETTE, ChartCard, RadarMetricChart, RadialGaugeChart } from "@/components/chart";
+import { ChartCard } from "@/components/chart/card/ChartCard";
+import { RadarMetricChart } from "@/components/chart/radar/RadarMetricChart";
+import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
+import { CHART_PALETTE } from "@/components/chart/shared/theme";
 import { TabsContent } from "@/components/ui/tabs";
 import { ARCHITECTURE_RADAR_DATA } from "../constants";
 import type { ChartStateProps } from "../types";

@@ -1,4 +1,6 @@
-import { ChartCard, DonutDistributionChart, HorizontalBarChart } from "@/components/chart";
+import { ChartCard } from "@/components/chart/card/ChartCard";
+import { DonutDistributionChart } from "@/components/chart/donut/DonutDistributionChart";
+import { HorizontalBarChart } from "@/components/chart/horizontal-bar/HorizontalBarChart";
 import { TabsContent } from "@/components/ui/tabs";
 import { CATEGORY_DISTRIBUTION, CURRENCY_FORMATTER, TRAFFIC_CHANNELS } from "../constants";
 import type { ChartStateProps } from "../types";

@@ -1,7 +1,7 @@
 import { useMemoizedFn } from "ahooks";
 import { memo } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { StatCardActionsProps } from "./types";
 

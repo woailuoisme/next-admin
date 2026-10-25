@@ -1,18 +1,22 @@
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { useMemoizedFn } from "ahooks";
 import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
 import { memo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { MapCardProps } from "./types";
 
 import { MapEmptyState } from "../shared/MapEmptyState";
 import { MapSkeleton } from "../shared/MapSkeleton";
 import { MapBasemapDropdown } from "./MapBasemapDropdown";
-import { MapFullscreenDialog } from "./MapFullscreenDialog";
+
+const MapFullscreenDialog = dynamic(() => import("./MapFullscreenDialog").then((mod) => mod.MapFullscreenDialog), {
+  ssr: false,
+});
 
 export const MapCard = memo(function MapCard({
   title,
@@ -117,15 +121,17 @@ export const MapCard = memo(function MapCard({
         </CardContent>
       </Card>
 
-      <MapFullscreenDialog
-        open={isFullscreen}
-        onOpenChange={setIsFullscreen}
-        title={title}
-        description={description}
-        fullscreenHeight={fullscreenHeight}
-      >
-        {children}
-      </MapFullscreenDialog>
+      {canFullscreen && isFullscreen ? (
+        <MapFullscreenDialog
+          open={isFullscreen}
+          onOpenChange={setIsFullscreen}
+          title={title}
+          description={description}
+          fullscreenHeight={fullscreenHeight}
+        >
+          {children}
+        </MapFullscreenDialog>
+      ) : null}
     </>
   );
 });

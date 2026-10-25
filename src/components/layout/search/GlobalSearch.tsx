@@ -5,9 +5,9 @@ import type { GlobalSearchProps } from "./types";
 import { GlobalSearchTrigger } from "./GlobalSearchTrigger";
 import { useGlobalSearch } from "./useGlobalSearch";
 
-// Prefetch function to load the dialog bundle in idle time or hover
+// Prefetch function to load the dialog bundle in idle time, hover, or keypress
 let prefetchPromise: Promise<unknown> | null = null;
-const prefetchDialog = () => {
+export const prefetchGlobalSearchDialog = () => {
   if (!prefetchPromise) {
     prefetchPromise = import("./GlobalSearchDialog");
   }
@@ -21,15 +21,20 @@ const GlobalSearchDialog = lazy(() =>
 );
 
 export const GlobalSearch = memo(function GlobalSearch({ className }: GlobalSearchProps) {
-  const { open, handleOpen, setOpen } = useGlobalSearch();
+  const { open, handleOpen, setOpen } = useGlobalSearch({ onPrefetch: prefetchGlobalSearchDialog });
 
-  const handleMouseEnter = useCallback(() => {
-    prefetchDialog();
+  const handlePrefetch = useCallback(() => {
+    prefetchGlobalSearchDialog();
   }, []);
 
   return (
     <>
-      <GlobalSearchTrigger onClick={handleOpen} onMouseEnter={handleMouseEnter} className={className} />
+      <GlobalSearchTrigger
+        onClick={handleOpen}
+        onMouseEnter={handlePrefetch}
+        onFocus={handlePrefetch}
+        className={className}
+      />
       {open ? (
         <Suspense fallback={null}>
           <GlobalSearchDialog open={open} onOpenChange={setOpen} />

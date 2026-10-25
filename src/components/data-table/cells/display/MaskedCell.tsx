@@ -4,7 +4,7 @@ import { memo, useEffect, useState } from "react";
 
 import { CopyButton } from "@/components/shared/CopyButton";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { MaskedCellProps, MaskType } from "./types";
 

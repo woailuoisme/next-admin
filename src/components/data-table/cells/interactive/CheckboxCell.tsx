@@ -4,7 +4,7 @@ import { memo, startTransition, useOptimistic, useState } from "react";
 import { toast } from "sonner";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 import type { CheckboxCellProps } from "./types";
 

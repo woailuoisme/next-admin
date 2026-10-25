@@ -1,4 +1,4 @@
-import { LazyRouteTrackingMap } from "@/components/map";
+import { LazyRouteTrackingMap } from "@/components/map/lazy";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_ROUTE_COORDS, MOCK_ROUTE_STOPS } from "../constants";
 import type { DemoStateProps } from "../types";
