@@ -122,10 +122,14 @@ describe("DataTable i18n", () => {
 
   it("localizes the summary row", () => {
     renderWithProviders(
-      <DataTableSummaryRow
-        rows={[{ name: "A", price: 100 }]}
-        columns={[{ field: "price", headerName: "Price", aggregation: "sum" }]}
-      />,
+      <table>
+        <tbody>
+          <DataTableSummaryRow
+            rows={[{ name: "A", price: 100 }]}
+            columns={[{ field: "price", headerName: "Price", aggregation: "sum" }]}
+          />
+        </tbody>
+      </table>,
     );
 
     expect(screen.getByText("求和:")).toBeInTheDocument();

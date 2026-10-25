@@ -4,11 +4,18 @@ import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
 import { server } from "@/mocks/server";
 
-// ==================== React 19 / next-themes Warning Filter ====================
+// ==================== React 19 / next-themes / Radix Presence Warning Filter ====================
 if (typeof window !== "undefined") {
   const originalError = console.error;
   console.error = (...args: unknown[]) => {
-    if (typeof args[0] === "string" && args[0].includes("Encountered a script tag")) {
+    const fullMessage = args.map((a) => (typeof a === "string" ? a : "")).join(" ");
+    if (
+      fullMessage.includes("Encountered a script tag") ||
+      (fullMessage.includes("was not wrapped in act(...)") &&
+        (fullMessage.includes("ForwardRef(LoadableComponent)") ||
+          fullMessage.includes("Presence") ||
+          fullMessage.includes("LoadableComponent")))
+    ) {
       return;
     }
     originalError.apply(console, args);

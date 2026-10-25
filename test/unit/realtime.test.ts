@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { POST as publishMessage } from "@/app/api/realtime/publish/route";
 import { GET as getToken } from "@/app/api/realtime/token/route";
@@ -16,13 +16,25 @@ function request(url: string, init: RequestInit = {}): Request {
 }
 
 describe("Realtime API Endpoints", () => {
+  const origSecret = process.env.CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY;
+  const origApiKey = process.env.CENTRIFUGO_HTTP_API_KEY;
+
   beforeEach(() => {
-    vi.stubEnv("CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY", "unit-test-secret");
-    vi.stubEnv("CENTRIFUGO_HTTP_API_KEY", "unit-test-api-key");
+    process.env.CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY = "unit-test-secret";
+    process.env.CENTRIFUGO_HTTP_API_KEY = "unit-test-api-key";
   });
 
   afterEach(() => {
-    vi.unstubAllEnvs();
+    if (origSecret !== undefined) {
+      process.env.CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY = origSecret;
+    } else {
+      delete process.env.CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY;
+    }
+    if (origApiKey !== undefined) {
+      process.env.CENTRIFUGO_HTTP_API_KEY = origApiKey;
+    } else {
+      delete process.env.CENTRIFUGO_HTTP_API_KEY;
+    }
   });
 
   describe("GET /api/realtime/token", () => {
@@ -59,7 +71,7 @@ describe("Realtime API Endpoints", () => {
     });
 
     it("fails loudly when the signing secret is not configured", async () => {
-      vi.stubEnv("CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY", "");
+      process.env.CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY = "";
       const response = await getToken(request(TOKEN_URL));
       expect(response.status).toBe(500);
     });

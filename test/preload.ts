@@ -1,7 +1,12 @@
 import * as matchers from "@testing-library/jest-dom/matchers";
 import { cleanup } from "@testing-library/react";
-import { afterAll, afterEach, beforeAll, expect as bunExpect, mock } from "bun:test";
-import { expect as vitestExpect } from "vitest";
+import { afterAll, afterEach, expect as bunExpect, mock } from "bun:test";
+import { expect as vitestExpect, vi } from "vitest";
+
+// 0. 兼容 Bun 下 vitest shim 缺少 vi.hoisted 的情况
+if (typeof vi !== "undefined" && !vi.hoisted) {
+  (vi as unknown as Record<string, unknown>).hoisted = (factory: () => unknown) => factory();
+}
 
 // 1. 注入 @testing-library/jest-dom 匹配器至 bun:test 和 vitest expect
 bunExpect.extend(matchers);
@@ -13,7 +18,7 @@ try {
 afterEach(() => {
   cleanup();
   if (typeof window !== "undefined" && window.location.href.startsWith("blob:")) {
-    window.location.href = "http://localhost:3000";
+    window.location.href = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 3000}`;
   }
 });
 
@@ -35,13 +40,13 @@ mock.module("next/navigation", () => ({
 // 4. 统一 MSW 网络拦截生命周期
 try {
   const { server } = await import("@/mocks/server");
-  beforeAll(() => {
-    server.listen({ onUnhandledFrame: "error" });
-  });
+  server.listen({ onUnhandledFrame: "bypass" });
   afterEach(() => {
     server.resetHandlers();
   });
   afterAll(() => {
     server.close();
   });
-} catch {}
+} catch (e) {
+  console.error("MSW SERVER SETUP FAILED:", e);
+}

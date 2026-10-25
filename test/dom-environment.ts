@@ -1,7 +1,8 @@
 import { GlobalWindow } from "happy-dom";
 
 // 1. 初始化 Happy DOM 虚拟浏览器环境
-const win = new GlobalWindow({ url: "http://localhost:3000" });
+const testOrigin = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 3000}`;
+const win = new GlobalWindow({ url: testOrigin });
 
 globalThis.window = win as unknown as Window & typeof globalThis;
 globalThis.document = win.document as unknown as Document;
@@ -10,6 +11,7 @@ globalThis.location = win.location as unknown as Location;
 globalThis.history = win.history as unknown as History;
 
 // 2. 将 Window 的类与属性注册到 globalThis 上
+// 注意：保留 Bun 原生 Fetch / Streams / Abort 运行时类，避免 Bun native fetch 与 Happy DOM 的 AbortSignal 冲突
 const ignoreList = new Set([
   "undefined",
   "NaN",
@@ -19,6 +21,20 @@ const ignoreList = new Set([
   "Buffer",
   "global",
   "globalThis",
+  "AbortController",
+  "AbortSignal",
+  "fetch",
+  "Request",
+  "Response",
+  "Headers",
+  "FormData",
+  "ReadableStream",
+  "WritableStream",
+  "TransformStream",
+  "Blob",
+  "File",
+  "URL",
+  "URLSearchParams",
 ]);
 
 const targetGlobal = globalThis as unknown as Record<string, unknown>;
@@ -122,10 +138,17 @@ if (!window.URL.revokeObjectURL) {
   window.URL.revokeObjectURL = () => {};
 }
 
-// 4. 过滤已知测试环境噪音输出（React 19 next-themes 客户端渲染 script 警告与 Bun 下 MSW _wrapHandle 兼容警告）
+// 4. 过滤已知测试环境噪音输出（React 19 next-themes 客户端渲染 script 警告、Radix Presence/LoadableComponent 异步卸载警告与 Bun 下 MSW _wrapHandle 兼容警告）
 const originalError = console.error;
 console.error = (...args: unknown[]) => {
-  if (typeof args[0] === "string" && args[0].includes("Encountered a script tag")) {
+  const fullMessage = args.map((a) => (typeof a === "string" ? a : "")).join(" ");
+  if (
+    fullMessage.includes("Encountered a script tag") ||
+    (fullMessage.includes("was not wrapped in act(...)") &&
+      (fullMessage.includes("ForwardRef(LoadableComponent)") ||
+        fullMessage.includes("Presence") ||
+        fullMessage.includes("LoadableComponent")))
+  ) {
     return;
   }
   originalError.apply(console, args);

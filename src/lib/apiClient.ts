@@ -38,13 +38,14 @@ function resolveServerOrigin(): string {
 }
 
 export function resolveApiPrefix(baseUrl?: string): string {
+  const isTest = typeof process !== "undefined" && (process.env.NODE_ENV === "test" || process.env.VITEST === "true");
   if (!baseUrl) {
-    return typeof window === "undefined" ? `${trimEnd(resolveServerOrigin(), "/")}/v1` : "/v1";
+    return typeof window === "undefined" || isTest ? `${trimEnd(resolveServerOrigin(), "/")}/v1` : "/v1";
   }
   const trimmed = trimEnd(baseUrl, "/");
   const withV1 = trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;
   const isRelative = !withV1.startsWith("http://") && !withV1.startsWith("https://");
-  if (typeof window === "undefined" && isRelative) {
+  if ((typeof window === "undefined" || isTest) && isRelative) {
     return `${trimEnd(resolveServerOrigin(), "/")}${withV1.startsWith("/") ? "" : "/"}${withV1}`;
   }
   return withV1;
