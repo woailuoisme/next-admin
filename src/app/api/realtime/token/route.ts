@@ -8,6 +8,10 @@ function base64url(input: string | Buffer): string {
   return buf.toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 }
 
+/**
+ * 签发 Centrifugo 客户端连接令牌
+ * 载荷必须带上 aud（与 server 端 client.token.audience 一致），否则握手被判定 invalid audience
+ */
 export async function GET(request: Request) {
   const unauthorized = requireSession(request);
   if (unauthorized) return unauthorized;
@@ -31,6 +35,7 @@ export async function GET(request: Request) {
     const payload = base64url(
       JSON.stringify({
         sub: requestedUser,
+        aud: process.env.CENTRIFUGO_CLIENT_TOKEN_AUDIENCE || "centrifugo",
         exp: expSeconds,
         info: {
           name: requestedName,

@@ -1,21 +1,8 @@
-import { http, HttpResponse } from "msw";
-
-// 模拟 JWT 凭证（拆分拼接避免触发静态密钥规则）
-const MOCK_REALTIME_TOKEN = [
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
-  "eyJzdWIiOiJhZG1pbl9vcGVyYXRvciIsImV4cCI6OTk5OTk5OTk5OX0",
-  "mock_signature",
-].join(".");
+import { http, HttpResponse, passthrough } from "msw";
 
 export const realtimeHandlers = [
-  http.get("/api/realtime/token", () => {
-    return HttpResponse.json({
-      success: true,
-      token: MOCK_REALTIME_TOKEN,
-      user: "admin_operator",
-      expiresAt: Date.now() + 7200000,
-    });
-  }),
+  // 连接令牌必须由服务端用 HMAC 密钥真实签发（含 aud 声明），浏览器端无法伪造，故放行到真实路由
+  http.get("/api/realtime/token", () => passthrough()),
   http.head("/api/realtime/token", () => {
     return new HttpResponse(null, { status: 200 });
   }),
