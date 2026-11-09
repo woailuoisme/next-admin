@@ -1,28 +1,76 @@
 # ── CNB CI/CD 流水线配置 ──────────────────────────────────────────────
-# 项目: next-sn-admin (Next.js 16 Enterprise Admin Dashboard)
-# 架构: React 19 + Next.js 16 Standalone (Node 22 / Bun) | 端口: 3200
-# 产物规范: 统一仅维护 :latest 镜像与 :cache 缓存层
+# 项目: next-admin (Next.js 16 Enterprise Admin Dashboard)
+# 架构: React 19 + Next.js 16 Standalone (Node 24 / Bun) | 端口: 3500
+# 触发规范: 仅限 tag_push 与控制台 web_trigger 触发
 # ──────────────────────────────────────────────────────────────────────
 
-main:
-  # 代码推送至 main 分支自动触发构建与推送
-  push: &docker_build
-    - services:
+$:
+  # Tag 推送自动触发 (如推送 v0.1.0)
+  tag_push: &release_pipeline
+    - name: Docker image build & push
+      services:
         - docker
       stages:
-        - name: Docker build and push (latest & cache)
+        - name: Docker build and push
           script: |
             set -euo pipefail
             REGISTRY="${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}"
+            TAG_NAME="${CNB_BRANCH:-latest}"
+            CLEAN_VERSION="${TAG_NAME#v}"
+
+            TAG_ARGS=("-t" "${REGISTRY}:latest")
+            if [ -n "${CNB_BRANCH:-}" ]; then
+              TAG_ARGS+=("-t" "${REGISTRY}:${TAG_NAME}")
+              if [ "${CLEAN_VERSION}" != "${TAG_NAME}" ]; then
+                TAG_ARGS+=("-t" "${REGISTRY}:${CLEAN_VERSION}")
+              fi
+            fi
+
+            echo "Building and pushing Docker image with tags: ${TAG_ARGS[*]}"
             docker buildx build \
               --platform linux/amd64 \
               --file ./Dockerfile \
               --build-arg NEXT_PUBLIC_ENABLE_MOCK="${NEXT_PUBLIC_ENABLE_MOCK:-true}" \
               --cache-from type=registry,ref="${REGISTRY}:cache" \
               --cache-to type=registry,ref="${REGISTRY}:cache,mode=max,image-manifest=true,oci-mediatypes=true" \
-              -t "${REGISTRY}:latest" \
+              "${TAG_ARGS[@]}" \
               --push \
               .
 
+    - name: Helm chart package & push
+      docker:
+        image: alpine/helm:latest
+      stages:
+        - name: Helm package and push
+          script: |
+            set -euo pipefail
+            HELM_REGISTRY="${CNB_HELM_REGISTRY:-helm.cnb.cool}"
+
+            echo "Logging in to CNB Helm registry ${HELM_REGISTRY}..."
+            helm registry login "${HELM_REGISTRY}" -u "${CNB_TOKEN_USER_NAME:-cnb}" -p "${CNB_TOKEN}"
+
+            TAG_NAME="${CNB_BRANCH:-}"
+            CHART_VERSION="${TAG_NAME#v}"
+            if [[ ! "${CHART_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+              # 回退至 Chart.yaml 中定义的标准 SemVer 版本号
+              CHART_VERSION=$(grep -E '^version:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '"')
+            fi
+
+            echo "Packaging Helm chart (version: ${CHART_VERSION})..."
+            helm package ./helm \
+              --version "${CHART_VERSION}" \
+              --app-version "${CHART_VERSION}"
+
+            PKG_FILE=$(find . -maxdepth 1 -name "next-admin-*.tgz" | head -n 1)
+            if [ -z "${PKG_FILE}" ]; then
+              echo "Error: Helm chart package not found!"
+              exit 1
+            fi
+
+            TARGET_OCI="oci://${HELM_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}"
+            echo "Pushing ${PKG_FILE} to ${TARGET_OCI}..."
+            helm push "${PKG_FILE}" "${TARGET_OCI}"
+            echo "Successfully published Helm chart to ${TARGET_OCI}"
+
   # 控制台页面手动触发
-  web_trigger: *docker_build
+  web_trigger: *release_pipeline
