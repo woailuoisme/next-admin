@@ -11,5 +11,6 @@ export default defineConfig({
     "src/components/ui/**",
     "public/**",
     ".agents/**",
+    "helm/**",
   ],
 });

@@ -1,0 +1,182 @@
+# Default values for next-admin.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Number of pod replicas to deploy (when autoscaling is disabled)
+replicaCount: 1
+
+image:
+  # -- Container image repository
+  repository: ghcr.io/woailuoisme/next-admin
+  # -- Container image pull policy
+  pullPolicy: IfNotPresent
+  # -- Overrides the image tag whose default is the chart appVersion (ignored when digest is set)
+  tag: ""
+  # -- Image digest in format algorithm:hash (takes precedence over tag when set)
+  digest: ""
+
+# -- Secrets for pulling images from private registries
+imagePullSecrets: []
+
+# -- Override the chart name
+nameOverride: ""
+
+# -- Override the fully qualified app name
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Automatically mount a ServiceAccount's API credentials
+  automount: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- Annotations for pods
+podAnnotations: {}
+
+# -- Labels for pods
+podLabels: {}
+
+# -- Pod-level security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# -- Container-level security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+service:
+  # -- Kubernetes Service type
+  type: ClusterIP
+  # -- Kubernetes Service exposed port
+  port: 80
+  # -- Container target port (Next.js server runs on 3500)
+  targetPort: 3500
+  # -- Port name used in service and container definitions
+  portName: http
+
+# -- Liveness probe configuration
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# -- Readiness probe configuration
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# -- Startup probe configuration (optional for slower starts)
+startupProbe: {}
+  # httpGet:
+  #   path: /api/health
+  #   port: http
+  # initialDelaySeconds: 5
+  # periodSeconds: 5
+  # failureThreshold: 12
+
+# -- Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: next-admin.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+    # - secretName: next-admin-tls
+    #   hosts:
+    #     - next-admin.local
+
+# -- Container resource requests and limits
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# -- Horizontal Pod Autoscaler configuration
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# -- ConfigMap template toggle used by checksum annotations
+configMap:
+  enabled: false
+  data:
+    NEXT_PUBLIC_APP_TITLE: "Next Admin Dashboard"
+    NEXT_PUBLIC_ENABLE_MOCK: "true"
+    # NEXT_PUBLIC_API_URL: "https://api.example.com"
+
+# -- Secret template toggle used by checksum annotations
+secret:
+  enabled: false
+  type: Opaque
+  stringData: {}
+    # CENTRIFUGO_HTTP_API_KEY: "replace-with-centrifugo-api-key"
+    # CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY: "replace-with-random-hmac-secret"
+
+# -- Extra environment variables injected directly into container
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: PORT
+    value: "3500"
+  - name: NEXT_TELEMETRY_DISABLED
+    value: "1"
+  - name: TZ
+    value: "Asia/Shanghai"
+
+# -- Environment variables from existing ConfigMaps or Secrets
+envFrom: []
+  # - configMapRef:
+  #     name: next-admin-config
+  # - secretRef:
+  #     name: next-admin-secret
+
+# -- Volume mounts for container
+volumeMounts: []
+  # - name: tmp
+  #   mountPath: /tmp
+
+# -- Volumes to declare on pod
+volumes: []
+  # - name: tmp
+  #   emptyDir: {}
+
+# -- Node labels for pod assignment
+nodeSelector: {}
+
+# -- Tolerations for pod assignment
+tolerations: []
+
+# -- Affinity rules for pod assignment
+affinity: {}

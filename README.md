@@ -26,21 +26,21 @@
 
 ## 技术栈
 
-| 领域       | 选型                                                                                       |
-| :--------- | :----------------------------------------------------------------------------------------- |
-| 框架       | Next.js 16（App Router、Standalone 输出、`proxy.ts` 路由鉴权）、React 19                   |
-| UI 基础    | shadcn/ui（`radix-nova`）+ `@base-ui/react`、lucide-react、sonner                          |
-| 样式       | Tailwind CSS v4、tweakcn 主题令牌、next-themes                                             |
-| 数据与状态 | TanStack Query（SSR 预取 + Hydration）、nuqs（URL 状态）、zustand                          |
-| 表单       | TanStack Form、zod                                                                         |
-| 表格与图表 | TanStack Table + Virtual、Recharts                                                         |
-| 地图       | MapLibre GL + 高德 / 天地图                                                                |
-| 实时       | Centrifugo（centrifuge 客户端 + Route Handler 签发 JWT）                                   |
-| 国际化     | next-intl                                                                                  |
-| Mock       | MSW 3 + `@msw/data` + `@faker-js/faker`                                                    |
-| 测试       | Vitest + happy-dom + Testing Library                                                       |
-| 质量工具   | oxlint、oxfmt、TypeScript、gitleaks、lefthook、rumdl                                       |
-| 运行时     | Bun（开发与构建）、Node.js 24（生产运行）、Docker / GitHub Container Registry              |
+| 领域       | 选型                                                                          |
+| :--------- | :---------------------------------------------------------------------------- |
+| 框架       | Next.js 16（App Router、Standalone 输出、`proxy.ts` 路由鉴权）、React 19      |
+| UI 基础    | shadcn/ui（`radix-nova`）+ `@base-ui/react`、lucide-react、sonner             |
+| 样式       | Tailwind CSS v4、tweakcn 主题令牌、next-themes                                |
+| 数据与状态 | TanStack Query（SSR 预取 + Hydration）、nuqs（URL 状态）、zustand             |
+| 表单       | TanStack Form、zod                                                            |
+| 表格与图表 | TanStack Table + Virtual、Recharts                                            |
+| 地图       | MapLibre GL + 高德 / 天地图                                                   |
+| 实时       | Centrifugo（centrifuge 客户端 + Route Handler 签发 JWT）                      |
+| 国际化     | next-intl                                                                     |
+| Mock       | MSW 3 + `@msw/data` + `@faker-js/faker`                                       |
+| 测试       | Vitest + happy-dom + Testing Library                                          |
+| 质量工具   | oxlint、oxfmt、TypeScript、gitleaks、lefthook、rumdl                          |
+| 运行时     | Bun（开发与构建）、Node.js 24（生产运行）、Docker / GitHub Container Registry |
 
 ## 快速开始
 
@@ -66,40 +66,40 @@ bun run dev
 
 ### 环境变量
 
-| 变量                                      | 作用域 | 默认值                | 说明                                     |
-| :---------------------------------------- | :----- | :-------------------- | :--------------------------------------- |
-| `PORT`                                    | 服务端 | `3500`                | 服务监听端口                             |
-| `SERVER_URL`                              | 服务端 | `http://localhost:3500` | SSR 阶段拼接绝对 API 地址                |
-| `NEXT_PUBLIC_APP_TITLE`                   | 客户端 | `Admin Panel`         | 应用标题                                 |
-| `NEXT_PUBLIC_APP_URL`                     | 客户端 | 空                    | 站点绝对地址，用于 metadata              |
-| `NEXT_PUBLIC_ENABLE_MOCK`                 | 客户端 | 开发环境 `true`       | 是否启用 MSW 拦截                        |
-| `NEXT_PUBLIC_API_URL`                     | 客户端 | 空（相对 `/v1`）      | 真实后端基地址                           |
-| `NEXT_PUBLIC_AMAP_KEY`                    | 客户端 | 空                    | 高德地图浏览器端 Key                     |
-| `NEXT_PUBLIC_TIANDITU_TOKEN`              | 客户端 | 空                    | 天地图 Token                             |
-| `NEXT_PUBLIC_CENTRIFUGE_WS_URL`           | 客户端 | 空                    | Centrifugo WebSocket 地址                |
-| `CENTRIFUGO_API_URL`                      | 服务端 | 空                    | Centrifugo HTTP API 地址                 |
-| `CENTRIFUGO_HTTP_API_KEY`                 | 服务端 | 空                    | 服务端发布消息鉴权 Key                   |
-| `CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY` | 服务端 | 空                    | 客户端连接令牌签名密钥，需与服务端一致   |
-| `NEXT_PUBLIC_GLITCHTIP_DSN`               | 客户端 | 空                    | 异常监控 DSN（GlitchTip / Sentry 兼容）  |
+| 变量                                      | 作用域 | 默认值                  | 说明                                    |
+| :---------------------------------------- | :----- | :---------------------- | :-------------------------------------- |
+| `PORT`                                    | 服务端 | `3500`                  | 服务监听端口                            |
+| `SERVER_URL`                              | 服务端 | `http://localhost:3500` | SSR 阶段拼接绝对 API 地址               |
+| `NEXT_PUBLIC_APP_TITLE`                   | 客户端 | `Admin Panel`           | 应用标题                                |
+| `NEXT_PUBLIC_APP_URL`                     | 客户端 | 空                      | 站点绝对地址，用于 metadata             |
+| `NEXT_PUBLIC_ENABLE_MOCK`                 | 客户端 | 开发环境 `true`         | 是否启用 MSW 拦截                       |
+| `NEXT_PUBLIC_API_URL`                     | 客户端 | 空（相对 `/v1`）        | 真实后端基地址                          |
+| `NEXT_PUBLIC_AMAP_KEY`                    | 客户端 | 空                      | 高德地图浏览器端 Key                    |
+| `NEXT_PUBLIC_TIANDITU_TOKEN`              | 客户端 | 空                      | 天地图 Token                            |
+| `NEXT_PUBLIC_CENTRIFUGE_WS_URL`           | 客户端 | 空                      | Centrifugo WebSocket 地址               |
+| `CENTRIFUGO_API_URL`                      | 服务端 | 空                      | Centrifugo HTTP API 地址                |
+| `CENTRIFUGO_HTTP_API_KEY`                 | 服务端 | 空                      | 服务端发布消息鉴权 Key                  |
+| `CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY` | 服务端 | 空                      | 客户端连接令牌签名密钥，需与服务端一致  |
+| `NEXT_PUBLIC_GLITCHTIP_DSN`               | 客户端 | 空                      | 异常监控 DSN（GlitchTip / Sentry 兼容） |
 
 所有变量在 [`src/env.ts`](./src/env.ts) 中经 zod 校验，缺失或格式错误会在启动时显式报错。
 
 ## 常用脚本
 
-| 命令                  | 说明                                        |
-| :-------------------- | :------------------------------------------ |
-| `bun run dev`         | 启动开发服务器                              |
-| `bun run build`       | 生产构建（standalone）                      |
-| `bun run start`       | 运行生产构建产物                            |
-| `bun run check`       | 一键修复 + 校验：oxlint → oxfmt → tsc       |
-| `bun run lint`        | oxlint 静态检查                             |
-| `bun run fmt`         | oxfmt 格式化                                |
-| `bun run typecheck`   | TypeScript 类型检查                         |
-| `bun run test`        | Vitest 单次运行                             |
-| `bun run test:watch`  | Vitest 监听模式                             |
-| `bun run test:coverage` | 生成覆盖率报告                            |
-| `bun run gitleaks`    | 全量密钥泄露扫描                            |
-| `bunx shadcn@latest add <component>` | 新增基础 UI 组件（唯一合法方式） |
+| 命令                                 | 说明                                  |
+| :----------------------------------- | :------------------------------------ |
+| `bun run dev`                        | 启动开发服务器                        |
+| `bun run build`                      | 生产构建（standalone）                |
+| `bun run start`                      | 运行生产构建产物                      |
+| `bun run check`                      | 一键修复 + 校验：oxlint → oxfmt → tsc |
+| `bun run lint`                       | oxlint 静态检查                       |
+| `bun run fmt`                        | oxfmt 格式化                          |
+| `bun run typecheck`                  | TypeScript 类型检查                   |
+| `bun run test`                       | Vitest 单次运行                       |
+| `bun run test:watch`                 | Vitest 监听模式                       |
+| `bun run test:coverage`              | 生成覆盖率报告                        |
+| `bun run gitleaks`                   | 全量密钥泄露扫描                      |
+| `bunx shadcn@latest add <component>` | 新增基础 UI 组件（唯一合法方式）      |
 
 ## 目录结构
 
