@@ -69,8 +69,7 @@ $:
         - name: Generate Changelog with git-cliff
           script: |
             set -eu
-            git config --global --add safe.directory "$PWD" || true
-            git-cliff --config cliff.toml --latest --strip header -o CHANGELOG.md
+            git-cliff --config cliff.toml --latest --strip header --offline -o CHANGELOG.md
 
         - name: Create CNB Release
           type: git:release
