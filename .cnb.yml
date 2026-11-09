@@ -42,7 +42,7 @@ $:
       stages:
         - name: Helm package and push
           script: |
-            set -euo pipefail
+            set -eu
             HELM_REGISTRY="${CNB_HELM_REGISTRY:-helm.cnb.cool}"
 
             helm registry login "${HELM_REGISTRY}" -u "${CNB_TOKEN_USER_NAME:-cnb}" -p "${CNB_TOKEN}"
@@ -68,7 +68,7 @@ $:
       stages:
         - name: Generate Changelog with git-cliff
           script: |
-            set -euo pipefail
+            set -eu
             git config --global --add safe.directory "$PWD" || true
             git-cliff --config cliff.toml --latest --strip header -o CHANGELOG.md
 
