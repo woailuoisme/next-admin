@@ -26,7 +26,6 @@ $:
               fi
             fi
 
-            echo "Building and pushing Docker image with tags: ${TAG_ARGS[*]}"
             docker buildx build \
               --platform linux/amd64 \
               --file ./Dockerfile \
@@ -46,31 +45,22 @@ $:
             set -euo pipefail
             HELM_REGISTRY="${CNB_HELM_REGISTRY:-helm.cnb.cool}"
 
-            echo "Logging in to CNB Helm registry ${HELM_REGISTRY}..."
             helm registry login "${HELM_REGISTRY}" -u "${CNB_TOKEN_USER_NAME:-cnb}" -p "${CNB_TOKEN}"
 
             TAG_NAME="${CNB_BRANCH:-}"
             CHART_VERSION="${TAG_NAME#v}"
-            if [[ ! "${CHART_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-              # 回退至 Chart.yaml 中定义的标准 SemVer 版本号
-              CHART_VERSION=$(grep -E '^version:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '"')
-            fi
+            case "${CHART_VERSION}" in
+              [0-9]*.[0-9]*.[0-9]*) ;;
+              *)
+                CHART_VERSION=$(awk '/^version:/ {print $2}' ./helm/Chart.yaml | tr -d '"')
+                ;;
+            esac
 
-            echo "Packaging Helm chart (version: ${CHART_VERSION})..."
             helm package ./helm \
               --version "${CHART_VERSION}" \
               --app-version "${CHART_VERSION}"
 
-            PKG_FILE=$(find . -maxdepth 1 -name "next-admin-*.tgz" | head -n 1)
-            if [ -z "${PKG_FILE}" ]; then
-              echo "Error: Helm chart package not found!"
-              exit 1
-            fi
-
-            TARGET_OCI="oci://${HELM_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}"
-            echo "Pushing ${PKG_FILE} to ${TARGET_OCI}..."
-            helm push "${PKG_FILE}" "${TARGET_OCI}"
-            echo "Successfully published Helm chart to ${TARGET_OCI}"
+            helm push "next-admin-${CHART_VERSION}.tgz" "oci://${HELM_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}"
 
   # 控制台页面手动触发
   web_trigger: *release_pipeline
