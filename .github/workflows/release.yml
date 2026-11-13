@@ -93,28 +93,21 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Authenticate Helm with GHCR OCI registry
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login "${{ env.REGISTRY }}" -u "${{ github.actor }}" --password-stdin
 
-          # Strip leading 'v' from tag name (e.g. v0.1.0 -> 0.1.0)
           CHART_VERSION="${GITHUB_REF_NAME#v}"
           OWNER_LOWER=$(echo "${REGISTRY_OWNER}" | tr '[:upper:]' '[:lower:]')
           DIST_DIR="./dist-helm"
           mkdir -p "${DIST_DIR}"
 
-          echo "Packaging Helm chart (version: ${CHART_VERSION})..."
           helm package ./helm \
             --version "${CHART_VERSION}" \
             --app-version "${CHART_VERSION}" \
             --destination "${DIST_DIR}"
 
           PKG_FILE=$(find "${DIST_DIR}" -name "*.tgz" | head -n 1)
-          if [ -z "${PKG_FILE}" ]; then
-            echo "Error: Helm chart package not found in ${DIST_DIR}!"
-            exit 1
-          fi
+          [ -n "${PKG_FILE}" ] || { echo "Helm chart package not found" >&2; exit 1; }
 
-          echo "Pushing ${PKG_FILE} to oci://${{ env.REGISTRY }}/${OWNER_LOWER}/charts..."
           helm push "${PKG_FILE}" "oci://${{ env.REGISTRY }}/${OWNER_LOWER}/charts"
 
       - name: Create GitHub Release

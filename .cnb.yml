@@ -1,33 +1,6 @@
+# next-admin: Next.js 16 Standalone (Node 24)，端口 3500
+# 构建期 NEXT_PUBLIC_* 由 .env.production 提供
 
-# ── 全局：手动触发 & 标签发布 ────────────────────────────────────────
-# 项目: next-admin (Next.js 16 Enterprise Admin Dashboard)
-# 运行时: React 19 + Next.js 16 Standalone (Node 24) | 端口: 3500
-# Dockerfile 位于仓库根，多阶段构建：Bun 安装/编译 → node:24-alpine 独立运行
-# 构建期 NEXT_PUBLIC_* 由 .dockerignore 白名单内的 .env.production 提供
-
-# ── main 分支：网页手动触发（常规 push 不触发构建）──────────────────
-main:
-  # 网页按钮：手动构建并推送 Docker 镜像（对齐 .cnb/web_trigger.yml 中的 web_trigger_amd64）
-  web_trigger_amd64: &docker_build
-    - services:
-        - docker
-      stages:
-        - name: Manual Docker build and push
-          script: |
-            set -euo pipefail
-            REGISTRY="${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}"
-            docker buildx build \
-              --platform linux/amd64 \
-              --cache-from type=registry,ref=${REGISTRY}:cache \
-              --cache-to type=registry,ref=${REGISTRY}:cache,mode=max,image-manifest=true,oci-mediatypes=true \
-              -f Dockerfile \
-              -t "${REGISTRY}:latest" \
-              --push .
-
-  # 兼容默认网页触发
-  web_trigger: *docker_build
-
-# ── 正式全量发版 (v*)：镜像与 Chart 原子化联动自动发布 ───────────────
 v*:
   tag_push:
     - services:
@@ -49,9 +22,6 @@ v*:
               -t "${REGISTRY}:${VERSION#v}" \
               --push .
 
-        # 注意：stages 下的元素是 Job（不是嵌套的 Pipeline）。
-        # 容器镜像写在 job 的 `image:` 上；写 `docker:` + 内层 `stages:` 会被静默忽略，
-        # 该 job 变成空阶段（构建仍显示 success，但什么都没执行）。
         - name: Helm chart package & push
           image: alpine/helm:4
           script: |
@@ -59,8 +29,6 @@ v*:
             VERSION="${CNB_BRANCH##*/}"
             CHART_VERSION="${VERSION#v}"
             HELM_REGISTRY="${CNB_HELM_REGISTRY:-helm.cnb.cool}"
-            # 沿用既有 OCI 路径（仓库级命名空间）；如需与 nest-api 一致改为
-            # TARGET_NAMESPACE="${CNB_GROUP_SLUG_LOWERCASE:-${CNB_REPO_SLUG_LOWERCASE}}"
             TARGET_NAMESPACE="${CNB_REPO_SLUG_LOWERCASE}"
 
             echo "${CNB_TOKEN}" | helm registry login "${HELM_REGISTRY}" -u "${CNB_TOKEN_USER_NAME:-cnb}" --password-stdin
@@ -76,7 +44,6 @@ v*:
         - name: Create CNB Release
           type: git:release
           options:
-            # tag_push 事件下无需传 tag（官方：自动取触发的 Tag 名）
             title: "Release ${CNB_BRANCH}"
             descriptionFromFile: CHANGELOG.md
             latest: true
