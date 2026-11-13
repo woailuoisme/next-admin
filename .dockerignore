@@ -16,6 +16,7 @@ dist
 .gitignore
 .agents
 .cnb.yml
+.cnb
 lefthook.yml
 scratch
 
