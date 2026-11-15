@@ -30,10 +30,19 @@ export interface BaseDialogProps {
 export type FormDialogMode = "create" | "edit";
 
 export interface BaseFormInstance {
-  reset: (values?: Record<string, unknown>) => void;
-  setFieldValue: (field: any, value: any) => void;
-  handleSubmit?: () => void | Promise<void>;
-  [key: string]: unknown;
+  reset(values?: Record<string, unknown>): void;
+  setFieldValue(field: any, value: any): void;
+  handleSubmit?(): void | Promise<void>;
+  store?: {
+    get(): { isDirty?: boolean } | undefined;
+    subscribe(listener: (value: any) => void): { unsubscribe(): void };
+  };
+  state?: {
+    isDirty?: boolean;
+  };
+  options?: {
+    defaultValues?: unknown;
+  };
 }
 
 export interface FormDialogProps<TData = Record<string, unknown>> extends BaseDialogProps {
@@ -41,7 +50,7 @@ export interface FormDialogProps<TData = Record<string, unknown>> extends BaseDi
    * TanStack Form instance to bind. If provided, automatically syncs entity data on open,
    * provides FormContext to child fields, and handles submit if onSubmit is omitted.
    */
-  form?: BaseFormInstance | any;
+  form?: BaseFormInstance;
   /**
    * Default fallback values when resetting or creating an entity.
    */
@@ -77,6 +86,10 @@ export interface FormDialogProps<TData = Record<string, unknown>> extends BaseDi
    */
   editTitle?: ReactNode;
   /**
+   * Optional status badge displayed beside the title.
+   */
+  badge?: ReactNode;
+  /**
    * Size of the dialog modal window. Defaults to "md" (max-w-lg).
    */
   size?: DialogSize;
@@ -96,6 +109,26 @@ export interface FormDialogProps<TData = Record<string, unknown>> extends BaseDi
    * Custom text for the cancel button. Defaults to "Cancel".
    */
   cancelText?: ReactNode;
+  /**
+   * Text for the "Save & Continue Editing" button.
+   */
+  saveAndContinueText?: ReactNode;
+  /**
+   * Optional handler for "Save & Continue Editing".
+   */
+  onSaveAndContinue?: () => void | Promise<void>;
+  /**
+   * Optional callback invoked when the user cancels the form.
+   */
+  onCancel?: () => void;
+  /**
+   * Whether the form has unsaved modifications (used for dirty guard protection).
+   */
+  isDirty?: boolean;
+  /**
+   * Whether to prompt with an AlertDialog before discarding unsaved changes.
+   */
+  enableDirtyGuard?: boolean;
   /**
    * Whether the form is currently submitting an async mutation.
    * When true, disables cancel/close and displays a loading spinner on the submit button.

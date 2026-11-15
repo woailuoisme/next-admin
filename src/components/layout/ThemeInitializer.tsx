@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, useEffect } from "react";
 
 import { usePreferencesStore } from "@/stores/preferences";

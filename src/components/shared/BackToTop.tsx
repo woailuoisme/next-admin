@@ -170,10 +170,14 @@ export const BackToTop = memo(function BackToTop({
     const targetEl = resolveTargetEl(target);
     const { scrollTop, scrollHeight, clientHeight } = getScrollMetrics(targetEl);
 
-    setVisible(scrollTop >= threshold);
+    const isNowVisible = scrollTop >= threshold;
+    setVisible(isNowVisible);
+
+    if (!isNowVisible || !showProgress) return;
 
     const scrollableDistance = Math.max(0, scrollHeight - clientHeight);
-    setProgress(scrollableDistance > 0 ? clamp((scrollTop / scrollableDistance) * 100, 0, 100) : 0);
+    const nextProgress = scrollableDistance > 0 ? Math.round(clamp((scrollTop / scrollableDistance) * 100, 0, 100)) : 0;
+    setProgress(nextProgress);
   });
 
   useEventListener("scroll", updateScroll, { target, passive: true });
@@ -181,7 +185,7 @@ export const BackToTop = memo(function BackToTop({
 
   useEffect(() => {
     updateScroll();
-  }, [updateScroll]);
+  }, [updateScroll, showProgress]);
 
   const handleClick = useMemoizedFn((e: MouseEvent<HTMLButtonElement>) => {
     onClick?.(e);

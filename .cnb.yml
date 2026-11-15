@@ -39,7 +39,7 @@ v*:
           image: orhunp/git-cliff:latest
           script: |
             set -eu
-            git-cliff --latest --strip header -o CHANGELOG.md
+            git-cliff --latest --strip header
 
         - name: Create CNB Release
           type: git:release

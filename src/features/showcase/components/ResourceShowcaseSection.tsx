@@ -3,6 +3,7 @@ import { useMemoizedFn } from "ahooks";
 import { BadgeCheck, Check, Code2, Copy, Eye, Layers, Pencil, Plus, Sparkles } from "lucide-react";
 import { memo, useState } from "react";
 import { toast } from "sonner";
+import { cn } from "cn";
 
 import { TextInput } from "@/components/form/basic";
 import { SelectInput, SwitchInput } from "@/components/form/choice";
@@ -152,18 +153,22 @@ return (
                 { key: "page", label: "📄 Page (独立页)" },
               ] as const
             ).map((item) => (
-              <button
+              <Button
                 key={item.key}
                 type="button"
+                variant={presentation === item.key ? "default" : "ghost"}
+                size="sm"
+                aria-pressed={presentation === item.key}
                 onClick={() => setPresentation(item.key)}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                className={cn(
+                  "h-auto cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-all",
                   presentation === item.key
-                    ? "bg-primary text-primary-foreground shadow-xs"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                }`}
+                    ? "shadow-xs"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                )}
               >
                 {item.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

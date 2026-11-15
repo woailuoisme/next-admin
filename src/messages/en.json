@@ -1,6 +1,6 @@
 {
   "common": {
-    "back_to_top": "Back to top",
+    "image_preview_alt": "Preview",
     "app_title": "Console",
     "app_description": "Enterprise admin dashboard built with Next.js 16 App Router and Tailwind CSS",
     "invalid_date": "Invalid date",
@@ -148,7 +148,9 @@
     "login_error": "Login failed, please check credentials",
     "logout_info": "You have been logged out",
     "all_notifications_read": "All notifications marked as read",
-    "all_notifications_read_error": "Failed to mark notifications as read"
+    "all_notifications_read_error": "Failed to mark notifications as read",
+    "batch_success": "Successfully processed {count} {entityName}",
+    "batch_partial_error": "Completed with warnings: {succeeded}/{total} {entityName} processed, {failed} failed"
   },
   "notification": {
     "title": "Notifications",
@@ -271,8 +273,14 @@
     "form_edit_submit": "Save Changes",
     "form_submitting": "Saving...",
     "view_title": "{entityName} Details",
-    "view_back": "Back",
-    "edit": "Edit"
+    "edit": "Edit",
+    "dialog_sr_title": "Dialog",
+    "sheet_sr_title": "Sheet",
+    "save_and_continue": "Save & Continue",
+    "unsaved_changes_title": "Discard unsaved changes?",
+    "unsaved_changes_desc": "You have unsaved changes. Closing now will discard your modifications.",
+    "unsaved_changes_stay": "Keep editing",
+    "unsaved_changes_discard": "Discard changes"
   },
   "form": {
     "upload_dropzone_title": "Click to upload",
@@ -425,7 +433,10 @@
     "cancel": "Cancel",
     "edit": "Edit",
     "back_to_list": "Back to list",
-    "unsaved_changes_confirm": "You have unsaved changes. Are you sure you want to discard them?"
+    "unsaved_changes_title": "Discard unsaved changes?",
+    "unsaved_changes_confirm": "You have unsaved changes. Are you sure you want to discard them?",
+    "unsaved_changes_stay": "Keep editing",
+    "unsaved_changes_discard": "Discard & leave"
   },
   "map": {
     "basemap_selector": "Basemap",
@@ -634,6 +645,8 @@
   },
   "layout": {
     "skip_to_content": "Skip to main content",
+    "main_content_aria": "Main content",
+    "breadcrumb_root": "Admin",
     "search_placeholder": "Search features, pages or data...",
     "search_trigger": "Search...",
     "search_empty": "No matching results found",

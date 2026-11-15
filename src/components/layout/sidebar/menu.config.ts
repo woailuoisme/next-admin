@@ -16,6 +16,7 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 
 import { createNamespaceTranslator } from "@/i18n";
+import { useAuthSession } from "@/stores/auth";
 
 import type { NavGroup } from "./types";
 
@@ -211,5 +212,24 @@ export function useRouteTitle(pathname: string, fallback?: string): string {
  */
 export function useSidebarMenuGroups(): NavGroup[] {
   const t = useTranslations("menu");
-  return getSidebarMenuGroups(t);
+  return useMemo(() => getSidebarMenuGroups(t), [t]);
+}
+
+/**
+ * 统一的菜单权限过滤与扁平化组合 Hooks（AppSidebar 与 GlobalSearchDialog 共用）
+ */
+export function useAuthorizedMenuGroups(customGroups?: NavGroup[]): NavGroup[] {
+  const session = useAuthSession();
+  const userRole = session?.admin?.role;
+  const dynamicGroups = useSidebarMenuGroups();
+
+  return useMemo(() => {
+    const baseGroups = customGroups ?? dynamicGroups;
+    return getAuthorizedMenu(baseGroups, userRole);
+  }, [customGroups, dynamicGroups, userRole]);
+}
+
+export function useAuthorizedFlatNavItems(customGroups?: NavGroup[]): FlatNavItem[] {
+  const authorizedGroups = useAuthorizedMenuGroups(customGroups);
+  return useMemo(() => getFlatNavItems(authorizedGroups), [authorizedGroups]);
 }

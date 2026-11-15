@@ -57,13 +57,19 @@ export function getDialogContentClassName({
 
 /** SheetContent 外壳 */
 export function getSheetContentClassName({
+  isFullscreen = false,
   widthClassName,
   size,
   className,
 }: {
+  isFullscreen?: boolean;
   widthClassName?: string;
   size: DialogSize;
   className?: string;
 }): string {
-  return cn("flex flex-col gap-0 overflow-hidden p-0", widthClassName || SHEET_SIZE_CLASSES[size], className);
+  return cn(
+    "flex flex-col gap-0 overflow-hidden p-0 transition-all duration-200",
+    isFullscreen ? "w-[98vw] sm:max-w-[98vw]" : widthClassName || SHEET_SIZE_CLASSES[size],
+    className,
+  );
 }

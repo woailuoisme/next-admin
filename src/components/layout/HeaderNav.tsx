@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { memo } from "react";
@@ -8,7 +9,7 @@ import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { useRouteTitle } from "@/components/layout/sidebar/menu.config";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ThemeColorPicker } from "@/components/shared/ThemeColorPicker";
-import ThemeToggle from "@/components/shared/ThemeToggle";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -23,6 +24,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { GlobalSearch } from "./search/GlobalSearch";
 
 export const HeaderNav = memo(function HeaderNav() {
+  const t = useTranslations("layout");
   const pathname = usePathname();
   const pageTitle = useRouteTitle(pathname);
 
@@ -35,7 +37,7 @@ export const HeaderNav = memo(function HeaderNav() {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild className="text-xs">
-                <Link href="/overview">Admin</Link>
+                <Link href="/overview">{t("breadcrumb_root")}</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />

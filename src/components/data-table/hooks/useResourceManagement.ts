@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { toastMessages } from "@/lib/toastMessages";
 
 import type { UseUrlTableStateAdapterOptions, UseUrlTableStateAdapterReturn } from "../adapters/types";
-import { useUrlTableStateAdapter } from "../adapters/useUrlTableStateAdapter";
+import { useNextAppRouterTablePort, useUrlTableStateAdapterWithPort } from "../adapters/useUrlTableStateAdapter";
 import type { BaseTableSearchParams } from "../core/tableSearchSchema";
 import type { TableStateAdapter } from "../core/types";
 import {
@@ -25,6 +25,8 @@ export interface UseResourceManagementOptions<
   entityName?: string;
   /** Custom URL search key mappings for create, edit, view, delete modals */
   modalKeys?: ModalKeyMapping;
+  /** Whether to synchronize modal open/close actions into URL search parameters */
+  syncModalWithUrl?: boolean;
   /** External callback when create is opened */
   onOpenCreate?: () => void;
   /** External callback when edit is opened */
@@ -76,6 +78,22 @@ export interface UseResourceManagementReturn<
   handleDeleteConfirm: () => Promise<void>;
   /** Opens batch delete modal with selected items */
   handleBatchDelete: (selected: TData[]) => void;
+  /** Ready-to-spread props configured for FormDialog / ResourceFormHost */
+  formDialogProps: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    mode: "create" | "edit";
+    entity: TData | null;
+    entityId: string | null;
+    entityName: string;
+  };
+  /** Ready-to-spread props configured for ViewDialog / ResourceViewHost */
+  viewDialogProps: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    entity: TData | null;
+    entityId: string | null;
+  };
   /** Ready-to-spread props configured for DeleteDialog */
   deleteDialogProps: {
     open: boolean;
@@ -114,6 +132,7 @@ export function useResourceManagement<
   const {
     entityName = "Item",
     modalKeys,
+    syncModalWithUrl = false,
     onOpenCreate,
     onOpenEdit,
     onOpenView,
@@ -128,13 +147,20 @@ export function useResourceManagement<
   } = options;
 
   const queryClient = useQueryClient();
+  const nextRouterPort = useNextAppRouterTablePort();
+  const activeRouter = tableOptions.router ?? nextRouterPort;
 
-  // 1. Table Data & Query Management via UrlTableStateAdapter
-  const table = useUrlTableStateAdapter<TData, TSearch, TQueryResponse>(tableOptions);
+  // 1. Table Data & Query Management via UrlTableStateAdapterWithPort
+  const table = useUrlTableStateAdapterWithPort<TData, TSearch, TQueryResponse>({
+    ...tableOptions,
+    router: activeRouter,
+  });
 
   // 2. Modal & Drawer State Machine
   const modal = useResourceModalState<TData, TSearch>({
     search: table.search,
+    router: activeRouter,
+    syncWithUrl: syncModalWithUrl,
     keys: modalKeys,
     onOpenCreate,
     onOpenEdit,
@@ -202,12 +228,12 @@ export function useResourceManagement<
         invalidateQueries();
       }
       await onAfterDelete?.();
+      modal.closeDelete();
     } catch (error) {
       const msg = error instanceof Error ? error.message : toastMessages.deleteError();
       toast.error(msg);
     } finally {
       setIsSingleDeleting(false);
-      modal.closeDelete();
     }
   });
 
@@ -248,6 +274,28 @@ export function useResourceManagement<
     return String(activeDeleteItem.id);
   }, [activeDeleteItem, getEntityTitle]);
 
+  const formDialogProps = useMemo(
+    () => ({
+      open: isFormOpen,
+      onOpenChange: handleFormOpenChange,
+      mode: (modal.editId ? "edit" : "create") as "create" | "edit",
+      entity: activeEditItem,
+      entityId: modal.editId,
+      entityName,
+    }),
+    [isFormOpen, handleFormOpenChange, modal.editId, activeEditItem, entityName],
+  );
+
+  const viewDialogProps = useMemo(
+    () => ({
+      open: modal.isViewOpen,
+      onOpenChange: handleViewOpenChange,
+      entity: activeViewItem,
+      entityId: modal.viewId,
+    }),
+    [modal.isViewOpen, handleViewOpenChange, activeViewItem, modal.viewId],
+  );
+
   const deleteDialogProps = useMemo(
     () => ({
       open: modal.isDeleteOpen,
@@ -283,6 +331,8 @@ export function useResourceManagement<
     handleDeleteOpenChange,
     handleDeleteConfirm,
     handleBatchDelete,
+    formDialogProps,
+    viewDialogProps,
     deleteDialogProps,
   };
 }

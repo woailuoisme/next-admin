@@ -1,14 +1,138 @@
+import { useMemoizedFn } from "ahooks";
+import { ArrowRight, CheckCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { memo } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { PopoverContent } from "@/components/ui/popover";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "cn";
 
-import type { NotificationPopoverProps } from "./types";
+import type { NotificationTabKey } from "../shared";
+import type {
+  NotificationFooterProps,
+  NotificationHeaderProps,
+  NotificationPopoverProps,
+  NotificationTabsProps,
+} from "./types";
 
 import { NotificationList } from "../list";
-import { NotificationFooter } from "./NotificationFooter";
-import { NotificationHeader } from "./NotificationHeader";
-import { NotificationTabs } from "./NotificationTabs";
+import { NOTIFICATION_TABS } from "../shared";
+
+const TAB_TRIGGER_CLASS =
+  "relative h-9 rounded-none border-b-2 border-transparent px-3 text-xs font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none";
+
+export const NotificationHeader = memo(function NotificationHeader({
+  unreadCount,
+  isMarkingAllAsRead,
+  onMarkAllAsRead,
+  className,
+}: NotificationHeaderProps) {
+  const t = useTranslations("notification");
+
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between border-b border-border/50 bg-background/90 px-4 py-3",
+        className,
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-foreground text-sm font-semibold tracking-tight">{t("title")}</span>
+        {unreadCount > 0 ? (
+          <Badge
+            variant="secondary"
+            className="border-primary/20 bg-primary/10 text-primary h-5 rounded-full border px-2 text-[11px] font-semibold"
+          >
+            {t("unread_count", { count: unreadCount })}
+          </Badge>
+        ) : (
+          <Badge
+            variant="secondary"
+            className="text-muted-foreground/80 bg-muted/60 h-5 rounded-full px-2 text-[11px] font-normal"
+          >
+            {t("all_synced")}
+          </Badge>
+        )}
+      </div>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onMarkAllAsRead}
+        disabled={unreadCount === 0 || isMarkingAllAsRead}
+        className="text-muted-foreground hover:text-foreground hover:bg-muted/60 h-7 gap-1 px-2 text-xs font-normal transition-colors"
+      >
+        <CheckCheck className="size-3.5" />
+        <span>{t("mark_all_read")}</span>
+      </Button>
+    </div>
+  );
+});
+
+export const NotificationTabs = memo(function NotificationTabs({
+  activeTab,
+  unreadCount = 0,
+  onTabChange,
+  className,
+}: NotificationTabsProps) {
+  const t = useTranslations("notification");
+
+  const handleValueChange = useMemoizedFn((val: string) => {
+    onTabChange(val as NotificationTabKey);
+  });
+
+  return (
+    <div className={cn("border-b border-border/40 px-3", className)}>
+      <Tabs value={activeTab} onValueChange={handleValueChange} className="w-full">
+        <TabsList className="flex h-9 w-full items-center justify-start gap-1 rounded-none bg-transparent p-0">
+          {NOTIFICATION_TABS.map(({ key, labelKey }) => (
+            <TabsTrigger key={key} value={key} className={TAB_TRIGGER_CLASS}>
+              <span>{t(labelKey)}</span>
+              {key === "unread" && unreadCount > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="bg-primary/10 text-primary h-4 min-w-4 rounded-full border-0 px-1 text-[10px] font-semibold"
+                >
+                  {unreadCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+    </div>
+  );
+});
+
+export const NotificationFooter = memo(function NotificationFooter({
+  total,
+  onGotoOverview,
+  className,
+}: NotificationFooterProps) {
+  const t = useTranslations("notification");
+
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between border-t border-border/50 bg-muted/15 px-4 py-2.5 text-xs text-muted-foreground",
+        className,
+      )}
+    >
+      <span className="text-[11px]">{t("total_records", { count: total })}</span>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onGotoOverview}
+        className="group text-muted-foreground hover:text-foreground h-auto gap-1 p-0 text-xs font-normal hover:bg-transparent"
+      >
+        <span>{t("goto_overview")}</span>
+        <ArrowRight className="size-3 transition-transform duration-150 group-hover:translate-x-0.5" />
+      </Button>
+    </div>
+  );
+});
 
 export const NotificationPopover = memo(function NotificationPopover({
   unreadCount,

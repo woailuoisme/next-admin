@@ -124,3 +124,23 @@ The runtime CSS token normalizer (`src/components/map/shared/tokenBridge.ts`). R
 ### `GeocodeAdapter` (Proxy & Test Double)
 
 The client-server boundary for Amap POI search and reverse geocoding (`src/components/map/picker/geocodeAdapter.ts` paired with Next.js Route Handler `src/app/api/geocode/route.ts`). Keeps `AMAP_KEY` server-only via `HttpGeocodeAdapter` while enabling deterministic offline testing through `InMemoryGeocodeAdapter`. Layered under `amapGeo.ts` with per-caller `AbortSignal` isolation across shared in-flight requests, 60-second cooldown half-open circuit breaking, and short-TTL negative caching.
+
+---
+
+## 8. Core UI Shell, Dialogs & Notifications
+
+### `ModalFrame` (Polymorphic Overlay Shell)
+
+The shared container seam at [`src/components/dialogs/ModalFrame.tsx`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/dialogs/ModalFrame.tsx) unifying shadcn `Dialog` and `Sheet` (`variant="dialog" | "sheet"`) with fullscreen expansion (`FullscreenToggle`), localized accessibility titles, and lazy body mounting when closed (`{open ? children : null}`). Paired with [`useFormHostSync`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/dialogs/hooks/useFormHostSync.ts) and [`UnsavedChangesDialog`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/dialogs/UnsavedChangesDialog.tsx) across both `FormDialog` and `ResourceFormPage` to provide consistent `defaultValues`-over-`entity` precedence and reactive TanStack Form dirty guards.
+
+### `ResourceHost` (Polymorphic Presentation Seam)
+
+The unified resource CRUD boundary (`ResourceFormHost` and `ResourceViewHost` in `src/components/resource/`) switching cleanly between `"dialog"`, `"drawer"`, and `"page"` presentations with prop-aligned submit/title/fullscreen/dirty-guard behavior, driven by the framework-agnostic modal controller (`useResourceModalStateWithPort` / `useResourceModalState` in [`useResourceModalState.ts`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/dialogs/hooks/useResourceModalState.ts)).
+
+### `NotificationsCache` (Query Filter & Stretched-Row Seam)
+
+The normalized TanStack Query key & cache-routing seam (`normalizeNotificationFilters`, `extractNotificationFiltersFromKey`, `doesNotificationMatchFilters` in `src/features/notifications/`) that deduplicates `"all"` queries, prevents cross-tab cache pollution on realtime inserts/reads, and updates unread badge counts atomically across tabs. Paired with the stretched-trigger sibling row pattern in [`NotificationItemRow.tsx`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/notifications/item/NotificationItemRow.tsx) separating primary selection from floating row actions.
+
+### `ShellMenuSeam` (Authorized Navigation Seam)
+
+The memoized RBAC navigation boundary (`useAuthorizedMenuGroups` and `useAuthorizedFlatNavItems` in [`menu.config.ts`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/layout/sidebar/menu.config.ts)) consumed by both `AppSidebar` and `GlobalSearchDialog`, ensuring single-source role filtering alongside isolated root theme subscriptions (`AppToaster`, `ThemeColorPicker`, and guarded `usePreferencesStore` persistence).

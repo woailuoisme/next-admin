@@ -1,6 +1,6 @@
 {
   "common": {
-    "back_to_top": "回到顶部",
+    "image_preview_alt": "图片预览",
     "app_title": "控制台",
     "app_description": "企业级高效中后台管理系统，基于 Next.js 16 App Router 与 Tailwind CSS 构建",
     "invalid_date": "无效日期",
@@ -148,7 +148,9 @@
     "login_error": "登录失败，请检查账号密码",
     "logout_info": "您已退出登录",
     "all_notifications_read": "所有通知已标为已读",
-    "all_notifications_read_error": "标记已读失败"
+    "all_notifications_read_error": "标记已读失败",
+    "batch_success": "成功处理 {count} 项 {entityName}",
+    "batch_partial_error": "部分完成：{succeeded}/{total} 项 {entityName} 已处理，{failed} 项失败"
   },
   "notification": {
     "title": "通知",
@@ -271,8 +273,14 @@
     "form_edit_submit": "保存更改",
     "form_submitting": "正在保存...",
     "view_title": "{entityName}详情",
-    "view_back": "返回",
-    "edit": "编辑"
+    "edit": "编辑",
+    "dialog_sr_title": "弹窗",
+    "sheet_sr_title": "侧边抽屉",
+    "save_and_continue": "保存并继续编辑",
+    "unsaved_changes_title": "放弃未保存的修改？",
+    "unsaved_changes_desc": "您有尚未保存的修改，关闭后这些内容将会丢失。",
+    "unsaved_changes_stay": "继续编辑",
+    "unsaved_changes_discard": "放弃修改"
   },
   "form": {
     "upload_dropzone_title": "点击上传",
@@ -425,7 +433,10 @@
     "cancel": "取消",
     "edit": "编辑",
     "back_to_list": "返回列表",
-    "unsaved_changes_confirm": "您有尚未保存的修改，确定要离开吗？未保存的内容将会丢失。"
+    "unsaved_changes_title": "放弃未保存的修改？",
+    "unsaved_changes_confirm": "您有尚未保存的修改，确定要离开吗？未保存的内容将会丢失。",
+    "unsaved_changes_stay": "继续编辑",
+    "unsaved_changes_discard": "放弃并离开"
   },
   "map": {
     "basemap_selector": "底图图层",
@@ -634,6 +645,8 @@
   },
   "layout": {
     "skip_to_content": "跳至主体内容",
+    "main_content_aria": "主内容区域",
+    "breadcrumb_root": "Admin",
     "search_placeholder": "搜索系统功能或数据...",
     "search_trigger": "搜索...",
     "search_empty": "未找到相关结果",

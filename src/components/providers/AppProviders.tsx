@@ -33,10 +33,14 @@ const TOASTER_ICONS = {
   loading: <Loader2Icon className="text-primary size-4 animate-spin" />,
 };
 
+/** 仅订阅解析后主题状态的叶子节点，避免主题切换触发整个 AppProviders 子树重渲染 */
+function AppToaster() {
+  const resolvedTheme = useResolvedThemeMode();
+  return <Toaster position="top-right" closeButton visibleToasts={4} icons={TOASTER_ICONS} theme={resolvedTheme} />;
+}
+
 export function AppProviders({ children }: { children: ReactNode }) {
   const queryClient = getQueryClient();
-  // Toaster 用应用自身的主题状态覆盖 next-themes，避免两套主题源在运行时不一致
-  const resolvedTheme = useResolvedThemeMode();
 
   const [isMockReady, setIsMockReady] = useState(() => !env.ENABLE_MOCK);
 
@@ -66,7 +70,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
                 <Loader2Icon className="text-primary size-7 animate-spin" />
               </div>
             )}
-            <Toaster position="top-right" closeButton visibleToasts={4} icons={TOASTER_ICONS} theme={resolvedTheme} />
+            <AppToaster />
           </TooltipProvider>
         </QueryClientProvider>
       </NuqsAdapter>

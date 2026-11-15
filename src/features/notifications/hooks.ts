@@ -9,10 +9,25 @@ import { useAuthAdmin } from "@/stores/auth";
 import type { NotificationFilters, NotificationItem, NotificationListResponse } from "./types";
 
 import { deleteNotification, markAllNotificationsAsRead, markNotificationAsRead } from "./api";
-import { notificationKeys, notificationQueries } from "./queries";
+import {
+  extractNotificationFiltersFromKey,
+  normalizeNotificationFilters,
+  notificationKeys,
+  notificationQueries,
+} from "./queries";
 
-export { notificationKeys, notificationQueries };
+export { extractNotificationFiltersFromKey, normalizeNotificationFilters, notificationKeys, notificationQueries };
 export const NOTIFICATIONS_QUERY_KEY = notificationKeys.all;
+
+/**
+ * 校验单条通知是否匹配目标缓存槽位的过滤条件，防止跨分类或已读状态缓存污染
+ */
+export function doesNotificationMatchFilters(item: NotificationItem, filters?: NotificationFilters): boolean {
+  if (!filters) return true;
+  if (filters.category && item.category !== filters.category) return false;
+  if (filters.unreadOnly && item.read) return false;
+  return true;
+}
 
 export function useNotifications(filters?: NotificationFilters, options?: { enabled?: boolean }) {
   return useQuery({
@@ -33,21 +48,38 @@ export function useMarkAsReadMutation() {
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
 
-      // Snapshot previous cache across all notification queries
+      // Snapshot previous cache across notification list queries
       const previousQueries = queryClient.getQueriesData<NotificationListResponse>({
-        queryKey: NOTIFICATIONS_QUERY_KEY,
+        queryKey: notificationKeys.lists(),
       });
 
-      // Optimistically set read = true
-      queryClient.setQueriesData<NotificationListResponse>({ queryKey: NOTIFICATIONS_QUERY_KEY }, (old) => {
-        if (!old) return old;
-        const wasUnread = old.items.find((item) => item.id === id && !item.read);
-        return {
-          ...old,
-          unreadCount: wasUnread ? Math.max(0, old.unreadCount - 1) : old.unreadCount,
-          items: old.items.map((item) => (item.id === id ? { ...item, read: true } : item)),
-        };
-      });
+      const targetWasUnread = previousQueries.some(([, data]) =>
+        data?.items.some((item) => item.id === id && !item.read),
+      );
+
+      // Optimistically set read = true and keep unreadCount consistent across all cached filter tabs
+      for (const [key, old] of previousQueries) {
+        if (!old) continue;
+        const filters = extractNotificationFiltersFromKey(key);
+        const nextUnreadCount = targetWasUnread ? Math.max(0, old.unreadCount - 1) : old.unreadCount;
+
+        if (filters?.unreadOnly) {
+          const hadTarget = old.items.some((item) => item.id === id);
+          const nextItems = old.items.filter((item) => item.id !== id);
+          queryClient.setQueryData<NotificationListResponse>(key, {
+            ...old,
+            total: hadTarget ? Math.max(0, old.total - 1) : old.total,
+            unreadCount: nextUnreadCount,
+            items: nextItems,
+          });
+        } else {
+          queryClient.setQueryData<NotificationListResponse>(key, {
+            ...old,
+            unreadCount: nextUnreadCount,
+            items: old.items.map((item) => (item.id === id ? { ...item, read: true } : item)),
+          });
+        }
+      }
 
       return { previousQueries };
     },
@@ -73,10 +105,10 @@ export function useMarkAllAsReadMutation() {
       await queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
 
       const previousQueries = queryClient.getQueriesData<NotificationListResponse>({
-        queryKey: NOTIFICATIONS_QUERY_KEY,
+        queryKey: notificationKeys.lists(),
       });
 
-      queryClient.setQueriesData<NotificationListResponse>({ queryKey: NOTIFICATIONS_QUERY_KEY }, (old) => {
+      queryClient.setQueriesData<NotificationListResponse>({ queryKey: notificationKeys.lists() }, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -152,19 +184,34 @@ export function useRealtimeNotifications(options: RealtimeNotificationsOptions =
 
       if (!item || !item.id) return;
 
-      // Optimistically prepend to all notification query lists in TanStack Query cache
-      queryClient.setQueriesData<NotificationListResponse>({ queryKey: NOTIFICATIONS_QUERY_KEY }, (old) => {
-        if (!old) return old;
-        const exists = old.items.some((existing) => existing.id === item.id);
-        if (exists) return old;
-
-        return {
-          ...old,
-          total: old.total + 1,
-          unreadCount: item.read ? old.unreadCount : old.unreadCount + 1,
-          items: [item, ...old.items],
-        };
+      // Optimistically prepend only to matching notification query lists in TanStack Query cache
+      const cachedQueries = queryClient.getQueriesData<NotificationListResponse>({
+        queryKey: notificationKeys.lists(),
       });
+
+      const alreadyKnown = cachedQueries.some(([, old]) => old?.items.some((existing) => existing.id === item.id));
+      if (!alreadyKnown) {
+        for (const [queryKey, old] of cachedQueries) {
+          if (!old) continue;
+
+          const filters = extractNotificationFiltersFromKey(queryKey);
+          const nextUnreadCount = item.read ? old.unreadCount : old.unreadCount + 1;
+
+          if (doesNotificationMatchFilters(item, filters)) {
+            queryClient.setQueryData<NotificationListResponse>(queryKey, {
+              ...old,
+              total: old.total + 1,
+              unreadCount: nextUnreadCount,
+              items: [item, ...old.items],
+            });
+          } else if (nextUnreadCount !== old.unreadCount) {
+            queryClient.setQueryData<NotificationListResponse>(queryKey, {
+              ...old,
+              unreadCount: nextUnreadCount,
+            });
+          }
+        }
+      }
 
       if (options.enableToast !== false) {
         const toastOptions = {

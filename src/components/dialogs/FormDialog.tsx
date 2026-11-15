@@ -2,9 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
-import { isEqual } from "es-toolkit";
 import { Loader2 } from "lucide-react";
-import { memo, type SubmitEvent, useEffect, useId, useMemo, useRef } from "react";
+import { memo, type SubmitEvent, useId, useMemo, useState } from "react";
 
 import { dispatchFormSubmit, FormContext } from "@/components/form/core/FormContext";
 import { Button } from "@/components/ui/button";
@@ -14,8 +13,10 @@ import { cn } from "cn";
 
 import type { FormDialogProps } from "./types";
 
+import { useFormHostSync } from "./hooks/useFormHostSync";
 import { ModalFrame } from "./ModalFrame";
 import { DIALOG_BODY_CLASS, DIALOG_FOOTER_CLASS } from "./sizeClasses";
+import { UnsavedChangesDialog } from "./UnsavedChangesDialog";
 
 export const FormDialog = memo(function FormDialog<TData = Record<string, unknown>>({
   open,
@@ -31,11 +32,17 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   createTitle,
   editTitle,
   description,
+  badge,
   size = "md",
   submitText,
   createSubmitText,
   editSubmitText,
   cancelText,
+  saveAndContinueText,
+  onSaveAndContinue,
+  onCancel,
+  isDirty = false,
+  enableDirtyGuard = false,
   isSubmitting = false,
   isSubmitDisabled = false,
   onSubmit,
@@ -50,67 +57,40 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   const t = useTranslations("dialog");
   const formId = useId();
   const isEdit = mode ? mode === "edit" : Boolean(entity);
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [pendingCloseSource, setPendingCloseSource] = useState<"cancel" | "dismiss">("dismiss");
 
-  const prevOpenRef = useRef(false);
-  const prevEntityIdRef = useRef<unknown>(undefined);
-  const prevDefaultsRef = useRef<Record<string, unknown> | undefined>(undefined);
-  const baseDefaultsRef = useRef<Record<string, unknown> | undefined>(undefined);
-
-  // Synchronize entity / defaultValues on open, entity swap, or late async defaults while clean
-  useEffect(() => {
-    if (!form) return;
-
-    if (baseDefaultsRef.current === undefined) {
-      const formDefaults = form.options?.defaultValues;
-      baseDefaultsRef.current =
-        formDefaults && typeof formDefaults === "object" ? { ...(formDefaults as Record<string, unknown>) } : {};
-    }
-
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (!open) {
-      prevOpenRef.current = false;
-      prevEntityIdRef.current = undefined;
-      prevDefaultsRef.current = undefined;
-      return;
+      setShowDiscardConfirm(false);
+      setPendingCloseSource("dismiss");
     }
+  }
 
-    const currentEntityId =
-      entity && typeof entity === "object"
-        ? ((entity as Record<string, unknown>).id ?? (entity as Record<string, unknown>)._id ?? undefined)
-        : entity;
-    const justOpened = !prevOpenRef.current && open;
-    const entityChanged = prevEntityIdRef.current !== currentEntityId && (justOpened || currentEntityId !== undefined);
-    const defaultsArrivedClean = !form.state?.isDirty && !isEqual(prevDefaultsRef.current, defaultValues);
+  const { isFormDirty } = useFormHostSync({
+    open,
+    form,
+    entity,
+    defaultValues,
+    isDirtyProp: isDirty,
+  });
 
-    if (justOpened || entityChanged || defaultsArrivedClean) {
-      const mergedValues: Record<string, unknown> = {
-        ...baseDefaultsRef.current,
-        ...defaultValues,
-      };
-      if (entity && typeof entity === "object") {
-        for (const [key, val] of Object.entries(entity as Record<string, unknown>)) {
-          if (val !== undefined) {
-            mergedValues[key] = val;
-          }
-        }
-      }
-
-      if (Object.keys(mergedValues).length > 0) {
-        form.reset(mergedValues);
-      } else {
-        form.reset();
-      }
-    }
-
-    prevOpenRef.current = open;
-    prevEntityIdRef.current = currentEntityId;
-    prevDefaultsRef.current = defaultValues;
-  }, [open, entity, form, defaultValues]);
-
-  const resolvedTitle =
+  const baseTitle =
     title ??
     (isEdit
       ? (editTitle ?? t("form_edit_title", { entityName }))
       : (createTitle ?? t("form_create_title", { entityName })));
+
+  const resolvedTitle = badge ? (
+    <span className="inline-flex items-center gap-2.5">
+      <span>{baseTitle}</span>
+      {badge}
+    </span>
+  ) : (
+    baseTitle
+  );
 
   const resolvedSubmitText =
     submitText ??
@@ -119,16 +99,44 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
       : (createSubmitText ?? t("form_create_submit", { entityName })));
 
   const resolvedCancelText = cancelText ?? t("cancel");
+  const resolvedSaveAndContinueText = saveAndContinueText ?? t("save_and_continue");
   const displaySubmitText = isSubmitting && !submitText ? t("form_submitting") : resolvedSubmitText;
 
   const formContextValue = useMemo(() => ({ form }), [form]);
 
+  const requestClose = useMemoizedFn((fromCancelButton: boolean) => {
+    if (isSubmitting) return;
+    const source = fromCancelButton ? "cancel" : "dismiss";
+    if (enableDirtyGuard && isFormDirty) {
+      setPendingCloseSource(source);
+      setShowDiscardConfirm(true);
+      return;
+    }
+    if (fromCancelButton) {
+      onCancel?.();
+    }
+    onOpenChange(false);
+  });
+
   const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
     if (isSubmitting) return;
+    if (!nextOpen) {
+      requestClose(false);
+      return;
+    }
     onOpenChange(nextOpen);
   });
 
   const handleCancel = useMemoizedFn(() => {
+    requestClose(true);
+  });
+
+  const handleConfirmDiscard = useMemoizedFn(() => {
+    setShowDiscardConfirm(false);
+    if (pendingCloseSource === "cancel") {
+      onCancel?.();
+    }
+    setPendingCloseSource("dismiss");
     onOpenChange(false);
   });
 
@@ -160,6 +168,18 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
         >
           {resolvedCancelText}
         </Button>
+        {onSaveAndContinue ? (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => void onSaveAndContinue()}
+            disabled={isSubmitting || isSubmitDisabled}
+            className="h-8.5 px-4 text-xs font-medium"
+          >
+            {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" /> : null}
+            {resolvedSaveAndContinueText}
+          </Button>
+        ) : null}
         <Button
           type="submit"
           disabled={isSubmitting || isSubmitDisabled}
@@ -173,20 +193,32 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   );
 
   return (
-    <ModalFrame
-      open={open}
-      onOpenChange={handleOpenChange}
-      variant={variant}
-      size={size}
-      widthClassName={widthClassName}
-      className={className}
-      allowFullscreen={allowFullscreen}
-      fullscreen={controlledFullscreen}
-      onFullscreenChange={onFullscreenChange}
-      title={resolvedTitle}
-      description={description}
-    >
-      {renderFormContent(variant === "sheet" ? SheetFooter : DialogFooter)}
-    </ModalFrame>
+    <>
+      <ModalFrame
+        open={open}
+        onOpenChange={handleOpenChange}
+        variant={variant}
+        size={size}
+        widthClassName={widthClassName}
+        className={className}
+        allowFullscreen={allowFullscreen}
+        fullscreen={controlledFullscreen}
+        onFullscreenChange={onFullscreenChange}
+        title={resolvedTitle}
+        description={description}
+      >
+        {renderFormContent(variant === "sheet" ? SheetFooter : DialogFooter)}
+      </ModalFrame>
+
+      <UnsavedChangesDialog
+        open={showDiscardConfirm}
+        onOpenChange={setShowDiscardConfirm}
+        title={t("unsaved_changes_title")}
+        description={t("unsaved_changes_desc")}
+        stayText={t("unsaved_changes_stay")}
+        discardText={t("unsaved_changes_discard")}
+        onConfirmDiscard={handleConfirmDiscard}
+      />
+    </>
   );
 });

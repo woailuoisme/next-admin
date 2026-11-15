@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Edit, Loader2 } from "lucide-react";
 import { memo } from "react";

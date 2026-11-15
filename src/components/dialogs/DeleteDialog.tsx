@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMemoizedFn, useUnmountedRef } from "ahooks";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
-import { memo, useState } from "react";
+import { memo, useId, useState } from "react";
 
 import {
   AlertDialog,
@@ -21,6 +21,11 @@ import { cn } from "cn";
 
 import type { DeleteDialogProps } from "./types";
 
+interface DeleteDialogContentPanelProps extends DeleteDialogProps {
+  internalPending: boolean;
+  onInternalPendingChange: (pending: boolean) => void;
+}
+
 const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
   onOpenChange,
   entityName = "Item",
@@ -34,12 +39,14 @@ const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
   confirmKeyword,
   autoFocusInput = true,
   isPending = false,
+  internalPending,
+  onInternalPendingChange,
   onConfirm,
   className,
-}: DeleteDialogProps) {
+}: DeleteDialogContentPanelProps) {
   const t = useTranslations("dialog");
+  const keywordInputId = useId();
   const [confirmInput, setConfirmInput] = useState("");
-  const [internalPending, setInternalPending] = useState(false);
   const unmountedRef = useUnmountedRef();
 
   const isBatch = itemCount > 1;
@@ -74,14 +81,14 @@ const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
   const handleConfirm = useMemoizedFn(async () => {
     if (!isKeywordMatched) return;
     try {
-      setInternalPending(true);
+      onInternalPendingChange(true);
       await onConfirm();
       if (!unmountedRef.current) {
         onOpenChange(false);
       }
     } finally {
       if (!unmountedRef.current) {
-        setInternalPending(false);
+        onInternalPendingChange(false);
       }
     }
   });
@@ -108,10 +115,11 @@ const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
       {/* Keyword Verification Input for High-Risk Actions */}
       {hasKeywordRequirement ? (
         <div className="space-y-1.5 pt-1 pb-2">
-          <Label className="text-muted-foreground text-xs">
+          <Label htmlFor={keywordInputId} className="text-muted-foreground text-xs">
             {t("delete_keyword_prompt", { keyword: targetKeyword })}
           </Label>
           <Input
+            id={keywordInputId}
             value={confirmInput}
             onChange={(e) => setConfirmInput(e.target.value)}
             onKeyDown={(e) => {
@@ -150,15 +158,22 @@ const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
 
 export const DeleteDialog = memo(function DeleteDialog(props: DeleteDialogProps) {
   const { open, onOpenChange, isPending } = props;
+  const [internalPending, setInternalPending] = useState(false);
 
   const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
-    if (isPending) return;
+    if (isPending || internalPending) return;
     onOpenChange(nextOpen);
   });
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      {open ? <DeleteDialogContentPanel {...props} /> : null}
+      {open ? (
+        <DeleteDialogContentPanel
+          {...props}
+          internalPending={internalPending}
+          onInternalPendingChange={setInternalPending}
+        />
+      ) : null}
     </AlertDialog>
   );
 });

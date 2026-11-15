@@ -97,19 +97,21 @@ export const RootErrorComponent = memo(function RootErrorComponent({
       </div>
       {process.env.NODE_ENV !== "production" && (error instanceof Error || info?.componentStack) && (
         <div className="mt-8 w-full max-w-2xl text-left">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             aria-expanded={showDetails}
             aria-controls="error-stack-trace"
             onClick={toggleDetails}
-            className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1.5 font-mono text-xs transition-colors"
+            className="text-muted-foreground hover:text-foreground h-auto px-2 py-1 font-mono text-xs"
           >
             <ChevronDown
               aria-hidden="true"
               className={cn("size-3.5 transition-transform duration-200", showDetails && "rotate-180")}
             />
             {showDetails ? t("error_hide_details") : t("error_show_details")}
-          </button>
+          </Button>
           {showDetails && (
             <pre
               id="error-stack-trace"

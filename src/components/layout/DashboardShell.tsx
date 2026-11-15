@@ -33,7 +33,7 @@ export const DashboardShell = memo(function DashboardShell({ children }: Dashboa
           id="main-content"
           tabIndex={-1}
           role="region"
-          aria-label={t("skip_to_content")}
+          aria-label={t("main_content_aria")}
           className="flex-1 overflow-y-auto p-4 outline-hidden md:p-6 lg:p-8"
         >
           {children}

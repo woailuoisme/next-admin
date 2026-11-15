@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { memo, type ReactNode } from "react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -46,6 +47,7 @@ export const ModalFrame = memo(function ModalFrame({
   headerSlot,
   children,
 }: ModalFrameProps) {
+  const t = useTranslations("dialog");
   const { isFullscreen, toggleFullscreen } = useDialogFullscreen({
     open,
     fullscreen: controlledFullscreen,
@@ -55,11 +57,18 @@ export const ModalFrame = memo(function ModalFrame({
   if (variant === "sheet") {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className={getSheetContentClassName({ widthClassName, size, className })}>
+        <SheetContent
+          side="right"
+          className={getSheetContentClassName({ isFullscreen, widthClassName, size, className })}
+        >
           <SheetHeader className="border-border/60 shrink-0 border-b px-6 py-4 pr-16">
             {headerSlot || (
               <>
-                {title ? <SheetTitle>{title}</SheetTitle> : <SheetTitle className="sr-only">Sheet</SheetTitle>}
+                {title ? (
+                  <SheetTitle>{title}</SheetTitle>
+                ) : (
+                  <SheetTitle className="sr-only">{t("sheet_sr_title")}</SheetTitle>
+                )}
                 {description ? (
                   <SheetDescription className="text-muted-foreground text-xs leading-normal">
                     {description}
@@ -68,7 +77,10 @@ export const ModalFrame = memo(function ModalFrame({
               </>
             )}
           </SheetHeader>
-          {children}
+          {open ? children : null}
+          {allowFullscreen ? (
+            <FullscreenToggle variant="sheet" isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
+          ) : null}
         </SheetContent>
       </Sheet>
     );
@@ -77,12 +89,14 @@ export const ModalFrame = memo(function ModalFrame({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={getDialogContentClassName({ isFullscreen, widthClassName, size, className })}>
-        {allowFullscreen ? <FullscreenToggle isFullscreen={isFullscreen} onToggle={toggleFullscreen} /> : null}
-
         <DialogHeader className="border-border/60 shrink-0 border-b px-6 py-4 pr-16">
           {headerSlot || (
             <>
-              {title ? <DialogTitle>{title}</DialogTitle> : <DialogTitle className="sr-only">Dialog</DialogTitle>}
+              {title ? (
+                <DialogTitle>{title}</DialogTitle>
+              ) : (
+                <DialogTitle className="sr-only">{t("dialog_sr_title")}</DialogTitle>
+              )}
               {description ? (
                 <DialogDescription className="text-muted-foreground text-xs leading-normal">
                   {description}
@@ -92,7 +106,11 @@ export const ModalFrame = memo(function ModalFrame({
           )}
         </DialogHeader>
 
-        {children}
+        {open ? children : null}
+
+        {allowFullscreen ? (
+          <FullscreenToggle variant="dialog" isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
+        ) : null}
       </DialogContent>
     </Dialog>
   );

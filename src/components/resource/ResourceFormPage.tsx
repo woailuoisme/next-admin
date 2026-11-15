@@ -1,8 +1,13 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
-import { memo, useEffect } from "react";
+import { memo, type SubmitEvent, useEffect, useMemo, useState } from "react";
 
+import { useFormHostSync } from "@/components/dialogs/hooks/useFormHostSync";
+import { UnsavedChangesDialog } from "@/components/dialogs/UnsavedChangesDialog";
+import { dispatchFormSubmit, FormContext } from "@/components/form/core/FormContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 
@@ -11,14 +16,23 @@ import type { ResourceFormHostProps } from "./types";
 import { ResourcePageHeader } from "./ResourcePageHeader";
 import { useResourceBackNavigation } from "./useResourceBackNavigation";
 
-export const ResourceFormPage = memo(function ResourceFormPage({
+export const ResourceFormPage = memo(function ResourceFormPage<TData = Record<string, unknown>>({
+  form,
+  defaultValues,
+  mode,
+  entity,
+  entityName,
   title,
+  createTitle,
+  editTitle,
   description,
   badge,
   breadcrumbs,
   backTo,
   backLabel,
   submitText,
+  createSubmitText,
+  editSubmitText,
   cancelText,
   saveAndContinueText,
   onSaveAndContinue,
@@ -32,17 +46,40 @@ export const ResourceFormPage = memo(function ResourceFormPage({
   footerClassName,
   className,
   children,
-}: Omit<ResourceFormHostProps, "presentation" | "open" | "onOpenChange" | "size">) {
+}: Omit<ResourceFormHostProps<TData>, "presentation" | "open" | "onOpenChange" | "size">) {
   const t = useTranslations("resource");
+  const tDialog = useTranslations("dialog");
   const goBack = useResourceBackNavigation(backTo);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
-  const resolvedSubmitText = submitText ?? t("save_changes");
+  const isEdit = mode ? mode === "edit" : Boolean(entity);
+  const { isFormDirty } = useFormHostSync({
+    open: true,
+    form,
+    entity,
+    defaultValues,
+    isDirtyProp: isDirty,
+  });
+
+  const resolvedTitle =
+    title ??
+    (isEdit
+      ? (editTitle ?? (entityName ? tDialog("form_edit_title", { entityName }) : undefined))
+      : (createTitle ?? (entityName ? tDialog("form_create_title", { entityName }) : undefined)));
+
+  const resolvedSubmitText =
+    submitText ??
+    (isEdit
+      ? (editSubmitText ?? (entityName ? tDialog("form_edit_submit", { entityName }) : t("save_changes")))
+      : (createSubmitText ?? (entityName ? tDialog("form_create_submit", { entityName }) : t("save_changes"))));
   const resolvedCancelText = cancelText ?? t("cancel");
   const resolvedSaveAndContinueText = saveAndContinueText ?? t("save_and_continue");
 
+  const formContextValue = useMemo(() => ({ form }), [form]);
+
   // 浏览器刷新/关闭未保存拦截
   useEffect(() => {
-    if (!enableDirtyGuard || !isDirty) return;
+    if (!enableDirtyGuard || !isFormDirty) return;
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
@@ -53,13 +90,9 @@ export const ResourceFormPage = memo(function ResourceFormPage({
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [enableDirtyGuard, isDirty]);
+  }, [enableDirtyGuard, isFormDirty]);
 
-  const handleCancel = useMemoizedFn(() => {
-    if (enableDirtyGuard && isDirty && !window.confirm(t("unsaved_changes_confirm"))) {
-      return;
-    }
-
+  const executeCancel = useMemoizedFn(() => {
     if (onCancel) {
       onCancel();
     } else {
@@ -67,10 +100,27 @@ export const ResourceFormPage = memo(function ResourceFormPage({
     }
   });
 
+  const handleCancel = useMemoizedFn(() => {
+    if (enableDirtyGuard && isFormDirty) {
+      setShowDiscardConfirm(true);
+      return;
+    }
+    executeCancel();
+  });
+
+  const handleConfirmDiscard = useMemoizedFn(() => {
+    setShowDiscardConfirm(false);
+    executeCancel();
+  });
+
+  const handleFormSubmit = useMemoizedFn((e: SubmitEvent<HTMLFormElement>) => {
+    dispatchFormSubmit(e, form, onSubmit);
+  });
+
   return (
     <div className={cn("mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8", className)}>
       <ResourcePageHeader
-        title={title}
+        title={resolvedTitle}
         description={description}
         badge={badge}
         breadcrumbs={breadcrumbs}
@@ -80,8 +130,10 @@ export const ResourceFormPage = memo(function ResourceFormPage({
       />
 
       {/* 本组件拥有 <form> 元素：children 只能是字段内容，严禁再嵌套 form / <Form as="form"> */}
-      <form onSubmit={onSubmit} className="space-y-6">
-        <div className="min-h-[300px] space-y-6">{children}</div>
+      <form onSubmit={handleFormSubmit} className="space-y-6">
+        <div className="min-h-75 space-y-6">
+          <FormContext value={formContextValue}>{children}</FormContext>
+        </div>
 
         {/* 工业级吸底固定操作栏 (Sticky Bottom Bar) */}
         <div
@@ -105,7 +157,7 @@ export const ResourceFormPage = memo(function ResourceFormPage({
               <Button
                 type="button"
                 variant="outline"
-                onClick={onSaveAndContinue}
+                onClick={() => void onSaveAndContinue()}
                 disabled={isSubmitting || isSubmitDisabled}
                 className="h-8.5 px-4 text-xs font-medium"
               >
@@ -125,6 +177,16 @@ export const ResourceFormPage = memo(function ResourceFormPage({
           </div>
         </div>
       </form>
+
+      <UnsavedChangesDialog
+        open={showDiscardConfirm}
+        onOpenChange={setShowDiscardConfirm}
+        title={t("unsaved_changes_title")}
+        description={t("unsaved_changes_confirm")}
+        stayText={t("unsaved_changes_stay")}
+        discardText={t("unsaved_changes_discard")}
+        onConfirmDiscard={handleConfirmDiscard}
+      />
     </div>
   );
 });

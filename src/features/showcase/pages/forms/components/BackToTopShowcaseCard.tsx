@@ -1,14 +1,18 @@
 "use client";
 
 import { useMemoizedFn } from "ahooks";
-import { useRef, useState } from "react";
+import { Lightbulb } from "lucide-react";
+import { useId, useRef, useState } from "react";
 
 import { BackToTop } from "@/components/shared/BackToTop";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 import { LOCAL_SCROLL_ITEMS } from "../constants";
 
 export function BackToTopShowcaseCard() {
+  const checkboxId = useId();
   const localContainerRef = useRef<HTMLDivElement>(null);
   const [showProgress, setShowProgress] = useState(true);
 
@@ -25,21 +29,26 @@ export function BackToTopShowcaseCard() {
               支持全屏主窗口与局部可滚动容器双重场景，具备 SVG 动态进度环与平滑回滚。
             </CardDescription>
           </div>
-          <label className="flex cursor-pointer items-center gap-2 text-xs select-none">
-            <span className="text-muted-foreground">显示环形进度条</span>
-            <input
-              type="checkbox"
+          <div className="flex items-center gap-2 select-none">
+            <Label htmlFor={checkboxId} className="text-muted-foreground cursor-pointer text-xs font-normal">
+              显示环形进度条
+            </Label>
+            <Checkbox
+              id={checkboxId}
               checked={showProgress}
-              onChange={(e) => setShowProgress(e.target.checked)}
-              className="accent-primary size-4 cursor-pointer rounded"
+              onCheckedChange={(checked) => setShowProgress(Boolean(checked))}
+              className="cursor-pointer"
             />
-          </label>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4 text-xs">
-        <p className="bg-muted/40 text-muted-foreground rounded-md p-2.5">
-          💡 <strong>全局模式提示</strong>：向下滚动当前表单页面超过
-          300px，页面右下角将自动浮现带有实时滚动进度环的全局返回顶部按钮。
+        <p className="bg-muted/40 text-muted-foreground flex items-start gap-1.5 rounded-md p-2.5">
+          <Lightbulb className="text-primary mt-0.5 size-3.5 shrink-0" />
+          <span>
+            <strong>全局模式提示</strong>：向下滚动当前表单页面超过
+            300px，页面右下角将自动浮现带有实时滚动进度环的全局返回顶部按钮。
+          </span>
         </p>
         <div className="relative">
           <div className="text-foreground/80 mb-2 font-medium">

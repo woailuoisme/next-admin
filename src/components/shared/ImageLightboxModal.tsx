@@ -22,10 +22,11 @@ function ImageLightboxModalInner({
   url,
   images = [],
   initialIndex = 0,
-  alt = "Preview",
+  alt,
   onClose,
 }: ImageLightboxModalProps) {
   const t = useTranslations("common");
+  const resolvedAlt = alt ?? t("image_preview_alt");
   const resolvedPreviewUrl = url ?? previewUrl ?? null;
   // Active images list for gallery navigation
   const activeImages = images.length > 0 ? images : resolvedPreviewUrl ? [resolvedPreviewUrl] : [];
@@ -79,13 +80,13 @@ function ImageLightboxModalInner({
       {/* 补 `sm:max-w-3xl`：DialogContent 基础含 `sm:max-w-sm`，裸 `max-w-3xl` 不在同一
 			    合并组内会被它击败 → ≥640px 时灯箱被压到 24rem，大图无法正常查看。 */}
       <DialogContent className="border-border bg-background/95 max-w-3xl overflow-hidden p-3 backdrop-blur-md sm:max-w-3xl">
-        <DialogTitle className="sr-only">{alt}</DialogTitle>
+        <DialogTitle className="sr-only">{resolvedAlt}</DialogTitle>
         {currentUrl && (
           <div className="relative flex max-h-[82vh] flex-col items-center justify-center overflow-hidden rounded-lg">
             <div className="relative flex max-h-[75vh] w-full items-center justify-center">
               <img
                 src={currentUrl}
-                alt={`${alt} (${currentIndex + 1}/${activeImages.length})`}
+                alt={`${resolvedAlt} (${currentIndex + 1}/${activeImages.length})`}
                 className="max-h-[72vh] w-auto max-w-full rounded object-contain shadow-md"
               />
 
@@ -118,7 +119,7 @@ function ImageLightboxModalInner({
 
             {/* Footer with Alt & Counter */}
             <div className="text-muted-foreground mt-2.5 flex w-full items-center justify-between px-2 text-xs">
-              <p className="truncate font-medium">{alt}</p>
+              <p className="truncate font-medium">{resolvedAlt}</p>
               {hasMultiple && (
                 <span className="border-border/60 bg-muted/60 rounded-md border px-2 py-0.5 font-mono text-[11px]">
                   {currentIndex + 1} / {activeImages.length}

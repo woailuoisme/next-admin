@@ -23,8 +23,22 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}) {
     ["meta.k", "ctrl.k", "/"],
     (event) => {
       const target = event.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
-        return;
+      const isModifierShortcut = event.metaKey || event.ctrlKey;
+      if (target) {
+        const isEditableTarget =
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable;
+        if (isEditableTarget) {
+          return;
+        }
+        if (
+          !isModifierShortcut &&
+          target.closest('[role="combobox"], [role="listbox"], [role="dialog"], [role="menu"]')
+        ) {
+          return;
+        }
       }
       event.preventDefault();
       toggle();

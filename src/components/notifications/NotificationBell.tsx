@@ -43,10 +43,10 @@ export const NotificationBell = memo(function NotificationBell({ className }: No
     [filterCategory, filterUnread],
   );
 
-  // 闭合态：轻量未读数
+  // 闭合态：轻量未读数（与 "all" 页签共享归一化后的 queryKey 缓存）
   const { data: countData } = useUnreadNotificationCount();
 
-  // 实时推送监听：自动增量推送到 TanStack Query 缓存并触发 Toast
+  // 实时推送监听：按分类与未读条件精准增量写入缓存并触发 Toast
   useRealtimeNotifications();
 
   // 展开态：按需拉取详情列表
@@ -75,7 +75,12 @@ export const NotificationBell = memo(function NotificationBell({ className }: No
     if (!item.read) {
       markAsReadMutation.mutate(item.id);
     }
-    if (item.actionUrl && item.actionUrl.startsWith("/") && !item.actionUrl.startsWith("//")) {
+    if (
+      item.actionUrl &&
+      item.actionUrl.startsWith("/") &&
+      !item.actionUrl.startsWith("//") &&
+      !item.actionUrl.startsWith("/\\")
+    ) {
       setOpen(false);
       router.push(item.actionUrl);
     }

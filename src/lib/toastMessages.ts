@@ -33,4 +33,9 @@ export const toastMessages = {
   // Notifications
   allNotificationsRead: () => translate("all_notifications_read"),
   allNotificationsReadError: () => translate("all_notifications_read_error"),
+
+  // Batch Operations
+  batchSuccess: (count: number, entityName: string) => translate("batch_success", { count, entityName }),
+  batchPartialError: (succeeded: number, total: number, failed: number, entityName: string) =>
+    translate("batch_partial_error", { succeeded, total, failed, entityName }),
 };

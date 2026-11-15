@@ -1,3 +1,5 @@
+"use client";
+
 import { memo } from "react";
 
 import { FormDialog } from "@/components/dialogs";
@@ -22,10 +24,14 @@ export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<st
   presentation = "dialog",
   open = false,
   onOpenChange = NOOP,
+  form,
+  defaultValues,
   mode,
   entity,
   entityName = "Record",
   title,
+  createTitle,
+  editTitle,
   description,
   badge,
   size = "md",
@@ -39,13 +45,15 @@ export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<st
   backTo,
   backLabel,
   submitText,
+  createSubmitText,
+  editSubmitText,
   cancelText,
   saveAndContinueText,
   onSaveAndContinue,
   isSubmitting = false,
   isSubmitDisabled = false,
   isDirty = false,
-  enableDirtyGuard = true,
+  enableDirtyGuard,
   onSubmit,
   onCancel,
   extraActions,
@@ -54,20 +62,29 @@ export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<st
   if (presentation === "page") {
     return (
       <ResourceFormPage
+        form={form}
+        defaultValues={defaultValues}
+        mode={mode}
+        entity={entity}
+        entityName={entityName}
         title={title}
+        createTitle={createTitle}
+        editTitle={editTitle}
         description={description}
         badge={badge}
         breadcrumbs={breadcrumbs}
         backTo={backTo}
         backLabel={backLabel}
         submitText={submitText}
+        createSubmitText={createSubmitText}
+        editSubmitText={editSubmitText}
         cancelText={cancelText}
         saveAndContinueText={saveAndContinueText}
         onSaveAndContinue={onSaveAndContinue}
         isSubmitting={isSubmitting}
         isSubmitDisabled={isSubmitDisabled}
         isDirty={isDirty}
-        enableDirtyGuard={enableDirtyGuard}
+        enableDirtyGuard={enableDirtyGuard ?? true}
         onSubmit={onSubmit}
         onCancel={onCancel}
         extraActions={extraActions}
@@ -84,15 +101,27 @@ export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<st
       open={open}
       onOpenChange={onOpenChange}
       variant={presentation === "drawer" ? "sheet" : "dialog"}
+      form={form}
+      defaultValues={defaultValues}
       mode={mode}
       entity={entity}
       entityName={entityName}
       title={title}
+      createTitle={createTitle}
+      editTitle={editTitle}
       description={description}
+      badge={badge}
       size={size}
       widthClassName={widthClassName}
       submitText={submitText}
+      createSubmitText={createSubmitText}
+      editSubmitText={editSubmitText}
       cancelText={cancelText}
+      saveAndContinueText={saveAndContinueText}
+      onSaveAndContinue={onSaveAndContinue}
+      onCancel={onCancel}
+      isDirty={isDirty}
+      enableDirtyGuard={enableDirtyGuard ?? false}
       isSubmitting={isSubmitting}
       isSubmitDisabled={isSubmitDisabled}
       onSubmit={onSubmit}

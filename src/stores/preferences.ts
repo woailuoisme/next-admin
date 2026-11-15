@@ -86,6 +86,27 @@ export const THEME_COLOR_STORAGE_KEY = "app-theme-color";
 export const THEME_MODE_STORAGE_KEY = "theme";
 export const THEME_RADIUS_STORAGE_KEY = "app-theme-radius";
 
+const DEFAULT_RADIUS = "0.45rem";
+const RADIUS_VALUES_SET = new Set(RADIUS_OPTIONS.map((opt) => opt.value));
+
+function safeGetStorage(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSetStorage(key: string, value: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage access errors in restricted/private browser contexts
+  }
+}
+
 function getSystemTheme(): "light" | "dark" {
   if (typeof window === "undefined" || !window.matchMedia) return "light";
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -109,8 +130,7 @@ function applyThemeDom(color: ThemeColor, currentMode: ThemeMode, currentRadius:
 }
 
 function getInitialColor(): ThemeColor {
-  if (typeof window === "undefined") return "default";
-  const stored = window.localStorage.getItem(THEME_COLOR_STORAGE_KEY);
+  const stored = safeGetStorage(THEME_COLOR_STORAGE_KEY);
   if (stored && THEME_IDS_SET.has(stored)) {
     return stored as ThemeColor;
   }
@@ -118,8 +138,8 @@ function getInitialColor(): ThemeColor {
 }
 
 function getInitialMode(): ThemeMode {
-  if (typeof window === "undefined") return "auto";
-  const stored = window.localStorage.getItem(THEME_MODE_STORAGE_KEY);
+  const stored = safeGetStorage(THEME_MODE_STORAGE_KEY);
+  if (stored === "system") return "auto";
   if (stored === "light" || stored === "dark" || stored === "auto") {
     return stored;
   }
@@ -127,9 +147,11 @@ function getInitialMode(): ThemeMode {
 }
 
 function getInitialRadius(): string {
-  if (typeof window === "undefined") return "0.45rem";
-  const stored = window.localStorage.getItem(THEME_RADIUS_STORAGE_KEY);
-  return stored ?? "0.45rem";
+  const stored = safeGetStorage(THEME_RADIUS_STORAGE_KEY);
+  if (stored && RADIUS_VALUES_SET.has(stored)) {
+    return stored;
+  }
+  return DEFAULT_RADIUS;
 }
 
 export interface PreferencesState {
@@ -150,29 +172,23 @@ function computeActiveThemeMeta(theme: ThemeColor): ThemeMeta {
   return THEME_CONFIG_MAP.get(theme) ?? THEME_CONFIGS[0];
 }
 
-const initialColor = getInitialColor();
-const initialMode = getInitialMode();
-const initialRadius = getInitialRadius();
-const initialResolvedMode = initialMode === "auto" ? getSystemTheme() : initialMode;
-
 export const usePreferencesStore = create<PreferencesState>()((set, get) => ({
-  theme: initialColor,
-  mode: initialMode,
-  resolvedMode: initialResolvedMode,
-  radius: initialRadius,
+  theme: "default",
+  mode: "auto",
+  resolvedMode: "light",
+  radius: DEFAULT_RADIUS,
   themes: THEME_CONFIGS,
-  activeThemeMeta: computeActiveThemeMeta(initialColor),
+  activeThemeMeta: computeActiveThemeMeta("default"),
 
   setTheme: (newTheme: ThemeColor) => {
     const state = get();
     const meta = THEME_CONFIG_MAP.get(newTheme);
-    const targetRadius = meta?.defaultRadius ?? state.radius;
+    const targetRadius =
+      meta?.defaultRadius && RADIUS_VALUES_SET.has(meta.defaultRadius) ? meta.defaultRadius : state.radius;
 
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(THEME_COLOR_STORAGE_KEY, newTheme);
-      if (meta?.defaultRadius) {
-        window.localStorage.setItem(THEME_RADIUS_STORAGE_KEY, meta.defaultRadius);
-      }
+    safeSetStorage(THEME_COLOR_STORAGE_KEY, newTheme);
+    if (meta?.defaultRadius && RADIUS_VALUES_SET.has(meta.defaultRadius)) {
+      safeSetStorage(THEME_RADIUS_STORAGE_KEY, meta.defaultRadius);
     }
 
     const resolved = applyThemeDom(newTheme, state.mode, targetRadius);
@@ -187,29 +203,40 @@ export const usePreferencesStore = create<PreferencesState>()((set, get) => ({
 
   setMode: (newMode: ThemeMode) => {
     const state = get();
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(THEME_MODE_STORAGE_KEY, newMode);
-    }
+    safeSetStorage(THEME_MODE_STORAGE_KEY, newMode);
 
     const resolved = applyThemeDom(state.theme, newMode, state.radius);
     set({ mode: newMode, resolvedMode: resolved });
   },
 
   setRadius: (newRadius: string) => {
+    if (!RADIUS_VALUES_SET.has(newRadius)) return;
     const state = get();
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(THEME_RADIUS_STORAGE_KEY, newRadius);
-    }
+    safeSetStorage(THEME_RADIUS_STORAGE_KEY, newRadius);
 
     applyThemeDom(state.theme, state.mode, newRadius);
     set({ radius: newRadius });
   },
 
   initTheme: () => {
-    const state = get();
-    const resolved = applyThemeDom(state.theme, state.mode, state.radius);
-    if (resolved !== state.resolvedMode) {
-      set({ resolvedMode: resolved });
+    const hydratedColor = getInitialColor();
+    const hydratedMode = getInitialMode();
+    const hydratedRadius = getInitialRadius();
+    const resolved = applyThemeDom(hydratedColor, hydratedMode, hydratedRadius);
+    const current = get();
+    if (
+      hydratedColor !== current.theme ||
+      hydratedMode !== current.mode ||
+      hydratedRadius !== current.radius ||
+      resolved !== current.resolvedMode
+    ) {
+      set({
+        theme: hydratedColor,
+        mode: hydratedMode,
+        radius: hydratedRadius,
+        resolvedMode: resolved,
+        activeThemeMeta: computeActiveThemeMeta(hydratedColor),
+      });
     }
 
     if (typeof window === "undefined" || !window.matchMedia) {

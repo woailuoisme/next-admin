@@ -1,7 +1,7 @@
 import type { ReactNode, SubmitEvent } from "react";
 
 import type { ModalKeyMapping } from "@/components/dialogs/hooks/useResourceModalState";
-import type { DialogSize } from "@/components/dialogs/types";
+import type { BaseFormInstance, DialogSize } from "@/components/dialogs/types";
 
 /**
  * Presentation mode for resource operations (Filament v5 style).
@@ -32,6 +32,14 @@ export interface ResourceFormHostProps<TData = Record<string, unknown>> {
    */
   onOpenChange?: (open: boolean) => void;
   /**
+   * TanStack Form instance to bind across dialog, drawer, and page modes.
+   */
+  form?: BaseFormInstance | any;
+  /**
+   * Default fallback values when resetting or creating an entity.
+   */
+  defaultValues?: Record<string, unknown>;
+  /**
    * Form mode: "create" or "edit".
    */
   mode?: "create" | "edit";
@@ -47,6 +55,14 @@ export interface ResourceFormHostProps<TData = Record<string, unknown>> {
    * Title of the form.
    */
   title?: ReactNode;
+  /**
+   * Explicit title override when in create mode.
+   */
+  createTitle?: ReactNode;
+  /**
+   * Explicit title override when in edit mode.
+   */
+  editTitle?: ReactNode;
   /**
    * Optional subtitle / description.
    */
@@ -72,7 +88,7 @@ export interface ResourceFormHostProps<TData = Record<string, unknown>> {
    */
   footerClassName?: string;
   /**
-   * Allow fullscreen toggle in Dialog mode.
+   * Allow fullscreen toggle in Dialog or Drawer mode.
    */
   allowFullscreen?: boolean;
   /**
@@ -104,6 +120,14 @@ export interface ResourceFormHostProps<TData = Record<string, unknown>> {
    */
   submitText?: ReactNode;
   /**
+   * Custom submit button text in create mode.
+   */
+  createSubmitText?: ReactNode;
+  /**
+   * Custom submit button text in edit mode.
+   */
+  editSubmitText?: ReactNode;
+  /**
    * Text for the cancel/close button. Defaults to "Cancel".
    */
   cancelText?: ReactNode;
@@ -128,7 +152,7 @@ export interface ResourceFormHostProps<TData = Record<string, unknown>> {
    */
   isDirty?: boolean;
   /**
-   * Whether to enable dirty check guard to prevent accidental navigation. Defaults to true for page mode.
+   * Whether to enable dirty check guard to prevent accidental navigation.
    */
   enableDirtyGuard?: boolean;
   /**
@@ -191,6 +215,18 @@ export interface ResourceViewHostProps {
    * Custom CSS class for footer actions container.
    */
   footerClassName?: string;
+  /**
+   * Allow fullscreen toggle in Dialog or Drawer mode.
+   */
+  allowFullscreen?: boolean;
+  /**
+   * Controlled fullscreen state.
+   */
+  fullscreen?: boolean;
+  /**
+   * Callback fired on fullscreen toggle.
+   */
+  onFullscreenChange?: (fullscreen: boolean) => void;
   /**
    * Breadcrumbs items for page mode.
    */

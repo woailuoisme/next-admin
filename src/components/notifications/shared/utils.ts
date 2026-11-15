@@ -1,6 +1,6 @@
 import { createNamespaceTranslator } from "@/i18n";
 
-export function formatRelativeTime(dateStr: string, t?: (key: any, values?: any) => string): string {
+export function formatRelativeTime(dateStr: string, t?: (key: any, values?: any) => string, locale?: string): string {
   const translator = t ?? createNamespaceTranslator("notification");
 
   const now = Date.now();
@@ -14,7 +14,7 @@ export function formatRelativeTime(dateStr: string, t?: (key: any, values?: any)
   if (diffHours < 24) return translator("time_hours_ago", { hours: diffHours });
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return translator("time_days_ago", { days: diffDays });
-  return new Date(dateStr).toLocaleDateString(undefined, {
+  return new Date(dateStr).toLocaleDateString(locale, {
     month: "numeric",
     day: "numeric",
   });

@@ -1,3 +1,5 @@
+"use client";
+
 import { memo } from "react";
 
 import { ViewDialog } from "@/components/dialogs";
@@ -29,6 +31,9 @@ export const ResourceViewHost = memo(function ResourceViewHost({
   widthClassName,
   className,
   footerClassName,
+  allowFullscreen,
+  fullscreen,
+  onFullscreenChange,
   breadcrumbs,
   backTo,
   backLabel,
@@ -71,6 +76,9 @@ export const ResourceViewHost = memo(function ResourceViewHost({
       badge={badge}
       size={size}
       widthClassName={widthClassName}
+      allowFullscreen={allowFullscreen}
+      fullscreen={fullscreen}
+      onFullscreenChange={onFullscreenChange}
       loading={loading}
       onEdit={onEdit}
       editText={editText}

@@ -4,6 +4,8 @@ import { clamp } from "es-toolkit";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { toastMessages } from "@/lib/toastMessages";
+
 export interface BatchMutationOptions<TItem, TResult = unknown> {
   /**
    * Async execution function invoked for each individual item.
@@ -131,12 +133,17 @@ export function useBatchMutation<TItem, TResult = unknown>(
                   if (failedItems.length === 0) {
                     const msg = successMessage
                       ? successMessage(items.length)
-                      : `Successfully processed ${items.length} ${entityName}${items.length > 1 ? "s" : ""}.`;
+                      : toastMessages.batchSuccess(items.length, entityName);
                     toast.success(msg);
                   } else {
                     const msg = errorMessage
                       ? errorMessage(failedItems.length, items.length)
-                      : `Completed with warnings: ${items.length - failedItems.length}/${items.length} ${entityName}s processed, ${failedItems.length} failed.`;
+                      : toastMessages.batchPartialError(
+                          items.length - failedItems.length,
+                          items.length,
+                          failedItems.length,
+                          entityName,
+                        );
                     toast.warning(msg);
                     onError?.(failedItems);
                   }
