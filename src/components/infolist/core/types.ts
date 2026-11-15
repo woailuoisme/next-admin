@@ -1,6 +1,8 @@
 import type * as React from "react";
 
-export type ColSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | "full";
+import type { ColSpan } from "@/components/shared/grid";
+
+export type { ColSpan };
 
 export type EntryOrientation = "vertical" | "horizontal";
 
@@ -25,25 +27,26 @@ export interface EntryBaseProps {
   className?: string;
   labelClassName?: string;
   contentClassName?: string;
-  /** 可选国际化字典覆盖 */
 }
 
 export interface EntryWrapperProps extends EntryBaseProps {
   children?: React.ReactNode;
 }
 
+export interface InfolistConfigValue {
+  orientation: EntryOrientation;
+  dense: boolean;
+}
+
 export interface InfolistContextValue<TRecord = unknown> {
   record?: TRecord;
   orientation?: EntryOrientation;
   dense?: boolean;
-  /** 可选国际化字典覆盖 */
 }
 
 export interface InfolistProps<TRecord = unknown> extends React.HTMLAttributes<HTMLDivElement> {
   record?: TRecord;
   orientation?: EntryOrientation;
   dense?: boolean;
-  /** 可选国际化字典覆盖 */
-
   children?: React.ReactNode;
 }

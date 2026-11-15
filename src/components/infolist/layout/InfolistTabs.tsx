@@ -1,10 +1,14 @@
+"use client";
+
 import * as React from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "cn";
 
 import type { InfolistTabsProps } from "./types";
 
+import { hasRenderableNode } from "../core/utils";
 import { InfolistGrid } from "./InfolistGrid";
 
 export const InfolistTabs = React.memo(function InfolistTabs({
@@ -14,7 +18,11 @@ export const InfolistTabs = React.memo(function InfolistTabs({
   onValueChange,
   className,
 }: InfolistTabsProps) {
-  const initialTab = defaultValue || tabs[0]?.value;
+  if (tabs.length === 0) {
+    return null;
+  }
+
+  const initialTab = defaultValue ?? tabs[0]?.value;
 
   return (
     <Tabs
@@ -23,27 +31,31 @@ export const InfolistTabs = React.memo(function InfolistTabs({
       onValueChange={onValueChange}
       className={cn("w-full space-y-4", className)}
     >
-      {/*
-				TabsList 基础为 `inline-flex` + 触发器的 `whitespace-nowrap`（min-width:auto），
-				故 Tab 数量多时总宽会超出容器且既不换行也不滚动 → 横向溢出。
-				这里补上横向滚动，并用 scrollbar-none 隐藏滚动条以保持外观整洁。
-			*/}
       <TabsList className="border-border/60 bg-muted/60 h-9 w-full scrollbar-none justify-start overflow-x-auto border p-1">
-        {tabs.map((tab) => (
-          <TabsTrigger
-            key={tab.value}
-            value={tab.value}
-            className="data-[state=active]:bg-background cursor-pointer gap-1.5 text-xs"
-          >
-            {tab.icon && <span className="size-3.5 shrink-0">{tab.icon}</span>}
-            <span>{tab.label}</span>
-            {tab.badge && (
-              <span className="bg-primary/15 text-primary ml-1 rounded-full px-1.5 py-0.5 text-[10px]">
-                {tab.badge}
-              </span>
-            )}
-          </TabsTrigger>
-        ))}
+        {tabs.map((tab) => {
+          const hasIcon = tab.icon !== null && tab.icon !== undefined && typeof tab.icon !== "boolean";
+          const hasBadge = hasRenderableNode(tab.badge);
+
+          return (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="data-active:bg-background data-[state=active]:bg-background cursor-pointer gap-1.5 text-xs"
+            >
+              {hasIcon && (
+                <span className="size-3.5 shrink-0" aria-hidden="true">
+                  {tab.icon}
+                </span>
+              )}
+              <span>{tab.label}</span>
+              {hasBadge && (
+                <Badge variant="secondary" className="bg-primary/15 text-primary ml-1 h-4 px-1.5 py-0 text-[10px]">
+                  {tab.badge}
+                </Badge>
+              )}
+            </TabsTrigger>
+          );
+        })}
       </TabsList>
 
       {tabs.map((tab) => (

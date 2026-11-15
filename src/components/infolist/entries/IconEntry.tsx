@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { CheckCircle2, XCircle } from "lucide-react";
 import * as React from "react";
 
@@ -11,19 +14,25 @@ import { useInfolistFieldValue } from "../core/InfolistContext";
 const iconColorClasses: Record<EntrySemanticColor, string> = {
   primary: "text-primary",
   secondary: "text-muted-foreground",
-  success: "text-emerald-600 dark:text-emerald-400",
-  warning: "text-amber-600 dark:text-amber-400",
+  success: "text-chart-2",
+  warning: "text-chart-4",
   destructive: "text-destructive",
-  info: "text-sky-600 dark:text-sky-400",
+  info: "text-chart-1",
   neutral: "text-muted-foreground",
 };
 
-function getIconEntryLabel(text: React.ReactNode | undefined, rawValue: unknown, valStr: string): React.ReactNode {
+function getIconEntryLabel(
+  text: React.ReactNode | undefined,
+  rawValue: unknown,
+  valStr: string,
+  booleanYesLabel: string,
+  booleanNoLabel: string,
+): React.ReactNode {
   if (text !== undefined) {
     return <span className="text-sm font-medium">{text}</span>;
   }
   if (typeof rawValue === "boolean") {
-    return <span className="text-muted-foreground text-sm">{rawValue ? "Yes" : "No"}</span>;
+    return <span className="text-muted-foreground text-sm">{rawValue ? booleanYesLabel : booleanNoLabel}</span>;
   }
   return <span className="text-foreground text-sm">{valStr}</span>;
 }
@@ -39,9 +48,10 @@ export const IconEntry = React.memo(function IconEntry({
   placeholder = "-",
   ...wrapperProps
 }: IconEntryProps) {
+  const t = useTranslations("infolist");
   const rawValue = useInfolistFieldValue(name, explicitValue);
 
-  if ((rawValue === null || rawValue === undefined) && !explicitIcon) {
+  if ((rawValue === null || rawValue === undefined || rawValue === "") && !explicitIcon) {
     return (
       <EntryWrapper {...wrapperProps}>
         <EntryPlaceholder>{placeholder}</EntryPlaceholder>
@@ -51,7 +61,7 @@ export const IconEntry = React.memo(function IconEntry({
 
   const valStr = String(rawValue);
 
-  let ResolvedIcon: React.ComponentType<{ className?: string }> | null = null;
+  let ResolvedIcon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }> | null = null;
   let resolvedColor: EntrySemanticColor = color ?? "neutral";
 
   if (iconMap && valStr in iconMap) {
@@ -72,8 +82,10 @@ export const IconEntry = React.memo(function IconEntry({
   return (
     <EntryWrapper {...wrapperProps}>
       <div className="inline-flex items-center gap-2">
-        {ResolvedIcon && <ResolvedIcon className={cn("size-4 shrink-0", iconColorClasses[resolvedColor])} />}
-        {getIconEntryLabel(text, rawValue, valStr)}
+        {ResolvedIcon && (
+          <ResolvedIcon className={cn("size-4 shrink-0", iconColorClasses[resolvedColor])} aria-hidden />
+        )}
+        {getIconEntryLabel(text, rawValue, valStr, t("boolean_yes"), t("boolean_no"))}
       </div>
     </EntryWrapper>
   );

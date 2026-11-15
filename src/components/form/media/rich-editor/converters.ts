@@ -1,3 +1,7 @@
+import { sanitizeRichEditorUrl } from "@/components/shared/url";
+
+export { sanitizeRichEditorUrl };
+
 /**
  * 富文本编解码契约：支持 HTML 与 Markdown 互转及统一 XSS / URL 协议净化。
  */
@@ -17,49 +21,6 @@ const HTML_ESCAPE_MAP: Record<string, string> = {
 
 export function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (ch) => HTML_ESCAPE_MAP[ch] ?? ch);
-}
-
-function decodeNamedSchemeEntities(raw: string): string {
-  return raw
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&colon;/gi, ":")
-    .replace(/&tab;/gi, "\t")
-    .replace(/&newline;/gi, "\n");
-}
-
-/**
- * 统一净化富文本链接地址，阻止换行/控制符、HTML 实体编码等混淆绕过的 `javascript:` / `vbscript:` / `data:` 协议注入。
- */
-export function sanitizeRichEditorUrl(rawUrl: string): string | null {
-  const trimmed = decodeNamedSchemeEntities(rawUrl.trim());
-  if (!trimmed) return null;
-
-  // 剥离空白符与 ASCII 控制字符后再做协议校验，拦截 `java\tscript:` / `\u0001javascript:` 等绕过
-  const stripped = trimmed
-    .replace(/&#(\d+);?/g, (_, code) => String.fromCharCode(Number(code)))
-    .replace(/&#x([0-9a-f]+);?/gi, (_, hex) => String.fromCharCode(Number.parseInt(hex, 16)))
-    // eslint-disable-next-line no-control-regex
-    .replace(/[\u0000-\u0020\u007F]+/g, "");
-
-  if (!stripped) return null;
-
-  if (/^(javascript|vbscript|data):/i.test(stripped)) {
-    return null;
-  }
-
-  // 允许安全相对路径、锚点、http(s)、mailto、tel
-  if (/^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(stripped)) {
-    return trimmed;
-  }
-
-  // 含有未知显式 scheme（如 `custom:foo`）一律拒绝，否则视为裸域名自动补齐 https://
-  if (/^[a-z][a-z0-9+.-]*:/i.test(stripped)) {
-    return null;
-  }
-
-  return `https://${trimmed}`;
 }
 
 export function simpleHtmlToMarkdown(html: string): string {

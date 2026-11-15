@@ -545,16 +545,19 @@
   "infolist": {
     "empty_text": "No data",
     "empty_desc": "No entries recorded in list",
-    "copy_action": "Click to copy",
-    "copied_success": "Copied to clipboard",
-    "copied_failed": "Copy failed",
     "open_external": "Open in new tab",
     "item_title": "Item #{index}",
     "expand": "Expand",
     "collapse": "Collapse",
     "section_expand": "Expand section",
     "section_collapse": "Collapse section",
-    "close_alert": "Close alert"
+    "close_alert": "Close alert",
+    "boolean_yes": "Yes",
+    "boolean_no": "No",
+    "kv_key": "Key",
+    "kv_value": "Value",
+    "empty_image": "No image",
+    "preview_image": "Preview image #{index}"
   },
   "shared": {
     "help_tooltip_aria": "View field help tooltip",

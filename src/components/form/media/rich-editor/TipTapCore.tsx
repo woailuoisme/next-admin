@@ -65,6 +65,8 @@ export const TipTapCore = memo(function TipTapCore({
   });
 
   const editor = useEditor({
+    // RichEditorInput loads TipTapCore via next/dynamic(..., { ssr: false }), so it only renders client-side.
+    immediatelyRender: true,
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },

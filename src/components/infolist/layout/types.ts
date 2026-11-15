@@ -1,23 +1,12 @@
 import type * as React from "react";
 
-export type GridColumns =
-  | 1
-  | 2
-  | 3
-  | 4
-  | 6
-  | 12
-  | {
-      default?: number;
-      sm?: number;
-      md?: number;
-      lg?: number;
-      xl?: number;
-    };
+import type { ColumnsCount, GridColumns, GridGap, ResponsiveColumns } from "@/components/shared/grid";
+
+export type { ColumnsCount, GridColumns, GridGap, ResponsiveColumns };
 
 export interface InfolistGridProps extends React.HTMLAttributes<HTMLDivElement> {
   columns?: GridColumns;
-  gap?: "none" | "sm" | "md" | "lg";
+  gap?: GridGap;
   children?: React.ReactNode;
 }
 
@@ -31,8 +20,6 @@ export interface InfolistSectionProps extends Omit<React.HTMLAttributes<HTMLDivE
   columns?: GridColumns;
   card?: boolean;
   footer?: React.ReactNode;
-  /** 可选国际化字典覆盖 */
-
   children?: React.ReactNode;
 }
 

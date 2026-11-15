@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 
 import { COL_SPAN_CLASSES } from "@/components/shared/grid";
@@ -6,7 +8,8 @@ import { cn } from "cn";
 
 import type { EntryWrapperProps } from "./types";
 
-import { useInfolistContext } from "./InfolistContext";
+import { InfolistConfigContext } from "./InfolistContext";
+import { hasRenderableNode } from "./utils";
 
 /**
  * 条目空值统一占位符
@@ -28,12 +31,16 @@ export const EntryWrapper = React.memo(function EntryWrapper({
   contentClassName,
   children,
 }: EntryWrapperProps) {
-  const context = useInfolistContext();
-
   if (hidden) return null;
 
-  const isInline = inline ?? context.orientation === "horizontal";
-  const isDense = context.dense ?? false;
+  const config = React.use(InfolistConfigContext);
+  const isInline = inline ?? config.orientation === "horizontal";
+  const isDense = config.dense;
+
+  const showLabel = hasRenderableNode(label);
+  const showHint = hasRenderableNode(hint);
+  const showTooltip = hasRenderableNode(tooltip);
+  const showHelperText = hasRenderableNode(helperText);
 
   return (
     <div
@@ -47,10 +54,10 @@ export const EntryWrapper = React.memo(function EntryWrapper({
         className,
       )}
     >
-      {(label || hint) && (
+      {(showLabel || showHint || showTooltip) && (
         <div className={cn("flex items-center justify-between gap-2", isInline && "sm:w-1/3 sm:shrink-0")}>
           <div className="flex items-center gap-1.5">
-            {label && (
+            {showLabel && (
               <span
                 className={cn(
                   "font-medium tracking-tight text-muted-foreground select-none",
@@ -62,10 +69,10 @@ export const EntryWrapper = React.memo(function EntryWrapper({
               </span>
             )}
 
-            {tooltip && <LabelHelpTooltip content={tooltip} />}
+            {showTooltip && <LabelHelpTooltip content={tooltip} />}
           </div>
 
-          {hint && <div className="text-muted-foreground/80 text-[11px] font-normal">{hint}</div>}
+          {showHint && <div className="text-muted-foreground/80 text-[11px] font-normal">{hint}</div>}
         </div>
       )}
 
@@ -78,7 +85,7 @@ export const EntryWrapper = React.memo(function EntryWrapper({
       >
         <div className="text-foreground w-full text-sm font-normal break-words">{children}</div>
 
-        {helperText && (
+        {showHelperText && (
           <div className={cn("mt-1 text-[11px] leading-relaxed text-muted-foreground/80", isInline && "sm:text-right")}>
             {helperText}
           </div>

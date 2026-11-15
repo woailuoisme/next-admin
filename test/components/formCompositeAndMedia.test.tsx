@@ -4,6 +4,19 @@ import { NextIntlClientProvider } from "next-intl";
 import { useState, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+const tiptapSpy = vi.hoisted(() => ({
+  useEditor: vi.fn(),
+}));
+
+vi.mock("@tiptap/react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@tiptap/react")>();
+  tiptapSpy.useEditor.mockImplementation((options, deps) => actual.useEditor(options, deps));
+  return {
+    ...actual,
+    useEditor: tiptapSpy.useEditor,
+  };
+});
+
 import { KeyValueInput } from "@/components/form/composite/key-value/KeyValueInput";
 import { Repeater } from "@/components/form/composite/repeater/Repeater";
 import { ColorPickerContent } from "@/components/form/media/color-picker/ColorPickerContent";
@@ -12,6 +25,7 @@ import { AvatarUploader } from "@/components/form/media/file-upload/AvatarUpload
 import { useFileUpload } from "@/components/form/media/file-upload/useFileUpload";
 import { RichEditorInput } from "@/components/form/media/rich-editor/RichEditorInput";
 import { RichEditorLinkPopover } from "@/components/form/media/rich-editor/RichEditorLinkPopover";
+import { TipTapCore } from "@/components/form/media/rich-editor/TipTapCore";
 import { DICTIONARY } from "@/i18n";
 import { renderWithProviders, screen, waitFor } from "test/test-utils";
 
@@ -130,6 +144,29 @@ describe("RichEditor single wrapper & safe link filtering", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Invalid or unsupported link URL protocol");
     expect(setLink).not.toHaveBeenCalled();
+  });
+
+  it("renders TipTapCore immediately on the client without Next.js immediatelyRender warnings", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    try {
+      const { container } = renderWithProviders(
+        <TipTapCore
+          id="bio-editor"
+          value="<p>Hello world</p>"
+          onChange={vi.fn()}
+          format="html"
+          toolbarButtons={["bold", "link"]}
+        />,
+        { locale: "en" },
+      );
+
+      expect(container.querySelector('[contenteditable="true"]')).toBeInTheDocument();
+      expect(tiptapSpy.useEditor).toHaveBeenCalledWith(expect.objectContaining({ immediatelyRender: true }));
+      expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining("immediatelyRender"));
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 });
 

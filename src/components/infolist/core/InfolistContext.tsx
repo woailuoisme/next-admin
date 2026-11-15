@@ -1,29 +1,65 @@
+"use client";
+
 import * as React from "react";
 
-import type { InfolistContextValue } from "./types";
+import type { EntryOrientation, InfolistConfigValue, InfolistContextValue } from "./types";
 
-const InfolistContext = React.createContext<InfolistContextValue | null>(null);
+const DEFAULT_CONFIG: InfolistConfigValue = {
+  orientation: "vertical",
+  dense: false,
+};
 
-/** 无 Provider 时的稳定兜底值，避免每次调用返回新对象 */
-const EMPTY_CONTEXT: InfolistContextValue = {};
+export const InfolistConfigContext = React.createContext<InfolistConfigValue>(DEFAULT_CONFIG);
+const InfolistRecordContext = React.createContext<unknown>(undefined);
 
-/** 缓存解析后的属性路径数组，避免每次渲染都运行正则和字符串切割 */
-const PATH_CACHE = new Map<string, string[]>();
+const BLOCKED_PATH_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+/** 缓存解析后的安全属性路径数组（`null` 表示包含被拦截的危险段），避免重复正则切割 */
+const PATH_CACHE = new Map<string, string[] | null>();
+
+function parseNestedPath(path: string): string[] | null {
+  const cached = PATH_CACHE.get(path);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const normalized = path.replace(/\[([^\]]+)\]/g, ".$1").replace(/^\.+|\.+$/g, "");
+  const parts = normalized ? normalized.split(".").filter(Boolean) : [];
+  const resolved = parts.some((part) => BLOCKED_PATH_KEYS.has(part)) ? null : parts;
+
+  if (PATH_CACHE.size < 500) {
+    PATH_CACHE.set(path, resolved);
+  }
+  return resolved;
+}
 
 export function getNestedValue(obj: unknown, path: string): unknown {
   if (!obj || typeof obj !== "object" || !path) return undefined;
 
-  let parts = PATH_CACHE.get(path);
-  if (!parts) {
-    parts = path.replace(/\[(\w+)\]/g, ".$1").split(".");
-    if (PATH_CACHE.size < 500) {
-      PATH_CACHE.set(path, parts);
-    }
-  }
+  const parts = parseNestedPath(path);
+  if (!parts || parts.length === 0) return undefined;
 
   let current: unknown = obj;
   for (const part of parts) {
-    if (current == null) return undefined;
+    if (current === null || typeof current !== "object") {
+      return undefined;
+    }
+
+    if (Array.isArray(current)) {
+      if (!/^\d+$/.test(part)) {
+        return undefined;
+      }
+      const index = Number(part);
+      if (!Number.isInteger(index) || index < 0 || index >= current.length) {
+        return undefined;
+      }
+      current = current[index];
+      continue;
+    }
+
+    if (!Object.hasOwn(current, part)) {
+      return undefined;
+    }
     current = (current as Record<string, unknown>)[part];
   }
   return current;
@@ -34,25 +70,53 @@ export function InfolistProvider({
   orientation = "vertical",
   dense = false,
   children,
-}: InfolistContextValue & { children: React.ReactNode }) {
-  const value = React.useMemo(() => ({ record, orientation, dense }), [record, orientation, dense]);
+}: {
+  record?: unknown;
+  orientation?: EntryOrientation;
+  dense?: boolean;
+  children: React.ReactNode;
+}) {
+  const configValue = React.useMemo<InfolistConfigValue>(() => ({ orientation, dense }), [orientation, dense]);
 
-  return <InfolistContext value={value}>{children}</InfolistContext>;
+  return (
+    <InfolistConfigContext value={configValue}>
+      <InfolistRecordContext value={record}>{children}</InfolistRecordContext>
+    </InfolistConfigContext>
+  );
+}
+
+/**
+ * 仅订阅布局与密度配置，隔离 record 数据变动导致的无效重渲染
+ */
+export function useInfolistConfig(): InfolistConfigValue {
+  return React.useContext(InfolistConfigContext);
 }
 
 export function useInfolistContext<TRecord = unknown>(): InfolistContextValue<TRecord> {
-  const context = React.useContext(InfolistContext);
-  return (context as InfolistContextValue<TRecord>) ?? EMPTY_CONTEXT;
+  const config = React.useContext(InfolistConfigContext);
+  const record = React.useContext(InfolistRecordContext) as TRecord | undefined;
+
+  return React.useMemo(
+    () => ({
+      record,
+      orientation: config.orientation,
+      dense: config.dense,
+    }),
+    [record, config.orientation, config.dense],
+  );
 }
 
 export function useInfolistFieldValue<T = unknown>(name?: string, explicitValue?: T): T | undefined {
-  const { record } = useInfolistContext();
-
   if (explicitValue !== undefined) {
     return explicitValue;
   }
 
-  if (name && record) {
+  if (!name) {
+    return undefined;
+  }
+
+  const record = React.use(InfolistRecordContext);
+  if (record !== null && typeof record === "object") {
     return getNestedValue(record, name) as T | undefined;
   }
 

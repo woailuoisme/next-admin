@@ -1,13 +1,25 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
 import * as React from "react";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "cn";
 
 import type { InfolistSectionProps } from "./types";
 
+import { hasRenderableNode } from "../core/utils";
 import { InfolistGrid } from "./InfolistGrid";
 
 export const InfolistSection = React.memo(function InfolistSection({
@@ -31,71 +43,84 @@ export const InfolistSection = React.memo(function InfolistSection({
     setCollapsed(!open);
   }, []);
 
-  const hasHeader = Boolean(title || description || icon || action);
+  const showTitle = hasRenderableNode(title);
+  const showDescription = hasRenderableNode(description);
+  const showIcon = hasRenderableNode(icon);
+  const showAction = hasRenderableNode(action);
+  const showFooter = hasRenderableNode(footer);
+
+  const hasHeader = showTitle || showDescription || showIcon || showAction;
+  const showHeaderArea = hasHeader || collapsible;
 
   const contentNode = (
     <div className="w-full">{columns ? <InfolistGrid columns={columns}>{children}</InfolistGrid> : children}</div>
   );
 
+  const collapseTrigger = collapsible ? (
+    <CollapsibleTrigger asChild>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="text-muted-foreground hover:text-foreground size-7 rounded-md"
+        aria-label={collapsed ? t("section_expand") : t("section_collapse")}
+        aria-expanded={!collapsed}
+      >
+        <ChevronDown
+          className={cn("size-4 transition-transform duration-200", collapsed && "-rotate-90")}
+          aria-hidden="true"
+        />
+      </Button>
+    </CollapsibleTrigger>
+  ) : null;
+
   if (card) {
     return (
       <Collapsible open={!collapsed} onOpenChange={handleOpenChange} className="w-full">
-        <Card
-          className={cn("w-full border-border bg-card text-left shadow-2xs transition-all duration-200", className)}
-          {...props}
-        >
-          {hasHeader && (
+        <Card className={cn("w-full bg-card text-left shadow-2xs transition-all duration-200", className)} {...props}>
+          {showHeaderArea && (
             <CardHeader
               className={cn(
                 "flex items-start justify-between gap-3 border-b border-border/50 pb-3.5",
                 collapsible && "select-none",
               )}
             >
-              <div className="flex min-w-0 flex-1 items-start gap-2.5">
-                {icon && (
-                  <div className="bg-primary/10 text-primary mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg">
-                    {icon}
+              {hasHeader ? (
+                <div className="flex min-w-0 flex-1 items-start gap-2.5">
+                  {showIcon && (
+                    <div className="bg-primary/10 text-primary mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg">
+                      {icon}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    {showTitle && (
+                      <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-semibold tracking-tight">
+                        {title}
+                      </CardTitle>
+                    )}
+                    {showDescription && (
+                      <CardDescription className="text-muted-foreground text-xs leading-relaxed">
+                        {description}
+                      </CardDescription>
+                    )}
                   </div>
-                )}
-                <div className="min-w-0 flex-1 space-y-0.5">
-                  {title && (
-                    <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-semibold tracking-tight">
-                      {title}
-                    </CardTitle>
-                  )}
-                  {description && (
-                    <CardDescription className="text-muted-foreground text-xs leading-relaxed">
-                      {description}
-                    </CardDescription>
-                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="flex-1" />
+              )}
 
-              <div className="flex shrink-0 items-center gap-2">
-                {action && <div className="text-xs">{action}</div>}
-                {collapsible && (
-                  <CollapsibleTrigger asChild>
-                    <button
-                      type="button"
-                      className="border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground flex size-7 cursor-pointer items-center justify-center rounded-md border transition-all"
-                      aria-label={collapsed ? t("section_expand") : t("section_collapse")}
-                    >
-                      <ChevronDown
-                        className={cn(
-                          "size-4 transition-transform duration-200",
-                          collapsed ? "-rotate-90" : "rotate-0",
-                        )}
-                      />
-                    </button>
-                  </CollapsibleTrigger>
-                )}
-              </div>
+              {(showAction || collapseTrigger) && (
+                <CardAction className="flex shrink-0 items-center gap-2">
+                  {showAction && <div className="text-xs">{action}</div>}
+                  {collapseTrigger}
+                </CardAction>
+              )}
             </CardHeader>
           )}
 
           <CollapsibleContent className="data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 duration-150">
-            <CardContent className="pt-4">{contentNode}</CardContent>
-            {footer && (
+            <CardContent className={cn(showHeaderArea ? "pt-4" : "pt-0")}>{contentNode}</CardContent>
+            {showFooter && (
               <CardFooter className="border-border/40 text-muted-foreground border-t pt-3 text-xs">{footer}</CardFooter>
             )}
           </CollapsibleContent>
@@ -104,22 +129,50 @@ export const InfolistSection = React.memo(function InfolistSection({
     );
   }
 
-  return (
-    <div className={cn("w-full space-y-3", className)} {...props}>
-      {hasHeader && (
-        <div className="border-border/60 flex items-center justify-between gap-3 border-b pb-2">
-          <div className="flex items-center gap-2">
-            {icon && <div className="text-primary">{icon}</div>}
-            <div>
-              {title && <h4 className="text-foreground text-sm font-semibold">{title}</h4>}
-              {description && <p className="text-muted-foreground text-xs">{description}</p>}
-            </div>
+  const plainHeader = showHeaderArea ? (
+    <div className="border-border/60 flex items-center justify-between gap-3 border-b pb-2">
+      {hasHeader ? (
+        <div className="flex items-center gap-2">
+          {showIcon && <div className="text-primary">{icon}</div>}
+          <div>
+            {showTitle && <h4 className="text-foreground text-sm font-semibold">{title}</h4>}
+            {showDescription && <p className="text-muted-foreground text-xs">{description}</p>}
           </div>
-          {action && <div>{action}</div>}
+        </div>
+      ) : (
+        <div className="flex-1" />
+      )}
+      {(showAction || collapseTrigger) && (
+        <div className="flex shrink-0 items-center gap-2">
+          {showAction ? action : null}
+          {collapseTrigger}
         </div>
       )}
+    </div>
+  ) : null;
+
+  if (collapsible) {
+    return (
+      <Collapsible
+        open={!collapsed}
+        onOpenChange={handleOpenChange}
+        className={cn("w-full space-y-3", className)}
+        {...props}
+      >
+        {plainHeader}
+        <CollapsibleContent className="space-y-2">
+          {contentNode}
+          {showFooter && <div className="text-muted-foreground pt-2 text-xs">{footer}</div>}
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  }
+
+  return (
+    <div className={cn("w-full space-y-3", className)} {...props}>
+      {plainHeader}
       {contentNode}
-      {footer && <div className="text-muted-foreground pt-2 text-xs">{footer}</div>}
+      {showFooter && <div className="text-muted-foreground pt-2 text-xs">{footer}</div>}
     </div>
   );
 });

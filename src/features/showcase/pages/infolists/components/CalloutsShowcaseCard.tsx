@@ -1,6 +1,6 @@
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { InfolistCallout } from "@/components/infolist";
+import { InfolistCallout } from "@/components/infolist/callout/InfolistCallout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function CalloutsShowcaseCard() {

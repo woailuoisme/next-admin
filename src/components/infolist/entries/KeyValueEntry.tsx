@@ -1,15 +1,17 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import * as React from "react";
+
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 import type { KeyValueEntryProps } from "./types";
 
 import { EntryPlaceholder, EntryWrapper } from "../core/EntryWrapper";
 import { useInfolistFieldValue } from "../core/InfolistContext";
+import { safeStringify } from "./utils";
 
-function formatDisplayValue(val: unknown): string {
-  return typeof val === "object" && val !== null ? JSON.stringify(val) : String(val ?? "");
-}
-
-const EMPTY_ENTRIES: Array<{ key: string; value: any }> = [];
+const EMPTY_ENTRIES: Array<{ key: string; value: unknown }> = [];
 
 export const KeyValueEntry = React.memo(function KeyValueEntry({
   name,
@@ -18,15 +20,22 @@ export const KeyValueEntry = React.memo(function KeyValueEntry({
   placeholder = "-",
   ...wrapperProps
 }: KeyValueEntryProps) {
+  const t = useTranslations("infolist");
   const rawValue = useInfolistFieldValue(name, explicitValue);
 
-  const entries: Array<{ key: string; value: any }> = React.useMemo(() => {
+  const entries: Array<{ key: string; value: unknown }> = React.useMemo(() => {
     if (!rawValue) return EMPTY_ENTRIES;
     if (Array.isArray(rawValue)) {
-      return rawValue.map((item) => ({
-        key: String(item.key ?? ""),
-        value: item.value,
-      }));
+      const normalized: Array<{ key: string; value: unknown }> = [];
+      for (const item of rawValue) {
+        if (!item || typeof item !== "object") continue;
+        const rec = item as { key?: unknown; value?: unknown };
+        normalized.push({
+          key: String(rec.key ?? ""),
+          value: rec.value,
+        });
+      }
+      return normalized;
     }
     if (typeof rawValue === "object") {
       return Object.entries(rawValue).map(([k, v]) => ({
@@ -45,22 +54,30 @@ export const KeyValueEntry = React.memo(function KeyValueEntry({
     if (variant === "table") {
       return (
         <div className="border-border overflow-hidden rounded-lg border">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-border bg-muted/50 text-muted-foreground border-b font-medium">
-                <th className="w-1/3 px-3 py-2 text-left">Key</th>
-                <th className="px-3 py-2 text-left">Value</th>
-              </tr>
-            </thead>
-            <tbody className="divide-border/60 divide-y">
+          <Table className="text-xs">
+            <TableHeader className="bg-muted/50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead scope="col" className="h-8 w-1/3 px-3 text-xs font-medium">
+                  {t("kv_key")}
+                </TableHead>
+                <TableHead scope="col" className="h-8 px-3 text-xs font-medium">
+                  {t("kv_value")}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {entries.map(({ key, value }, idx) => (
-                <tr key={`${key}-${idx}`} className="hover:bg-muted/30 transition-colors">
-                  <td className="text-muted-foreground px-3 py-2 font-mono font-medium break-all">{key}</td>
-                  <td className="text-foreground px-3 py-2 break-all">{formatDisplayValue(value)}</td>
-                </tr>
+                <TableRow key={`${key}-${idx}`}>
+                  <TableCell className="text-muted-foreground px-3 py-2 font-mono font-medium break-all whitespace-normal">
+                    {key}
+                  </TableCell>
+                  <TableCell className="text-foreground px-3 py-2 break-all whitespace-normal">
+                    {safeStringify(value)}
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       );
     }
@@ -70,7 +87,7 @@ export const KeyValueEntry = React.memo(function KeyValueEntry({
         {entries.map(({ key, value }, idx) => (
           <div key={`${key}-${idx}`} className="flex items-baseline justify-between gap-4 py-1.5">
             <span className="text-muted-foreground shrink-0 font-mono font-medium">{key}</span>
-            <span className="text-foreground truncate text-right">{formatDisplayValue(value)}</span>
+            <span className="text-foreground truncate text-right">{safeStringify(value)}</span>
           </div>
         ))}
       </div>

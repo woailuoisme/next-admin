@@ -545,16 +545,19 @@
   "infolist": {
     "empty_text": "暂无数据",
     "empty_desc": "列表中没有任何条目记录",
-    "copy_action": "点击复制",
-    "copied_success": "已复制到剪贴板",
-    "copied_failed": "复制失败",
     "open_external": "在新标签页打开",
     "item_title": "条目 #{index}",
     "expand": "展开",
     "collapse": "收起",
     "section_expand": "展开区块",
     "section_collapse": "收起区块",
-    "close_alert": "关闭提示"
+    "close_alert": "关闭提示",
+    "boolean_yes": "是",
+    "boolean_no": "否",
+    "kv_key": "键",
+    "kv_value": "值",
+    "empty_image": "暂无图片",
+    "preview_image": "预览图片 #{index}"
   },
   "shared": {
     "help_tooltip_aria": "查看字段帮助说明",

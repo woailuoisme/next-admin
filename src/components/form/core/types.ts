@@ -16,18 +16,9 @@ export interface FormInstanceLike {
   };
 }
 
-export type ColSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | "full";
+import type { ColSpan, ColumnsCount, GridColumns, GridGap, ResponsiveColumns } from "@/components/shared/grid";
 
-export type ColumnsCount = 1 | 2 | 3 | 4 | 6 | 12;
-
-export interface ResponsiveColumns {
-  sm?: ColumnsCount;
-  md?: ColumnsCount;
-  lg?: ColumnsCount;
-  xl?: ColumnsCount;
-}
-
-export type GridColumns = ColumnsCount | ResponsiveColumns;
+export type { ColSpan, ColumnsCount, GridColumns, GridGap, ResponsiveColumns };
 
 export interface FieldWrapperProps {
   /** 字段标签 */

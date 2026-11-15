@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { memo, type ReactNode } from "react";
 
@@ -9,8 +11,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 export interface LabelHelpTooltipProps {
   /** 帮助说明内容 */
   content: ReactNode;
-  /** 可选国际化字典覆盖 */
-
   /** 可选离散 aria-label 覆盖 */
   helpTooltipAria?: string;
 }

@@ -1,28 +1,21 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import * as React from "react";
 
 import { TableEmptyState } from "@/components/data-table/empty-state";
+import { resolveFixedColsClassName, resolveGridClassName } from "@/components/shared/grid";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "cn";
 
 import type { RepeatableEntryProps } from "./types";
 
 import { EntryWrapper } from "../core/EntryWrapper";
 import { useInfolistFieldValue } from "../core/InfolistContext";
-
-const gridColClasses = {
-  1: "grid-cols-1",
-  2: "grid-cols-1 md:grid-cols-2",
-  3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-  4: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
-};
-
-const tableGridColClasses = {
-  1: "grid-cols-1",
-  2: "grid-cols-2",
-  3: "grid-cols-3",
-  4: "grid-cols-4",
-};
+import { hasRenderableNode } from "../core/utils";
 
 const EMPTY_ITEMS: unknown[] = [];
 
@@ -38,54 +31,72 @@ function resolveItemKey<T>(item: T, idx: number, keyExtractor?: (item: T, idx: n
 }
 
 interface RepeatableCardItemProps {
-  title?: React.ReactNode;
-  collapsible?: boolean;
-  defaultCollapsed?: boolean;
-  expandLabel?: string;
-  collapseLabel?: string;
+  title: React.ReactNode;
+  collapsible: boolean;
+  defaultCollapsed: boolean;
+  expandLabel: string;
+  collapseLabel: string;
   children: React.ReactNode;
 }
 
-function RepeatableCardItem({
+const RepeatableCardItem = React.memo(function RepeatableCardItem({
   title,
-  collapsible = false,
-  defaultCollapsed = false,
-  expandLabel = "展开",
-  collapseLabel = "收起",
+  collapsible,
+  defaultCollapsed,
+  expandLabel,
+  collapseLabel,
   children,
 }: RepeatableCardItemProps) {
   const [collapsed, setCollapsed] = React.useState(defaultCollapsed);
 
-  const toggleCollapsed = React.useCallback(() => {
-    setCollapsed((prev) => !prev);
+  const handleOpenChange = React.useCallback((open: boolean) => {
+    setCollapsed(!open);
   }, []);
 
+  if (!collapsible) {
+    return (
+      <div className="border-border bg-card overflow-hidden rounded-xl border shadow-2xs transition-all">
+        {hasRenderableNode(title) && (
+          <div className="border-border/60 bg-muted/40 flex items-center justify-between border-b px-4 py-2.5 text-xs font-semibold select-none">
+            <span className="text-foreground">{title}</span>
+          </div>
+        )}
+        <div className="p-4">{children}</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="border-border bg-card overflow-hidden rounded-xl border shadow-2xs transition-all">
-      {title && (
-        <div
-          onClick={collapsible ? toggleCollapsed : undefined}
-          className={cn(
-            "border-border/60 bg-muted/40 flex items-center justify-between border-b px-4 py-2.5 text-xs font-semibold select-none",
-            collapsible ? "cursor-pointer transition-colors hover:bg-muted/60" : "",
-          )}
-        >
-          <span className="text-foreground">{title}</span>
-          {collapsible && (
-            <button
-              type="button"
-              className="text-muted-foreground hover:text-foreground rounded-sm p-0.5"
-              aria-label={collapsed ? expandLabel : collapseLabel}
-            >
-              {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
-            </button>
-          )}
-        </div>
-      )}
-      {!collapsed && <div className="p-4">{children}</div>}
-    </div>
+    <Collapsible
+      open={!collapsed}
+      onOpenChange={handleOpenChange}
+      className="border-border bg-card overflow-hidden rounded-xl border shadow-2xs transition-all"
+    >
+      <div className="border-border/60 bg-muted/40 border-b px-2 py-1">
+        <CollapsibleTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-expanded={!collapsed}
+            className="text-foreground hover:bg-muted/60 flex h-auto w-full items-center justify-between px-2 py-1.5 text-xs font-semibold"
+          >
+            <span className="truncate text-left">{title}</span>
+            <span className="sr-only"> {collapsed ? expandLabel : collapseLabel}</span>
+            {collapsed ? (
+              <ChevronRight className="text-muted-foreground size-3.5 shrink-0" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="text-muted-foreground size-3.5 shrink-0" aria-hidden="true" />
+            )}
+          </Button>
+        </CollapsibleTrigger>
+      </div>
+      <CollapsibleContent>
+        <div className="p-4">{children}</div>
+      </CollapsibleContent>
+    </Collapsible>
   );
-}
+});
 
 function RepeatableEntryInner<T = any>({
   name,
@@ -125,57 +136,66 @@ function RepeatableEntryInner<T = any>({
 
     if (variant === "table") {
       const resolvedTitleWidth = itemTitleWidth ?? "w-64 sm:w-80";
+      const remainingHeaders = tableHeaders ? tableHeaders.slice(itemTitle ? 1 : 0) : [];
+      const headerColsClass = resolveFixedColsClassName(remainingHeaders.length || gridCols);
 
       return (
-        <div className="border-border bg-card overflow-x-auto rounded-xl border">
-          <div className="min-w-[540px]">
+        <div className="border-border bg-card overflow-hidden rounded-xl border">
+          <Table className="min-w-[540px] text-xs">
             {tableHeaders && tableHeaders.length > 0 && (
-              <div className="border-border bg-muted/50 text-muted-foreground flex items-center gap-4 border-b px-3 py-2 text-xs font-semibold select-none">
-                {itemTitle && <div className={cn("shrink-0", resolvedTitleWidth)}>{tableHeaders[0]}</div>}
-                <div className="min-w-0 flex-1">
-                  <div className={cn("grid gap-2", tableGridColClasses[gridCols] ?? "grid-cols-3")}>
-                    {tableHeaders.slice(itemTitle ? 1 : 0).map((header, hIdx) => (
-                      <div key={hIdx}>{header}</div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <TableHeader className="bg-muted/50">
+                <TableRow className="hover:bg-transparent">
+                  {itemTitle && (
+                    <TableHead className={cn("h-9 px-3 text-xs font-semibold select-none", resolvedTitleWidth)}>
+                      {tableHeaders[0]}
+                    </TableHead>
+                  )}
+                  <TableHead className="h-9 px-3 text-xs font-semibold select-none">
+                    <div className={cn("grid gap-2", headerColsClass)}>
+                      {remainingHeaders.map((header, hIdx) => (
+                        <div key={hIdx}>{header}</div>
+                      ))}
+                    </div>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
             )}
-            <div className="divide-border/60 divide-y">
+            <TableBody>
               {items.map((item, idx) => {
                 const key = resolveItemKey(item, idx, keyExtractor);
+                const resolvedTitle = itemTitle ? itemTitle(item, idx) : undefined;
                 return (
-                  <div key={key} className="hover:bg-muted/30 flex items-center gap-4 p-3 text-xs transition-colors">
+                  <TableRow key={key}>
                     {itemTitle && (
-                      <div
-                        className={cn("text-foreground shrink-0 truncate font-medium select-none", resolvedTitleWidth)}
-                        title={typeof itemTitle(item, idx) === "string" ? String(itemTitle(item, idx)) : undefined}
+                      <TableCell
+                        className={cn(
+                          "text-foreground p-3 font-medium whitespace-normal select-none",
+                          resolvedTitleWidth,
+                        )}
+                        title={typeof resolvedTitle === "string" ? resolvedTitle : undefined}
                       >
-                        {itemTitle(item, idx)}
-                      </div>
+                        <div className="truncate">{resolvedTitle}</div>
+                      </TableCell>
                     )}
-                    <div className="min-w-0 flex-1">{children(item, idx)}</div>
-                  </div>
+                    <TableCell className="p-3 whitespace-normal">{children(item, idx)}</TableCell>
+                  </TableRow>
                 );
               })}
-            </div>
-          </div>
+            </TableBody>
+          </Table>
         </div>
       );
     }
 
     return (
-      <div
-        className={cn(
-          variant === "grid" ? cn("grid gap-3", gridColClasses[gridCols] ?? gridColClasses[2]) : "flex flex-col gap-3",
-        )}
-      >
+      <div className={variant === "grid" ? resolveGridClassName(gridCols, "sm") : "flex flex-col gap-3"}>
         {items.map((item, idx) => {
           const key = resolveItemKey(item, idx, keyExtractor);
+          const resolvedTitle = itemTitle ? itemTitle(item, idx) : t("item_title", { index: String(idx + 1) });
           return (
             <RepeatableCardItem
               key={key}
-              title={itemTitle ? itemTitle(item, idx) : t("item_title", { index: String(idx + 1) })}
+              title={resolvedTitle}
               collapsible={collapsible}
               defaultCollapsed={defaultCollapsed}
               expandLabel={t("expand")}

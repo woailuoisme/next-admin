@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 
 import { CopyButton } from "@/components/shared/CopyButton";
@@ -7,6 +9,7 @@ import type { CodeEntryProps } from "./types";
 
 import { EntryPlaceholder, EntryWrapper } from "../core/EntryWrapper";
 import { useInfolistFieldValue } from "../core/InfolistContext";
+import { safeStringify } from "./utils";
 
 export const CodeEntry = React.memo(function CodeEntry({
   name,
@@ -28,12 +31,7 @@ export const CodeEntry = React.memo(function CodeEntry({
     );
   }
 
-  let displayCode = "";
-  if (typeof rawValue === "object") {
-    displayCode = formatJson ? JSON.stringify(rawValue, null, 2) : JSON.stringify(rawValue);
-  } else {
-    displayCode = String(rawValue);
-  }
+  const displayCode = safeStringify(rawValue, formatJson);
 
   return (
     <EntryWrapper {...wrapperProps}>

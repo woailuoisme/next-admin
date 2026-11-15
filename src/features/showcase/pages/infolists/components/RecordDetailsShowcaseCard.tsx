@@ -1,18 +1,16 @@
 import { Code2, FileText, Layers, Package, Palette, User } from "lucide-react";
 import * as React from "react";
-import {
-  CodeEntry,
-  ColorEntry,
-  IconEntry,
-  ImageEntry,
-  Infolist,
-  InfolistFieldset,
-  InfolistSection,
-  InfolistTabs,
-  KeyValueEntry,
-  RepeatableEntry,
-  TextEntry,
-} from "@/components/infolist";
+import { Infolist } from "@/components/infolist/core/Infolist";
+import { CodeEntry } from "@/components/infolist/entries/CodeEntry";
+import { ColorEntry } from "@/components/infolist/entries/ColorEntry";
+import { IconEntry } from "@/components/infolist/entries/IconEntry";
+import { ImageEntry } from "@/components/infolist/entries/ImageEntry";
+import { KeyValueEntry } from "@/components/infolist/entries/KeyValueEntry";
+import { RepeatableEntry } from "@/components/infolist/entries/RepeatableEntry";
+import { TextEntry } from "@/components/infolist/entries/TextEntry";
+import { InfolistFieldset } from "@/components/infolist/layout/InfolistFieldset";
+import { InfolistSection } from "@/components/infolist/layout/InfolistSection";
+import { InfolistTabs } from "@/components/infolist/layout/InfolistTabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "cn";
