@@ -1,14 +1,19 @@
+"use client";
+
 import { CheckCircle2 } from "lucide-react";
 
-import { DonutDistributionChart } from "@/components/chart/donut/DonutDistributionChart";
-import { HorizontalBarChart } from "@/components/chart/horizontal-bar/HorizontalBarChart";
-import { RadarMetricChart } from "@/components/chart/radar/RadarMetricChart";
-import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
+import {
+  LazyDonutDistributionChart,
+  LazyHorizontalBarChart,
+  LazyRadarMetricChart,
+  LazyRadialGaugeChart,
+} from "@/components/chart/lazy";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { DISTRIBUTION_DATA, HORIZONTAL_RANKINGS, RADAR_METRICS, STATS_USD_FORMATTER } from "../constants";
 
-const CALLS_FORMATTER = (v: number) => `${v.toLocaleString()} calls`;
+const INTL_CALLS_FORMATTER = new Intl.NumberFormat("en-US");
+const CALLS_FORMATTER = (v: number) => `${INTL_CALLS_FORMATTER.format(v)} calls`;
 const DISTRIBUTION_RADAR_SERIES = [
   {
     dataKey: "score",
@@ -35,7 +40,7 @@ export function DistributionTab() {
             <CardDescription>Donut distribution with custom center</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
-            <DonutDistributionChart
+            <LazyDonutDistributionChart
               data={DISTRIBUTION_DATA}
               height={280}
               innerRadius={60}
@@ -52,7 +57,7 @@ export function DistributionTab() {
             <CardDescription>Multi-axis benchmark assessment</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
-            <RadarMetricChart data={RADAR_METRICS} height={280} series={DISTRIBUTION_RADAR_SERIES} />
+            <LazyRadarMetricChart data={RADAR_METRICS} height={280} series={DISTRIBUTION_RADAR_SERIES} />
           </CardContent>
         </Card>
 
@@ -63,7 +68,7 @@ export function DistributionTab() {
             <CardDescription>Single-metric speedometer view</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center gap-2 pt-2">
-            <RadialGaugeChart value={87.4} max={100} height={210} theme="primary" label="Overall Score" unit="%" />
+            <LazyRadialGaugeChart value={87.4} max={100} height={210} theme="primary" label="Overall Score" unit="%" />
             <div className="text-muted-foreground flex items-center gap-2 text-xs">
               <CheckCircle2 className="text-chart-2 size-4" />
               Passed 48/52 quality gates
@@ -81,7 +86,7 @@ export function DistributionTab() {
           <CardDescription>Horizontal bar with percentage scale and inline legends</CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
-          <HorizontalBarChart data={HORIZONTAL_RANKINGS} height={260} valueFormatter={CALLS_FORMATTER} />
+          <LazyHorizontalBarChart data={HORIZONTAL_RANKINGS} height={260} valueFormatter={CALLS_FORMATTER} />
         </CardContent>
       </Card>
     </div>

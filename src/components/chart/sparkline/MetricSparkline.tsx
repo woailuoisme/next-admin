@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { memo, useId } from "react";
 
+import { SPARKLINE_TREND_KEYS, SparklineAreaFill } from "@/components/shared/sparkline/SparklineAreaFill";
 import { cn } from "cn";
 
 import type { MetricSparklineProps } from "./types";
@@ -25,7 +26,8 @@ export const MetricSparkline = memo(function MetricSparkline({
   ariaLabel,
 }: MetricSparklineProps) {
   const t = useTranslations("chart");
-  const gradId = useId();
+  const rawGradId = useId();
+  const gradId = `metric-spark-${rawGradId.replace(/:/g, "")}`;
   const viewBoxWidth = 100;
   const viewBoxHeight = 32;
 
@@ -50,18 +52,13 @@ export const MetricSparkline = memo(function MetricSparkline({
 
   const activeColor = trendColor
     ? trend === "up"
-      ? "var(--chart-1)"
+      ? "var(--chart-2)"
       : trend === "down"
         ? "var(--destructive)"
         : "var(--muted-foreground)"
     : color || "var(--primary)";
 
-  const trendText =
-    trend === "up"
-      ? t("sparkline_trend_up")
-      : trend === "down"
-        ? t("sparkline_trend_down")
-        : t("sparkline_trend_neutral");
+  const trendText = t(SPARKLINE_TREND_KEYS[trend]);
 
   const defaultLabel = t("sparkline_aria_label", { first, last, trend: trendText });
 
@@ -77,17 +74,7 @@ export const MetricSparkline = memo(function MetricSparkline({
         className="h-full w-full overflow-visible"
         preserveAspectRatio="none"
       >
-        <defs>
-          {fill && (
-            <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={activeColor} stopOpacity={0.25} />
-              <stop offset="100%" stopColor={activeColor} stopOpacity={0.0} />
-            </linearGradient>
-          )}
-        </defs>
-
-        {/* Fill area */}
-        {fill && areaPath && <path d={areaPath} fill={`url(#${gradId})`} />}
+        {fill ? <SparklineAreaFill gradientId={gradId} areaPath={areaPath} color={activeColor} /> : null}
 
         {/* Stroke line */}
         <path
@@ -115,7 +102,7 @@ export const MetricSparkline = memo(function MetricSparkline({
             cx={maxPoint.x}
             cy={maxPoint.y}
             r={2.5}
-            fill="var(--chart-1)"
+            fill="var(--chart-2)"
             stroke="var(--background)"
             strokeWidth={1}
           />

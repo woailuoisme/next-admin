@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: [
       "lucide-react",
+      "ahooks",
       "recharts",
       "date-fns",
       "es-toolkit",

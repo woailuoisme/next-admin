@@ -66,13 +66,30 @@ const mockOrders: Order[] = [
 ];
 
 describe("Dashboard Feature Tests", () => {
-  it("renders MetricsCards with calculated trends and sparklines", () => {
-    renderWithProviders(<MetricsCards metrics={mockMetrics} monthlyTrends={mockTrends} sparklines={mockSparklines} />);
+  it("renders MetricsCards with calculated trends, decimal formatOptions, and negative alert tone", () => {
+    const { container } = renderWithProviders(
+      <MetricsCards metrics={mockMetrics} monthlyTrends={mockTrends} sparklines={mockSparklines} />,
+    );
 
     expect(screen.getByText("总营收 (Revenue)")).toBeInTheDocument();
+    expect(screen.getByText("128,450.50")).toBeInTheDocument();
     expect(screen.getByText("总订单量 (Orders)")).toBeInTheDocument();
     expect(screen.getByText("商品类目 (Products)")).toBeInTheDocument();
     expect(screen.getByText("活跃客户 (Customers)")).toBeInTheDocument();
+    // lowStockCount = 4 should trigger negative destructive polarity instead of green
+    expect(container.querySelector(".text-destructive")).toBeInTheDocument();
+  });
+
+  it("renders neutral polarity badge on MetricsCards when lowStockCount is 0", () => {
+    const { container } = renderWithProviders(
+      <MetricsCards
+        metrics={{ ...mockMetrics, lowStockCount: 0 }}
+        monthlyTrends={mockTrends}
+        sparklines={mockSparklines}
+      />,
+    );
+
+    expect(container.querySelector(".text-destructive")).toBeNull();
   });
 
   it("formats negative growth without double sign and formats totalProducts", () => {

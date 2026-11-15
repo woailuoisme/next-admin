@@ -1,8 +1,11 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { HelpCircle } from "lucide-react";
 import { memo } from "react";
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 
 import type { StatCardHelpTooltipProps } from "./types";
@@ -11,43 +14,32 @@ export const StatCardHelpTooltip = memo(function StatCardHelpTooltip({
   description,
   className,
 }: StatCardHelpTooltipProps) {
-  const handleClick = useMemoizedFn((e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleClick = useMemoizedFn((e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-  });
-
-  const handleKeyDown = useMemoizedFn((e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      e.stopPropagation();
-    }
   });
 
   if (!description) return null;
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            role="button"
-            tabIndex={0}
-            className={cn(
-              "inline-flex cursor-help items-center text-muted-foreground/60 transition-colors hover:text-muted-foreground",
-              className,
-            )}
-            aria-label={description}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
-          >
-            <HelpCircle className="h-3.5 w-3.5" />
-            <span className="sr-only">{description}</span>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs text-xs">
-          {description}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip delayDuration={200}>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          className={cn(
+            "relative z-10 shrink-0 cursor-help text-muted-foreground/60 hover:text-muted-foreground",
+            className,
+          )}
+          aria-label={description}
+          onClick={handleClick}
+        >
+          <HelpCircle className="size-3.5" aria-hidden="true" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-xs">
+        {description}
+      </TooltipContent>
+    </Tooltip>
   );
 });

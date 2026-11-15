@@ -1,3 +1,5 @@
+"use client";
+
 import { Clock, DollarSign, PackageCheck, ShoppingCart } from "lucide-react";
 
 import { StatsGrid } from "@/components/stats/grid/StatsGrid";
@@ -41,7 +43,7 @@ export function OrderMetricsCards({
     <StatsGrid columns={4} isLoading={isLoading} density={density} sparklineLayout={sparklineLayout}>
       <StatCard
         title={t("metric_total_title")}
-        value={total.toLocaleString()}
+        value={total}
         icon={ShoppingCart}
         theme="chart-1"
         description={t("metric_total_desc")}
@@ -61,8 +63,8 @@ export function OrderMetricsCards({
         description={t("metric_pending_desc")}
         trend={{
           value: pendingCount > 0 ? t("metric_pending_need_action") : t("metric_pending_cleared"),
-          direction: pendingCount > 0 ? "neutral" : "up",
-          isPositiveGood: false,
+          direction: "neutral",
+          tone: pendingCount > 0 ? "negative" : "neutral",
         }}
         sparklineData={stats?.sparklines?.pending}
       />
@@ -81,7 +83,8 @@ export function OrderMetricsCards({
       />
       <StatCard
         title={t("metric_aov_title")}
-        value={avgOrderValue.toFixed(2)}
+        value={avgOrderValue}
+        formatOptions={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }}
         prefix="$"
         icon={DollarSign}
         theme="chart-4"

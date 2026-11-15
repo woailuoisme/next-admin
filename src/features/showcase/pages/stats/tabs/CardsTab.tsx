@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import {
   Activity,
@@ -17,7 +19,6 @@ import {
 
 import { StatsGrid } from "@/components/stats/grid/StatsGrid";
 import { LiveStatCard } from "@/components/stats/live-card/LiveStatCard";
-import type { useLiveTicker } from "@/components/stats/live-card/useLiveTicker";
 import { MultiMetricStatCard } from "@/components/stats/multi-metric-card/MultiMetricStatCard";
 import { ProgressStatCard } from "@/components/stats/progress-card/ProgressStatCard";
 import type { SparklineLayout, StatDensity } from "@/components/stats/shared/types";
@@ -28,9 +29,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { SPARKLINE_AREA_ITEMS, SPARKLINE_BAR_ITEMS } from "../constants";
+import { useDemoTelemetryControls, useDemoTelemetryData } from "../context/DemoTelemetryContext";
 
-export interface CardsTabProps {
-  liveTicker: ReturnType<typeof useLiveTicker>;
+function CardsLiveTelemetryCard() {
+  const { value, sparklineData, status, lastUpdated } = useDemoTelemetryData();
+  const { isRunning } = useDemoTelemetryControls();
+
+  return (
+    <LiveStatCard
+      title="Real-Time Event Stream"
+      value={value}
+      suffix=" events/sec"
+      icon={Activity}
+      status={status}
+      statusText={isRunning ? "LIVE WEBSOCKET" : "PAUSED"}
+      lastUpdated={lastUpdated}
+      sparklineData={sparklineData}
+      pulse={isRunning}
+      description="Sub-millisecond reactive event pipe buffer with dynamic sparkline"
+    />
+  );
 }
 
 type SparklineItem = (typeof SPARKLINE_AREA_ITEMS)[number];
@@ -70,7 +88,7 @@ function SparklineMatrix({
   );
 }
 
-export function CardsTab({ liveTicker }: CardsTabProps) {
+export function CardsTab() {
   const [cardDensity, setCardDensity] = useState<StatDensity>("compact");
   const [cardSparklineLayout, setCardSparklineLayout] = useState<SparklineLayout>("inline");
 
@@ -118,6 +136,7 @@ export function CardsTab({ liveTicker }: CardsTabProps) {
           trend={{
             value: 0.08,
             direction: "down",
+            isPositiveGood: false,
             label: "-0.08% improvement",
           }}
           sparklineData={[1.2, 0.9, 0.7, 0.5, 0.3, 0.1, 0.04]}
@@ -236,18 +255,7 @@ export function CardsTab({ liveTicker }: CardsTabProps) {
           ]}
         />
 
-        <LiveStatCard
-          title="Real-Time Event Stream"
-          value={liveTicker.value}
-          suffix=" events/sec"
-          icon={Activity}
-          status={liveTicker.status}
-          statusText={liveTicker.isRunning ? "LIVE WEBSOCKET" : "PAUSED"}
-          lastUpdated="Just now"
-          sparklineData={liveTicker.buffer}
-          pulse={liveTicker.isRunning}
-          description="Sub-millisecond reactive event pipe buffer with dynamic sparkline"
-        />
+        <CardsLiveTelemetryCard />
       </div>
 
       {/* Section 4: Standalone High-Performance Sparkline Micro-Charts */}

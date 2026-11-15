@@ -7,13 +7,20 @@ import type { SparklinePoint } from "../sparkline/types";
 /**
  * System/Service health status for LiveStatCard
  */
-export type LiveStatus = "online" | "warning" | "error" | "offline";
+export type LiveStatus = "online" | "warning" | "error" | "stale" | "offline";
+
+export type LiveStatusLabelKey =
+  | "status_online"
+  | "status_warning"
+  | "status_error"
+  | "status_stale"
+  | "status_offline";
 
 export interface LiveStatusConfigItem {
   dotClass: string;
   pingClass: string;
   badgeClass: string;
-  defaultText: string;
+  labelKey: LiveStatusLabelKey;
 }
 
 /**
@@ -32,8 +39,16 @@ export interface LiveStatCardProps {
   status?: LiveStatus;
   /** Custom status badge label (e.g. "Healthy", "Elevated Latency") */
   statusText?: string;
-  /** Formatted timestamp or relative age ("10s ago", "Just now") */
-  lastUpdated?: string;
+  /** Timestamp or formatted relative age (Date/epoch ms formatted via next-intl) */
+  lastUpdated?: Date | number | string;
+  /** Explicitly flag telemetry data as stale (switches badge to stale status unless offline/error) */
+  isStale?: boolean;
+  /** Optional error description shown inline with error tone */
+  errorMessage?: string;
+  /** Optional reconnect / retry handler rendered as a sibling elevated button */
+  onRetry?: () => void;
+  /** Live region politeness for screen readers (default: "polite") */
+  liveAnnouncement?: "polite" | "off";
   /** Animate ping pulse effect (default: true) */
   pulse?: boolean;
   /** Micro sparkline data points (e.g. recent ping/QPS buffer) */
@@ -48,6 +63,8 @@ export interface LiveStatCardProps {
   badge?: ReactNode;
   /** Optional link destination */
   to?: string;
+  /** Accessible label for stretched drilldown link */
+  linkLabel?: string;
   /** Optional click handler */
   onClick?: () => void;
   /** Loading skeleton state */

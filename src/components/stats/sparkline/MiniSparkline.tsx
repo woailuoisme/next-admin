@@ -1,5 +1,9 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { memo, useId } from "react";
 
+import { SPARKLINE_TREND_KEYS, SparklineAreaFill } from "@/components/shared/sparkline/SparklineAreaFill";
 import { cn } from "cn";
 
 import type { SparklineProps } from "./types";
@@ -19,14 +23,17 @@ export const MiniSparkline = memo(function MiniSparkline({
   height = 32,
   strokeWidth = 2,
   className,
+  ariaLabel,
+  decorative = true,
 }: SparklineProps) {
+  const t = useTranslations("chart");
   const rawId = useId();
-  const generatedId = `spark-grad-${rawId.replace(/:/g, "")}`;
-  const gradientId = customGradientId || generatedId;
+  const generatedId = `spark-grad-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const gradientId = (customGradientId || generatedId).replace(/[^a-zA-Z0-9_-]/g, "");
 
   const resolvedColor = color ?? (theme ? getStatTheme(theme).strokeColor : DEFAULT_COLOR);
 
-  const { isEmpty, linePath, areaPath, bars } = useSparklinePath({
+  const { isEmpty, first, last, trend, linePath, areaPath, bars } = useSparklinePath({
     data,
     type,
     width,
@@ -37,14 +44,25 @@ export const MiniSparkline = memo(function MiniSparkline({
     return null;
   }
 
+  const isAccessible = Boolean(ariaLabel) || decorative === false;
+  const computedAriaLabel = isAccessible
+    ? ariaLabel ||
+      t("sparkline_aria_label", {
+        first,
+        last,
+        trend: t(SPARKLINE_TREND_KEYS[trend]),
+      })
+    : undefined;
+
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
       height={height}
-      style={height && !className?.includes("h-") ? { height: `${height}px` } : undefined}
       className={cn("w-full overflow-visible", className)}
       preserveAspectRatio="none"
-      aria-hidden="true"
+      role={isAccessible ? "img" : undefined}
+      aria-label={computedAriaLabel}
+      aria-hidden={isAccessible ? undefined : true}
     >
       {type === "bar" ? (
         bars.map((bar) => (
@@ -61,13 +79,7 @@ export const MiniSparkline = memo(function MiniSparkline({
         ))
       ) : (
         <>
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={resolvedColor} stopOpacity={0.35} />
-              <stop offset="100%" stopColor={resolvedColor} stopOpacity={0.0} />
-            </linearGradient>
-          </defs>
-          <path d={areaPath} fill={`url(#${gradientId})`} />
+          <SparklineAreaFill gradientId={gradientId} areaPath={areaPath} color={resolvedColor} stopOpacity={0.35} />
           <path
             d={linePath}
             fill="none"

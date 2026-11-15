@@ -532,6 +532,7 @@
     "status_online": "Operational",
     "status_warning": "Warning",
     "status_error": "Critical Error",
+    "status_stale": "Stale Data",
     "status_offline": "Offline",
     "live_updating": "Live Updating",
     "live_paused": "Refresh Paused",
@@ -548,7 +549,10 @@
     "pacing_on_track": "On track",
     "pacing_behind": "Behind schedule",
     "target_label": "Target: ",
-    "just_now": "Just now"
+    "just_now": "Just now",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "no_data": "--"
   },
   "infolist": {
     "empty_text": "No data",

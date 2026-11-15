@@ -45,18 +45,24 @@ describe("Chart Components", () => {
     expect(screen.queryByText("NaN%")).not.toBeInTheDocument();
   });
 
-  it("renders MetricSparkline with valid SVG paths, single-point resilience, and NaN filtering", () => {
+  it("renders MetricSparkline with valid SVG paths, sanitized gradId, single-point resilience, and chart-2 positive color", () => {
     const { container, rerender } = renderWithProviders(
-      <MetricSparkline data={[10, 20, 15, 30, 45]} width={120} height={36} />,
+      <MetricSparkline data={[10, 20, 15, 30, 45]} width={120} height={36} trendColor />,
     );
 
     const sparkline = screen.getByRole("img");
     expect(sparkline).toBeInTheDocument();
     expect(sparkline.getAttribute("aria-label")).toMatch(/走势微图|Sparkline/i);
+    const grad = container.querySelector("linearGradient");
+    expect(grad).not.toBeNull();
+    expect(grad?.getAttribute("id")).not.toContain(":");
+    const strokePath = container.querySelector('path[fill="none"]');
+    expect(strokePath).toHaveAttribute("stroke", "var(--chart-2)");
 
     rerender(<MetricSparkline data={[Number.NaN, 42]} width={120} height={36} />);
     expect(screen.getByRole("img")).toHaveAttribute("aria-label", expect.stringMatching(/42/));
     expect(container.querySelector("path")).not.toBeNull();
+    expect(container.querySelector("defs")).toBeNull();
   });
 
   it("renders HeatmapMatrixChart matrix cells, axis labels, and supports keyboard focus tooltips", () => {

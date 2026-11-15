@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { NumberFormatOptions } from "next-intl";
 import type { ReactNode } from "react";
 
 import type { SparklineLayout, StatCardTheme, StatDensity } from "../shared/types";
@@ -17,6 +18,8 @@ export interface StatCardTrendData {
   value: number | string;
   /** Direction of the trend. If omitted, inferred from positive/negative value */
   direction?: TrendDirection;
+  /** Explicit semantic polarity overriding direction + isPositiveGood inference */
+  tone?: "positive" | "negative" | "neutral";
   /** Context label (e.g. "vs last month", "compared to target") */
   label?: string;
   /** Whether an upward trend is considered positive/favorable (default: true) */
@@ -57,18 +60,18 @@ export interface StatCardProps {
   actions?: ReactNode;
   /** Enable click-to-copy for metric value */
   copyable?: boolean;
-  /** Alias for copyable following boolean is* naming convention */
-  isCopyable?: boolean;
   /** Custom text to copy (defaults to value) */
   copyText?: string;
   /** Enable smooth count-up number tween animation */
   animated?: boolean;
-  /** Alias for animated following boolean is* naming convention */
-  isAnimated?: boolean;
   /** Custom value formatter */
   formatter?: (value: number | string) => ReactNode;
+  /** Standard next-intl number format options for numeric values */
+  formatOptions?: NumberFormatOptions;
   /** Optional link destination for click-through drilldown */
   to?: string;
+  /** Accessible label for the stretched drilldown link (defaults to title) */
+  linkLabel?: string;
   /** Optional click handler */
   onClick?: () => void;
   /** Loading skeleton state */

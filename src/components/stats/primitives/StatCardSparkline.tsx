@@ -1,5 +1,8 @@
+"use client";
+
 import { memo } from "react";
 
+import { hasFiniteSparklinePoints } from "@/components/shared/sparkline/sparklineEngine";
 import { cn } from "cn";
 
 import type { SparklineLayout, StatCardTheme, StatDensity } from "../shared/types";
@@ -18,6 +21,8 @@ export interface StatCardSparklineProps {
   density?: StatDensity;
   color?: string;
   height?: number;
+  ariaLabel?: string;
+  decorative?: boolean;
   className?: string;
 }
 
@@ -29,6 +34,8 @@ export const StatCardSparkline = memo(function StatCardSparkline({
   density,
   color,
   height,
+  ariaLabel,
+  decorative,
   className,
 }: StatCardSparklineProps) {
   const context = useStatCardContext();
@@ -36,10 +43,10 @@ export const StatCardSparkline = memo(function StatCardSparkline({
   const resolvedDensity = density ?? context.density ?? "compact";
   const resolvedTheme = theme ?? context.theme ?? "primary";
 
-  if (!data || data.length < 2) return null;
+  if (!data || !hasFiniteSparklinePoints(data)) return null;
 
   const themeConfig = getStatTheme(resolvedTheme);
-  const dStyles = DENSITY_STYLES[resolvedDensity];
+  const dStyles = DENSITY_STYLES[resolvedDensity] ?? DENSITY_STYLES.compact;
   const sparkHeight = height ?? dStyles.sparklineHeight;
   const strokeColor = color ?? themeConfig.strokeColor;
 
@@ -49,6 +56,8 @@ export const StatCardSparkline = memo(function StatCardSparkline({
       color={strokeColor}
       type={type}
       height={sparkHeight}
+      ariaLabel={ariaLabel}
+      decorative={decorative}
       className={cn("w-full", className)}
     />
   );

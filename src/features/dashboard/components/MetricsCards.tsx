@@ -1,10 +1,13 @@
+"use client";
+
 import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
 import { useMemo } from "react";
 
-import { StatCard, StatsGrid } from "@/components/stats";
+import { StatsGrid } from "@/components/stats/grid/StatsGrid";
+import { StatCard } from "@/components/stats/stat-card/StatCard";
 
 import type { DashboardMetrics, DashboardSparklines, MonthlyTrendPoint } from "../types";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
 interface MetricsCardsProps {
   metrics?: DashboardMetrics;
@@ -21,7 +24,6 @@ function formatSignedGrowth(value: number): string {
 
 export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = false }: MetricsCardsProps) {
   const t = useTranslations("dashboard");
-  const format = useFormatter();
   // hooks 必须先于提前返回：本组件可能从 loading 骨架态原地切换到数据态
   const { revenueSparkline, ordersSparkline } = useMemo(() => {
     const fromTrends = (pick: (point: MonthlyTrendPoint) => number) => monthlyTrends?.map(pick) ?? EMPTY_NUMBER_ARRAY;
@@ -45,7 +47,8 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
       {/* 1. Total Revenue */}
       <StatCard
         title={t("metric_revenue_title")}
-        value={format.number(metrics.totalRevenue, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        value={metrics.totalRevenue}
+        formatOptions={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }}
         prefix="$"
         icon={DollarSign}
         theme="chart-2"
@@ -63,7 +66,7 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
       {/* 2. Total Orders (with drilldown to /orders) */}
       <StatCard
         title={t("metric_orders_title")}
-        value={format.number(metrics.totalOrders)}
+        value={metrics.totalOrders}
         icon={ShoppingCart}
         theme="chart-1"
         description={t("metric_orders_desc")}
@@ -81,15 +84,15 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
       {/* 3. Catalog Products (with drilldown to /products) */}
       <StatCard
         title={t("metric_products_title")}
-        value={format.number(metrics.totalProducts)}
+        value={metrics.totalProducts}
         icon={Package}
         theme="chart-4"
         description={t("metric_products_desc")}
         trend={{
           value: t("metric_low_stock", { count: metrics.lowStockCount }),
           direction: metrics.lowStockCount > 0 ? "down" : "neutral",
+          tone: metrics.lowStockCount > 0 ? "negative" : "neutral",
           label: t("metric_alert_label"),
-          isPositiveGood: false,
         }}
         sparklineData={productsSparkline}
         to="/products"
@@ -98,7 +101,7 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
       {/* 4. Active Customers */}
       <StatCard
         title={t("metric_customers_title")}
-        value={format.number(metrics.totalCustomers)}
+        value={metrics.totalCustomers}
         icon={Users}
         theme="chart-3"
         description={t("metric_customers_desc")}

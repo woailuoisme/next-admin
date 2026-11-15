@@ -1,27 +1,57 @@
+"use client";
+
 import { memo } from "react";
 
+import { hasFiniteSparklinePoints } from "@/components/shared/sparkline/sparklineEngine";
 import { cn } from "cn";
 
 import type { StatCardProps } from "./types";
 
-import { useStatsGridContext } from "../grid/StatsGridContext";
-import {
-  DENSITY_STYLES,
-  StatCardActions,
-  StatCardHeader,
-  StatCardHeadline,
-  StatCardHelpTooltip,
-  StatCardIcon,
-  StatCardProgress,
-  StatCardRoot,
-  StatCardSkeleton,
-  StatCardSparkline,
-  StatCardTitle,
-  StatCardTrend,
-  StatCardValue,
-} from "../primitives";
+import { useStatCardContext } from "../primitives/StatCardContext";
+import { StatCardHeadline } from "../primitives/StatCardHeadline";
+import { StatCardRoot } from "../primitives/StatCardRoot";
+import { StatCardSkeleton } from "../primitives/StatCardSkeleton";
+import { StatCardSparkline } from "../primitives/StatCardSparkline";
+import { StatCardTrend } from "../primitives/StatCardTrend";
+import { StatCardValue } from "../primitives/StatCardValue";
+import { DENSITY_STYLES } from "../primitives/types";
 
-const StatCardFacade = memo(function StatCard({
+interface StatCardFooterMetricsProps {
+  trend: StatCardProps["trend"];
+  sparklineData: StatCardProps["sparklineData"];
+  sparklineType: NonNullable<StatCardProps["sparklineType"]>;
+  theme: NonNullable<StatCardProps["theme"]>;
+}
+
+const StatCardFooterMetrics = memo(function StatCardFooterMetrics({
+  trend,
+  sparklineData,
+  sparklineType,
+  theme,
+}: StatCardFooterMetricsProps) {
+  const { density, sparklineLayout } = useStatCardContext();
+  const dStyles = DENSITY_STYLES[density] ?? DENSITY_STYLES.compact;
+  const hasTrend = Boolean(trend);
+  const hasSparkline = hasFiniteSparklinePoints(sparklineData);
+
+  if (!hasTrend && !hasSparkline) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn(
+        sparklineLayout === "bottom" ? "space-y-2" : "flex items-center justify-between gap-2.5",
+        dStyles.trendSpacing,
+      )}
+    >
+      {hasTrend ? <StatCardTrend trend={trend} /> : null}
+      {hasSparkline ? <StatCardSparkline data={sparklineData} type={sparklineType} theme={theme} /> : null}
+    </div>
+  );
+});
+
+export const StatCard = memo(function StatCard({
   title,
   value,
   prefix,
@@ -37,41 +67,34 @@ const StatCardFacade = memo(function StatCard({
   badge,
   actions,
   copyable,
-  isCopyable,
   copyText,
   animated,
-  isAnimated,
   formatter,
+  formatOptions,
   to,
+  linkLabel,
   onClick,
   isLoading = false,
   className,
 }: StatCardProps) {
-  const gridContext = useStatsGridContext();
-  const resolvedDensity = density ?? gridContext.density ?? "compact";
-  const resolvedSparklineLayout = sparklineLayout ?? gridContext.sparklineLayout ?? "inline";
-  const dStyles = DENSITY_STYLES[resolvedDensity];
-
   if (isLoading) {
     return (
       <StatCardSkeleton
-        density={resolvedDensity}
-        sparklineLayout={resolvedSparklineLayout}
-        hasSparkline={Boolean(sparklineData && sparklineData.length > 1)}
+        density={density}
+        sparklineLayout={sparklineLayout}
+        hasSparkline={hasFiniteSparklinePoints(sparklineData)}
         className={className}
       />
     );
   }
 
-  const hasTrend = Boolean(trend);
-  const hasSparkline = Boolean(sparklineData && sparklineData.length > 1);
-
   return (
     <StatCardRoot
-      density={resolvedDensity}
-      sparklineLayout={resolvedSparklineLayout}
+      density={density}
+      sparklineLayout={sparklineLayout}
       theme={theme}
       to={to}
+      linkLabel={linkLabel ?? title}
       onClick={onClick}
       className={className}
     >
@@ -83,7 +106,6 @@ const StatCardFacade = memo(function StatCard({
         actions={actions}
         icon={icon}
         theme={theme}
-        density={resolvedDensity}
       />
 
       {/* Middle row: Metric Value */}
@@ -92,47 +114,14 @@ const StatCardFacade = memo(function StatCard({
         prefix={prefix}
         suffix={suffix}
         formatter={formatter}
-        copyable={isCopyable ?? copyable}
+        formatOptions={formatOptions}
+        copyable={copyable}
         copyText={copyText}
-        animated={isAnimated ?? animated}
-        density={resolvedDensity}
+        animated={animated}
       />
 
       {/* Bottom row / Sparkline */}
-      {hasTrend || hasSparkline ? (
-        <div
-          className={cn(
-            resolvedSparklineLayout === "bottom" ? "space-y-2" : "flex items-center justify-between gap-2.5",
-            dStyles.trendSpacing,
-          )}
-        >
-          {hasTrend ? <StatCardTrend trend={trend} /> : null}
-          {hasSparkline ? (
-            <StatCardSparkline
-              data={sparklineData}
-              type={sparklineType}
-              layout={resolvedSparklineLayout}
-              theme={theme}
-              density={resolvedDensity}
-            />
-          ) : null}
-        </div>
-      ) : null}
+      <StatCardFooterMetrics trend={trend} sparklineData={sparklineData} sparklineType={sparklineType} theme={theme} />
     </StatCardRoot>
   );
-});
-
-export const StatCard = Object.assign(StatCardFacade, {
-  Root: StatCardRoot,
-  Header: StatCardHeader,
-  Title: StatCardTitle,
-  Description: StatCardHelpTooltip,
-  HelpTooltip: StatCardHelpTooltip,
-  Actions: StatCardActions,
-  Icon: StatCardIcon,
-  Value: StatCardValue,
-  Trend: StatCardTrend,
-  Sparkline: StatCardSparkline,
-  Progress: StatCardProgress,
-  Skeleton: StatCardSkeleton,
 });

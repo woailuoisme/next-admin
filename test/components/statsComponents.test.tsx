@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import React from "react";
 import { act, renderHook } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
@@ -7,11 +7,14 @@ import zhMessages from "@/messages/zh.json";
 
 import { StatCard } from "@/components/stats/stat-card/StatCard";
 import { LiveStatCard } from "@/components/stats/live-card/LiveStatCard";
-import { useLiveTicker } from "@/components/stats/live-card/useLiveTicker";
 import { MultiMetricStatCard } from "@/components/stats/multi-metric-card/MultiMetricStatCard";
+import { StatCardSkeleton } from "@/components/stats/primitives/StatCardSkeleton";
+import { StatCardValue } from "@/components/stats/primitives/StatCardValue";
 import { ProgressStatCard } from "@/components/stats/progress-card/ProgressStatCard";
 import { StatsGrid } from "@/components/stats/grid/StatsGrid";
 import { MiniSparkline } from "@/components/stats/sparkline/MiniSparkline";
+import { useNumberTween } from "@/components/stats/primitives/useNumberTween";
+import { useDemoTelemetryTicker } from "@/features/showcase/pages/stats/hooks/useDemoTelemetryTicker";
 
 describe("Stats Subsystem Components", () => {
   describe("StatCard (General Purpose)", () => {
@@ -212,7 +215,7 @@ describe("Stats Subsystem Components", () => {
     });
   });
 
-  describe("useLiveTicker (Localized & Side-Effect Safe)", () => {
+  describe("useDemoTelemetryTicker (Localized & Showcase-Isolated)", () => {
     it("initializes localized lastUpdated and appends exactly one sparkline point per tick", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <NextIntlClientProvider locale="zh" messages={zhMessages}>
@@ -222,7 +225,7 @@ describe("Stats Subsystem Components", () => {
 
       const { result } = renderHook(
         () =>
-          useLiveTicker({
+          useDemoTelemetryTicker({
             initialValue: 100,
             initialData: [90, 95, 100],
             bufferSize: 10,
@@ -240,6 +243,183 @@ describe("Stats Subsystem Components", () => {
 
       expect(result.current.sparklineData).toHaveLength(4);
       expect(result.current.lastUpdated).not.toBe("刚刚");
+    });
+  });
+
+  describe("Industrial A11y, Stretched-Link & Edge Guards", () => {
+    it("uses Stretched-Link sibling pattern so copy & tooltip buttons are never nested inside <a>", () => {
+      renderWithProviders(
+        <StatCard
+          title="钻取复制卡片"
+          value={99.5}
+          formatOptions={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }}
+          description="统计口径说明"
+          copyable
+          to="/orders"
+        />,
+      );
+
+      expect(screen.getByText("99.50")).toBeInTheDocument();
+      const link = screen.getByRole("link", { name: "钻取复制卡片" });
+      const copyBtn = screen.getByRole("button", { name: "复制数值" });
+      const helpBtn = screen.getByRole("button", { name: "统计口径说明" });
+
+      expect(link).toHaveAttribute("href", "/orders");
+      expect(link.contains(copyBtn)).toBe(false);
+      expect(link.contains(helpBtn)).toBe(false);
+      expect(helpBtn.tagName).toBe("BUTTON");
+      expect(helpBtn.querySelector(".sr-only")).toBeNull();
+    });
+
+    it("supports keyboard Enter and Space on interactive click-only StatCard", () => {
+      const handleCardClick = vi.fn();
+      renderWithProviders(<StatCard title="可聚焦卡片" value={42} onClick={handleCardClick} />);
+
+      const cardButton = screen.getByRole("button");
+      expect(cardButton).toHaveAttribute("tabindex", "0");
+
+      fireEvent.keyDown(cardButton, { key: "Enter" });
+      fireEvent.keyDown(cardButton, { key: " " });
+      expect(handleCardClick).toHaveBeenCalledTimes(2);
+    });
+
+    it("respects reverse polarity and explicit tone in MultiMetricStatCard MetricRow", () => {
+      const { container } = renderWithProviders(
+        <MultiMetricStatCard
+          title="延迟与错误预算"
+          primaryValue={120}
+          suffix="ms"
+          metrics={[
+            { label: "P99 延迟", value: 185, trend: { value: -12, direction: "down", isPositiveGood: false } },
+            { label: "错误率", value: "0.4%", trend: { value: "+0.1%", tone: "negative" } },
+          ]}
+        />,
+      );
+
+      expect(container.querySelector(".text-chart-2")).toBeInTheDocument();
+      expect(container.querySelector(".text-destructive")).toBeInTheDocument();
+    });
+
+    it("supports LiveStatCard stale/error/onRetry and motion-reduce ping protection", () => {
+      const handleRetry = vi.fn();
+      const { container, rerender } = renderWithProviders(
+        <LiveStatCard title="遥测流" value={2048} isStale lastUpdated={new Date("2026-01-01T08:00:00Z")} />,
+      );
+
+      expect(screen.getByText("数据已过期")).toBeInTheDocument();
+      expect(container.querySelector(".animate-ping")).toBeNull();
+
+      rerender(
+        <LiveStatCard
+          title="遥测流"
+          value={2048}
+          status="online"
+          pulse
+          errorMessage="连接超时"
+          onRetry={handleRetry}
+        />,
+      );
+
+      expect(screen.getByText("服务异常")).toBeInTheDocument();
+      expect(screen.getByText("连接超时")).toBeInTheDocument();
+      const retryBtn = screen.getByRole("button", { name: "重试" });
+      fireEvent.click(retryBtn);
+      expect(handleRetry).toHaveBeenCalledTimes(1);
+
+      rerender(<LiveStatCard title="遥测流" value={2048} status="online" pulse />);
+      const pingDot = container.querySelector(".animate-ping");
+      expect(pingDot?.className).toContain("motion-reduce:animate-none");
+    });
+
+    it("renders StatCardSkeleton variants with accessible status role and zero-CLS py-0 padding", () => {
+      renderWithProviders(<StatCardSkeleton variant="progress" />);
+      const statusCard = screen.getByRole("status");
+      expect(statusCard).toHaveAttribute("aria-busy", "true");
+      expect(statusCard.className).toContain("py-0");
+      expect(screen.getByText("加载中...")).toBeInTheDocument();
+    });
+
+    it("guards NaN in StatCardValue with localized no_data fallback", () => {
+      renderWithProviders(<StatCardValue value={Number.NaN} />);
+      expect(screen.getByText("--")).toBeInTheDocument();
+      expect(screen.queryByText("NaN")).not.toBeInTheDocument();
+    });
+
+    it("exposes role=img and localized trend label on non-decorative MiniSparkline only when requested", () => {
+      const { container, rerender } = renderWithProviders(<MiniSparkline data={[10, 20, 35]} decorative={false} />);
+
+      const accessibleSvg = screen.getByRole("img");
+      expect(accessibleSvg).toHaveAttribute("aria-label");
+      expect(accessibleSvg.getAttribute("aria-label")).toContain("35");
+
+      rerender(<MiniSparkline data={[10, 20, 35]} />);
+      expect(screen.queryByRole("img")).toBeNull();
+      expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    });
+
+    it("applies focus ring classes on stretched Link in StatCardRoot", () => {
+      renderWithProviders(<StatCard title="焦点环测试卡片" value={10} to="/orders" />);
+      const link = screen.getByRole("link", { name: "焦点环测试卡片" });
+      expect(link.className).toContain("focus-visible:ring-2");
+      expect(link.className).toContain("focus-visible:ring-ring");
+    });
+
+    it("formats downward numeric trend with minus sign and ignores blank trend value", () => {
+      const { container } = renderWithProviders(
+        <>
+          <StatCard title="延迟指标" value={50} trend={{ value: 0.08, direction: "down", isPositiveGood: false }} />
+          <StatCard title="空趋势卡片" value={100} trend={{ value: "   " }} />
+        </>,
+      );
+
+      expect(screen.getByText("-0.08")).toBeInTheDocument();
+      expect(screen.queryByText("+0.08")).not.toBeInTheDocument();
+      expect(container.querySelectorAll("[data-slot=badge]")).toHaveLength(1);
+    });
+
+    it("clamps negative derived progress to 0% and hides copy button on NaN/empty values", () => {
+      const { rerender } = renderWithProviders(
+        <>
+          <ProgressStatCard title="负值目标" value={-50} targetValue={100} />
+          <StatCardValue value={Number.NaN} copyable />
+        </>,
+      );
+
+      expect(screen.getByText("0%")).toBeInTheDocument();
+      expect(screen.queryByText("-50%")).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "复制数值" })).toBeNull();
+
+      rerender(<StatCardValue value="   " copyable />);
+      expect(screen.queryByRole("button", { name: "复制数值" })).toBeNull();
+    });
+
+    it("uses live_paused fallback when LiveStatCard is offline without lastUpdated", () => {
+      const { container } = renderWithProviders(
+        <LiveStatCard title="离线节点" value={0} status="offline" sparklineData={[Number.NaN]} />,
+      );
+
+      expect(screen.getByText("已暂停刷新")).toBeInTheDocument();
+      expect(container.querySelector(".w-24")).toBeNull();
+    });
+
+    it("syncs useNumberTween cleanly across enabled toggle and guards non-finite targetValue", async () => {
+      const { result, rerender } = renderHook(
+        ({ target, enabled }) => useNumberTween(target, { enabled, duration: 200 }),
+        { initialProps: { target: 100, enabled: false } },
+      );
+
+      expect(result.current).toBe(100);
+      rerender({ target: 500, enabled: false });
+      expect(result.current).toBe(500);
+
+      await act(async () => {
+        rerender({ target: 500, enabled: true });
+        await Promise.resolve();
+      });
+      expect(result.current).toBe(500);
+
+      rerender({ target: Number.NaN, enabled: true });
+      expect(result.current).toBe(0);
     });
   });
 });

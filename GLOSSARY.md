@@ -84,3 +84,23 @@ The memoized reactive seam propagating record instances, orientation (`vertical`
 ### `EntryWrapper` (Module)
 
 The universal structural wrapper standardizing labels, help tooltips, responsive grid spans, and helper copy for all infolist entries while adapting smoothly between vertical stacks and horizontal inline pairs.
+
+---
+
+## 6. Stats & KPI Subsystem
+
+### `SparklineEngine` (Module)
+
+The pure TypeScript, framework-agnostic SVG geometry kernel at `src/components/shared/sparkline/sparklineEngine.ts`. Filters non-finite inputs in a single pass, normalizes single-point baselines cleanly without emitting empty gradient definitions, and serves both KPI `MiniSparkline` and dashboard `MetricSparkline` adapters.
+
+### `StatCardContext` (Interface)
+
+The unified configuration seam hosted at `StatCardRoot`. Absorbs grid-level layout defaults (`density`, `sparklineLayout`) from `StatsGridContext` and propagates card theme and interactivity downward so compound slots never leak redundant context hops or duplicate `density` prop drilling. Uses the Stretched-Link sibling pattern to separate primary navigation from elevated (`z-10`) interactive controls.
+
+### `TrendEngine` (Module)
+
+The pure calculation core (`resolveTrendInfo` in `src/components/stats/shared/trendEngine.ts`) shared across `StatCard`, `ProgressStatCard`, and `MultiMetricStatCard` (`StatCardTrend` `badge` and `inline` variants). Evaluates finite numeric values strictly, supports explicit semantic `tone` overrides (`positive` | `negative` | `neutral`), and provides localized screen-reader status keys.
+
+### `LiveTelemetrySeam` (Interface)
+
+The strict separation between production telemetry UI (`LiveStatCard` with `"online"` / `"warning"` / `"error"` / `"stale"` / `"offline"` status states, localized `Date | number` timestamp formatting, and sibling `onRetry` error recovery) and showcase simulation adapters (`useDemoTelemetryTicker` + split `DemoTelemetryContext`, isolating 2.5s tick updates to leaf showcase cards).

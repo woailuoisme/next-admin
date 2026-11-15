@@ -108,12 +108,12 @@ describe("Chart Calculation Engines", () => {
     });
   });
 
-  it("useMetricSparkline filters non-finite inputs and preserves single-point line paths", () => {
+  it("useMetricSparkline filters non-finite inputs and preserves single-point 1-decimal line paths", () => {
     const { result: singleResult } = renderHook(() => useMetricSparkline({ data: [Number.NaN, 25] }));
     expect(singleResult.current.first).toBe(25);
     expect(singleResult.current.last).toBe(25);
     expect(singleResult.current.trend).toBe("neutral");
-    expect(singleResult.current.linePath).toContain("M 0");
+    expect(singleResult.current.linePath).toBe("M 0 16 L 100 16");
     expect(singleResult.current.areaPath).toBe("");
 
     const { result: emptyResult } = renderHook(() =>

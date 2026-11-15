@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { memo, type ReactNode } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -72,39 +75,40 @@ export const StatCardSkeleton = memo(function StatCardSkeleton({
   hasSparkline = false,
   className,
 }: StatCardSkeletonProps) {
+  const t = useTranslations("stats");
   const gridContext = useStatsGridContext();
   const resolvedDensity = density ?? gridContext.density ?? "compact";
   const resolvedSparklineLayout = sparklineLayout ?? gridContext.sparklineLayout ?? "inline";
-  const dStyles = DENSITY_STYLES[resolvedDensity];
+  const dStyles = DENSITY_STYLES[resolvedDensity] ?? DENSITY_STYLES.compact;
 
-  if (variant !== "default" && VARIANT_CONTENT[variant]) {
-    return (
-      <Card className={cn("overflow-hidden border border-border/60", className)}>
-        <CardContent className="flex flex-col justify-between space-y-4 p-5">{VARIANT_CONTENT[variant]}</CardContent>
-      </Card>
-    );
-  }
-
-  // Default variant
   return (
     <Card
+      role="status"
+      aria-busy="true"
       size={resolvedDensity === "compact" ? "sm" : "default"}
       data-density={resolvedDensity}
       data-sparkline-layout={resolvedSparklineLayout}
       className={cn("gap-0 overflow-hidden border border-border/60 py-0", className)}
     >
-      <CardContent className={cn("flex flex-col justify-between", dStyles.cardPadding, dStyles.headerGap)}>
-        <div className="flex items-center justify-between">
-          <Skeleton className={cn(resolvedDensity === "compact" ? "h-3.5 w-20" : "h-4 w-24")} />
-          <Skeleton className={cn(resolvedDensity === "compact" ? "h-6 w-6 rounded-md" : "h-8 w-8 rounded-lg")} />
-        </div>
-        <div className={cn(resolvedDensity === "compact" ? "space-y-1" : "space-y-2")}>
-          <Skeleton className={cn(resolvedDensity === "compact" ? "h-6 w-28" : "h-7 w-32")} />
-          <Skeleton className="h-3.5 w-16" />
-        </div>
-        {hasSparkline ? (
-          <Skeleton className={cn("mt-1.5 w-full", resolvedDensity === "compact" ? "h-6" : "h-8")} />
-        ) : null}
+      <CardContent className={cn("flex h-full flex-col justify-between gap-0", dStyles.cardPadding, dStyles.headerGap)}>
+        <span className="sr-only">{t("loading")}</span>
+        {variant !== "default" && VARIANT_CONTENT[variant] ? (
+          VARIANT_CONTENT[variant]
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <Skeleton className={cn(resolvedDensity === "compact" ? "h-3.5 w-20" : "h-4 w-24")} />
+              <Skeleton className={cn(resolvedDensity === "compact" ? "h-6 w-6 rounded-md" : "h-8 w-8 rounded-lg")} />
+            </div>
+            <div className={cn(resolvedDensity === "compact" ? "space-y-1" : "space-y-2")}>
+              <Skeleton className={cn(resolvedDensity === "compact" ? "h-6 w-28" : "h-7 w-32")} />
+              <Skeleton className="h-3.5 w-16" />
+            </div>
+            {hasSparkline ? (
+              <Skeleton className={cn("mt-1.5 w-full", resolvedDensity === "compact" ? "h-6" : "h-8")} />
+            ) : null}
+          </>
+        )}
       </CardContent>
     </Card>
   );

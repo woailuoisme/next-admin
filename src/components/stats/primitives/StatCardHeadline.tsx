@@ -1,13 +1,16 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
 import { memo, type ReactNode } from "react";
 
+import { cn } from "cn";
+
 import type { StatCardTheme, StatDensity } from "../shared/types";
 
-import { StatCardActions } from "./StatCardActions";
-import { StatCardHeader } from "./StatCardHeader";
+import { useStatCardContext } from "./StatCardContext";
 import { StatCardHelpTooltip } from "./StatCardHelpTooltip";
 import { StatCardIcon } from "./StatCardIcon";
-import { StatCardTitle } from "./StatCardTitle";
+import { DENSITY_STYLES } from "./types";
 
 export interface StatCardHeadlineProps {
   title: ReactNode;
@@ -38,19 +41,29 @@ export const StatCardHeadline = memo(function StatCardHeadline({
   theme,
   density,
 }: StatCardHeadlineProps) {
+  const ctx = useStatCardContext();
+  const resolvedDensity = density ?? ctx.density;
+  const dStyles = DENSITY_STYLES[resolvedDensity] ?? DENSITY_STYLES.compact;
+
   return (
-    <StatCardHeader>
+    <div className="flex items-start justify-between gap-2">
       <div className="flex min-w-0 items-center gap-1.5">
-        <StatCardTitle density={density}>{title}</StatCardTitle>
+        <span className={cn("truncate font-medium tracking-tight text-muted-foreground", dStyles.titleText)}>
+          {title}
+        </span>
         {description ? <StatCardHelpTooltip description={description} /> : null}
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5">
         {badge}
-        {actions ? <StatCardActions>{actions}</StatCardActions> : null}
+        {actions ? (
+          <div className="relative z-10 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            {actions}
+          </div>
+        ) : null}
         {trailing}
-        {Icon ? <StatCardIcon icon={Icon} theme={theme} density={density} /> : null}
+        {Icon ? <StatCardIcon icon={Icon} theme={theme} density={resolvedDensity} /> : null}
       </div>
-    </StatCardHeader>
+    </div>
   );
 });

@@ -1,10 +1,12 @@
+"use client";
+
 import { memo, useMemo } from "react";
 
 import { cn } from "cn";
 
 import type { StatsGridProps } from "./types";
 
-import { StatCard } from "../stat-card/StatCard";
+import { StatCardSkeleton } from "../primitives/StatCardSkeleton";
 import { COLUMN_MAP } from "./constants";
 import { StatsGridContext } from "./StatsGridContext";
 
@@ -15,6 +17,8 @@ export const StatsGrid = memo(function StatsGrid({
   sparklineLayout = "inline",
   isLoading = false,
   skeletonCount,
+  skeletonVariant = "default",
+  hasSparkline = false,
   className,
 }: StatsGridProps) {
   const count = skeletonCount ?? columns;
@@ -22,12 +26,20 @@ export const StatsGrid = memo(function StatsGrid({
 
   return (
     <StatsGridContext value={contextValue}>
-      <div className={cn("grid gap-4", COLUMN_MAP[columns], className)}>
-        {isLoading
-          ? Array.from({ length: count }).map((_, idx) => (
-              <StatCard key={`skeleton-card-${idx}`} title="" value="" isLoading />
-            ))
-          : children}
+      <div className="@container/grid">
+        <div className={cn("grid gap-4", COLUMN_MAP[columns], className)}>
+          {isLoading
+            ? Array.from({ length: count }).map((_, idx) => (
+                <StatCardSkeleton
+                  key={`skeleton-card-${idx}`}
+                  variant={skeletonVariant}
+                  density={density}
+                  sparklineLayout={sparklineLayout}
+                  hasSparkline={hasSparkline}
+                />
+              ))
+            : children}
+        </div>
       </div>
     </StatsGridContext>
   );

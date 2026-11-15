@@ -1,11 +1,13 @@
+"use client";
+
 import { LiveStatCard } from "@/components/stats/live-card/LiveStatCard";
-import type { useLiveTicker } from "@/components/stats/live-card/useLiveTicker";
 import { MultiMetricStatCard } from "@/components/stats/multi-metric-card/MultiMetricStatCard";
 import { ProgressStatCard } from "@/components/stats/progress-card/ProgressStatCard";
 import { StatCard } from "@/components/stats/stat-card/StatCard";
 import { Button } from "@/components/ui/button";
 
 import { DEMO_STATES } from "../constants";
+import { useDemoTelemetryData } from "../context/DemoTelemetryContext";
 import type { DemoState } from "../types";
 
 export interface StatesTabProps {
@@ -13,10 +15,24 @@ export interface StatesTabProps {
   onDemoStateChange: (st: DemoState) => void;
   isLoading: boolean;
   isError: boolean;
-  liveTicker: ReturnType<typeof useLiveTicker>;
 }
 
-export function StatesTab({ demoState, onDemoStateChange, isLoading, isError, liveTicker }: StatesTabProps) {
+function StatesLiveTelemetryCard({ isLoading, isError }: { isLoading: boolean; isError: boolean }) {
+  const { value } = useDemoTelemetryData();
+
+  return (
+    <LiveStatCard
+      title="Live Stream Pulsing"
+      value={isLoading ? 0 : value}
+      isLoading={isLoading}
+      suffix=" req/s"
+      status={isError ? "error" : "online"}
+      statusText={isError ? "Degraded" : "Nominal"}
+    />
+  );
+}
+
+export function StatesTab({ demoState, onDemoStateChange, isLoading, isError }: StatesTabProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -74,14 +90,7 @@ export function StatesTab({ demoState, onDemoStateChange, isLoading, isError, li
           ]}
         />
 
-        <LiveStatCard
-          title="Live Stream Pulsing"
-          value={isLoading ? 0 : liveTicker.value}
-          isLoading={isLoading}
-          suffix=" req/s"
-          status={isError ? "error" : "online"}
-          statusText={isError ? "Degraded" : "Nominal"}
-        />
+        <StatesLiveTelemetryCard isLoading={isLoading} isError={isError} />
       </div>
     </div>
   );

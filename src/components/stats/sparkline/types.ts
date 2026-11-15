@@ -35,6 +35,10 @@ export interface SparklineProps {
   strokeWidth?: number;
   /** Custom CSS classes on the SVG element */
   className?: string;
+  /** Optional accessible label; when provided renders role="img" instead of aria-hidden */
+  ariaLabel?: string;
+  /** When false, exposes role="img" with an auto-generated localized trend summary label */
+  decorative?: boolean;
 }
 
 export type MiniSparklineProps = SparklineProps;

@@ -1,3 +1,6 @@
+"use client";
+
+import { useFormatter } from "next-intl";
 import { memo } from "react";
 
 import type { ProgressStatCardProps } from "./types";
@@ -20,11 +23,13 @@ export const ProgressStatCard = memo(function ProgressStatCard({
   trend,
   badge,
   to,
+  linkLabel,
   onClick,
   isLoading = false,
   className,
 }: ProgressStatCardProps) {
-  const { displayProgress } = useProgressStat({
+  const format = useFormatter();
+  const progressResult = useProgressStat({
     value,
     targetValue,
     progress,
@@ -37,7 +42,7 @@ export const ProgressStatCard = memo(function ProgressStatCard({
   }
 
   return (
-    <StatCardRoot theme={theme} to={to} onClick={onClick} className={className}>
+    <StatCardRoot theme={theme} to={to} linkLabel={linkLabel ?? title} onClick={onClick} className={className}>
       <StatCardHeadline title={title} description={description} badge={badge} icon={Icon} theme={theme} />
 
       {/* Middle row: Metric Value + Progress Percentage */}
@@ -45,17 +50,18 @@ export const ProgressStatCard = memo(function ProgressStatCard({
         <StatCardValue value={value} prefix={prefix} suffix={suffix} />
 
         <div className="text-right">
-          <span className="text-foreground font-mono text-sm font-bold tabular-nums">{displayProgress}%</span>
+          <span className="text-foreground font-mono text-sm font-bold tabular-nums">
+            {format.number(progressResult.displayProgress)}%
+          </span>
         </div>
       </div>
 
-      {/* Progress track and status details */}
+      {/* Progress track and status details (single precomputed progress result) */}
       <StatCardProgress
-        value={value}
+        ariaLabel={title}
         targetValue={targetValue}
-        progress={progress}
-        pacingStatus={pacingStatus}
         pacingLabel={pacingLabel}
+        progressResult={progressResult}
         prefix={prefix}
         suffix={suffix}
         trend={trend}

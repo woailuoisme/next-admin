@@ -46,14 +46,23 @@ describe("Products Feature Tests", () => {
     expect(stats.avgPrice).toBe(1099.5);
   });
 
-  it("renders ProductMetricsCards with KPI indicators", () => {
+  it("renders ProductMetricsCards with formatted average price and negative low-stock alert tone", () => {
     const stats = computeProductStats(mockProducts);
-    renderWithProviders(<ProductMetricsCards stats={stats} />);
+    const { container } = renderWithProviders(<ProductMetricsCards stats={stats} />);
 
     expect(screen.getByText("总商品 SKU")).toBeInTheDocument();
     expect(screen.getByText("在架正常在售")).toBeInTheDocument();
     expect(screen.getByText("低库存预警")).toBeInTheDocument();
     expect(screen.getByText("SKU 平均单价")).toBeInTheDocument();
+    expect(screen.getByText("1,099.50")).toBeInTheDocument();
+    expect(container.querySelector(".text-destructive")).toBeInTheDocument();
+  });
+
+  it("renders neutral tone in ProductMetricsCards when lowStockCount is zero", () => {
+    const { container } = renderWithProviders(
+      <ProductMetricsCards stats={{ total: 2, activeCount: 2, lowStockCount: 0, avgPrice: 500 }} />,
+    );
+    expect(container.querySelector(".text-destructive")).toBeNull();
   });
 
   it("renders ProductTable with items, margin financials and inventory", () => {

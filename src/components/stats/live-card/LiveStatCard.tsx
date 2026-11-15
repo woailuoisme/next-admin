@@ -1,11 +1,15 @@
-import { useTranslations } from "next-intl";
-import { Activity, Clock } from "lucide-react";
+"use client";
+
+import { useFormatter, useTranslations } from "next-intl";
+import { Activity, Clock, RefreshCw } from "lucide-react";
 import { memo } from "react";
 
+import { hasFiniteSparklinePoints } from "@/components/shared/sparkline/sparklineEngine";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 
-import type { LiveStatCardProps } from "./types";
+import type { LiveStatCardProps, LiveStatus } from "./types";
 
 import { StatCardHeadline, StatCardIcon, StatCardRoot, StatCardSkeleton, StatCardValue } from "../primitives";
 import { getStatTheme } from "../shared/theme";
@@ -20,6 +24,10 @@ export const LiveStatCard = memo(function LiveStatCard({
   status = "online",
   statusText,
   lastUpdated,
+  isStale = false,
+  errorMessage,
+  onRetry,
+  liveAnnouncement = "polite",
   pulse = true,
   sparklineData,
   icon: Icon = Activity,
@@ -27,39 +35,49 @@ export const LiveStatCard = memo(function LiveStatCard({
   description,
   badge,
   to,
+  linkLabel,
   onClick,
   isLoading = false,
   className,
 }: LiveStatCardProps) {
   const t = useTranslations("stats");
+  const format = useFormatter();
   const themeConfig = getStatTheme(theme);
-  const statusCfg = STATUS_CONFIG[status] || STATUS_CONFIG.online;
 
   if (isLoading) {
     return <StatCardSkeleton variant="live" className={className} />;
   }
 
-  const hasSparkline = Boolean(sparklineData && sparklineData.length > 1);
-  const shouldPulse = pulse && status !== "offline";
+  const effectiveStatus: LiveStatus = errorMessage
+    ? "error"
+    : isStale && status !== "offline" && status !== "error"
+      ? "stale"
+      : status;
+  const statusCfg = STATUS_CONFIG[effectiveStatus] ?? STATUS_CONFIG.online;
+  const resolvedStatusLabel = statusText ?? t(statusCfg.labelKey);
 
-  const resolveStatusText = () => {
-    if (statusText) return statusText;
-    switch (status) {
-      case "online":
-        return t("status_online");
-      case "warning":
-        return t("status_warning");
-      case "error":
-        return t("status_error");
-      case "offline":
-        return t("status_offline");
-      default:
-        return statusCfg.defaultText;
-    }
-  };
+  const hasSparkline = hasFiniteSparklinePoints(sparklineData);
+  const shouldPulse = pulse && effectiveStatus !== "offline" && effectiveStatus !== "stale" && !errorMessage;
+  const fallbackStatusLabel = effectiveStatus === "offline" ? t("live_paused") : t("live_updating");
+
+  let formattedLastUpdated: string;
+  if (lastUpdated instanceof Date || typeof lastUpdated === "number") {
+    const timestamp = lastUpdated instanceof Date ? lastUpdated : new Date(lastUpdated);
+    formattedLastUpdated = Number.isNaN(timestamp.getTime())
+      ? fallbackStatusLabel
+      : t("last_updated", {
+          time: format.dateTime(timestamp, {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+        });
+  } else {
+    formattedLastUpdated = lastUpdated || fallbackStatusLabel;
+  }
 
   return (
-    <StatCardRoot theme={theme} to={to} onClick={onClick} className={className}>
+    <StatCardRoot theme={theme} to={to} linkLabel={linkLabel ?? title} onClick={onClick} className={className}>
       <StatCardHeadline
         title={title}
         description={description}
@@ -72,33 +90,60 @@ export const LiveStatCard = memo(function LiveStatCard({
               statusCfg.badgeClass,
             )}
           >
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex size-2" aria-hidden="true">
               {shouldPulse ? (
                 <span
                   className={cn(
-                    "absolute inline-flex h-full w-full animate-ping rounded-full opacity-75",
+                    "absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 motion-reduce:animate-none",
                     statusCfg.pingClass,
                   )}
                 />
               ) : null}
-              <span className={cn("relative inline-flex h-2 w-2 rounded-full", statusCfg.dotClass)} />
+              <span className={cn("relative inline-flex size-2 rounded-full", statusCfg.dotClass)} />
             </span>
-            <span>{resolveStatusText()}</span>
+            <span>{resolvedStatusLabel}</span>
           </Badge>
         }
       />
 
       {/* Middle Row: Numeric Value + Icon Badge */}
-      <div className="flex items-baseline justify-between gap-3">
+      <div
+        className="flex items-baseline justify-between gap-3"
+        aria-live={liveAnnouncement === "off" ? undefined : "polite"}
+      >
         <StatCardValue value={value} prefix={prefix} suffix={suffix} />
         {Icon ? <StatCardIcon icon={Icon} theme={theme} /> : null}
       </div>
 
+      {/* Optional Error + Retry Telemetry Slot */}
+      {errorMessage || onRetry ? (
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <span className="text-destructive min-w-0 truncate" title={errorMessage}>
+            {errorMessage}
+          </span>
+          {onRetry ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              className="relative z-10 h-6 shrink-0 gap-1 px-2 text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRetry();
+              }}
+            >
+              <RefreshCw className="size-3.5" aria-hidden="true" />
+              <span>{t("retry")}</span>
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
       {/* Bottom Row: Last updated + Live Sparkline */}
       <div className="border-border/40 text-muted-foreground flex items-center justify-between gap-3 border-t pt-1 text-xs">
         <div className="flex min-w-0 items-center gap-1">
-          <Clock className="h-3 w-3 shrink-0" />
-          <span className="truncate">{lastUpdated || t("live_updating")}</span>
+          <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+          <span className="truncate tabular-nums">{formattedLastUpdated}</span>
         </div>
 
         {hasSparkline && sparklineData ? (

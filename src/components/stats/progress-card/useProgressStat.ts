@@ -1,3 +1,5 @@
+"use client";
+
 import { clamp } from "es-toolkit";
 import { AlertTriangle, CheckCircle2, Clock, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
@@ -38,6 +40,50 @@ const PACING_ICONS: Record<PacingStatus, LucideIcon> = {
   on_track: Clock,
 };
 
+export function computeProgressStat({
+  value,
+  targetValue,
+  progress,
+  pacingStatus,
+  pacingLabel,
+}: UseProgressStatOptions): ProgressStatResult {
+  let rawProgress = 0;
+
+  if (typeof progress === "number" && Number.isFinite(progress)) {
+    rawProgress = Math.max(0, progress);
+  } else {
+    const numVal = parseNumericValue(value);
+    const numTarget = parseNumericValue(targetValue);
+
+    if (Number.isFinite(numVal) && Number.isFinite(numTarget) && numTarget > 0) {
+      const ratio = (numVal / numTarget) * 100;
+      rawProgress = Number.isFinite(ratio) ? Math.max(0, ratio) : 0;
+    }
+  }
+
+  // Progress bar width clamped to 100% for visual sanity
+  const calculatedProgress = clamp(Math.round(rawProgress), 0, 100);
+  const displayProgress = Math.round(rawProgress);
+
+  let pacingInfo: PacingInfo | null = null;
+  if (pacingStatus || pacingLabel) {
+    const status: PacingStatus =
+      pacingStatus ?? (displayProgress >= 100 ? "ahead" : displayProgress >= 80 ? "on_track" : "behind");
+
+    pacingInfo = {
+      status,
+      colorClass: PACING_COLORS[status],
+      PacingIcon: PACING_ICONS[status],
+    };
+  }
+
+  return {
+    calculatedProgress,
+    displayProgress,
+    pacingInfo,
+  };
+}
+
 export function useProgressStat({
   value,
   targetValue,
@@ -45,41 +91,8 @@ export function useProgressStat({
   pacingStatus,
   pacingLabel,
 }: UseProgressStatOptions): ProgressStatResult {
-  return useMemo(() => {
-    let rawProgress = 0;
-
-    if (typeof progress === "number" && Number.isFinite(progress)) {
-      rawProgress = Math.max(0, progress);
-    } else {
-      const numVal = parseNumericValue(value);
-      const numTarget = parseNumericValue(targetValue);
-
-      if (Number.isFinite(numVal) && Number.isFinite(numTarget) && numTarget !== 0) {
-        const ratio = (numVal / numTarget) * 100;
-        rawProgress = Number.isFinite(ratio) ? ratio : 0;
-      }
-    }
-
-    // Progress bar width clamped to 100% for visual sanity
-    const calculatedProgress = clamp(Math.round(rawProgress), 0, 100);
-    const displayProgress = Math.round(rawProgress);
-
-    let pacingInfo: PacingInfo | null = null;
-    if (pacingStatus || pacingLabel) {
-      const status: PacingStatus =
-        pacingStatus ?? (displayProgress >= 100 ? "ahead" : displayProgress >= 80 ? "on_track" : "behind");
-
-      pacingInfo = {
-        status,
-        colorClass: PACING_COLORS[status],
-        PacingIcon: PACING_ICONS[status],
-      };
-    }
-
-    return {
-      calculatedProgress,
-      displayProgress,
-      pacingInfo,
-    };
-  }, [value, targetValue, progress, pacingStatus, pacingLabel]);
+  return useMemo(
+    () => computeProgressStat({ value, targetValue, progress, pacingStatus, pacingLabel }),
+    [value, targetValue, progress, pacingStatus, pacingLabel],
+  );
 }

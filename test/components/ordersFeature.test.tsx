@@ -51,14 +51,23 @@ describe("Orders Feature Tests", () => {
     expect(stats.avgOrderValue).toBe(500);
   });
 
-  it("renders OrderMetricsCards with KPI indicators", () => {
+  it("renders OrderMetricsCards with formatted currency and negative pending alert tone", () => {
     const stats = computeOrderStats(mockOrders);
-    renderWithProviders(<OrderMetricsCards stats={stats} />);
+    const { container } = renderWithProviders(<OrderMetricsCards stats={stats} />);
 
     expect(screen.getByText("平台总订单数")).toBeInTheDocument();
     expect(screen.getByText("待发货 / 履约中")).toBeInTheDocument();
     expect(screen.getByText("已交付完成")).toBeInTheDocument();
     expect(screen.getByText("平均客单价 (AOV)")).toBeInTheDocument();
+    expect(screen.getByText("500.00")).toBeInTheDocument();
+    expect(container.querySelector(".text-destructive")).toBeInTheDocument();
+  });
+
+  it("renders neutral tone in OrderMetricsCards when pendingCount is zero", () => {
+    const { container } = renderWithProviders(
+      <OrderMetricsCards stats={{ total: 2, pendingCount: 0, deliveredCount: 2, avgOrderValue: 500 }} />,
+    );
+    expect(container.querySelector(".text-destructive")).toBeNull();
   });
 
   it("renders OrdersTable with orders and status badges", () => {

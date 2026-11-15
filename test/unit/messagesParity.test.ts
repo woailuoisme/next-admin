@@ -33,6 +33,25 @@ describe("message key parity", () => {
     const empties = [...flattenValues(en, "en"), ...flattenValues(zh, "zh")].filter(([, value]) => !value.trim());
     expect(empties).toEqual([]);
   });
+
+  it("contains required stats telemetry and trend localization keys in both locales", () => {
+    const requiredStatsKeys = [
+      "status_stale",
+      "retry",
+      "no_data",
+      "loading",
+      "trend_up",
+      "trend_down",
+      "trend_neutral",
+      "just_now",
+      "last_updated",
+    ] as const;
+
+    for (const key of requiredStatsKeys) {
+      expect(en.stats[key].trim().length).toBeGreaterThan(0);
+      expect(zh.stats[key].trim().length).toBeGreaterThan(0);
+    }
+  });
 });
 
 function flattenValues(tree: MessageTree, locale: string, prefix = ""): Array<[string, string]> {

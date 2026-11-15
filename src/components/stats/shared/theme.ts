@@ -11,5 +11,4 @@ export function getStatTheme(theme: StatCardTheme = "primary"): ThemeConfig {
   return STAT_THEMES[theme] || STAT_THEMES.primary;
 }
 
-export { CHART_PALETTE } from "@/components/chart/shared/theme";
 export type { StatCardTheme, ThemeConfig };

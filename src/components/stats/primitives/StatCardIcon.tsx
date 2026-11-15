@@ -1,3 +1,5 @@
+"use client";
+
 import { memo } from "react";
 
 import { cn } from "cn";
@@ -28,6 +30,7 @@ export const StatCardIcon = memo(function StatCardIcon({
 
   return (
     <div
+      aria-hidden="true"
       className={cn(
         "border transition-transform duration-200",
         resolvedInteractive && "group-hover:scale-105",
@@ -37,7 +40,7 @@ export const StatCardIcon = memo(function StatCardIcon({
       )}
       {...props}
     >
-      <Icon className={dStyles.iconSize} />
+      <Icon className={dStyles.iconSize} aria-hidden="true" />
     </div>
   );
 });

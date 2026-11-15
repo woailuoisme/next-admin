@@ -1,3 +1,5 @@
+"use client";
+
 import { useFormatter, useTranslations } from "next-intl";
 import { memo } from "react";
 
@@ -9,16 +11,16 @@ import type { PacingStatus } from "../progress-card/types";
 import type { StatCardTheme } from "../shared/types";
 import type { StatCardTrendData } from "../stat-card/types";
 
-import { useProgressStat } from "../progress-card/useProgressStat";
+import { computeProgressStat, type ProgressStatResult } from "../progress-card/useProgressStat";
 import { getStatTheme } from "../shared/theme";
 import { useStatCardContext } from "./StatCardContext";
 import { StatCardTrend } from "./StatCardTrend";
 
-/** 进度节奏状态的默认文案 */
-const PACING_LABELS: Record<PacingStatus, string> = {
-  ahead: "超额达成",
-  on_track: "稳步推进",
-  behind: "进度滞后",
+/** 进度节奏状态的静态国际化 Key 映射 */
+const PACING_LABEL_KEYS: Record<PacingStatus, "pacing_ahead" | "pacing_on_track" | "pacing_behind"> = {
+  ahead: "pacing_ahead",
+  on_track: "pacing_on_track",
+  behind: "pacing_behind",
 };
 
 export interface StatCardProgressProps {
@@ -27,10 +29,12 @@ export interface StatCardProgressProps {
   progress?: number;
   pacingStatus?: PacingStatus;
   pacingLabel?: string;
+  progressResult?: ProgressStatResult;
   prefix?: string;
   suffix?: string;
   trend?: StatCardTrendData;
   theme?: StatCardTheme;
+  ariaLabel?: string;
 
   className?: string;
 }
@@ -41,10 +45,12 @@ export const StatCardProgress = memo(function StatCardProgress({
   progress,
   pacingStatus,
   pacingLabel,
+  progressResult,
   prefix,
   suffix,
   trend,
   theme,
+  ariaLabel,
   className,
 }: StatCardProgressProps) {
   const context = useStatCardContext();
@@ -53,38 +59,35 @@ export const StatCardProgress = memo(function StatCardProgress({
   const resolvedTheme = theme ?? context.theme ?? "primary";
   const themeConfig = getStatTheme(resolvedTheme);
 
-  const { calculatedProgress, pacingInfo } = useProgressStat({
-    value,
-    targetValue,
-    progress,
-    pacingStatus,
-    pacingLabel,
-  });
+  const { calculatedProgress, pacingInfo } =
+    progressResult ??
+    computeProgressStat({
+      value,
+      targetValue,
+      progress,
+      pacingStatus,
+      pacingLabel,
+    });
 
   const targetDisplay =
     typeof targetValue === "number" ? (Number.isFinite(targetValue) ? format.number(targetValue) : "0") : targetValue;
 
-  const resolvePacingLabel = (status: PacingStatus) => {
-    switch (status) {
-      case "ahead":
-        return t("pacing_ahead");
-      case "on_track":
-        return t("pacing_on_track");
-      case "behind":
-        return t("pacing_behind");
-      default:
-        return PACING_LABELS[status];
-    }
-  };
-
   return (
     <div className={cn("space-y-2", className)}>
       {/* Track & Filled Bar via Shadcn Progress primitive */}
-      <Progress value={calculatedProgress} className={cn("h-2 w-full", themeConfig.progressIndicator)} />
+      <Progress
+        value={calculatedProgress}
+        aria-label={ariaLabel || t("target_label").replace(/:\s*$/, "")}
+        aria-valuenow={calculatedProgress}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuetext={`${calculatedProgress}%`}
+        className={cn("h-2 w-full", themeConfig.progressIndicator)}
+      />
 
       {/* Status row: Target Value + Pacing / Trend Info */}
       <div className="text-muted-foreground flex items-center justify-between gap-2 text-xs">
-        <div>
+        <div className="tabular-nums">
           {targetValue !== undefined ? (
             <span>
               {t("target_label")}
@@ -95,7 +98,7 @@ export const StatCardProgress = memo(function StatCardProgress({
           ) : null}
         </div>
 
-        {pacingInfo && (pacingLabel || pacingStatus) ? (
+        {pacingInfo ? (
           <Badge
             variant="outline"
             className={cn(
@@ -103,8 +106,8 @@ export const StatCardProgress = memo(function StatCardProgress({
               pacingInfo.colorClass,
             )}
           >
-            <pacingInfo.PacingIcon className="h-3 w-3" />
-            <span>{pacingLabel || resolvePacingLabel(pacingInfo.status)}</span>
+            <pacingInfo.PacingIcon className="size-3.5" aria-hidden="true" />
+            <span>{pacingLabel || t(PACING_LABEL_KEYS[pacingInfo.status])}</span>
           </Badge>
         ) : trend ? (
           <StatCardTrend trend={trend} showLabel={false} />

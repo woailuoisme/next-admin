@@ -10,7 +10,6 @@ export interface SubMetricItem {
   prefix?: string;
   suffix?: string;
   trend?: StatCardTrendData;
-  color?: string;
 }
 
 export interface MultiMetricStatCardProps {
@@ -26,6 +25,7 @@ export interface MultiMetricStatCardProps {
   theme?: StatCardTheme;
   badge?: ReactNode;
   to?: string;
+  linkLabel?: string;
   onClick?: () => void;
   isLoading?: boolean;
 

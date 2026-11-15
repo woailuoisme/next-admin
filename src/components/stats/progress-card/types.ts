@@ -41,6 +41,8 @@ export interface ProgressStatCardProps {
   badge?: ReactNode;
   /** Optional link destination for click-through drilldown */
   to?: string;
+  /** Accessible label for stretched drilldown link */
+  linkLabel?: string;
   /** Optional click handler */
   onClick?: () => void;
   /** Loading skeleton state */

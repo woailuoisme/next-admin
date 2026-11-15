@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { NumberFormatOptions } from "next-intl";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import type { SparklineLayout, StatCardTheme, StatDensity } from "../shared/types";
@@ -62,27 +63,15 @@ export interface StatCardRootProps extends ComponentPropsWithoutRef<"div"> {
   sparklineLayout?: SparklineLayout;
   theme?: StatCardTheme;
   to?: string;
+  linkLabel?: string;
   onClick?: () => void;
 
-  children: ReactNode;
-}
-
-export interface StatCardHeaderProps extends ComponentPropsWithoutRef<"div"> {
-  children: ReactNode;
-}
-
-export interface StatCardTitleProps extends ComponentPropsWithoutRef<"span"> {
-  density?: StatDensity;
   children: ReactNode;
 }
 
 export interface StatCardHelpTooltipProps {
   description: string;
   className?: string;
-}
-
-export interface StatCardActionsProps extends ComponentPropsWithoutRef<"div"> {
-  children: ReactNode;
 }
 
 export interface StatCardIconProps extends ComponentPropsWithoutRef<"div"> {
@@ -97,6 +86,7 @@ export interface StatCardValueProps extends Omit<ComponentPropsWithoutRef<"div">
   prefix?: ReactNode;
   suffix?: ReactNode;
   formatter?: (value: number | string) => ReactNode;
+  formatOptions?: NumberFormatOptions;
   copyable?: boolean;
   copyText?: string;
   animated?: boolean;
@@ -109,7 +99,9 @@ export interface StatCardTrendProps extends ComponentPropsWithoutRef<"div"> {
   trend?: StatCardTrendData | null;
   value?: number | string;
   direction?: "up" | "down" | "neutral";
+  tone?: "positive" | "negative" | "neutral";
   label?: string;
   isPositiveGood?: boolean;
-  density?: StatDensity;
+  variant?: "badge" | "inline";
+  showLabel?: boolean;
 }

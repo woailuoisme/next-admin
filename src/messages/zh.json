@@ -532,6 +532,7 @@
     "status_online": "运行正常",
     "status_warning": "负载告警",
     "status_error": "服务异常",
+    "status_stale": "数据已过期",
     "status_offline": "离线挂起",
     "live_updating": "实时更新中",
     "live_paused": "已暂停刷新",
@@ -548,7 +549,10 @@
     "pacing_on_track": "稳步推进",
     "pacing_behind": "进度滞后",
     "target_label": "目标: ",
-    "just_now": "刚刚"
+    "just_now": "刚刚",
+    "loading": "加载中...",
+    "retry": "重试",
+    "no_data": "--"
   },
   "infolist": {
     "empty_text": "暂无数据",

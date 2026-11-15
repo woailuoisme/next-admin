@@ -1,14 +1,19 @@
-import { AreaTrendChart } from "@/components/chart/area/AreaTrendChart";
-import { BarTrendChart } from "@/components/chart/bar/BarTrendChart";
-import { ComposedTrendChart } from "@/components/chart/composed/ComposedTrendChart";
-import { LineTrendChart } from "@/components/chart/line/LineTrendChart";
+"use client";
+
+import {
+  LazyAreaTrendChart,
+  LazyBarTrendChart,
+  LazyComposedTrendChart,
+  LazyLineTrendChart,
+} from "@/components/chart/lazy";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { STATS_USD_FORMATTER, TIME_RANGES } from "../constants";
 import type { RawTrendItem, TimeRange } from "../types";
 
-const NUMBER_FORMATTER = (v: number) => v.toLocaleString();
+const INTL_NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
+const NUMBER_FORMATTER = (v: number) => INTL_NUMBER_FORMATTER.format(v);
 const USD_THOUSANDS_FORMATTER = (v: number) => `$${(v / 1000).toFixed(0)}k`;
 
 const STATS_LINE_SERIES = [
@@ -81,7 +86,7 @@ export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: Tr
             <CardDescription>Single or multi-area volumetric trend</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
-            <AreaTrendChart
+            <LazyAreaTrendChart
               data={currentTrendData}
               dataKey="revenue"
               xAxisKey="label"
@@ -99,7 +104,7 @@ export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: Tr
             <CardDescription>Active user growth vs projected trajectory</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
-            <LineTrendChart
+            <LazyLineTrendChart
               data={currentTrendData}
               xAxisKey="label"
               height={260}
@@ -116,7 +121,7 @@ export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: Tr
             <CardDescription>Cost columns with revenue overlay line</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
-            <ComposedTrendChart
+            <LazyComposedTrendChart
               data={currentTrendData}
               xAxisKey="label"
               height={260}
@@ -134,7 +139,7 @@ export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: Tr
             <CardDescription>Metric comparison by period</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
-            <BarTrendChart
+            <LazyBarTrendChart
               data={currentTrendData}
               dataKey="revenue"
               xAxisKey="label"

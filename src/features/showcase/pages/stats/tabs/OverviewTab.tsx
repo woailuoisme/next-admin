@@ -1,3 +1,5 @@
+"use client";
+
 import { DollarSign, Server, TrendingUp, Zap } from "lucide-react";
 
 import { ComposedTrendChart } from "@/components/chart/composed/ComposedTrendChart";
@@ -5,7 +7,6 @@ import { DonutDistributionChart } from "@/components/chart/donut/DonutDistributi
 import { HorizontalBarChart } from "@/components/chart/horizontal-bar/HorizontalBarChart";
 import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
 import { LiveStatCard } from "@/components/stats/live-card/LiveStatCard";
-import type { useLiveTicker } from "@/components/stats/live-card/useLiveTicker";
 import { MultiMetricStatCard } from "@/components/stats/multi-metric-card/MultiMetricStatCard";
 import { ProgressStatCard } from "@/components/stats/progress-card/ProgressStatCard";
 import { StatCard } from "@/components/stats/stat-card/StatCard";
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { DISTRIBUTION_DATA, HORIZONTAL_RANKINGS, TIME_RANGES } from "../constants";
+import { useDemoTelemetryControls, useDemoTelemetryData } from "../context/DemoTelemetryContext";
 import type { DemoState, RawTrendItem, TimeRange } from "../types";
 
 export interface OverviewTabProps {
@@ -20,10 +22,38 @@ export interface OverviewTabProps {
   isLoading: boolean;
   isError: boolean;
   isEmpty: boolean;
-  liveTicker: ReturnType<typeof useLiveTicker>;
   timeRange: TimeRange;
   onTimeRangeChange: (tr: TimeRange) => void;
   currentTrendData: RawTrendItem[];
+}
+
+function OverviewLiveTelemetryCard({
+  isLoading,
+  isError,
+  isEmpty,
+}: {
+  isLoading: boolean;
+  isError: boolean;
+  isEmpty: boolean;
+}) {
+  const { value, sparklineData, status, lastUpdated } = useDemoTelemetryData();
+  const { isRunning } = useDemoTelemetryControls();
+
+  return (
+    <LiveStatCard
+      title="Live Stream / SSE Nodes"
+      value={isEmpty ? 0 : value}
+      suffix=" nodes"
+      icon={Server}
+      status={isError ? "error" : status}
+      statusText={isRunning ? "Cluster Healthy" : "Stream Paused"}
+      isLoading={isLoading}
+      sparklineData={sparklineData}
+      pulse={isRunning}
+      lastUpdated={lastUpdated}
+      description="Real-time connected client sessions (isolated telemetry subscriber)"
+    />
+  );
 }
 
 export function OverviewTab({
@@ -31,7 +61,6 @@ export function OverviewTab({
   isLoading,
   isError,
   isEmpty,
-  liveTicker,
   timeRange,
   onTimeRangeChange,
   currentTrendData,
@@ -91,19 +120,7 @@ export function OverviewTab({
           ]}
         />
 
-        <LiveStatCard
-          title="Live Stream / SSE Nodes"
-          value={demoState === "empty" ? 0 : liveTicker.value}
-          suffix=" nodes"
-          icon={Server}
-          status={isError ? "error" : liveTicker.status}
-          statusText={liveTicker.isRunning ? "Cluster Healthy" : "Stream Paused"}
-          isLoading={isLoading}
-          sparklineData={liveTicker.buffer}
-          pulse={liveTicker.isRunning}
-          lastUpdated="Live"
-          description="Real-time connected client sessions (powered by ahooks useLiveTicker)"
-        />
+        <OverviewLiveTelemetryCard isLoading={isLoading} isError={isError} isEmpty={isEmpty} />
       </div>
 
       {/* Mid Cockpit Row: Composed Trend + Donut */}

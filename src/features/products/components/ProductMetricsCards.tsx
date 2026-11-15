@@ -1,3 +1,5 @@
+"use client";
+
 import { AlertTriangle, CheckCircle2, DollarSign, Package } from "lucide-react";
 
 import { StatsGrid } from "@/components/stats/grid/StatsGrid";
@@ -66,14 +68,15 @@ export function ProductMetricsCards({ stats, isLoading = false }: ProductMetrics
         trend={{
           value: lowStockCount > 0 ? t("metric_low_stock_need_restock") : t("metric_low_stock_normal"),
           direction: lowStockCount > 0 ? "down" : "neutral",
-          isPositiveGood: false,
+          tone: lowStockCount > 0 ? "negative" : "neutral",
         }}
         sparklineData={stats?.sparklines?.lowStock}
         sparklineType="bar"
       />
       <StatCard
         title={t("metric_avg_price_title")}
-        value={avgPrice.toFixed(2)}
+        value={avgPrice}
+        formatOptions={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }}
         prefix="$"
         icon={DollarSign}
         theme="chart-1"
