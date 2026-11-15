@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { RotateCcw } from "lucide-react";
@@ -15,18 +17,22 @@ interface LocationCoordinatesInputProps {
   readOnly?: boolean;
   showReset?: boolean;
   onCoordinatesChange: (coords: { lng: number; lat: number }) => void;
-  /**
-   * 数值**未变**时按回车「确认」的回调
-   *
-   * 数值发生变化的情况由上层监听值变更自动定位，此处不参与，避免一次操作飞两次。
-   */
   onConfirm?: () => void;
   onReset: () => void;
 }
 
-/** 数值 → 输入框草稿（保留 6 位小数并去掉尾随 0） */
+/** 严格有限小数校验：拒绝 `12abc`、`Infinity` 或科学记数法尾随垃圾字符 */
+const STRICT_FINITE_NUMBER_RE = /^[+-]?(?:\d+\.?\d*|\.\d+)$/;
+
+function parseStrictFinite(draft: string): number | null {
+  const trimmed = draft.trim();
+  if (!STRICT_FINITE_NUMBER_RE.test(trimmed)) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function toDraft(value?: number): string {
-  if (value === undefined || value === null || Number.isNaN(value)) return "";
+  if (value === undefined || value === null || !Number.isFinite(value)) return "";
   return String(Number(value.toFixed(6)));
 }
 
@@ -44,13 +50,10 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
   const lngId = `${baseId}-lng`;
   const latId = `${baseId}-lat`;
 
-  // 本地草稿：输入过程中不即时写回上游（避免逐字符触发逆地理编码等下游计算），
-  // 仅在「确认」时提交
   const [lngDraft, setLngDraft] = useState(() => toDraft(value?.lng));
   const [latDraft, setLatDraft] = useState(() => toDraft(value?.lat));
   const [prevCoordinates, setPrevCoordinates] = useState(() => ({ lng: value?.lng, lat: value?.lat }));
 
-  // 外部值变化（地图选点 / 地名搜索 / 快捷城市 / 重置）时同步草稿
   if (value?.lng !== prevCoordinates.lng || value?.lat !== prevCoordinates.lat) {
     setPrevCoordinates({ lng: value?.lng, lat: value?.lat });
     setLngDraft(toDraft(value?.lng));
@@ -60,11 +63,10 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
   const commit = useMemoizedFn((forceConfirm = false) => {
     if (disabled || readOnly) return;
 
-    const lng = Number.parseFloat(lngDraft);
-    const lat = Number.parseFloat(latDraft);
+    const lng = parseStrictFinite(lngDraft);
+    const lat = parseStrictFinite(latDraft);
 
-    // 任一侧非法或超出墨卡托投影有效边界则回退当前值，防止 MapLibre GL 抛错崩溃
-    if (!Number.isFinite(lng) || !Number.isFinite(lat) || lng < -180 || lng > 180 || lat < -85.0511 || lat > 85.0511) {
+    if (lng === null || lat === null || lng < -180 || lng > 180 || lat < -85.0511 || lat > 85.0511) {
       setLngDraft(toDraft(value?.lng));
       setLatDraft(toDraft(value?.lat));
       return;
@@ -72,12 +74,10 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
 
     const changed = lng !== value?.lng || lat !== value?.lat;
     if (changed) {
-      // 值变化后的自动定位由上层统一处理（值变更 → 自动飞过去），此处不重复触发
       onCoordinatesChange({ lng, lat });
       return;
     }
 
-    // 数值未变：仅回车视为「确认」，重新定位到当前点；单纯失焦不飞，避免 Tab 切换就动地图
     if (forceConfirm) onConfirm?.();
   });
 
@@ -91,7 +91,8 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
           id={lngId}
           inputMode="decimal"
           value={lngDraft}
-          disabled={disabled || readOnly}
+          disabled={disabled}
+          readOnly={readOnly}
           onChange={(event) => setLngDraft(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -115,7 +116,8 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
           id={latId}
           inputMode="decimal"
           value={latDraft}
-          disabled={disabled || readOnly}
+          disabled={disabled}
+          readOnly={readOnly}
           onChange={(event) => setLatDraft(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter") {

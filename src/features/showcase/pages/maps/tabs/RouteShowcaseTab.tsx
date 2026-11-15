@@ -1,9 +1,11 @@
+import { useTranslations } from "next-intl";
 import { LazyRouteTrackingMap } from "@/components/map/lazy";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_ROUTE_COORDS, MOCK_ROUTE_STOPS } from "../constants";
 import type { DemoStateProps } from "../types";
 
 export function RouteShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
+  const t = useTranslations("showcase");
   return (
     <TabsContent value="route" className="space-y-4">
       <LazyRouteTrackingMap
@@ -28,8 +30,8 @@ export function RouteShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoS
         isError={isError}
         onRetry={onRetry}
         cardProps={{
-          title: "京沪干线重卡冷链物流监控",
-          description: "载具沿线动态脉冲指示、里程进度滑条与沿途枢纽站点状态联动",
+          title: t("maps_route_card_title"),
+          description: t("maps_route_card_desc"),
         }}
       />
     </TabsContent>

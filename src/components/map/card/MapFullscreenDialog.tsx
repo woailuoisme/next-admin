@@ -1,9 +1,10 @@
-import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
-import { memo } from "react";
+"use client";
 
+import { useTranslations } from "next-intl";
+import { memo, type ReactNode } from "react";
+
+import { ModalFrame } from "@/components/dialogs/ModalFrame";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export interface MapFullscreenDialogProps {
   open: boolean;
@@ -11,7 +12,9 @@ export interface MapFullscreenDialogProps {
   title: ReactNode;
   description?: ReactNode;
   fullscreenHeight?: string | number;
-  children: ReactNode;
+  /** 由持久化 Portal 模式传入的全屏画布挂载槽位回调 */
+  onHostMount?: (slot: HTMLDivElement | null) => void;
+  children?: ReactNode;
 }
 
 export const MapFullscreenDialog = memo(function MapFullscreenDialog({
@@ -20,42 +23,38 @@ export const MapFullscreenDialog = memo(function MapFullscreenDialog({
   title,
   description,
   fullscreenHeight = "calc(90vh - 80px)",
+  onHostMount,
   children,
 }: MapFullscreenDialogProps) {
   const t = useTranslations("map");
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {/*
-				DialogContent 基础样式含 `sm:max-w-sm`（带 sm: 变体）。裸类 `max-w-7xl` 与它不属于
-				同一个合并组，cn 不会把它去掉 → ≥640px 时对话框被压到 24rem(384px)，
-				`w-[95vw]` / `max-w-7xl` 全部失效，地图被挤成窄条。故必须再显式补一个
-				`sm:max-w-7xl` 才能覆盖。
-				另：基础为 `grid`，而 `flex-1` 对 grid item 无效 → 地图体只能靠固定高度，
-				会与 header/padding 叠加超出 92vh 被裁。改为 `flex flex-col` 让地图体真正
-				占满剩余高度（`min-h-0` 解除 flex item 的最小高度约束）。
-			*/}
-      <DialogContent
-        className="flex max-h-[95vh] w-[95vw] max-w-7xl flex-col overflow-hidden p-6 sm:max-w-7xl"
-        style={{ height: "92vh" }}
-      >
-        <DialogHeader className="shrink-0">
-          <DialogTitle className="flex items-center gap-2 text-lg">
+    <ModalFrame
+      open={open}
+      onOpenChange={onOpenChange}
+      size="full"
+      widthClassName="flex h-[92vh] max-h-[95vh] w-[95vw] max-w-7xl flex-col overflow-hidden p-0 sm:max-w-7xl"
+      headerSlot={
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-lg leading-none font-semibold">
             <span>{title}</span>
             <Badge variant="secondary" className="border-primary/20 bg-primary/10 text-primary">
               {t("fullscreen_badge")}
             </Badge>
-          </DialogTitle>
-          {description ? <DialogDescription className="text-xs">{description}</DialogDescription> : null}
-        </DialogHeader>
-
+          </div>
+          {description ? <p className="text-muted-foreground text-xs">{description}</p> : null}
+        </div>
+      }
+    >
+      <div className="min-h-0 flex-1 p-4">
         <div
-          className="border-border/60 relative mt-2 min-h-0 w-full flex-1 overflow-hidden rounded-lg border"
+          ref={onHostMount}
+          className="border-border/60 relative size-full overflow-hidden rounded-lg border"
           style={{ maxHeight: fullscreenHeight }}
         >
-          {children}
+          {onHostMount ? null : children}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ModalFrame>
   );
 });

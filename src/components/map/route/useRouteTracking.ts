@@ -1,11 +1,38 @@
+"use client";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { RouteStop, RouteTrackingMapProps } from "./types";
+import type { RouteStop, RouteStopStatus, RouteTrackingMapProps } from "./types";
 
 import { EMPTY_STOPS } from "../shared/constants";
 
+function deriveStopStatuses(stops: readonly RouteStop[], progress: number): RouteStopStatus[] {
+  if (stops.length === 0) return [];
+  if (stops.length === 1) return [progress >= 1 ? "completed" : "pending"];
+  const maxIdx = stops.length - 1;
+  return stops.map((_, idx) => {
+    const stopProgress = idx / maxIdx;
+    if (progress >= stopProgress) return "completed";
+    if (idx === 0 || progress >= (idx - 1) / maxIdx) return "current";
+    return "pending";
+  });
+}
+
+function areStopStatusesEqual(a: readonly RouteStopStatus[], b: readonly RouteStopStatus[]): boolean {
+  return a.length === b.length && a.every((status, idx) => status === b[idx]);
+}
+
+export interface RouteProgressStore {
+  subscribe: (listener: () => void) => () => void;
+  getSnapshot: () => number;
+  getServerSnapshot: () => number;
+}
+
 /**
- * 路线回放状态机：支持受控/非受控进度、rAF 播放循环与站点状态派生
+ * 路线回放状态机：
+ * - 通过外部订阅 Store 暴露连续浮点数 progress，使主地图树、MapFrame 与 StopMarker 在 60fps 回放期零重渲染；
+ * - 仅在站点状态离散阶跃时更新 enrichedStops；
+ * - 支持 `enabled` 门控（加载态/错误态/空数据态自动挂起 rAF 循环）。
  */
 export function useRouteTracking({
   coordinates,
@@ -15,45 +42,75 @@ export function useRouteTracking({
   onProgressChange,
   autoPlay = false,
   playbackDuration = 15,
+  enabled = true,
 }: Pick<
   RouteTrackingMapProps,
   "coordinates" | "stops" | "progress" | "defaultProgress" | "onProgressChange" | "autoPlay" | "playbackDuration"
->) {
-  const [internalProgress, setInternalProgress] = useState(defaultProgress);
+> & { enabled?: boolean }) {
   const [isPlaying, setIsPlaying] = useState(autoPlay);
-
   const isControlled = controlledProgress !== undefined;
-  const currentProgress = isControlled ? controlledProgress : internalProgress;
 
+  const initialProgress = Math.max(0, Math.min(1, controlledProgress ?? defaultProgress));
+  const progressRef = useRef<number>(initialProgress);
+  const listenersRef = useRef(new Set<() => void>());
   const onProgressChangeRef = useRef(onProgressChange);
+
   useEffect(() => {
     onProgressChangeRef.current = onProgressChange;
   }, [onProgressChange]);
 
-  // 最新进度引用：rAF 回调读取它，避免 effect 依赖 currentProgress 而逐帧重建
-  const currentProgressRef = useRef(currentProgress);
+  const [stopStatuses, setStopStatuses] = useState<RouteStopStatus[]>(() => deriveStopStatuses(stops, initialProgress));
+
+  const emitProgress = useCallback(
+    (nextVal: number) => {
+      const clamped = Math.max(0, Math.min(1, nextVal));
+      if (clamped === progressRef.current) return;
+      progressRef.current = clamped;
+      for (const listener of listenersRef.current) listener();
+
+      const nextStatuses = deriveStopStatuses(stops, clamped);
+      setStopStatuses((prev) => (areStopStatusesEqual(prev, nextStatuses) ? prev : nextStatuses));
+    },
+    [stops],
+  );
+
+  // Sync controlled progress without rebuilding rAF effect
   useEffect(() => {
-    currentProgressRef.current = currentProgress;
-  }, [currentProgress]);
+    if (isControlled && controlledProgress !== undefined) {
+      emitProgress(controlledProgress);
+    }
+  }, [isControlled, controlledProgress, emitProgress]);
 
   const updateProgress = useCallback(
     (newVal: number) => {
       const clamped = Math.max(0, Math.min(1, newVal));
-      currentProgressRef.current = clamped;
       if (!isControlled) {
-        setInternalProgress(clamped);
+        emitProgress(clamped);
       }
       onProgressChangeRef.current?.(clamped);
     },
-    [isControlled],
+    [isControlled, emitProgress],
   );
 
-  // Playback timer loop
+  const progressStore = useMemo<RouteProgressStore>(
+    () => ({
+      subscribe: (listener: () => void) => {
+        listenersRef.current.add(listener);
+        return () => {
+          listenersRef.current.delete(listener);
+        };
+      },
+      getSnapshot: () => progressRef.current,
+      getServerSnapshot: () => defaultProgress,
+    }),
+    [defaultProgress],
+  );
+
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!isPlaying) {
+    if (!enabled || !isPlaying || coordinates.length < 2) {
       if (animFrameRef.current !== null) {
         cancelAnimationFrame(animFrameRef.current);
         animFrameRef.current = null;
@@ -70,7 +127,7 @@ export function useRouteTracking({
       lastTimeRef.current = now;
 
       const increment = delta / Math.max(playbackDuration, 1);
-      const nextProgress = Math.min(1, currentProgressRef.current + increment);
+      const nextProgress = Math.min(1, progressRef.current + increment);
 
       updateProgress(nextProgress);
 
@@ -86,13 +143,14 @@ export function useRouteTracking({
     return () => {
       if (animFrameRef.current !== null) {
         cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
       }
     };
-  }, [isPlaying, playbackDuration, updateProgress]);
+  }, [enabled, isPlaying, coordinates.length, playbackDuration, updateProgress]);
 
   const togglePlay = useCallback(() => {
     setIsPlaying((prev) => {
-      if (!prev && currentProgressRef.current >= 1) {
+      if (!prev && progressRef.current >= 1) {
         updateProgress(0);
       }
       return !prev;
@@ -104,35 +162,19 @@ export function useRouteTracking({
     updateProgress(0);
   }, [updateProgress]);
 
-  // 离散化站点状态阶数：仅在站点状态阈值发生跳变时才重新分配 enrichedStops 数组引用，
-  // 彻底避免 60-120 FPS 动画帧高频更新连续浮点数导致所有站点 Marker 每秒重渲染数十次
-  const stopThresholdKey = useMemo(() => {
-    if (stops.length <= 1) return "0";
-    const count = stops.length;
-    return stops
-      .map((_, idx) => {
-        const stopProgress = idx / Math.max(count - 1, 1);
-        const isDone = currentProgress >= stopProgress;
-        const isNext = !isDone && (idx === 0 || currentProgress >= (idx - 1) / (count - 1));
-        return isDone ? "2" : isNext ? "1" : "0";
-      })
-      .join("");
-  }, [stops, currentProgress]);
-
   const enrichedStops = useMemo<RouteStop[]>(() => {
-    if (coordinates.length < 2 || stops.length === 0) return stops;
+    if (stops.length === 0) return EMPTY_STOPS;
     return stops.map((stop, idx) => {
       if (stop.status) return stop;
-      const code = stopThresholdKey[idx];
       return {
         ...stop,
-        status: code === "2" ? "completed" : code === "1" ? "current" : "pending",
+        status: stopStatuses[idx] ?? "pending",
       };
     });
-  }, [stops, coordinates, stopThresholdKey]);
+  }, [stops, stopStatuses]);
 
   return {
-    progress: currentProgress,
+    progressStore,
     isPlaying,
     togglePlay,
     seekTo: updateProgress,

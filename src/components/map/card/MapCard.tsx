@@ -1,8 +1,11 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useMemoizedFn } from "ahooks";
-import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
-import { memo, useState } from "react";
+import { Maximize2 } from "lucide-react";
+import { memo, useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,9 +47,48 @@ export const MapCard = memo(function MapCard({
 }: MapCardProps) {
   const t = useTranslations("map");
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  /**
+   * 单一持久化 WebGL 宿主节点：进入/退出全屏仅将该 DOM 节点在卡片槽位与 Dialog 槽位间移动，
+   * 绝不卸载重挂载 <Map> 实例，彻底保全 WebGL 上下文、相机视角与叠加图层。
+   */
+  const [hostEl] = useState<HTMLDivElement | null>(() => {
+    if (typeof document === "undefined") return null;
+    const el = document.createElement("div");
+    el.className = "size-full";
+    return el;
+  });
+
+  useEffect(() => {
+    return () => {
+      hostEl?.remove();
+    };
+  }, [hostEl]);
+
+  const attachCardSlot = useCallback(
+    (slot: HTMLDivElement | null) => {
+      if (slot && hostEl && !isFullscreen && hostEl.parentNode !== slot) {
+        slot.appendChild(hostEl);
+      }
+    },
+    [hostEl, isFullscreen],
+  );
+
+  const attachDialogSlot = useCallback(
+    (slot: HTMLDivElement | null) => {
+      if (slot && hostEl && isFullscreen && hostEl.parentNode !== slot) {
+        slot.appendChild(hostEl);
+      }
+    },
+    [hostEl, isFullscreen],
+  );
+
   const openFullscreen = useMemoizedFn(() => setIsFullscreen(true));
   const canFullscreen = fullscreenable ?? showFullscreen;
-  const resolvedErrorMsg = errorMessage || error?.message || (isError ? t("error_default") : undefined);
+  const hasError = Boolean(isError || error);
+  const errorDetail = error instanceof Error ? error.message : typeof error === "string" ? error : undefined;
+  const resolvedErrorMsg = errorMessage || errorDetail || (hasError ? t("error_default") : undefined);
+  const shouldRenderMap = !isLoading && !hasError && !isEmpty;
 
   return (
     <>
@@ -73,7 +115,7 @@ export const MapCard = memo(function MapCard({
                 variant="outline"
                 size="icon"
                 onClick={openFullscreen}
-                disabled={isLoading || isEmpty}
+                disabled={isLoading || isEmpty || hasError}
                 className="text-muted-foreground hover:text-foreground size-8"
                 title={t("fullscreen_title")}
                 aria-label={t("fullscreen_title")}
@@ -87,24 +129,16 @@ export const MapCard = memo(function MapCard({
         <CardContent className="min-w-0 flex-1 pt-2 pb-5">
           {isLoading ? (
             <MapSkeleton height={height} message={loadingMessage} />
-          ) : resolvedErrorMsg ? (
-            <div
-              className="border-destructive/20 bg-destructive/5 flex w-full flex-col items-center justify-center space-y-3 rounded-lg border p-6 text-center"
-              style={{ height }}
-            >
-              <div className="bg-destructive/10 text-destructive rounded-full p-2.5">
-                <AlertCircle className="size-5" />
-              </div>
-              <p className="text-destructive text-sm font-medium">{resolvedErrorMsg}</p>
-              {onRetry ? (
-                <Button variant="outline" size="sm" onClick={onRetry} className="h-8 gap-1.5 text-xs">
-                  <RefreshCw className="size-3.5" />
-                  {t("retry")}
-                </Button>
-              ) : null}
-            </div>
+          ) : hasError ? (
+            <MapEmptyState
+              height={height}
+              type="error"
+              message={resolvedErrorMsg}
+              actionLabel={onRetry ? t("retry") : undefined}
+              onAction={onRetry}
+            />
           ) : isEmpty ? (
-            <MapEmptyState height={height} description={emptyMessage} />
+            <MapEmptyState height={height} type="no-data" message={emptyMessage} />
           ) : (
             <div className="border-border/40 relative w-full overflow-hidden rounded-lg border" style={{ height }}>
               {isFullscreen ? (
@@ -112,7 +146,7 @@ export const MapCard = memo(function MapCard({
                   {t("fullscreen_active")}
                 </div>
               ) : (
-                children
+                <div ref={attachCardSlot} className="size-full" />
               )}
             </div>
           )}
@@ -121,6 +155,8 @@ export const MapCard = memo(function MapCard({
         </CardContent>
       </Card>
 
+      {shouldRenderMap && hostEl ? createPortal(children, hostEl) : null}
+
       {canFullscreen && isFullscreen ? (
         <MapFullscreenDialog
           open={isFullscreen}
@@ -128,9 +164,8 @@ export const MapCard = memo(function MapCard({
           title={title}
           description={description}
           fullscreenHeight={fullscreenHeight}
-        >
-          {children}
-        </MapFullscreenDialog>
+          onHostMount={attachDialogSlot}
+        />
       ) : null}
     </>
   );

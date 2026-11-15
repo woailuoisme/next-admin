@@ -1,16 +1,19 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Pause, Play, RotateCcw } from "lucide-react";
-import { memo } from "react";
+import { memo, useSyncExternalStore } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
+import type { RouteProgressStore } from "./useRouteTracking";
 import type { VehicleInfo } from "./types";
 
 interface RoutePlaybackScrubberProps {
   isPlaying: boolean;
-  progress: number;
+  progressStore: RouteProgressStore;
   onTogglePlay: () => void;
   onReset: () => void;
   onSeek: (value: number) => void;
@@ -19,24 +22,24 @@ interface RoutePlaybackScrubberProps {
 
 export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
   isPlaying,
-  progress,
+  progressStore,
   onTogglePlay,
   onReset,
   onSeek,
   vehicle,
 }: RoutePlaybackScrubberProps) {
   const t = useTranslations("map");
+  const progress = useSyncExternalStore(
+    progressStore.subscribe,
+    progressStore.getSnapshot,
+    progressStore.getServerSnapshot,
+  );
 
   const playLabel = isPlaying ? t("route_pause") : t("route_play");
   const resetLabel = t("route_reset");
+  const pct = Math.round(progress * 100);
 
   return (
-    /*
-			右缘留出 56px：MapControls(bottom-right → bottom-10/right-2，按钮 size-8 即 32px，
-			控件左缘距右约 42px) 与 MapLibre 紧凑归因按钮都位于右下角。原先 `inset-x-3` 横跨到
-			距右仅 12px，会把缩放控件下半部（罗盘完全被盖）与归因按钮一并遮住。
-			这里改为两端独立定位，避免浮层遮挡交互控件。
-		*/
     <div className="border-border/80 bg-background/90 absolute right-14 bottom-3 left-3 z-10 flex items-center gap-3 rounded-lg border px-3.5 py-2.5 shadow-lg backdrop-blur-md">
       <Button
         variant="ghost"
@@ -62,7 +65,7 @@ export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
 
       <div className="flex flex-1 items-center gap-3">
         <Slider
-          value={[Math.round(progress * 100)]}
+          value={[pct]}
           min={0}
           max={100}
           step={1}
@@ -70,9 +73,7 @@ export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
           className="w-full cursor-pointer"
           aria-label={t("route_progress_aria")}
         />
-        <span className="text-muted-foreground w-10 text-right font-mono text-xs font-semibold">
-          {Math.round(progress * 100)}%
-        </span>
+        <span className="text-muted-foreground w-10 text-right font-mono text-xs font-semibold">{pct}%</span>
       </div>
 
       {vehicle?.speed !== undefined ? (

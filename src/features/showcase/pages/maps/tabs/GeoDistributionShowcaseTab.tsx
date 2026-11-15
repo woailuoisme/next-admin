@@ -1,18 +1,20 @@
+import { useTranslations } from "next-intl";
 import { LazyGeoDistributionMap } from "@/components/map/lazy";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_GEOJSON_DATA } from "../constants";
 import type { DemoStateProps } from "../types";
 
 export function GeoDistributionShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
+  const t = useTranslations("showcase");
   return (
     <TabsContent value="geo" className="space-y-4">
       <LazyGeoDistributionMap
         data={MOCK_GEOJSON_DATA}
         valueKey="value"
         labelKey="name"
-        unit="万元"
+        unit={t("maps_geo_unit")}
         colorScheme="primary"
-        legendTitle="区域销售总额分级 (万元)"
+        legendTitle={t("maps_geo_legend_title")}
         height={500}
         center={[114, 31]}
         zoom={4}
@@ -21,8 +23,8 @@ export function GeoDistributionShowcaseTab({ isLoading, isEmpty, isError, onRetr
         isError={isError}
         onRetry={onRetry}
         cardProps={{
-          title: "省区商业体量密度分级 (Choropleth)",
-          description: "GeoJSON 几何渲染、5级离散色阶图例与鼠标悬浮区域卡片",
+          title: t("maps_geo_card_title"),
+          description: t("maps_geo_card_desc"),
         }}
       />
     </TabsContent>

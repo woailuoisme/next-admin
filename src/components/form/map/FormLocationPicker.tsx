@@ -1,17 +1,18 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Check, Copy } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
-import type { LocationPickerValue } from "../../map/picker/types";
-import type { BasemapPreset } from "../../map/presets/basemaps";
-import type { CoordinateSystem } from "../../map/utils/coordinates";
+import type { LocationPickerValue } from "@/components/map/picker/types";
+import type { BasemapPreset } from "@/components/map/presets/basemaps";
+import { type CoordinateSystem, transformCoordinates } from "@/components/map/utils/coordinates";
 import type { BaseInputProps } from "../core/types";
 
-import { LocationPicker } from "../../map/picker/LocationPicker";
+import { LocationPicker } from "@/components/map/picker/LocationPicker";
 import { FormFieldEngine } from "../core/FormFieldEngine";
 
 export interface FormLocationPickerProps extends BaseInputProps {
@@ -56,6 +57,12 @@ const EMPTY_PRESETS: Array<{ label: string; coords: { lng: number; lat: number }
 export const FormLocationPicker = memo(function FormLocationPicker(props: FormLocationPickerProps) {
   const t = useTranslations("form");
   const {
+    id: _id,
+    form: _form,
+    value: _value,
+    defaultValue: _defaultValue,
+    onChange: _onChange,
+    onBlur: _onBlur,
     name,
     label,
     hint,
@@ -75,6 +82,7 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
   } = props;
 
   const [copied, setCopied] = useState(false);
+  const [presetInteractionEpoch, setPresetInteractionEpoch] = useState(0);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -83,16 +91,24 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
     };
   }, []);
 
-  const handleCopy = useCallback((coords?: LocationPickerValue) => {
-    if (!coords) return;
-    const text = `${coords.lng.toFixed(6)}, ${coords.lat.toFixed(6)}`;
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(text);
-      setCopied(true);
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-      copyTimerRef.current = setTimeout(() => setCopied(false), 1800);
-    }
-  }, []);
+  const handleCopy = useCallback(
+    async (coords?: LocationPickerValue) => {
+      if (!coords || typeof navigator === "undefined" || !navigator.clipboard) {
+        toast.error(t("location_copy_failed"));
+        return;
+      }
+      const text = `${coords.lng.toFixed(6)}, ${coords.lat.toFixed(6)}`;
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+        copyTimerRef.current = setTimeout(() => setCopied(false), 1800);
+      } catch {
+        toast.error(t("location_copy_failed"));
+      }
+    },
+    [t],
+  );
 
   return (
     <FormFieldEngine<LocationPickerValue>
@@ -116,13 +132,20 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
       onBlur={props.onBlur}
     >
       {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => {
+        const targetCRS: CoordinateSystem = restPickerProps.coordinateSystem ?? "WGS84";
         const handlePresetSelect = (presetCoords: { lng: number; lat: number }) => {
           if (isDisabled || isReadOnly) return;
+          const [convertedLng, convertedLat] = transformCoordinates(
+            [presetCoords.lng, presetCoords.lat],
+            "WGS84",
+            targetCRS,
+          );
           const updated: LocationPickerValue = {
-            lng: presetCoords.lng,
-            lat: presetCoords.lat,
+            lng: Number(convertedLng.toFixed(6)),
+            lat: Number(convertedLat.toFixed(6)),
             address: undefined,
           };
+          setPresetInteractionEpoch((epoch) => epoch + 1);
           onChange(updated);
           onBlur?.();
         };
@@ -136,7 +159,7 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
               hasError ? "ring-destructive/40 flex flex-col gap-2 rounded-lg p-1 ring-1" : "flex flex-col gap-2"
             }
           >
-            {(quickPresets.length > 0 || (showAddressSearch && showCopyButton && value)) && (
+            {(quickPresets.length > 0 || (showCopyButton && value)) && (
               <div className="flex flex-wrap items-center justify-between gap-2">
                 {quickPresets.length > 0 ? (
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -159,7 +182,7 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
                   <div />
                 )}
 
-                {showAddressSearch && showCopyButton && value && (
+                {showCopyButton && value && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -186,6 +209,8 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
 
             <LocationPicker
               {...restPickerProps}
+              externalInteractionEpoch={presetInteractionEpoch}
+              showAddressSearch={showAddressSearch}
               value={value}
               onChange={(val) => {
                 onChange(val);

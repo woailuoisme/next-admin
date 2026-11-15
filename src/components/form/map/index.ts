@@ -1,15 +1,16 @@
+"use client";
+
 import dynamic from "next/dynamic";
-import type { FormLocationPickerProps } from "./FormLocationPicker";
+import { createElement } from "react";
 
-const DynamicFormLocationPicker = dynamic<FormLocationPickerProps>(
-  () => import("./FormLocationPicker").then((mod) => mod.FormLocationPicker),
-  {
-    ssr: false,
-  },
-);
+import { MapSkeleton } from "@/components/map/shared/MapSkeleton";
 
-export { DynamicFormLocationPicker as FormLocationPicker, DynamicFormLocationPicker as LazyFormLocationPicker };
+const DynamicFormLocationPicker = dynamic(() => import("./FormLocationPicker").then((mod) => mod.FormLocationPicker), {
+  ssr: false,
+  loading: () => createElement(MapSkeleton, { height: 320 }),
+});
+
+export const FormLocationPicker = DynamicFormLocationPicker;
+export const LazyFormLocationPicker = DynamicFormLocationPicker;
 export type { FormLocationPickerProps } from "./FormLocationPicker";
-export type { LocationPickerValue } from "../../map/picker/types";
-export type { BasemapPreset } from "../../map/presets/basemaps";
-export type { CoordinateSystem } from "../../map/utils/coordinates";
+export type { LocationPickerValue } from "@/components/map/picker/types";

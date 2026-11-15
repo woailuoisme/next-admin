@@ -1,3 +1,7 @@
+"use client";
+
+import type * as MapLibreGL from "maplibre-gl";
+
 import { memo, useEffect } from "react";
 
 import { useMap } from "@/components/ui/map";
@@ -7,16 +11,49 @@ export interface MapAutoResizerProps {
   debounceMs?: number;
 }
 
+const FALLBACK_EMPTY_IMAGE = {
+  width: 1,
+  height: 1,
+  data: new Uint8Array([0, 0, 0, 0]),
+};
+
 /**
- * Headless controller inside a <Map> component that automatically monitors
- * container size changes (Sidebar collapse, Tabs switch, ResizablePanels, Dialog open)
- * and invokes map.resize() to prevent canvas distortion and tile white-screen.
+ * 为底图样式中缺失的 sprite 图标（例如 Carto Positron / Dark Matter 未打包的 `"circle-11"`）
+ * 按需注册 1x1 透明占位图像，消除 MapLibre `Image "..." could not be loaded` 控制台告警。
+ */
+export function ensureFallbackStyleImage(map: MapLibreGL.Map, id: string): void {
+  if (!id || typeof map.addImage !== "function") return;
+  try {
+    if (typeof map.hasImage === "function" && map.hasImage(id)) return;
+    map.addImage(id, FALLBACK_EMPTY_IMAGE);
+  } catch {
+    // 忽略并发或样式切换期间的重复注册异常
+  }
+}
+
+/**
+ * 监听地图容器尺寸变化（侧栏折叠、全屏 Portal 切换、Tabs 切换、页面重显）并自动触发 map.resize()；
+ * 同时统一托管缺失 Sprite 图标的兜底解析器（覆盖 MapFrame 与 LocationPicker）。
  */
 export const MapAutoResizer = memo(function MapAutoResizer({ debounceMs = 50 }: MapAutoResizerProps) {
   const { map, isLoaded } = useMap();
 
   useEffect(() => {
     if (!map) return;
+
+    const handleMissingImage = (id: string) => {
+      ensureFallbackStyleImage(map, id);
+    };
+    const handleStyleImageMissingEvent = (event: { id?: string }) => {
+      if (event?.id) {
+        ensureFallbackStyleImage(map, event.id);
+      }
+    };
+
+    if (typeof map.setMissingStyleImageResolver === "function") {
+      map.setMissingStyleImageResolver(handleMissingImage);
+    }
+    map.on?.("styleimagemissing", handleStyleImageMissingEvent);
 
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -29,7 +66,6 @@ export const MapAutoResizer = memo(function MapAutoResizer({ debounceMs = 50 }: 
       }, debounceMs);
     };
 
-    // 1. Observe container element resize
     let observer: ResizeObserver | null = null;
     const container = map.getContainer?.();
     if (container && typeof ResizeObserver !== "undefined") {
@@ -39,10 +75,8 @@ export const MapAutoResizer = memo(function MapAutoResizer({ debounceMs = 50 }: 
       observer.observe(container);
     }
 
-    // 2. Window resize fallback
     window.addEventListener("resize", handleResize, { passive: true });
 
-    // 3. Tab visibility restoration
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         handleResize();
@@ -50,12 +84,11 @@ export const MapAutoResizer = memo(function MapAutoResizer({ debounceMs = 50 }: 
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // 4. Initial sync after load
-    if (isLoaded) {
-      handleResize();
-    }
-
     return () => {
+      if (typeof map.setMissingStyleImageResolver === "function") {
+        map.setMissingStyleImageResolver(null);
+      }
+      map.off?.("styleimagemissing", handleStyleImageMissingEvent);
       if (timeoutId) clearTimeout(timeoutId);
       if (observer && container) {
         observer.unobserve(container);
@@ -64,7 +97,13 @@ export const MapAutoResizer = memo(function MapAutoResizer({ debounceMs = 50 }: 
       window.removeEventListener("resize", handleResize);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [map, isLoaded, debounceMs]);
+  }, [map, debounceMs]);
+
+  useEffect(() => {
+    if (map && isLoaded && typeof map.resize === "function") {
+      map.resize();
+    }
+  }, [map, isLoaded]);
 
   return null;
 });

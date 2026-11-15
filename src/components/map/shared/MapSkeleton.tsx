@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Loader2, MapPin } from "lucide-react";
 import { memo } from "react";
@@ -24,7 +26,6 @@ export const MapSkeleton = memo(function MapSkeleton({ height = 400, className, 
       role="status"
       aria-label={resolvedMessage}
     >
-      {/* Grid texture representing map coordinates */}
       <div
         className="absolute inset-0 opacity-25"
         style={{
@@ -33,7 +34,6 @@ export const MapSkeleton = memo(function MapSkeleton({ height = 400, className, 
         }}
       />
 
-      {/* Center pulsing radar ring */}
       <div className="relative z-10 flex flex-col items-center gap-3">
         <div className="bg-primary/10 relative flex size-14 items-center justify-center rounded-full">
           <div className="bg-primary/20 absolute size-full animate-ping rounded-full duration-1000" />

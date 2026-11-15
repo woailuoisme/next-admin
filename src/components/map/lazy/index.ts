@@ -1,3 +1,5 @@
+"use client";
+
 import type { ArcFlightMapProps } from "../arc/types";
 import type { GeoDistributionMapProps } from "../geo/types";
 import type { GeoHeatmapMapProps } from "../heatmap/types";

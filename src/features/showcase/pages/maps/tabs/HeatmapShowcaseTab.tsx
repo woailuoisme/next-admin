@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { LazyGeoHeatmapMap } from "@/components/map/lazy";
 import type { HeatmapColorRamp } from "@/components/map/heatmap/types";
 import { Button } from "@/components/ui/button";
@@ -9,16 +10,15 @@ import type { DemoStateProps } from "../types";
 const HEATMAP_RAMPS: readonly HeatmapColorRamp[] = ["thermal", "viridis", "spectral", "plasma", "mono"];
 
 export function HeatmapShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
+  const t = useTranslations("showcase");
   const [heatmapRamp, setHeatmapRamp] = useState<HeatmapColorRamp>("thermal");
 
   return (
     <TabsContent value="heatmap" className="space-y-4">
       <div className="border-border/70 bg-card flex items-center justify-between rounded-lg border p-3 shadow-xs">
         <div className="space-y-0.5">
-          <div className="text-foreground text-xs font-semibold">GPU KDE 核密度渐变色板</div>
-          <div className="text-muted-foreground text-[11px]">
-            高精度 WebGL 原生核密度估计，支持微秒级色板与权重插值平滑切换
-          </div>
+          <div className="text-foreground text-xs font-semibold">{t("maps_heatmap_control_title")}</div>
+          <div className="text-muted-foreground text-[11px]">{t("maps_heatmap_control_desc")}</div>
         </div>
         <div className="flex items-center gap-1.5">
           {HEATMAP_RAMPS.map((ramp) => (
@@ -48,8 +48,8 @@ export function HeatmapShowcaseTab({ isLoading, isEmpty, isError, onRetry }: Dem
         isError={isError}
         onRetry={onRetry}
         cardProps={{
-          title: "全国业务密度核密度热力 (GPU KDE)",
-          description: "MapLibre GL 原生 WebGL 热力图层，实时核密度估计与动态密度图例",
+          title: t("maps_heatmap_card_title"),
+          description: t("maps_heatmap_card_desc"),
         }}
       />
     </TabsContent>

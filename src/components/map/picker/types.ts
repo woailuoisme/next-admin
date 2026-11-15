@@ -35,6 +35,8 @@ export type LocationPickerProps = {
   showAddressSearch?: boolean;
   /** Whether to show the clear/reset button (default: true) */
   showReset?: boolean;
+  /** Custom placeholder for the address search input */
+  searchPlaceholder?: string;
   /** Map view height (default: 320) */
   height?: number | string;
   /** Initial view center [lng, lat]，坐标系与底图一致（高德底图请传 GCJ-02） */
@@ -48,4 +50,6 @@ export type LocationPickerProps = {
 
   /** Additional container class */
   className?: string;
+  /** 外部快捷预设点击计数（用于区分初始挂载与上游预设交互，同步逆地理编码回传） */
+  externalInteractionEpoch?: number;
 };

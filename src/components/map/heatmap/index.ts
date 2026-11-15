@@ -1,5 +1,5 @@
-export { COLOR_RAMP_PRESETS } from "./colorRamps";
 export { GeoHeatmapMap } from "./GeoHeatmapMap";
-export { HeatmapLegend } from "./HeatmapLegend";
-export { HeatmapWebGLSourceLayer } from "./HeatmapWebGLSourceLayer";
-export * from "./types";
+export type { GeoHeatmapMapProps, HeatmapColorRamp, HeatmapPoint } from "./types";
+export { HeatmapWebGLSourceLayer, type HeatmapWebGLSourceLayerProps } from "./HeatmapWebGLSourceLayer";
+export { HeatmapLegend, type HeatmapLegendProps } from "./HeatmapLegend";
+export { COLOR_RAMP_PRESETS, buildHeatmapColorExpression, EMPTY_HEATMAP_GEOJSON } from "./colorRamps";

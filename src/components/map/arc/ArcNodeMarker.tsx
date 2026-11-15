@@ -1,31 +1,53 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { memo } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { MapMarker, MarkerContent, MarkerTooltip } from "@/components/ui/map";
 
-import type { ArcTopologyNode } from "./useArcTopology";
+import type { ArcNodePoint } from "./useArcTopology";
 
-interface ArcNodeMarkerProps {
-  node: ArcTopologyNode;
+export interface ArcNodeMarkerProps {
+  node: ArcNodePoint;
+  size?: number;
+  arcColor: string;
 }
 
-export const ArcNodeMarker = memo(function ArcNodeMarker({ node }: ArcNodeMarkerProps) {
+export const ArcNodeMarker = memo(function ArcNodeMarker({ node, size = 10, arcColor }: ArcNodeMarkerProps) {
+  const t = useTranslations("map");
+  const ariaLabel = node.label
+    ? `${node.label} (${t("arc_node_routes", { count: node.count })})`
+    : t("arc_node_routes", { count: node.count });
+
   return (
-    <MapMarker longitude={node.coordinates[0]} latitude={node.coordinates[1]}>
+    <MapMarker longitude={node.lngLat[0]} latitude={node.lngLat[1]}>
       <MarkerContent>
-        <div className="group relative flex items-center justify-center">
-          <span className="bg-primary/25 absolute -inset-1 rounded-full transition-all group-hover:scale-150" />
-          <span className="border-background bg-primary relative size-3 rounded-full border-2 shadow-xs transition-transform group-hover:scale-125" />
-        </div>
+        <button
+          type="button"
+          aria-label={ariaLabel}
+          className="focus-visible:ring-ring relative flex items-center justify-center rounded-full focus:outline-none focus-visible:ring-2"
+          style={{ width: size + 8, height: size + 8 }}
+        >
+          <span
+            className="absolute inset-0 animate-ping rounded-full opacity-35"
+            style={{ backgroundColor: arcColor }}
+          />
+          <span
+            className="border-background relative rounded-full border shadow-sm"
+            style={{
+              width: size,
+              height: size,
+              backgroundColor: arcColor,
+            }}
+          />
+        </button>
       </MarkerContent>
-      <MarkerTooltip>
-        <div className="flex items-center gap-1.5 px-1 py-0.5 text-xs font-semibold">
-          <span>{node.name}</span>
-          <Badge variant="secondary" className="px-1 py-0 text-[10px]">
-            {node.count} routes
-          </Badge>
-        </div>
-      </MarkerTooltip>
+      {node.label ? (
+        <MarkerTooltip>
+          <div className="text-xs font-medium">{node.label}</div>
+          <div className="text-muted-foreground text-[11px]">{t("arc_node_routes", { count: node.count })}</div>
+        </MarkerTooltip>
+      ) : null}
     </MapMarker>
   );
 });

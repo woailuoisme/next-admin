@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { Coordinates, MapCardSlotProps, MapCommonProps } from "../shared/types";
+import type { Coordinates, MapCardSlotProps, MapCommonProps, MapFeedbackProps } from "../shared/types";
 import type { CoordinateSystem } from "../utils/coordinates";
 
 export interface LocationMarkerItem {
@@ -17,7 +17,7 @@ export interface LocationMarkerItem {
   extra?: Record<string, unknown>;
 }
 
-export interface LocationMarkerMapProps extends MapCommonProps {
+export interface LocationMarkerMapProps extends MapCommonProps, MapFeedbackProps {
   /** Array of location markers (or use alias 'locations') */
   data?: LocationMarkerItem[];
   /** Alias for data */
@@ -36,11 +36,6 @@ export interface LocationMarkerMapProps extends MapCommonProps {
 
   /** Threshold to switch from DOM markers to GPU canvas in "auto" mode (default: 200) */
   tierThreshold?: number;
-
-  /** Initial or controlled map center [lng, lat] */
-  center?: Coordinates;
-  /** Initial or controlled map zoom level */
-  zoom?: number;
 
   /** Whether to group points into clusters at lower zoom levels (default: true) */
   enableClustering?: boolean;
@@ -63,16 +58,6 @@ export interface LocationMarkerMapProps extends MapCommonProps {
 
   /** Custom marker popup render prop */
   renderPopup?: (marker: LocationMarkerItem) => ReactNode;
-
-  /** Map projection mode: 'globe' or 'mercator' */
-  projection?: "globe" | "mercator";
-
-  /** Loading state */
-  isLoading?: boolean;
-  isEmpty?: boolean;
-  isError?: boolean;
-  error?: Error | null;
-  onRetry?: () => void;
 
   /** Default category selected */
   defaultCategory?: string;

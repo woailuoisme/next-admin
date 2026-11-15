@@ -1,51 +1,60 @@
+"use client";
+
 import type * as GeoJSON from "geojson";
 
 import { useMemoizedFn } from "ahooks";
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 
+import type { BasemapPreset } from "../presets/basemaps";
 import type { Coordinates } from "../shared/types";
 import type { LocationMarkerItem, LocationMarkerMapProps } from "./types";
 
-import { resolveCoordinateSystems, transformCoordinates } from "../utils/coordinates";
+import { DEFAULT_BEIJING_CENTER } from "../shared/constants";
+import { isValidCoordinate, resolveCoordinateSystems, transformCoordinates } from "../utils/coordinates";
+import { resolveBoundingCenter } from "../utils/geoEngine";
 
 const EMPTY_MARKERS: LocationMarkerItem[] = [];
-const DEFAULT_BEIJING_CENTER: Coordinates = [116.4074, 39.9042];
 
-export function useLocationMarkers(props: LocationMarkerMapProps) {
+export function useLocationMarkers(props: LocationMarkerMapProps & { activeBasemap?: BasemapPreset }) {
+  const effectiveBasemap = props.activeBasemap ?? props.basemap;
   const { sourceCoords, targetCoords, needsTransform } = resolveCoordinateSystems(
     props.coordinateSystem,
-    props.basemap,
+    effectiveBasemap,
+    props.basemapCRS,
   );
 
+  const rawItems = props.data ?? props.locations ?? EMPTY_MARKERS;
+
   const data = useMemo(() => {
-    const raw = props.data ?? props.locations ?? EMPTY_MARKERS;
-    if (!needsTransform) return raw;
-    return raw.map((item) => ({
+    const validRaw = rawItems.filter((item) => isValidCoordinate(item.coordinates));
+    if (!needsTransform) return validRaw;
+    return validRaw.map((item) => ({
       ...item,
       coordinates: transformCoordinates(item.coordinates, sourceCoords, targetCoords),
     }));
-  }, [props.data, props.locations, needsTransform, sourceCoords, targetCoords]);
+  }, [rawItems, needsTransform, sourceCoords, targetCoords]);
 
   const { center: propCenter, selectedId: controlledSelectedId, onMarkerSelect } = props;
 
   const [internalSelectedId, setInternalSelectedId] = useState<string | number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(
     props.defaultCategory && props.defaultCategory !== "all" ? props.defaultCategory : null,
   );
 
   const activeSelectedId = controlledSelectedId !== undefined ? controlledSelectedId : internalSelectedId;
 
-  // Extract unique categories
-  const categories = useMemo(() => {
-    const set = new Set<string>();
+  const { categories, categoryCounts } = useMemo(() => {
+    const counts: Record<string, number> = {};
     for (const item of data) {
-      if (item.category) set.add(item.category);
+      if (item.category) {
+        counts[item.category] = (counts[item.category] ?? 0) + 1;
+      }
     }
-    return Array.from(set);
+    return { categories: Object.keys(counts), categoryCounts: counts };
   }, [data]);
 
-  // Filter data by search query and category
   const filteredData = useMemo(() => {
     let list = data;
 
@@ -53,8 +62,8 @@ export function useLocationMarkers(props: LocationMarkerMapProps) {
       list = list.filter((item) => item.category === selectedCategory);
     }
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.trim().toLowerCase();
+    if (deferredSearchQuery.trim()) {
+      const query = deferredSearchQuery.trim().toLowerCase();
       list = list.filter(
         (item) =>
           item.title.toLowerCase().includes(query) ||
@@ -64,25 +73,28 @@ export function useLocationMarkers(props: LocationMarkerMapProps) {
     }
 
     return list;
-  }, [data, selectedCategory, searchQuery]);
+  }, [data, selectedCategory, deferredSearchQuery]);
 
-  // Compute default center from data if not provided
-  const computedCenter = useMemo<Coordinates>(() => {
-    if (propCenter) {
-      return needsTransform ? transformCoordinates(propCenter, sourceCoords, targetCoords) : propCenter;
-    }
-    if (filteredData.length === 0) return DEFAULT_BEIJING_CENTER; // Default Beijing if empty
-
-    let sumLng = 0;
-    let sumLat = 0;
+  const filteredLookup = useMemo(() => {
+    const index = new Map<string, LocationMarkerItem>();
     for (const item of filteredData) {
-      sumLng += item.coordinates[0];
-      sumLat += item.coordinates[1];
+      index.set(String(item.id), item);
     }
-    return [sumLng / filteredData.length, sumLat / filteredData.length];
-  }, [propCenter, filteredData, needsTransform, sourceCoords, targetCoords]);
+    return index;
+  }, [filteredData]);
 
-  // Convert filtered data to GeoJSON FeatureCollection for MapClusterLayer
+  const filteredPoints = useMemo<Coordinates[]>(() => filteredData.map((item) => item.coordinates), [filteredData]);
+
+  const computedCenter = useMemo<Coordinates>(() => {
+    const explicit =
+      propCenter && isValidCoordinate(propCenter)
+        ? needsTransform
+          ? transformCoordinates(propCenter, sourceCoords, targetCoords)
+          : propCenter
+        : undefined;
+    return resolveBoundingCenter(filteredPoints, explicit, DEFAULT_BEIJING_CENTER);
+  }, [propCenter, filteredPoints, needsTransform, sourceCoords, targetCoords]);
+
   const geojsonData = useMemo<GeoJSON.FeatureCollection<GeoJSON.Point>>(() => {
     return {
       type: "FeatureCollection",
@@ -105,8 +117,8 @@ export function useLocationMarkers(props: LocationMarkerMapProps) {
   }, [filteredData]);
 
   const selectedMarker = useMemo(() => {
-    if (!activeSelectedId) return null;
-    return data.find((m) => m.id === activeSelectedId) ?? null;
+    if (activeSelectedId === null || activeSelectedId === undefined) return null;
+    return data.find((m) => String(m.id) === String(activeSelectedId)) ?? null;
   }, [data, activeSelectedId]);
 
   const handleSelectMarker = useMemoizedFn((marker: LocationMarkerItem | null) => {
@@ -117,12 +129,17 @@ export function useLocationMarkers(props: LocationMarkerMapProps) {
   });
 
   return {
+    totalCount: data.length,
     searchQuery,
+    deferredSearchQuery,
     setSearchQuery,
     selectedCategory,
     setSelectedCategory,
     categories,
+    categoryCounts,
     filteredData,
+    filteredLookup,
+    filteredPoints,
     geojsonData,
     computedCenter,
     selectedMarker,

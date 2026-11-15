@@ -1,3 +1,5 @@
+"use client";
+
 import { Building2, Phone } from "lucide-react";
 import { memo } from "react";
 
@@ -15,19 +17,36 @@ const STATUS_BADGE_VARIANTS: Record<string, "default" | "secondary" | "outline">
   inactive: "outline",
 };
 
+function formatExtraEntries(extra?: Record<string, unknown>): Array<[string, string]> {
+  if (!extra) return [];
+  const entries: Array<[string, string]> = [];
+  for (const [k, v] of Object.entries(extra)) {
+    if (v === null || v === undefined || typeof v === "object") continue;
+    entries.push([k, String(v)]);
+    if (entries.length >= 3) break;
+  }
+  return entries;
+}
+
 export const LocationMarkerPopup = memo(function LocationMarkerPopup({ item }: LocationMarkerPopupProps) {
-  // 卡片外观（底色 / 描边 / 圆角 / 阴影 / 12px 内边距）由 ui/map 的 MarkerPopup 容器自带
-  // （`bg-popover ... rounded-md border p-3 shadow-md`），此处只负责内容排版。
-  // 若在此再加一层卡片样式，会与容器形成「双层边框 + 双阴影」。
+  const extraEntries = formatExtraEntries(item.extra);
+
   return (
-    <div className="w-64 space-y-2.5 p-1 text-xs select-none">
+    <div className="w-64 space-y-2.5 p-1 text-xs">
       <div className="flex items-start justify-between gap-2">
         <div className="text-foreground text-sm leading-tight font-semibold">{item.title}</div>
-        {item.status ? (
-          <Badge variant={STATUS_BADGE_VARIANTS[item.status] ?? "outline"} className="shrink-0 text-[10px]">
-            {item.status}
-          </Badge>
-        ) : null}
+        <div className="flex shrink-0 items-center gap-1">
+          {item.badge ? (
+            <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
+              {item.badge}
+            </Badge>
+          ) : null}
+          {item.status ? (
+            <Badge variant={STATUS_BADGE_VARIANTS[item.status] ?? "outline"} className="text-[10px]">
+              {item.status}
+            </Badge>
+          ) : null}
+        </div>
       </div>
 
       {item.address ? (
@@ -46,6 +65,17 @@ export const LocationMarkerPopup = memo(function LocationMarkerPopup({ item }: L
 
       {item.description ? (
         <p className="border-border/40 text-muted-foreground/90 border-t pt-1.5 text-[11px]">{item.description}</p>
+      ) : null}
+
+      {extraEntries.length > 0 ? (
+        <div className="border-border/40 grid grid-cols-2 gap-x-2 gap-y-1 border-t pt-1.5 text-[11px]">
+          {extraEntries.map(([k, v]) => (
+            <div key={k} className="truncate">
+              <span className="text-muted-foreground">{k}: </span>
+              <span className="text-foreground font-medium">{v}</span>
+            </div>
+          ))}
+        </div>
       ) : null}
 
       <div className="border-border/50 text-muted-foreground flex items-center justify-between gap-2 border-t pt-1.5 font-mono text-[10px]">

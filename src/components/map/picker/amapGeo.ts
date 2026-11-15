@@ -1,294 +1,411 @@
 import { env } from "@/env";
 
-/**
- * 高德 Web 服务 API（REST）客户端
- *
- * - 入参 / 出参坐标均为 **GCJ-02**（高德坐标系），与底图坐标系一致
- * - 实测 `restapi.amap.com` 返回 `Access-Control-Allow-Origin: *`，浏览器可直连，无需服务端代理
- * - 未配置 `NEXT_PUBLIC_AMAP_KEY` 时所有方法**安全降级**（返回 null / 空结果，不抛错）
- * - 高德用字符串 `"1"` / `"0"` 表示成功 / 失败。失败必须**给出可读原因**：
- *   最常见的是 key 平台类型不匹配（`USERKEY_PLAT_NOMATCH` —— 用了「Web端(JS API)」key
- *   去调「Web服务」REST 接口），静默返回空结果会让使用者完全无从排查。
- * - **防过度访问与配额保护机制**：
- *   1. 内存 LRU 缓存：地名搜索与逆地理编码均缓存最近 100 条结果，杜绝重复请求；
- *   2. 坐标网格化（Coordinate Snapping）：逆地理编码以 4 位小数（约 10 米精度）为网格 Key，
- *      微小拖拽或同一建筑物内点选直接命中缓存；
- *   3. 在途 Promise 去重（In-Flight Deduplication）：并发相同请求复用单一 Promise，避免网络风暴；
- *   4. 会话级熔断（Circuit Breaker）：遇到配额用尽或平台不匹配等致命错误时自动熔断，阻断后续无效调用。
- */
-const AMAP_REST_BASE = "https://restapi.amap.com/v3";
+import { AMAP_COOLDOWN_REASON, AMAP_RATE_LIMIT_REASON, describeAmapInfo, formatHttpErrorReason } from "./amapMessages";
+import {
+  type AmapPlace,
+  type AmapSearchResult,
+  type GeocodeAdapter,
+  type GeocodeFetchResponse,
+  HttpGeocodeAdapter,
+  type InMemoryGeocodeSeed,
+  InMemoryGeocodeAdapter,
+} from "./geocodeAdapter";
 
-/** 地名搜索结果项（坐标为 GCJ-02） */
-export interface AmapPlace {
-  id: string;
-  name: string;
-  address: string;
-  lngLat: [number, number];
-}
+export type { AmapPlace, AmapSearchResult, GeocodeAdapter, InMemoryGeocodeSeed };
+export { HttpGeocodeAdapter, InMemoryGeocodeAdapter, describeAmapInfo };
 
-export interface AmapSearchResult {
-  places: AmapPlace[];
-  /** 调用失败时的可读原因；成功或未配置 key 时为 undefined */
-  error?: string;
-}
+/** 致命错误码：遇到这些 key / 限流 / 服务端缺失配置时触发冷却熔断 */
+const FATAL_CIRCUIT_INFOS = new Set([
+  "INVALID_USER_KEY",
+  "USERKEY_PLAT_NOMATCH",
+  "SERVICE_NOT_AVAILABLE",
+  "DAILY_QUERY_OVER_LIMIT",
+  "MISSING_AMAP_KEY",
+]);
 
-interface AmapEnvelope {
-  status?: string;
-  info?: string;
-  infocode?: string;
-}
+const CIRCUIT_COOLDOWN_MS = 60_000;
+const NEGATIVE_CACHE_TTL_MS = 30_000;
 
 /**
- * 轻量高性能通用 LRU 内存缓存
+ * 轻量 LRU 缓存（利用 JS `Map` 保持插入顺序，命中时刷新为最新）
  */
 export class LruCache<K, V> {
-  private cache = new Map<K, V>();
+  private readonly store = new Map<K, V>();
+  private readonly maxSize: number;
 
-  constructor(private readonly maxCapacity: number = 100) {}
-
-  public get(key: K): V | undefined {
-    if (!this.cache.has(key)) return undefined;
-    const val = this.cache.get(key)!;
-    // 刷新访问顺序（移至尾部最新）
-    this.cache.delete(key);
-    this.cache.set(key, val);
-    return val;
+  constructor(maxSize: number) {
+    this.maxSize = maxSize;
   }
 
-  public set(key: K, value: V): void {
-    if (this.cache.has(key)) {
-      this.cache.delete(key);
-    } else if (this.cache.size >= this.maxCapacity) {
-      const oldestKey = this.cache.keys().next().value;
-      if (oldestKey !== undefined) {
-        this.cache.delete(oldestKey);
-      }
+  get size(): number {
+    return this.store.size;
+  }
+
+  has(key: K): boolean {
+    return this.store.has(key);
+  }
+
+  get(key: K): V | undefined {
+    if (!this.store.has(key)) return undefined;
+    const value = this.store.get(key) as V;
+    this.store.delete(key);
+    this.store.set(key, value);
+    return value;
+  }
+
+  set(key: K, value: V): void {
+    if (this.store.has(key)) {
+      this.store.delete(key);
+    } else if (this.store.size >= this.maxSize) {
+      const oldestKey = this.store.keys().next().value;
+      if (oldestKey !== undefined) this.store.delete(oldestKey);
     }
-    this.cache.set(key, value);
+    this.store.set(key, value);
   }
 
-  public has(key: K): boolean {
-    return this.cache.has(key);
-  }
-
-  public clear(): void {
-    this.cache.clear();
-  }
-
-  public get size(): number {
-    return this.cache.size;
+  clear(): void {
+    this.store.clear();
   }
 }
 
-/** 致命错误码：触发后自动开启会话级熔断，避免继续向高德刷无意义请求 */
-const FATAL_CIRCUIT_INFOS = new Set(["INVALID_USER_KEY", "USERKEY_PLAT_NOMATCH", "DAILY_QUERY_OVER_LIMIT"]);
+interface SharedInFlight<T> {
+  promise: Promise<T>;
+  controller: AbortController;
+  subscribers: number;
+}
 
-/** 模块内单例缓存与在途请求去重池 */
 const searchCache = new LruCache<string, AmapSearchResult>(100);
-const regeoCache = new LruCache<string, string>(100);
+const regeoCache = new LruCache<string, string>(200);
+const negativeSearchCache = new Map<string, number>();
+const negativeRegeoCache = new Map<string, number>();
+const inFlightSearches = new Map<string, SharedInFlight<AmapSearchResult>>();
+const inFlightRegeos = new Map<string, SharedInFlight<string | null>>();
 
-const inFlightSearches = new Map<string, Promise<AmapSearchResult>>();
-const inFlightRegeos = new Map<string, Promise<string | null>>();
+const defaultHttpAdapter = new HttpGeocodeAdapter();
+let activeAdapter: GeocodeAdapter = defaultHttpAdapter;
+let proxyEnabledCache: boolean | null = null;
+let proxyProbePromise: Promise<boolean> | null = null;
 
-/** 会话级熔断状态 */
-let isCircuitTripped = false;
+type CircuitState = "closed" | "open" | "half-open";
+let circuitState: CircuitState = "closed";
+let circuitOpenedAt = 0;
 let circuitTripReason: string | null = null;
 let warnedInfo: string | null = null;
 
-/** 是否已触发高德 API 会话熔断 */
-export function isAmapCircuitTripped(): boolean {
-  return isCircuitTripped;
+/** 注入自定义地理编码适配器（测试替身或自定义网关） */
+export function setGeocodeAdapter(adapter: GeocodeAdapter | null): void {
+  activeAdapter = adapter ?? defaultHttpAdapter;
+  proxyEnabledCache = null;
+  proxyProbePromise = null;
 }
 
-/** 获取熔断原因 */
+export function getGeocodeAdapter(): GeocodeAdapter {
+  return activeAdapter;
+}
+
+/**
+ * 探测同源 `/api/geocode` 服务端代理是否可用（单例去重，避免重复探针）
+ */
+export async function probeGeocodeProxy(signal?: AbortSignal): Promise<boolean> {
+  if (activeAdapter.isConfigured) {
+    const ok = activeAdapter.isConfigured();
+    proxyEnabledCache = ok;
+    return ok;
+  }
+  if (env.AMAP_KEY) {
+    proxyEnabledCache = true;
+    return true;
+  }
+  if (proxyEnabledCache !== null) return proxyEnabledCache;
+  if (!activeAdapter.probeStatus) return false;
+
+  if (!proxyProbePromise) {
+    proxyProbePromise = activeAdapter
+      .probeStatus(signal)
+      .then((enabled) => {
+        proxyEnabledCache = enabled;
+        return enabled;
+      })
+      .catch(() => false)
+      .finally(() => {
+        proxyProbePromise = null;
+      });
+  }
+  return proxyProbePromise;
+}
+
+/** 是否已触发高德 API 冷却熔断（超过 60s 冷却窗后自动转为半开态允许单次探测） */
+export function isAmapCircuitTripped(): boolean {
+  if (circuitState === "closed") return false;
+  if (circuitState === "open") {
+    if (Date.now() - circuitOpenedAt >= CIRCUIT_COOLDOWN_MS) {
+      circuitState = "half-open";
+      return false;
+    }
+    return true;
+  }
+  // half-open 允许探测
+  return false;
+}
+
 export function getAmapCircuitReason(): string | null {
   return circuitTripReason;
 }
 
-/** 手动重置熔断状态（通常在配置更新或测试隔离时调用） */
 export function resetAmapCircuit(): void {
-  isCircuitTripped = false;
+  circuitState = "closed";
+  circuitOpenedAt = 0;
   circuitTripReason = null;
   warnedInfo = null;
 }
 
-/** 清空内部缓存与在途请求池（测试隔离或页面重置时使用） */
 export function resetAmapCache(): void {
   searchCache.clear();
   regeoCache.clear();
+  negativeSearchCache.clear();
+  negativeRegeoCache.clear();
+  for (const entry of inFlightSearches.values()) entry.controller.abort();
+  for (const entry of inFlightRegeos.values()) entry.controller.abort();
   inFlightSearches.clear();
   inFlightRegeos.clear();
+  proxyEnabledCache = null;
+  proxyProbePromise = null;
 }
 
-/**
- * 坐标网格化：按 4 位小数（经纬度约 10 米分辨率网格）归一化，
- * 避免微米级的微调或同一建筑物的反复拖拽触发多余的高德接口请求。
- */
+function tripCircuit(reason: string): void {
+  circuitState = "open";
+  circuitOpenedAt = Date.now();
+  circuitTripReason = reason;
+}
+
 export function snapCoordinateToGrid([lng, lat]: [number, number], decimals = 4): string {
   return `${lng.toFixed(decimals)},${lat.toFixed(decimals)}`;
 }
 
-/** 是否已配置高德 key（未配置时地名搜索与逆地理编码不可用） */
+/** 检查地理编码能力是否已启用（客户端环境变量、服务端探针缓存或注入适配器） */
 export function isAmapApiEnabled(): boolean {
-  return Boolean(env.AMAP_KEY);
-}
-
-/** 把高德的 `info` 错误码翻译成可操作的中文提示 */
-export function describeAmapInfo(info: string): string {
-  switch (info) {
-    case "INVALID_USER_KEY":
-      return "高德 key 无效，请检查 NEXT_PUBLIC_AMAP_KEY 是否填写正确";
-    case "USERKEY_PLAT_NOMATCH":
-      return "高德 key 平台类型不匹配：当前 key 是「Web端(JS API)」，需在高德控制台创建「Web服务」类型的 key";
-    case "SERVICE_NOT_AVAILABLE":
-      return "高德服务暂不可用，请稍后重试";
-    case "DAILY_QUERY_OVER_LIMIT":
-      return "高德接口今日配额已用尽";
-    case "INVALID_PARAMS":
-      return "高德接口参数有误";
-    default:
-      return `高德接口返回错误：${info}`;
+  if (activeAdapter.isConfigured) {
+    return activeAdapter.isConfigured();
   }
+  if (env.AMAP_KEY) return true;
+  return proxyEnabledCache === true;
 }
 
-/** 同一个错误码只告警一次，避免每条输入都刷屏 */
 function warnAmapFailure(info: string) {
   if (warnedInfo === info) return;
   warnedInfo = info;
   console.warn(`[map] ${describeAmapInfo(info)}`);
 }
 
-async function fetchAmap<T extends AmapEnvelope>(
-  path: string,
-  params: Record<string, string>,
-  signal?: AbortSignal,
-): Promise<{ data: T | null; error?: string }> {
-  const key = env.AMAP_KEY;
-  // 未配置 key：调用方本就不该发起请求，静默即可
-  if (!key) return { data: null };
-
-  // 已进入熔断状态：阻断后续无效网络请求
-  if (isCircuitTripped) {
-    return { data: null, error: circuitTripReason ?? "高德接口已熔断" };
+/**
+ * 为多个共享同一在途请求的调用方提供相互隔离的 AbortSignal 取消语义：
+ * 单个调用方 abort 时立即退出，但不影响仍在等待的其他订阅者；
+ * 仅当所有订阅者均取消时，才中止底层共享 HTTP 请求。
+ */
+function runSharedRequest<T>(
+  map: Map<string, SharedInFlight<T>>,
+  key: string,
+  callerSignal: AbortSignal | undefined,
+  abortedFallback: T,
+  taskFactory: (sharedSignal: AbortSignal) => Promise<T>,
+): Promise<T> {
+  if (callerSignal?.aborted) {
+    return Promise.resolve(abortedFallback);
   }
 
-  const query = new URLSearchParams({ key, ...params });
-  try {
-    const res = await fetch(`${AMAP_REST_BASE}/${path}?${query.toString()}`, { signal });
-    if (!res.ok) {
-      if (res.status === 429) {
-        isCircuitTripped = true;
-        circuitTripReason = "高德接口请求频次过高（HTTP 429），已自动熔断保护";
-        warnAmapFailure("DAILY_QUERY_OVER_LIMIT");
+  let entry = map.get(key);
+  if (!entry) {
+    const controller = new AbortController();
+    const promise = taskFactory(controller.signal).finally(() => {
+      map.delete(key);
+    });
+    entry = { promise, controller, subscribers: 0 };
+    map.set(key, entry);
+  }
+
+  entry.subscribers += 1;
+  const currentEntry = entry;
+
+  if (!callerSignal) {
+    return currentEntry.promise.finally(() => {
+      currentEntry.subscribers = Math.max(0, currentEntry.subscribers - 1);
+    });
+  }
+
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+
+    const handleAbort = () => {
+      if (settled) return;
+      settled = true;
+      currentEntry.subscribers = Math.max(0, currentEntry.subscribers - 1);
+      if (currentEntry.subscribers === 0) {
+        currentEntry.controller.abort();
       }
-      return { data: null, error: `高德接口请求失败（HTTP ${res.status}）` };
-    }
+      resolve(abortedFallback);
+    };
 
-    const json = (await res.json()) as T;
-    if (json.status === "1") return { data: json };
+    callerSignal.addEventListener("abort", handleAbort, { once: true });
 
-    const info = json.info ?? "UNKNOWN";
-    if (FATAL_CIRCUIT_INFOS.has(info)) {
-      isCircuitTripped = true;
-      circuitTripReason = describeAmapInfo(info);
-    }
-    warnAmapFailure(info);
-    return { data: null, error: describeAmapInfo(info) };
-  } catch {
-    // AbortError / 网络中断：属正常流程（输入变化、组件卸载），静默降级
-    return { data: null };
-  }
+    currentEntry.promise.then(
+      (result) => {
+        if (settled) return;
+        settled = true;
+        callerSignal.removeEventListener("abort", handleAbort);
+        currentEntry.subscribers = Math.max(0, currentEntry.subscribers - 1);
+        resolve(result);
+      },
+      (err) => {
+        if (settled) return;
+        settled = true;
+        callerSignal.removeEventListener("abort", handleAbort);
+        currentEntry.subscribers = Math.max(0, currentEntry.subscribers - 1);
+        reject(err);
+      },
+    );
+  });
 }
 
-/** 坐标对 → 高德 `location` 参数（`lng,lat`，6 位小数） */
-function toLocationParam([lng, lat]: [number, number]): string {
-  return `${lng.toFixed(6)},${lat.toFixed(6)}`;
+function handleUpstreamError(httpStatus?: number, errorInfo?: string): string | undefined {
+  if (httpStatus === 429) {
+    tripCircuit(AMAP_RATE_LIMIT_REASON);
+    warnAmapFailure("DAILY_QUERY_OVER_LIMIT");
+    return AMAP_RATE_LIMIT_REASON;
+  }
+
+  if (errorInfo && FATAL_CIRCUIT_INFOS.has(errorInfo)) {
+    const reason = describeAmapInfo(errorInfo);
+    tripCircuit(reason);
+    warnAmapFailure(errorInfo);
+    return reason;
+  }
+
+  if (errorInfo) {
+    warnAmapFailure(errorInfo);
+    return describeAmapInfo(errorInfo);
+  }
+
+  if (httpStatus) {
+    return formatHttpErrorReason(httpStatus);
+  }
+
+  return undefined;
+}
+
+interface CachedCircuitPipelineOptions<TPayload, TResult, TCacheValue> {
+  cache: LruCache<string, TCacheValue>;
+  negativeCache: Map<string, number>;
+  inFlightMap: Map<string, SharedInFlight<TResult>>;
+  key: string;
+  signal?: AbortSignal;
+  fallback: TResult;
+  circuitFallback: (reason: string) => TResult;
+  errorFallback: (error?: string) => TResult;
+  fetchFn: (sharedSignal: AbortSignal) => Promise<GeocodeFetchResponse<TPayload>>;
+  toCacheValue: (result: TResult) => TCacheValue | null;
+  fromCacheValue: (cached: TCacheValue) => TResult;
+  parsePayload: (payload: TPayload) => TResult;
 }
 
 /**
- * 逆地理编码：GCJ-02 坐标 → 结构化地址
- * 包含：4 位网格坐标化缓存、在途去重与熔断保护
+ * 统一的「熔断校验 -> 正/负缓存 -> 并发去重（独立 Abort） -> 半开复位 -> 缓存写回」请求管线
+ */
+async function runCachedCircuitRequest<TPayload, TResult, TCacheValue>({
+  cache,
+  negativeCache,
+  inFlightMap,
+  key,
+  signal,
+  fallback,
+  circuitFallback,
+  errorFallback,
+  fetchFn,
+  toCacheValue,
+  fromCacheValue,
+  parsePayload,
+}: CachedCircuitPipelineOptions<TPayload, TResult, TCacheValue>): Promise<TResult> {
+  if (signal?.aborted) return fallback;
+  if (isAmapCircuitTripped()) {
+    return circuitFallback(circuitTripReason ?? AMAP_COOLDOWN_REASON);
+  }
+
+  const cached = cache.get(key);
+  if (cached !== undefined) return fromCacheValue(cached);
+
+  const negExpiresAt = negativeCache.get(key);
+  if (negExpiresAt !== undefined) {
+    if (Date.now() < negExpiresAt) return fallback;
+    negativeCache.delete(key);
+  }
+
+  return runSharedRequest(inFlightMap, key, signal, fallback, async (sharedSignal) => {
+    const { data, httpStatus, errorInfo, aborted } = await fetchFn(sharedSignal);
+    if (aborted || sharedSignal.aborted) return fallback;
+
+    if (!data) {
+      return errorFallback(handleUpstreamError(httpStatus, errorInfo));
+    }
+
+    if (circuitState === "half-open") {
+      resetAmapCircuit();
+    }
+
+    const result = parsePayload(data);
+    const cacheable = toCacheValue(result);
+    if (cacheable !== null) {
+      cache.set(key, cacheable);
+    } else {
+      negativeCache.set(key, Date.now() + NEGATIVE_CACHE_TTL_MS);
+    }
+
+    return result;
+  });
+}
+
+/**
+ * 逆地理编码：GCJ-02 坐标 -> 结构化地址
  */
 export async function reverseGeocode(lngLat: [number, number], signal?: AbortSignal): Promise<string | null> {
-  if (isCircuitTripped) return null;
-
   const gridKey = snapCoordinateToGrid(lngLat, 4);
-
-  // 1. 命中 LRU 内存缓存
-  const cached = regeoCache.get(gridKey);
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  // 2. 复用在途重复 Promise
-  const inFlight = inFlightRegeos.get(gridKey);
-  if (inFlight) {
-    return inFlight;
-  }
-
-  const requestPromise = (async () => {
-    try {
-      const { data } = await fetchAmap<AmapEnvelope & { regeocode?: { formatted_address?: string | string[] } }>(
-        "geocode/regeo",
-        { location: toLocationParam(lngLat), extensions: "base" },
-        signal,
-      );
-
-      const address = data?.regeocode?.formatted_address;
-      const validAddress = typeof address === "string" && address ? address : null;
-
-      if (validAddress) {
-        regeoCache.set(gridKey, validAddress);
-      }
-      return validAddress;
-    } finally {
-      inFlightRegeos.delete(gridKey);
-    }
-  })();
-
-  inFlightRegeos.set(gridKey, requestPromise);
-  return requestPromise;
+  return runCachedCircuitRequest({
+    cache: regeoCache,
+    negativeCache: negativeRegeoCache,
+    inFlightMap: inFlightRegeos,
+    key: gridKey,
+    signal,
+    fallback: null,
+    circuitFallback: () => null,
+    errorFallback: () => null,
+    fetchFn: (sharedSignal) => activeAdapter.regeo(lngLat, sharedSignal),
+    fromCacheValue: (addr) => addr,
+    toCacheValue: (addr) => addr,
+    parsePayload: (data) => {
+      const address = data.regeocode?.formatted_address;
+      return typeof address === "string" && address.length > 0 ? address : null;
+    },
+  });
 }
 
 /**
- * 关键字搜索：地名 → 候选点位（GCJ-02）
- * 包含：LRU 内存缓存、在途去重与熔断保护
+ * 关键字搜索：地名 -> 候选点位（GCJ-02）
  */
 export async function searchPlaces(keyword: string, signal?: AbortSignal): Promise<AmapSearchResult> {
   const trimmed = keyword.trim().toLowerCase();
   if (!trimmed) return { places: [] };
 
-  if (isCircuitTripped) {
-    return { places: [], error: circuitTripReason ?? "高德接口已熔断" };
-  }
-
-  // 1. 命中 LRU 内存缓存
-  const cached = searchCache.get(trimmed);
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  // 2. 复用在途请求
-  const inFlight = inFlightSearches.get(trimmed);
-  if (inFlight) {
-    return inFlight;
-  }
-
-  const requestPromise = (async () => {
-    try {
-      const { data, error } = await fetchAmap<
-        AmapEnvelope & {
-          pois?: Array<{
-            id?: string;
-            name?: string;
-            address?: string | string[];
-            location?: string;
-          }>;
-        }
-      >("place/text", { keywords: trimmed, offset: "8", page: "1", extensions: "base" }, signal);
-
-      if (!data) return { places: [], error };
-
+  return runCachedCircuitRequest({
+    cache: searchCache,
+    negativeCache: negativeSearchCache,
+    inFlightMap: inFlightSearches,
+    key: trimmed,
+    signal,
+    fallback: { places: [] },
+    circuitFallback: (reason) => ({ places: [], error: reason }),
+    errorFallback: (error) => ({ places: [], error }),
+    fetchFn: (sharedSignal) => activeAdapter.searchText(trimmed, sharedSignal),
+    fromCacheValue: (cached) => cached,
+    toCacheValue: (res) => (res.places.length > 0 ? res : null),
+    parsePayload: (data) => {
       const places = (data.pois ?? [])
         .map((poi): AmapPlace | null => {
           const [lng, lat] = String(poi.location ?? "")
@@ -304,17 +421,7 @@ export async function searchPlaces(keyword: string, signal?: AbortSignal): Promi
           };
         })
         .filter((place): place is AmapPlace => place !== null);
-
-      const result: AmapSearchResult = { places };
-      if (places.length > 0) {
-        searchCache.set(trimmed, result);
-      }
-      return result;
-    } finally {
-      inFlightSearches.delete(trimmed);
-    }
-  })();
-
-  inFlightSearches.set(trimmed, requestPromise);
-  return requestPromise;
+      return { places };
+    },
+  });
 }

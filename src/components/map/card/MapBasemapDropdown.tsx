@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Layers } from "lucide-react";
 import { memo } from "react";
@@ -11,23 +13,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "cn";
 
-import type { BasemapStyleKey } from "../presets/basemaps";
+import type { BasemapPreset, BasemapStyleKey } from "../presets/basemaps";
 
 import { BASEMAP_OPTIONS } from "../presets/basemaps";
-import type { MessageKeyOf } from "@/types/i18n";
 
-interface MapBasemapDropdownProps {
-  basemap: BasemapStyleKey;
+export interface MapBasemapDropdownProps {
+  basemap: BasemapPreset;
   onBasemapChange: (basemap: BasemapStyleKey) => void;
 }
-
-const BASEMAP_I18N_KEYS: Record<BasemapStyleKey, { labelKey: MessageKeyOf<"map">; descKey: MessageKeyOf<"map"> }> = {
-  carto: { labelKey: "basemap_carto", descKey: "basemap_carto_desc" },
-  osm: { labelKey: "basemap_osm", descKey: "basemap_osm_desc" },
-  amap: { labelKey: "basemap_amap", descKey: "basemap_amap_desc" },
-  tianditu: { labelKey: "basemap_tianditu", descKey: "basemap_tianditu_desc" },
-  blank: { labelKey: "basemap_blank", descKey: "basemap_blank_desc" },
-};
 
 export const MapBasemapDropdown = memo(function MapBasemapDropdown({
   basemap,
@@ -36,11 +29,7 @@ export const MapBasemapDropdown = memo(function MapBasemapDropdown({
   const t = useTranslations("map");
 
   const activeOpt = BASEMAP_OPTIONS.find((b) => b.value === basemap);
-  const activeBasemapLabel = activeOpt
-    ? activeOpt.value in BASEMAP_I18N_KEYS
-      ? t(BASEMAP_I18N_KEYS[activeOpt.value].labelKey)
-      : activeOpt.label
-    : t("basemap_carto");
+  const activeBasemapLabel = activeOpt ? t(activeOpt.labelKey) : t("basemap_custom");
 
   return (
     <DropdownMenu>
@@ -58,8 +47,8 @@ export const MapBasemapDropdown = memo(function MapBasemapDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         {BASEMAP_OPTIONS.map((opt) => {
-          const itemLabel = opt.value in BASEMAP_I18N_KEYS ? t(BASEMAP_I18N_KEYS[opt.value].labelKey) : opt.label;
-          const itemDesc = opt.value in BASEMAP_I18N_KEYS ? t(BASEMAP_I18N_KEYS[opt.value].descKey) : opt.description;
+          const itemLabel = t(opt.labelKey);
+          const itemDesc = t(opt.descKey);
 
           return (
             <DropdownMenuItem

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { LazyLocationMarkerMap } from "@/components/map/lazy";
 import { BASEMAP_OPTIONS, type BasemapStyleKey } from "@/components/map/presets/basemaps";
 import type { CoordinateSystem } from "@/components/map/utils/coordinates";
@@ -11,6 +12,8 @@ import { MOCK_LOCATIONS } from "../constants";
 const COORD_SYSTEMS: readonly CoordinateSystem[] = ["WGS84", "GCJ02", "BD09"] as const;
 
 export function CoordsShowcaseTab() {
+  const t = useTranslations("showcase");
+  const tMap = useTranslations("map");
   const [activeBasemap, setActiveBasemap] = useState<BasemapStyleKey>("carto");
   const [activeCoordSys, setActiveCoordSys] = useState<CoordinateSystem>("WGS84");
 
@@ -18,15 +21,13 @@ export function CoordsShowcaseTab() {
     <TabsContent value="coords" className="space-y-4">
       <div className="border-border/70 bg-card flex flex-col gap-3 rounded-lg border p-4 shadow-xs md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <div className="text-foreground text-xs font-semibold">零依赖双轨坐标系转换 (WGS-84 ⇋ GCJ-02 ⇋ BD-09)</div>
-          <div className="text-muted-foreground text-[11px]">
-            支持高德地图瓦片、天地图国家公共服务平台与国际标准底图的无缝切换与高精度纠偏
-          </div>
+          <div className="text-foreground text-xs font-semibold">{t("maps_coords_title")}</div>
+          <div className="text-muted-foreground text-[11px]">{t("maps_coords_desc")}</div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1 text-xs">
-            <span className="text-muted-foreground">数据坐标系:</span>
+            <span className="text-muted-foreground">{t("maps_coords_crs_label")}</span>
             <div className="border-border flex rounded-md border p-0.5">
               {COORD_SYSTEMS.map((cs) => (
                 <Button
@@ -43,7 +44,7 @@ export function CoordsShowcaseTab() {
           </div>
 
           <div className="flex items-center gap-1 text-xs">
-            <span className="text-muted-foreground">底图服务:</span>
+            <span className="text-muted-foreground">{t("maps_coords_basemap_label")}</span>
             <div className="border-border flex rounded-md border p-0.5">
               {BASEMAP_OPTIONS.map((bm) => (
                 <Button
@@ -53,7 +54,7 @@ export function CoordsShowcaseTab() {
                   className="h-6 px-2 text-[10px]"
                   onClick={() => setActiveBasemap(bm.value)}
                 >
-                  {bm.label.split(" ")[0]}
+                  {tMap(bm.labelKey)}
                 </Button>
               ))}
             </div>
@@ -71,8 +72,8 @@ export function CoordsShowcaseTab() {
         showSearch={true}
         showSidebarList={false}
         cardProps={{
-          title: `双轨坐标纠偏验证 (输入: ${activeCoordSys} | 底图: ${activeBasemap})`,
-          description: "坐标变换引擎自动将输入纠偏至目标底图标准，保证标点在卫星、道路和高德地图上的绝对精准贴合",
+          title: t("maps_coords_card_title", { crs: activeCoordSys, basemap: activeBasemap }),
+          description: t("maps_coords_card_desc"),
         }}
       />
     </TabsContent>

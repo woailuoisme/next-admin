@@ -1,196 +1,178 @@
+"use client";
+
 import type * as GeoJSON from "geojson";
 
 import { useTranslations } from "next-intl";
-import { Layers } from "lucide-react";
-import { memo, useMemo } from "react";
+import { memo, useId, useMemo } from "react";
 
-import { Badge } from "@/components/ui/badge";
-import { Map, MapControls } from "@/components/ui/map";
-import { cn } from "cn";
-
-import type { Coordinates } from "../shared/types";
 import type { GeoHeatmapMapProps } from "./types";
 
-import { MapCard } from "../card/MapCard";
-import { resolveBasemapConfig } from "../presets/basemaps";
-import { MAP_NO_ATTRIBUTION } from "../shared/constants";
-import { MapAutoResizer } from "../shared/MapAutoResizer";
-import { MapEmptyState } from "../shared/MapEmptyState";
-import { MapSkeleton } from "../shared/MapSkeleton";
-import { resolveCoordinateSystems, transformCoordinates } from "../utils/coordinates";
+import { MapFrame, useMapBasemapState } from "../frame/MapFrame";
+import { CHINA_MAP_CENTER } from "../shared/constants";
+import { resolveCssColorToHex, useMapThemeTokens } from "../shared/tokenBridge";
+import { isValidCoordinate, resolveCoordinateSystems, transformCoordinates } from "../utils/coordinates";
+import { resolveBoundingCenter } from "../utils/geoEngine";
 import { COLOR_RAMP_PRESETS } from "./colorRamps";
 import { HeatmapLegend } from "./HeatmapLegend";
 import { HeatmapWebGLSourceLayer } from "./HeatmapWebGLSourceLayer";
-import type { HeatmapPoint } from "./types";
 
-const EMPTY_POINTS: HeatmapPoint[] = [];
-const DEFAULT_BEIJING_CENTER: Coordinates = [116.4074, 39.9042];
+function buildPrimaryMonoRamp(hexColor: string): Array<[number, string]> {
+  const match = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hexColor.trim());
+  if (!match) return COLOR_RAMP_PRESETS.mono;
+  const r = Number.parseInt(match[1], 16);
+  const g = Number.parseInt(match[2], 16);
+  const b = Number.parseInt(match[3], 16);
+  return [
+    [0, `rgba(${r}, ${g}, ${b}, 0)`],
+    [0.25, `rgba(${r}, ${g}, ${b}, 0.35)`],
+    [0.5, `rgba(${r}, ${g}, ${b}, 0.65)`],
+    [0.75, `rgba(${r}, ${g}, ${b}, 0.85)`],
+    [1, `rgba(${r}, ${g}, ${b}, 1)`],
+  ];
+}
 
-export const GeoHeatmapMap = memo(function GeoHeatmapMap(props: GeoHeatmapMapProps) {
+export const GeoHeatmapMap = memo(function GeoHeatmapMap({
+  data,
+  points,
+  coordinateSystem = "WGS84",
+  center,
+  zoom = 3.8,
+  pitch,
+  bearing,
+  projection,
+  basemap = "carto",
+  basemapCRS,
+  onBasemapChange,
+  customStyleUrl,
+  blank = false,
+  interactive = true,
+  autoFitBounds = false,
+  radius = 28,
+  maxIntensity = 1,
+  weightProperty = "weight",
+  colorRamp = "thermal",
+  customColorRamp,
+  opacity = 0.85,
+  showLegend = true,
+  legendTitle,
+  height = 480,
+  className,
+  cardProps,
+  isLoading = false,
+  isEmpty = false,
+  isError = false,
+  error,
+  errorMessage,
+  emptyMessage,
+  onRetry,
+}: GeoHeatmapMapProps) {
   const t = useTranslations("map");
-  const {
-    height = 500,
-    zoom = 11,
-    center: propCenter,
-    basemap = "carto",
-    customStyleUrl,
-    coordinateSystem = "WGS84",
-    radius = 25,
-    maxIntensity = 1,
-    weightProperty = "weight",
-    colorRamp = "thermal",
-    customColorRamp,
-    opacity = 0.85,
-    showLegend = true,
-    legendTitle,
-    cardProps,
-    className,
-    isLoading = false,
-    isEmpty = false,
-    isError = false,
-    error,
-    onRetry,
-  } = props;
-  const effectiveLegendTitle = legendTitle ?? t("heatmap_density");
+  const { activeBasemap, handleBasemapChange } = useMapBasemapState(basemap, onBasemapChange);
+  const tokens = useMapThemeTokens();
 
-  const rawData = useMemo(() => props.data ?? props.points ?? EMPTY_POINTS, [props.data, props.points]);
+  const sourceId = useId();
+  const layerId = `heatmap-layer-${sourceId}`;
 
-  const { sourceCoords, targetCoords, needsTransform } = resolveCoordinateSystems(coordinateSystem, basemap);
+  const rawPoints = useMemo(() => data ?? points ?? [], [data, points]);
 
-  // Normalize data with coordinate transforms
-  const normalizedPoints = useMemo(() => {
-    if (!needsTransform) return rawData;
-    return rawData.map((pt) => ({
-      ...pt,
-      coordinates: transformCoordinates(pt.coordinates, sourceCoords, targetCoords),
-    }));
-  }, [rawData, needsTransform, sourceCoords, targetCoords]);
+  const { sourceCoords, targetCoords } = useMemo(
+    () => resolveCoordinateSystems(coordinateSystem, activeBasemap, basemapCRS),
+    [coordinateSystem, activeBasemap, basemapCRS],
+  );
 
-  // Calculate center
-  const computedCenter = useMemo<Coordinates>(() => {
-    if (propCenter) {
-      return needsTransform ? transformCoordinates(propCenter, sourceCoords, targetCoords) : propCenter;
-    }
-    if (normalizedPoints.length === 0) return DEFAULT_BEIJING_CENTER;
+  const { geojsonData, transformedPoints } = useMemo(() => {
+    const validPoints: [number, number][] = [];
+    const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
 
-    let sumLng = 0;
-    let sumLat = 0;
-    for (const pt of normalizedPoints) {
-      sumLng += pt.coordinates[0];
-      sumLat += pt.coordinates[1];
-    }
-    return [sumLng / normalizedPoints.length, sumLat / normalizedPoints.length];
-  }, [propCenter, normalizedPoints, needsTransform, sourceCoords, targetCoords]);
+    for (let index = 0; index < rawPoints.length; index += 1) {
+      const pt = rawPoints[index];
+      if (!isValidCoordinate(pt?.coordinates)) continue;
 
-  // Convert points to GeoJSON FeatureCollection
-  const geojsonData = useMemo<GeoJSON.FeatureCollection<GeoJSON.Point>>(() => {
-    return {
-      type: "FeatureCollection",
-      features: normalizedPoints.map((pt, index) => ({
+      const coords = transformCoordinates(pt.coordinates, sourceCoords, targetCoords);
+      if (!isValidCoordinate(coords)) continue;
+
+      const weight = typeof pt.weight === "number" && Number.isFinite(pt.weight) ? pt.weight : 1;
+      validPoints.push(coords);
+      features.push({
         type: "Feature",
         id: pt.id ?? index,
         properties: {
-          [weightProperty]: pt.weight !== undefined ? pt.weight : 1,
           ...pt.extra,
+          [weightProperty]: weight,
         },
         geometry: {
           type: "Point",
-          coordinates: pt.coordinates,
+          coordinates: coords,
         },
-      })),
+      });
+    }
+
+    return {
+      geojsonData: { type: "FeatureCollection" as const, features },
+      transformedPoints: validPoints,
     };
-  }, [normalizedPoints, weightProperty]);
+  }, [rawPoints, sourceCoords, targetCoords, weightProperty]);
 
-  const stops = useMemo(() => {
-    return customColorRamp ?? COLOR_RAMP_PRESETS[colorRamp] ?? COLOR_RAMP_PRESETS.thermal;
-  }, [colorRamp, customColorRamp]);
+  const activeStops = useMemo<Array<[number, string]>>(() => {
+    if (customColorRamp && customColorRamp.length >= 2) {
+      return customColorRamp.map(([stop, color]) => [stop, resolveCssColorToHex(color, tokens.primary)]);
+    }
+    if (colorRamp === "mono") {
+      return buildPrimaryMonoRamp(tokens.primary);
+    }
+    return COLOR_RAMP_PRESETS[colorRamp] ?? COLOR_RAMP_PRESETS.thermal;
+  }, [colorRamp, customColorRamp, tokens.primary]);
 
-  const legendGradient = useMemo(() => {
-    return `linear-gradient(to right, ${stops.map(([stop, color]) => `${color} ${stop * 100}%`).join(", ")})`;
-  }, [stops]);
-
-  const basemapConfig = useMemo(() => resolveBasemapConfig(basemap, customStyleUrl), [basemap, customStyleUrl]);
-  const hasNoData = isEmpty || (!isLoading && normalizedPoints.length === 0);
-
-  // 高度交由外层容器决定（卡片取 MapCard.height、全屏取 fullscreenHeight、独立使用取 wrapper），
-  // 内层统一 size-full，避免内层固定高度大于外层裁切框导致底部锚定元素被裁
-  const mapBody = (
-    <div className={cn("relative flex size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}>
-      {isLoading ? (
-        <MapSkeleton height="100%" />
-      ) : isError ? (
-        <MapEmptyState
-          height="100%"
-          type="error"
-          message={error?.message || "Failed to load heatmap data"}
-          onAction={onRetry}
-          actionLabel="Retry"
-        />
-      ) : hasNoData ? (
-        <MapEmptyState height="100%" type="no-data" message="No heatmap points available" />
-      ) : (
-        <div className="relative h-full w-full flex-1 overflow-hidden">
-          <Map
-            center={computedCenter}
-            zoom={zoom}
-            {...MAP_NO_ATTRIBUTION}
-            styles={basemapConfig.styles}
-            blank={basemapConfig.blank}
-            className="size-full"
-          >
-            <MapAutoResizer />
-            <MapControls position="bottom-right" showZoom showCompass showLocate />
-
-            <HeatmapWebGLSourceLayer
-              geojsonData={geojsonData}
-              radius={radius}
-              maxIntensity={maxIntensity}
-              weightProperty={weightProperty}
-              stops={stops}
-              opacity={opacity}
-            />
-          </Map>
-
-          {showLegend ? (
-            <HeatmapLegend
-              title={effectiveLegendTitle}
-              pointCount={normalizedPoints.length}
-              legendGradient={legendGradient}
-            />
-          ) : null}
-
-          <Badge
-            variant="secondary"
-            className="border-primary/20 bg-background/90 text-foreground absolute top-3 right-14 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-xs backdrop-blur-md"
-          >
-            <Layers className="text-primary size-3" />
-            <span>{t("heatmap_gpu_badge")}</span>
-          </Badge>
-        </div>
-      )}
-    </div>
+  const computedCenter = useMemo(
+    () => resolveBoundingCenter(transformedPoints, center, CHINA_MAP_CENTER),
+    [center, transformedPoints],
   );
 
-  if (cardProps) {
-    return (
-      <MapCard
-        height={height}
-        title={cardProps.title}
-        description={cardProps.description}
-        fullscreenable={cardProps.fullscreenable}
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        onRetry={onRetry}
-      >
-        {mapBody}
-      </MapCard>
-    );
-  }
+  const overlaySlot = useMemo(
+    () =>
+      showLegend ? <HeatmapLegend legendTitle={legendTitle} stops={activeStops} maxIntensity={maxIntensity} /> : null,
+    [activeStops, legendTitle, maxIntensity, showLegend],
+  );
 
   return (
-    <div className="w-full" style={{ height }}>
-      {mapBody}
-    </div>
+    <MapFrame
+      center={computedCenter}
+      zoom={zoom}
+      pitch={pitch}
+      bearing={bearing}
+      projection={projection}
+      basemap={activeBasemap}
+      onBasemapChange={handleBasemapChange}
+      customStyleUrl={customStyleUrl}
+      blank={blank}
+      interactive={interactive}
+      autoFitBounds={autoFitBounds}
+      fitBoundsPoints={autoFitBounds ? transformedPoints : undefined}
+      height={height}
+      className={className}
+      isLoading={isLoading}
+      isEmpty={isEmpty || (!isLoading && transformedPoints.length === 0)}
+      isError={isError}
+      error={error}
+      errorMessage={errorMessage || (isError || error ? t("heatmap_error") : undefined)}
+      emptyMessage={emptyMessage ?? t("heatmap_empty")}
+      onRetry={onRetry}
+      defaultCardTitle={t("heatmap_card_title")}
+      defaultCardDescription={t("heatmap_card_desc")}
+      cardProps={cardProps}
+      ariaLabel={t("heatmap_card_title")}
+      overlaySlot={overlaySlot}
+    >
+      <HeatmapWebGLSourceLayer
+        sourceId={sourceId}
+        layerId={layerId}
+        geojsonData={geojsonData}
+        radius={radius}
+        maxIntensity={maxIntensity}
+        weightProperty={weightProperty}
+        stops={activeStops}
+        opacity={opacity}
+      />
+    </MapFrame>
   );
 });

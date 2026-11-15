@@ -1,9 +1,8 @@
 import { cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   BASEMAP_OPTIONS,
-  LruCache,
   MapCard,
   MapEmptyState,
   MapSkeleton,
@@ -11,10 +10,13 @@ import {
   gcj02ToWgs84,
   isInsideChina,
   resolveBasemapConfig,
-  snapCoordinateToGrid,
   transformCoordinates,
   wgs84ToGcj02,
 } from "@/components/map";
+import { CLUSTER_SAFE_TEXT_FONT, syncClusterCountLayerFont } from "@/components/map/markers/LocationMarkerClusterView";
+import { LruCache, snapCoordinateToGrid } from "@/components/map/picker/amapGeo";
+import { transformMapRequest } from "@/components/map/shared/constants";
+import { ensureFallbackStyleImage } from "@/components/map/shared/MapAutoResizer";
 import { renderWithProviders, screen } from "test/test-utils";
 
 afterEach(() => {
@@ -166,8 +168,9 @@ describe("Coordinates Transformations & Geographic Utilities", () => {
   });
 });
 
-describe("Basemaps Presets", () => {
-  it("resolves basemap styles properly", () => {
+describe("Basemaps Presets & Runtime Guards", () => {
+  it("resolves basemap styles properly and degrades tianditu silently when token is unconfigured", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const carto = resolveBasemapConfig("carto");
     expect(carto.blank).toBe(false);
     expect(carto.styles).toBeDefined();
@@ -175,7 +178,60 @@ describe("Basemaps Presets", () => {
     const blank = resolveBasemapConfig("blank");
     expect(blank.blank).toBe(true);
 
+    const tianditu = resolveBasemapConfig("tianditu");
+    expect(tianditu.blank).toBe(false);
+    expect(tianditu.degradedFrom).toBe("tianditu");
+    expect(tianditu.styles?.light).toBe("https://tiles.openfreemap.org/styles/liberty");
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+
     expect(BASEMAP_OPTIONS.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it("rewrites unsupported Open Sans Semibold glyph requests to Noto Sans Regular", () => {
+    const rawGlyphUrl = "https://tiles.basemaps.cartocdn.com/v/20261026-01/fonts/Open Sans Semibold/0-255.pbf";
+    expect(transformMapRequest(rawGlyphUrl, "Glyphs")).toEqual({
+      url: "https://tiles.basemaps.cartocdn.com/v/20261026-01/fonts/Noto%20Sans%20Regular/0-255.pbf",
+    });
+
+    const encodedGlyphUrl = "https://tiles.openfreemap.org/fonts/Open%20Sans%20Semibold/0-255.pbf";
+    expect(transformMapRequest(encodedGlyphUrl, "Glyphs")).toEqual({
+      url: "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf",
+    });
+
+    const tileUrl = "https://tiles.basemaps.cartocdn.com/vector/carto.streets/v1/tiles/1/1/1.mvt";
+    expect(transformMapRequest(tileUrl, "Tile")).toEqual({ url: tileUrl });
+  });
+
+  it("syncs cluster-count symbol layers to safe text-font stack", () => {
+    const setLayoutProperty = vi.fn();
+    const mockMap = {
+      getStyle: () => ({
+        layers: [
+          { id: "clusters-1", type: "circle" },
+          { id: "cluster-count-1", type: "symbol" },
+        ],
+      }),
+      getLayoutProperty: () => ["Open Sans Semibold"],
+      setLayoutProperty,
+    } as any;
+
+    syncClusterCountLayerFont(mockMap);
+    expect(setLayoutProperty).toHaveBeenCalledWith("cluster-count-1", "text-font", [...CLUSTER_SAFE_TEXT_FONT]);
+  });
+
+  it("registers 1x1 transparent fallback image when sprite icon like circle-11 is missing", () => {
+    const addImage = vi.fn();
+    const hasImage = vi.fn().mockReturnValue(false);
+    const mockMap = { addImage, hasImage } as any;
+
+    ensureFallbackStyleImage(mockMap, "circle-11");
+    expect(hasImage).toHaveBeenCalledWith("circle-11");
+    expect(addImage).toHaveBeenCalledWith("circle-11", {
+      width: 1,
+      height: 1,
+      data: new Uint8Array([0, 0, 0, 0]),
+    });
   });
 });
 

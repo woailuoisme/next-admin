@@ -1,73 +1,129 @@
+"use client";
+
 import { useMemo } from "react";
 
+import type { BasemapPreset } from "../presets/basemaps";
 import type { Coordinates } from "../shared/types";
-import type { CoordinateSystem } from "../utils/coordinates";
-import type { FlightArcItem } from "./types";
+import type { ArcFlightItem } from "./types";
 
-import { DEFAULT_MAP_CENTER } from "../shared/constants";
-import { resolveCoordinateSystems, transformCoordinates } from "../utils/coordinates";
+import { DEFAULT_BEIJING_CENTER } from "../shared/constants";
+import { resolveCssColorToHex, useMapThemeTokens } from "../shared/tokenBridge";
+import {
+  type CoordinateSystem,
+  isValidCoordinate,
+  resolveCoordinateSystems,
+  transformCoordinates,
+} from "../utils/coordinates";
+import { resolveBoundingCenter } from "../utils/geoEngine";
 
-interface UseArcTopologyOptions {
-  arcs?: FlightArcItem[];
-  center?: Coordinates;
-  coordinateSystem?: CoordinateSystem;
-  basemap?: string;
-  showNodeMarkers?: boolean;
+export interface ResolvedArcItem extends Omit<ArcFlightItem, "id"> {
+  id: string;
+  rawArc: ArcFlightItem;
+  from: Coordinates;
+  to: Coordinates;
 }
 
-export interface ArcTopologyNode {
-  name: string;
-  coordinates: Coordinates;
+export interface ArcNodePoint {
+  id: string;
+  label?: string;
+  lngLat: Coordinates;
   count: number;
 }
 
-const EMPTY_NODES: ArcTopologyNode[] = [];
+interface UseArcTopologyOptions {
+  data: ArcFlightItem[];
+  coordinateSystem?: CoordinateSystem;
+  activeBasemap: BasemapPreset;
+  basemapCRS?: CoordinateSystem;
+  center?: Coordinates;
+  arcColor?: string;
+  arcHoverColor?: string;
+}
 
 export function useArcTopology({
-  arcs,
-  center = DEFAULT_MAP_CENTER,
+  data,
   coordinateSystem = "WGS84",
-  basemap = "carto",
-  showNodeMarkers = true,
+  activeBasemap,
+  basemapCRS,
+  center,
+  arcColor,
+  arcHoverColor,
 }: UseArcTopologyOptions) {
-  const { sourceCoords, targetCoords, needsTransform } = resolveCoordinateSystems(coordinateSystem, basemap);
+  const tokens = useMapThemeTokens();
 
-  const normalizedArcs = useMemo(() => {
-    if (!needsTransform || !arcs) return arcs;
-    return arcs.map((arc) => ({
-      ...arc,
-      from: transformCoordinates(arc.from, sourceCoords, targetCoords),
-      to: transformCoordinates(arc.to, sourceCoords, targetCoords),
-    }));
-  }, [arcs, needsTransform, sourceCoords, targetCoords]);
+  const { sourceCoords, targetCoords } = useMemo(
+    () => resolveCoordinateSystems(coordinateSystem, activeBasemap, basemapCRS),
+    [coordinateSystem, activeBasemap, basemapCRS],
+  );
 
-  const computedCenter = useMemo(() => {
-    return needsTransform ? transformCoordinates(center, sourceCoords, targetCoords) : center;
-  }, [center, needsTransform, sourceCoords, targetCoords]);
+  const resolvedArcColor = useMemo(
+    () => (arcColor ? resolveCssColorToHex(arcColor, tokens.primary) : tokens.primary),
+    [arcColor, tokens.primary],
+  );
 
-  // Extract unique city/terminal nodes from arcs
-  const uniqueNodes = useMemo<ArcTopologyNode[]>(() => {
-    if (!showNodeMarkers || !normalizedArcs) return EMPTY_NODES;
-    const nodes = new Map<string, ArcTopologyNode>();
+  const resolvedHoverColor = useMemo(
+    () => (arcHoverColor ? resolveCssColorToHex(arcHoverColor, tokens.destructive) : tokens.foreground),
+    [arcHoverColor, tokens.destructive, tokens.foreground],
+  );
 
-    const addNode = (coordinates: Coordinates, name?: string, fallbackName = "Origin") => {
-      const key = `${coordinates[0]},${coordinates[1]}`;
-      const node = nodes.get(key);
-      if (node) node.count += 1;
-      else nodes.set(key, { name: name || fallbackName, coordinates, count: 1 });
-    };
+  const { arcsData, arcLookup, nodes, allPoints } = useMemo(() => {
+    const resolved: ResolvedArcItem[] = [];
+    const lookup = new Map<string, ArcFlightItem>();
+    const nodeMap = new Map<string, ArcNodePoint>();
+    const points: Coordinates[] = [];
 
-    for (const arc of normalizedArcs) {
-      addNode(arc.from, arc.fromName, "Origin");
-      addNode(arc.to, arc.toName, "Destination");
+    for (const item of data) {
+      if (!isValidCoordinate(item.from) || !isValidCoordinate(item.to)) continue;
+      const from = transformCoordinates(item.from, sourceCoords, targetCoords);
+      const to = transformCoordinates(item.to, sourceCoords, targetCoords);
+      if (!isValidCoordinate(from) || !isValidCoordinate(to)) continue;
+
+      const resolvedItem: ResolvedArcItem = {
+        ...item,
+        rawArc: item,
+        from,
+        to,
+        color: item.color ? resolveCssColorToHex(item.color, resolvedArcColor) : undefined,
+      };
+      resolved.push(resolvedItem);
+      lookup.set(item.id, item);
+      points.push(from, to);
+
+      const addNode = (coords: Coordinates, label?: string) => {
+        const key = `${coords[0].toFixed(4)},${coords[1].toFixed(4)}`;
+        const existing = nodeMap.get(key);
+        if (existing) {
+          existing.count += 1;
+          if (!existing.label && label) existing.label = label;
+        } else {
+          nodeMap.set(key, { id: key, label, lngLat: coords, count: 1 });
+        }
+      };
+
+      addNode(from, item.fromLabel ?? item.fromName);
+      addNode(to, item.toLabel ?? item.toName);
     }
 
-    return Array.from(nodes.values());
-  }, [normalizedArcs, showNodeMarkers]);
+    return {
+      arcsData: resolved,
+      arcLookup: lookup,
+      nodes: Array.from(nodeMap.values()),
+      allPoints: points,
+    };
+  }, [data, resolvedArcColor, sourceCoords, targetCoords]);
+
+  const computedCenter = useMemo(
+    () => resolveBoundingCenter(allPoints, center, DEFAULT_BEIJING_CENTER),
+    [allPoints, center],
+  );
 
   return {
-    normalizedArcs,
+    arcsData,
+    arcLookup,
+    nodes,
+    allPoints,
     computedCenter,
-    uniqueNodes,
+    resolvedArcColor,
+    resolvedHoverColor,
   };
 }

@@ -1,39 +1,40 @@
+"use client";
+
 import { useTranslations } from "next-intl";
-import { Flame } from "lucide-react";
 import { memo } from "react";
 
-interface HeatmapLegendProps {
-  title?: string;
-  pointCount: number;
-  legendGradient: string;
+export interface HeatmapLegendProps {
+  legendTitle?: string;
+  stops: Array<[number, string]>;
+  maxIntensity?: number;
 }
 
-export const HeatmapLegend = memo(function HeatmapLegend({ title, pointCount, legendGradient }: HeatmapLegendProps) {
+export const HeatmapLegend = memo(function HeatmapLegend({ legendTitle, stops, maxIntensity = 1 }: HeatmapLegendProps) {
   const t = useTranslations("map");
-  const resolvedTitle = title ?? t("heatmap_density");
+  const title = legendTitle ?? t("heatmap_legend_default");
+  const visibleStops = stops.filter((_, idx) => idx > 0);
+  const gradientString = visibleStops.map(([s, c]) => `${c} ${Math.round(s * 100)}%`).join(", ");
+
+  const safeMax = Number.isFinite(maxIntensity) && maxIntensity > 0 ? maxIntensity : 1;
+  const formatTick = (val: number) => (Number.isInteger(val) ? String(val) : val.toFixed(1));
 
   return (
-    <div className="border-border/70 bg-background/90 absolute bottom-6 left-4 z-10 flex min-w-[200px] flex-col gap-1.5 rounded-lg border p-2.5 shadow-md backdrop-blur-md">
-      <div className="text-foreground flex items-center justify-between gap-2 text-xs font-semibold">
-        <div className="flex items-center gap-1.5">
-          <Flame className="text-primary size-3.5" />
-          <span>{resolvedTitle}</span>
-        </div>
-        <span className="text-muted-foreground text-[10px] font-normal">
-          {t("heatmap_points_count", { count: pointCount })}
-        </span>
-      </div>
-
-      {/* Gradient Color Bar */}
+    <div className="border-border bg-card/90 pointer-events-auto absolute bottom-3 left-3 z-10 w-52 rounded-xl border p-3 shadow-md backdrop-blur-md">
+      <div className="text-foreground mb-2 text-xs font-medium">{title}</div>
       <div
-        className="border-border/50 h-2.5 w-full rounded-full border shadow-inner"
-        style={{ background: legendGradient }}
+        role="img"
+        aria-label={title}
+        className="border-border/40 mb-1.5 h-2.5 w-full rounded-full border shadow-inner"
+        style={{
+          background: visibleStops.length > 0 ? `linear-gradient(to right, ${gradientString})` : "transparent",
+        }}
       />
-
-      <div className="text-muted-foreground flex justify-between text-[10px] font-medium">
-        <span>{t("heatmap_low")}</span>
-        <span>{t("heatmap_medium")}</span>
-        <span>{t("heatmap_high")}</span>
+      <div className="text-muted-foreground flex justify-between text-[10px] font-medium tabular-nums">
+        <span>{t("heatmap_scale_low")}</span>
+        <span>{formatTick(safeMax * 0.5)}</span>
+        <span>
+          {t("heatmap_scale_high")} ({formatTick(safeMax)})
+        </span>
       </div>
     </div>
   );

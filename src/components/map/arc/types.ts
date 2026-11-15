@@ -1,45 +1,55 @@
-import type { MapCardSlotProps, MapCommonProps, MapFeedbackProps } from "../shared/types";
+import type { Coordinates, MapCardSlotProps, MapCommonProps, MapFeedbackProps } from "../shared/types";
 import type { CoordinateSystem } from "../utils/coordinates";
 
-export type FlightArcItem = {
+export interface ArcFlightItem {
   id: string;
-  from: [number, number];
-  to: [number, number];
+  from: Coordinates;
+  to: Coordinates;
+  fromLabel?: string;
+  toLabel?: string;
   fromName?: string;
   toName?: string;
   value?: number;
+  label?: string;
   category?: string;
   color?: string;
-  [key: string]: unknown;
-};
+}
 
-export type ArcFlightMapProps = MapCommonProps &
-  MapFeedbackProps & {
-    /** Input coordinate system: WGS84, GCJ02, BD09 (defaults to WGS84) */
-    coordinateSystem?: CoordinateSystem;
+export type FlightArcItem = ArcFlightItem;
 
-    /** List of arcs to render */
-    arcs: FlightArcItem[];
-    /** Curvature factor: 0 is straight, higher is more curved (default: 0.25) */
-    curvature?: number;
-    /** Arc curve samples (default: 64) */
-    samples?: number;
-    /** Default arc line color (defaults to primary) */
-    arcColor?: string;
-    /** Default arc line width (default: 2) */
-    arcWidth?: number;
-    /** Default arc line opacity (default: 0.8) */
-    arcOpacity?: number;
-    /** Hover arc line width (default: 3.5) */
-    hoverArcWidth?: number;
-    /** Hover arc line color */
-    hoverArcColor?: string;
-    /** Whether to render anchor markers on origin and destination points (default: true) */
-    showNodeMarkers?: boolean;
-    /** Click arc callback */
-    onArcClick?: (arc: FlightArcItem) => void;
-    /** Hover arc callback */
-    onArcHover?: (arc: FlightArcItem | null) => void;
-    /** Card container wrapper props */
-    cardProps?: MapCardSlotProps;
-  };
+export interface ArcFlightMapProps extends MapCommonProps, MapFeedbackProps {
+  /** 输入数据坐标系（默认 WGS84） */
+  coordinateSystem?: CoordinateSystem;
+  /** 流向弧线数据 */
+  data?: ArcFlightItem[];
+  /** 流向弧线数据别名 */
+  arcs?: ArcFlightItem[];
+  /** 弧线默认颜色 */
+  arcColor?: string;
+  /** 悬浮高亮颜色 */
+  arcHoverColor?: string;
+  /** @deprecated 兼容别名，同 `arcHoverColor` */
+  hoverArcColor?: string;
+  /** 弧线基础线宽 */
+  arcWidth?: number;
+  /** 悬浮高亮线宽（默认为 arcWidth + 2） */
+  hoverArcWidth?: number;
+  /** 弧线默认不透明度（默认 0.72） */
+  arcOpacity?: number;
+  /** 弧线弯曲曲率 */
+  curvature?: number;
+  /** 墨卡托分段采样点数（默认 64） */
+  samples?: number;
+  /** 是否显示端节点呼吸标记 */
+  showNodes?: boolean;
+  /** 是否显示端节点呼吸标记别名 */
+  showNodeMarkers?: boolean;
+  /** 端节点尺寸 */
+  nodeSize?: number;
+  /** 弧线悬浮回调 */
+  onArcHover?: (arc: ArcFlightItem | null) => void;
+  /** 弧线点击事件 */
+  onArcClick?: (arc: ArcFlightItem) => void;
+  /** 卡片容器插槽配置 */
+  cardProps?: MapCardSlotProps;
+}

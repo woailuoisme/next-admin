@@ -1,9 +1,11 @@
+import { useTranslations } from "next-intl";
 import { LazyLocationMarkerMap } from "@/components/map/lazy";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_LOCATIONS } from "../constants";
 import type { DemoStateProps } from "../types";
 
 export function MarkersShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
+  const t = useTranslations("showcase");
   return (
     <TabsContent value="markers" className="space-y-4">
       <LazyLocationMarkerMap
@@ -19,8 +21,8 @@ export function MarkersShowcaseTab({ isLoading, isEmpty, isError, onRetry }: Dem
         isError={isError}
         onRetry={onRetry}
         cardProps={{
-          title: "全国自营仓储与旗舰网点分布",
-          description: "支持品类徽章筛选、智能关键词检索、侧边网点卡片与平滑视口平移飞入",
+          title: t("maps_markers_card_title"),
+          description: t("maps_markers_card_desc"),
         }}
       />
     </TabsContent>

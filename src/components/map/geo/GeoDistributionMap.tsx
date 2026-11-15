@@ -1,24 +1,45 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
-import { memo, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useSyncExternalStore } from "react";
 
-import { Map, MapControls, MapGeoJSON, type MapGeoJSONEvent } from "@/components/ui/map";
-import { cn } from "cn";
+import { MapGeoJSON, type MapGeoJSONEvent } from "@/components/ui/map";
 
 import type { GeoDistributionMapProps } from "./types";
 
-import { MapCard } from "../card/MapCard";
-import { resolveBasemapConfig } from "../presets/basemaps";
-import { CHINA_MAP_CENTER, MAP_NO_ATTRIBUTION, MAP_REGION_BORDER } from "../shared/constants";
-import { MapAutoResizer } from "../shared/MapAutoResizer";
-import { MapEmptyState } from "../shared/MapEmptyState";
-import { MapSkeleton } from "../shared/MapSkeleton";
-import { GeoDistributionHoverCard } from "./GeoDistributionHoverCard";
+import { MapFrame, useMapBasemapState } from "../frame/MapFrame";
+import { CHINA_MAP_CENTER } from "../shared/constants";
+import { type LeafHoverStore, useLeafHoverStore } from "../shared/useLeafHoverStore";
+import { GeoDistributionHoverCard, type HoveredRegionInfo } from "./GeoDistributionHoverCard";
 import { GeoDistributionLegend } from "./GeoDistributionLegend";
-import { useGeoDistribution } from "./useGeoDistribution";
+import { type LegendStep, useGeoDistribution } from "./useGeoDistribution";
+
+const GeoHoverLeaf = memo(function GeoHoverLeaf({
+  store,
+  unit,
+  showLegend,
+  legendTitle,
+  legendSteps,
+}: {
+  store: LeafHoverStore<HoveredRegionInfo>;
+  unit: string;
+  showLegend: boolean;
+  legendTitle: string;
+  legendSteps: LegendStep[];
+}) {
+  const hoveredInfo = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
+  return (
+    <>
+      <GeoDistributionHoverCard info={hoveredInfo} unit={unit} />
+      {showLegend ? <GeoDistributionLegend legendTitle={legendTitle} legendSteps={legendSteps} /> : null}
+    </>
+  );
+});
 
 export const GeoDistributionMap = memo(function GeoDistributionMap({
   data,
+  coordinateSystem = "WGS84",
   valueKey = "value",
   labelKey = "name",
   unit = "",
@@ -33,34 +54,49 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
   cardProps,
   center = CHINA_MAP_CENTER,
   zoom = 3.5,
+  pitch,
+  bearing,
+  projection,
   basemap = "carto",
+  basemapCRS,
+  onBasemapChange,
   customStyleUrl,
   blank = false,
   interactive = true,
+  autoFitBounds = false,
   height = 480,
   className,
   isLoading = false,
   isEmpty = false,
   isError = false,
   error,
+  errorMessage,
+  emptyMessage,
   onRetry,
 }: GeoDistributionMapProps) {
   const t = useTranslations("map");
   const effectiveLegendTitle = legendTitle ?? t("geo_distribution_title");
-  const [hoveredInfo, setHoveredInfo] = useState<{
-    name: string;
-    value?: number;
-    properties: Record<string, unknown>;
-  } | null>(null);
+  const { activeBasemap, handleBasemapChange } = useMapBasemapState(basemap, onBasemapChange);
+  const { store: hoverStore, setHovered } = useLeafHoverStore<HoveredRegionInfo>();
 
-  const { legendSteps, fillColorExpression } = useGeoDistribution({
+  const {
+    resolvedData,
+    fitBoundsPoints,
+    legendSteps,
+    fillColorExpression,
+    borderColorToken,
+    fetchLoading,
+    fetchError,
+    retryFetch,
+  } = useGeoDistribution({
     data,
     valueKey,
     colorScheme,
     unit,
+    coordinateSystem,
+    basemap: activeBasemap,
+    basemapCRS,
   });
-
-  const basemapConfig = useMemo(() => resolveBasemapConfig(basemap, customStyleUrl), [basemap, customStyleUrl]);
 
   const fillPaint = useMemo(
     () => ({
@@ -72,10 +108,10 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
 
   const linePaint = useMemo(
     () => ({
-      "line-color": borderColor || MAP_REGION_BORDER,
+      "line-color": borderColor || borderColorToken,
       "line-width": borderWidth,
     }),
-    [borderColor, borderWidth],
+    [borderColor, borderColorToken, borderWidth],
   );
 
   const fillHoverPaint = useMemo(
@@ -87,13 +123,13 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
 
   const handleHover = useMemoizedFn((e: MapGeoJSONEvent | null) => {
     if (!e || !e.feature) {
-      setHoveredInfo(null);
+      setHovered(null);
       return;
     }
     const props = (e.feature.properties || {}) as Record<string, unknown>;
-    const name = String(props[labelKey] || props.name || props.title || "Region");
+    const name = String(props[labelKey] || props.name || props.title || t("geo_region_fallback"));
     const val = props[valueKey] !== undefined ? Number(props[valueKey]) : undefined;
-    setHoveredInfo({ name, value: val, properties: props });
+    setHovered({ name, value: val, properties: props });
   });
 
   const handleClick = useMemoizedFn((e: MapGeoJSONEvent) => {
@@ -102,82 +138,65 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
     }
   });
 
+  const combinedLoading = isLoading || fetchLoading;
+  const combinedError = error ?? fetchError;
+  const combinedHasError = Boolean(isError || combinedError);
+  const handleCombinedRetry = useCallback(() => {
+    retryFetch();
+    onRetry?.();
+  }, [retryFetch, onRetry]);
+
   const hasEmptyData =
-    isEmpty ||
-    !data ||
-    (typeof data === "object" && "features" in data && (data as GeoJSON.FeatureCollection).features.length === 0);
-
-  // 高度交由外层容器决定：卡片模式取 MapCard.height、全屏取 fullscreenHeight、
-  // 独立使用时由下方 wrapper 提供。内层统一 size-full，避免内层固定高度大于
-  // 外层裁切框（原为 480 vs 450）导致底部锚定的图例与控件被裁切
-  const mapBody = (
-    <div className={cn("relative size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}>
-      {isLoading ? (
-        <MapSkeleton height="100%" />
-      ) : isError ? (
-        <MapEmptyState
-          height="100%"
-          type="error"
-          message={error?.message || "Failed to load geo distribution data"}
-          onAction={onRetry}
-          actionLabel="Retry"
-        />
-      ) : hasEmptyData ? (
-        <MapEmptyState height="100%" type="no-data" message="No geographical distribution data available" />
-      ) : (
-        <>
-          <Map
-            center={center}
-            zoom={zoom}
-            {...MAP_NO_ATTRIBUTION}
-            styles={basemapConfig.styles}
-            blank={blank || basemapConfig.blank}
-            interactive={interactive}
-            className="size-full"
-          >
-            <MapAutoResizer />
-            <MapControls position="bottom-right" showZoom showCompass showLocate />
-
-            <MapGeoJSON
-              data={data}
-              promoteId={promoteId}
-              interactive={true}
-              fillPaint={fillPaint}
-              linePaint={linePaint}
-              fillHoverPaint={fillHoverPaint}
-              onHover={handleHover}
-              onClick={handleClick}
-            />
-          </Map>
-
-          <GeoDistributionHoverCard info={hoveredInfo} unit={unit} />
-
-          {showLegend ? <GeoDistributionLegend legendTitle={effectiveLegendTitle} legendSteps={legendSteps} /> : null}
-        </>
-      )}
-    </div>
-  );
-
-  if (cardProps) {
-    return (
-      <MapCard
-        height={height}
-        title={cardProps.title || t("geo_distribution_title")}
-        description={cardProps.description || t("geo_distribution_desc")}
-        fullscreenable={cardProps.fullscreenable}
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        onRetry={onRetry}
-      >
-        {mapBody}
-      </MapCard>
-    );
-  }
+    isEmpty || (!combinedLoading && !combinedHasError && (!resolvedData || resolvedData.features.length === 0));
 
   return (
-    <div className="w-full" style={{ height }}>
-      {mapBody}
-    </div>
+    <MapFrame
+      height={height}
+      className={className}
+      basemap={activeBasemap}
+      onBasemapChange={handleBasemapChange}
+      customStyleUrl={customStyleUrl}
+      blank={blank}
+      center={center}
+      zoom={zoom}
+      pitch={pitch}
+      bearing={bearing}
+      projection={projection}
+      interactive={interactive}
+      autoFitBounds={autoFitBounds}
+      fitBoundsPoints={fitBoundsPoints}
+      isLoading={combinedLoading}
+      isEmpty={hasEmptyData}
+      isError={combinedHasError}
+      error={combinedError}
+      errorMessage={errorMessage || (combinedHasError ? t("geo_error") : undefined)}
+      emptyMessage={emptyMessage || t("geo_empty")}
+      onRetry={handleCombinedRetry}
+      cardProps={cardProps}
+      defaultCardTitle={t("geo_distribution_title")}
+      defaultCardDescription={t("geo_distribution_desc")}
+      overlaySlot={
+        <GeoHoverLeaf
+          store={hoverStore}
+          unit={unit}
+          showLegend={showLegend}
+          legendTitle={effectiveLegendTitle}
+          legendSteps={legendSteps}
+        />
+      }
+    >
+      {resolvedData ? (
+        <MapGeoJSON
+          data={resolvedData}
+          promoteId={promoteId}
+          interactive={interactive}
+          fillPaint={fillPaint}
+          linePaint={linePaint}
+          fillHoverPaint={fillHoverPaint}
+          onHover={handleHover}
+          onClick={handleClick}
+        />
+      ) : null}
+    </MapFrame>
   );
 });

@@ -1,8 +1,10 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 import { memo } from "react";
 
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "cn";
 
@@ -39,7 +41,7 @@ export const LocationMarkerSearchOverlay = memo(function LocationMarkerSearchOve
   }
 
   return (
-    <div className="border-border/60 bg-background/90 absolute top-3 left-3 z-10 flex max-w-sm flex-col gap-2 rounded-lg border p-2.5 shadow-md backdrop-blur-md">
+    <div className="border-border/60 bg-background/90 absolute top-3 right-14 left-3 z-10 flex max-w-sm flex-col gap-2 rounded-lg border p-2.5 shadow-md backdrop-blur-md">
       {showSearch ? (
         <div className="relative w-full">
           <Search className="text-muted-foreground absolute top-2.5 left-2.5 size-3.5" />
@@ -47,48 +49,51 @@ export const LocationMarkerSearchOverlay = memo(function LocationMarkerSearchOve
             placeholder={effectivePlaceholder}
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
+            aria-label={effectivePlaceholder}
             className="bg-muted/40 h-8 pr-7 pl-8 text-xs"
           />
           {searchQuery ? (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => onSearchChange("")}
-              className="text-muted-foreground hover:text-foreground absolute top-2.5 right-2.5 cursor-pointer"
+              className="text-muted-foreground hover:text-foreground absolute top-1 right-1 size-6"
               aria-label={t("markers_clear_search")}
             >
               <X className="size-3.5" />
-            </button>
+            </Button>
           ) : null}
         </div>
       ) : null}
 
       {showCategoryFilter && categories.length > 0 ? (
-        <div className="flex flex-wrap gap-1">
-          <Badge
+        <div className="flex flex-wrap gap-1" role="group" aria-label={t("markers_category_filter_aria")}>
+          <Button
+            type="button"
             variant={selectedCategory === null ? "default" : "secondary"}
+            size="sm"
+            aria-pressed={selectedCategory === null}
             onClick={() => onCategoryChange(null)}
-            className={cn(
-              "cursor-pointer text-[11px] font-medium transition-colors",
-              selectedCategory === null ? "bg-primary text-primary-foreground" : "hover:bg-muted/80",
-            )}
+            className={cn("h-6 rounded-full px-2.5 text-[11px] font-medium")}
           >
             {t("markers_category_all", { count: totalCount })}
-          </Badge>
+          </Button>
           {categories.map((cat) => {
             const count = categoryCounts[cat] ?? 0;
             const isSelected = selectedCategory === cat;
             return (
-              <Badge
+              <Button
                 key={cat}
+                type="button"
                 variant={isSelected ? "default" : "secondary"}
+                size="sm"
+                aria-pressed={isSelected}
                 onClick={() => onCategoryChange(isSelected ? null : cat)}
-                className={cn(
-                  "cursor-pointer text-[11px] font-medium transition-colors",
-                  isSelected ? "bg-primary text-primary-foreground" : "hover:bg-muted/80",
-                )}
+                className={cn("h-6 rounded-full px-2.5 text-[11px] font-medium")}
               >
                 {cat} ({count})
-              </Badge>
+              </Button>
             );
           })}
         </div>

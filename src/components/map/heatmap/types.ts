@@ -1,4 +1,4 @@
-import type { Coordinates, MapCardSlotProps, MapCommonProps } from "../shared/types";
+import type { Coordinates, MapCardSlotProps, MapCommonProps, MapFeedbackProps } from "../shared/types";
 import type { CoordinateSystem } from "../utils/coordinates";
 
 export interface HeatmapPoint {
@@ -10,18 +10,13 @@ export interface HeatmapPoint {
 
 export type HeatmapColorRamp = "thermal" | "spectral" | "viridis" | "plasma" | "mono";
 
-export interface GeoHeatmapMapProps extends MapCommonProps {
+export interface GeoHeatmapMapProps extends MapCommonProps, MapFeedbackProps {
   /** Array of heatmap points (or alias 'points') */
   data?: HeatmapPoint[];
   points?: HeatmapPoint[];
 
   /** Input coordinate system: WGS84, GCJ02, BD09 (defaults to WGS84) */
   coordinateSystem?: CoordinateSystem;
-
-  /** Initial or controlled map center [lng, lat] */
-  center?: Coordinates;
-  /** Initial or controlled map zoom level */
-  zoom?: number;
 
   /** Radius of influence of each point in pixels (default: 25) */
   radius?: number;
@@ -40,16 +35,9 @@ export interface GeoHeatmapMapProps extends MapCommonProps {
 
   /** Whether to display the density legend card overlay */
   showLegend?: boolean;
-  /** Title displayed on the legend card (default: "热力密度 (KDE)") */
+  /** Title displayed on the legend card */
   legendTitle?: string;
 
   /** Card wrapper props */
   cardProps?: MapCardSlotProps;
-
-  /** Loading and error states */
-  isLoading?: boolean;
-  isEmpty?: boolean;
-  isError?: boolean;
-  error?: Error | null;
-  onRetry?: () => void;
 }

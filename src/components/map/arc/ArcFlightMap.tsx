@@ -1,164 +1,177 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useSyncExternalStore } from "react";
 
-import { Map, MapArc, type MapArcEvent, MapControls } from "@/components/ui/map";
-import { cn } from "cn";
+import { MapArc } from "@/components/ui/map";
 
-import type { ArcFlightMapProps, FlightArcItem } from "./types";
+import type { ArcFlightItem, ArcFlightMapProps } from "./types";
 
-import { MapCard } from "../card/MapCard";
-import { resolveBasemapConfig } from "../presets/basemaps";
-import { DEFAULT_MAP_CENTER, MAP_NO_ATTRIBUTION, MAP_PRIMARY } from "../shared/constants";
-import { MapAutoResizer } from "../shared/MapAutoResizer";
-import { MapEmptyState } from "../shared/MapEmptyState";
-import { MapSkeleton } from "../shared/MapSkeleton";
+import { MapFrame, useMapBasemapState } from "../frame/MapFrame";
+import { type LeafHoverStore, useLeafHoverStore } from "../shared/useLeafHoverStore";
 import { ArcDetailCard } from "./ArcDetailCard";
 import { ArcNodeMarker } from "./ArcNodeMarker";
-import { useArcTopology } from "./useArcTopology";
+import { ArcSplitLineLayer } from "./ArcSplitLineLayer";
+import { type ResolvedArcItem, useArcTopology } from "./useArcTopology";
+
+const ArcHoverLeaf = memo(function ArcHoverLeaf({ store }: { store: LeafHoverStore<ArcFlightItem> }) {
+  const hoveredArc = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
+  return <ArcDetailCard arc={hoveredArc} />;
+});
 
 export const ArcFlightMap = memo(function ArcFlightMap({
-  coordinateSystem = "WGS84",
+  data,
   arcs,
+  coordinateSystem = "WGS84",
+  arcColor,
+  arcHoverColor,
+  hoverArcColor,
+  arcWidth = 2,
+  hoverArcWidth,
+  arcOpacity = 0.72,
   curvature = 0.25,
   samples = 64,
-  arcColor = MAP_PRIMARY,
-  arcWidth = 2,
-  arcOpacity = 0.8,
-  hoverArcWidth = 3.5,
-  hoverArcColor,
-  showNodeMarkers = true,
-  onArcClick,
+  showNodes,
+  showNodeMarkers,
+  nodeSize = 10,
   onArcHover,
+  onArcClick,
   cardProps,
-  center = DEFAULT_MAP_CENTER,
-  zoom = 3.8,
+  center,
+  zoom = 3,
+  pitch = 25,
+  bearing,
+  projection = "globe",
   basemap = "carto",
+  basemapCRS,
+  onBasemapChange,
   customStyleUrl,
   blank = false,
   interactive = true,
+  autoFitBounds = false,
   height = 480,
   className,
   isLoading = false,
   isEmpty = false,
   isError = false,
   error,
+  errorMessage,
+  emptyMessage,
   onRetry,
 }: ArcFlightMapProps) {
   const t = useTranslations("map");
-  const [hoveredArc, setHoveredArc] = useState<FlightArcItem | null>(null);
+  const { activeBasemap, handleBasemapChange } = useMapBasemapState(basemap, onBasemapChange);
+  const { store: hoverStore, setHovered } = useLeafHoverStore<ArcFlightItem>((a, b) => a?.id === b?.id);
 
-  const { normalizedArcs, computedCenter, uniqueNodes } = useArcTopology({
-    arcs,
-    center,
-    coordinateSystem,
-    basemap,
-    showNodeMarkers,
-  });
-
-  const basemapConfig = useMemo(() => resolveBasemapConfig(basemap, customStyleUrl), [basemap, customStyleUrl]);
-
-  const arcPaint = useMemo(
-    () => ({
-      "line-color": arcColor,
-      "line-width": arcWidth,
-      "line-opacity": arcOpacity,
-    }),
-    [arcColor, arcWidth, arcOpacity],
-  );
-
-  const arcHoverPaint = useMemo(
-    () => ({
-      "line-color": hoverArcColor || MAP_PRIMARY,
-      "line-width": hoverArcWidth,
-      "line-opacity": 1,
-    }),
-    [hoverArcColor, hoverArcWidth],
-  );
-
-  const hasEmptyData = isEmpty || !normalizedArcs || normalizedArcs.length === 0;
-
-  const handleArcClick = useMemoizedFn((e: MapArcEvent<FlightArcItem>) => {
-    onArcClick?.(e.arc);
-  });
-
-  const handleArcHover = useMemoizedFn((e: MapArcEvent<FlightArcItem> | null) => {
-    const arc = e?.arc ?? null;
-    setHoveredArc(arc);
+  const setHoveredArc = useMemoizedFn((arc: ArcFlightItem | null) => {
+    setHovered(arc);
     onArcHover?.(arc);
   });
 
-  // 高度交由外层容器决定（卡片取 MapCard.height、全屏取 fullscreenHeight、独立使用取 wrapper），
-  // 内层统一 size-full，避免内层固定高度大于外层裁切框导致底部锚定元素被裁
-  const mapBody = (
-    <div className={cn("relative size-full overflow-hidden rounded-xl bg-muted/20 select-none", className)}>
-      {isLoading ? (
-        <MapSkeleton height="100%" />
-      ) : isError ? (
-        <MapEmptyState
-          height="100%"
-          type="error"
-          message={error?.message || t("error_default")}
-          onAction={onRetry}
-          actionLabel={t("retry")}
-        />
-      ) : hasEmptyData ? (
-        <MapEmptyState height="100%" type="no-data" message={t("empty_desc")} />
-      ) : (
-        <>
-          <Map
-            center={computedCenter}
-            zoom={zoom}
-            {...MAP_NO_ATTRIBUTION}
-            styles={basemapConfig.styles}
-            blank={blank || basemapConfig.blank}
-            interactive={interactive}
-            className="size-full"
-          >
-            <MapAutoResizer />
-            <MapControls position="bottom-right" showZoom showCompass showLocate />
+  const rawArcs = useMemo(() => data ?? arcs ?? [], [arcs, data]);
+  const effectiveShowNodes = showNodes ?? showNodeMarkers ?? true;
+  const effectiveHoverColor = arcHoverColor ?? hoverArcColor;
+  const effectiveHoverWidth = hoverArcWidth ?? arcWidth + 2;
 
-            <MapArc
-              data={normalizedArcs}
-              curvature={curvature}
-              samples={samples}
-              paint={arcPaint}
-              hoverPaint={arcHoverPaint}
-              onClick={handleArcClick}
-              onHover={handleArcHover}
-            />
+  const { arcsData, arcLookup, nodes, allPoints, computedCenter, resolvedArcColor, resolvedHoverColor } =
+    useArcTopology({
+      data: rawArcs,
+      coordinateSystem,
+      activeBasemap,
+      basemapCRS,
+      center,
+      arcColor,
+      arcHoverColor: effectiveHoverColor,
+    });
 
-            {uniqueNodes.map((node) => (
-              <ArcNodeMarker key={`${node.coordinates[0]}-${node.coordinates[1]}`} node={node} />
-            ))}
-          </Map>
+  const handleGlobeHover = useMemoizedFn((e: { arc: { id: string | number } } | null) => {
+    setHoveredArc(e ? (arcLookup.get(String(e.arc.id)) ?? null) : null);
+  });
 
-          <ArcDetailCard arc={hoveredArc} />
-        </>
-      )}
-    </div>
-  );
+  const handleGlobeClick = useMemoizedFn((e: { arc: { id: string | number } }) => {
+    const match = arcLookup.get(String(e.arc.id));
+    if (match) onArcClick?.(match);
+  });
 
-  if (cardProps) {
-    return (
-      <MapCard
-        height={height}
-        title={cardProps.title || t("arc_flight_title")}
-        description={cardProps.description || t("arc_flight_desc")}
-        fullscreenable={cardProps.fullscreenable}
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        onRetry={onRetry}
-      >
-        {mapBody}
-      </MapCard>
-    );
-  }
+  const handleMercatorHover = useMemoizedFn((arc: ResolvedArcItem | null) => {
+    setHoveredArc(arc?.rawArc ?? null);
+  });
+
+  const handleMercatorClick = useMemoizedFn((arc: ResolvedArcItem) => {
+    onArcClick?.(arc.rawArc);
+  });
+
+  const isGlobeProjection = projection === "globe";
+
+  const overlaySlot = useMemo(() => <ArcHoverLeaf store={hoverStore} />, [hoverStore]);
 
   return (
-    <div className="w-full" style={{ height }}>
-      {mapBody}
-    </div>
+    <MapFrame
+      center={computedCenter}
+      zoom={zoom}
+      pitch={pitch}
+      bearing={bearing}
+      projection={projection}
+      basemap={activeBasemap}
+      onBasemapChange={handleBasemapChange}
+      customStyleUrl={customStyleUrl}
+      blank={blank}
+      interactive={interactive}
+      autoFitBounds={autoFitBounds}
+      fitBoundsPoints={autoFitBounds ? allPoints : undefined}
+      height={height}
+      className={className}
+      isLoading={isLoading}
+      isEmpty={isEmpty || (!isLoading && arcsData.length === 0)}
+      isError={isError}
+      error={error}
+      errorMessage={errorMessage || (isError || error ? t("arc_error") : undefined)}
+      emptyMessage={emptyMessage ?? t("arc_empty")}
+      onRetry={onRetry}
+      defaultCardTitle={t("arc_card_title")}
+      defaultCardDescription={t("arc_card_desc")}
+      cardProps={cardProps}
+      ariaLabel={t("arc_card_title")}
+      overlaySlot={overlaySlot}
+    >
+      {isGlobeProjection ? (
+        <MapArc
+          data={arcsData}
+          curvature={curvature}
+          interactive={interactive}
+          paint={{
+            "line-color": ["coalesce", ["get", "color"], resolvedArcColor],
+            "line-width": arcWidth,
+            "line-opacity": arcOpacity,
+          }}
+          hoverPaint={{
+            "line-color": resolvedHoverColor,
+            "line-width": effectiveHoverWidth,
+            "line-opacity": 1,
+          }}
+          onHover={handleGlobeHover}
+          onClick={handleGlobeClick}
+        />
+      ) : (
+        <ArcSplitLineLayer
+          data={arcsData}
+          curvature={curvature}
+          samples={samples}
+          arcColor={resolvedArcColor}
+          arcHoverColor={resolvedHoverColor}
+          arcWidth={arcWidth}
+          hoverArcWidth={effectiveHoverWidth}
+          arcOpacity={arcOpacity}
+          interactive={interactive}
+          onHover={handleMercatorHover}
+          onClick={handleMercatorClick}
+        />
+      )}
+
+      {effectiveShowNodes
+        ? nodes.map((node) => <ArcNodeMarker key={node.id} node={node} size={nodeSize} arcColor={resolvedArcColor} />)
+        : null}
+    </MapFrame>
   );
 });

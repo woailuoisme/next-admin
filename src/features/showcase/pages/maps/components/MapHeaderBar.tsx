@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,21 +10,27 @@ interface MapHeaderBarProps {
   onReset: () => void;
 }
 
-const DEMO_STATES: readonly DemoState[] = ["normal", "loading", "empty", "error"] as const;
+const DEMO_STATES = ["normal", "loading", "empty", "error"] as const satisfies readonly DemoState[];
 
 export function MapHeaderBar({ demoState, onDemoStateChange, onReset }: MapHeaderBarProps) {
+  const t = useTranslations("showcase");
+  const stateLabels = {
+    normal: t("maps_state_normal"),
+    loading: t("maps_state_loading"),
+    empty: t("maps_state_empty"),
+    error: t("maps_state_error"),
+  } as const;
+
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-foreground text-2xl font-bold tracking-tight md:text-3xl">Map Components Showcase</h1>
+          <h1 className="text-foreground text-2xl font-bold tracking-tight md:text-3xl">{t("maps_header_title")}</h1>
           <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
-            @mapcn/map 封装
+            {t("maps_header_badge")}
           </Badge>
         </div>
-        <p className="text-muted-foreground mt-1 text-sm">
-          企业级高阶地图套件：网点聚合分布、车辆轨迹回放、行政区划热力着色、拓扑飞线与表单坐标拾取器
-        </p>
+        <p className="text-muted-foreground mt-1 text-sm">{t("maps_header_desc")}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -33,17 +40,17 @@ export function MapHeaderBar({ demoState, onDemoStateChange, onReset }: MapHeade
               key={st}
               variant={demoState === st ? "default" : "ghost"}
               size="sm"
-              className="h-7 px-2.5 text-xs capitalize"
+              className="h-7 px-2.5 text-xs"
               onClick={() => onDemoStateChange(st)}
             >
-              {st}
+              {stateLabels[st]}
             </Button>
           ))}
         </div>
 
         <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={onReset}>
           <RefreshCw className="size-3.5" />
-          Reset State
+          {t("maps_state_reset")}
         </Button>
       </div>
     </div>

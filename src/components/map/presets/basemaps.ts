@@ -1,26 +1,50 @@
 import type { StyleSpecification } from "maplibre-gl";
 
 import { env } from "@/env";
+import type { MessageKeyOf } from "@/types/i18n";
 
 export type BasemapStyleKey = "carto" | "osm" | "amap" | "tianditu" | "blank";
 export type BasemapPreset = BasemapStyleKey | "custom";
 
 export interface BasemapOption {
-  label: string;
+  labelKey: MessageKeyOf<"map">;
+  descKey: MessageKeyOf<"map">;
   value: BasemapStyleKey;
-  description?: string;
+  /** 非 React/非 i18n 场景回退标签 */
+  label: string;
 }
 
 export const BASEMAP_OPTIONS: BasemapOption[] = [
-  { label: "标准浅/深色 (Carto)", value: "carto", description: "自适应系统与主题色彩的矢量底图" },
-  { label: "开放街道 (OSM)", value: "osm", description: "OpenFreeMap 街道与地理地标" },
-  { label: "高德地图 (Amap)", value: "amap", description: "国内高德标准道路与注记底图 (GCJ-02)" },
   {
-    label: "天地图 (Tianditu)",
-    value: "tianditu",
-    description: "国家地理信息公共服务平台权威矢量底图",
+    value: "carto",
+    labelKey: "basemap_carto",
+    descKey: "basemap_carto_desc",
+    label: "Carto",
   },
-  { label: "纯透明底图 (Blank)", value: "blank", description: "无瓦片透明背景，专注于数据图层" },
+  {
+    value: "osm",
+    labelKey: "basemap_osm",
+    descKey: "basemap_osm_desc",
+    label: "OpenStreetMap",
+  },
+  {
+    value: "amap",
+    labelKey: "basemap_amap",
+    descKey: "basemap_amap_desc",
+    label: "Amap",
+  },
+  {
+    value: "tianditu",
+    labelKey: "basemap_tianditu",
+    descKey: "basemap_tianditu_desc",
+    label: "Tianditu",
+  },
+  {
+    value: "blank",
+    labelKey: "basemap_blank",
+    descKey: "basemap_blank_desc",
+    label: "Blank",
+  },
 ];
 
 export const BLANK_MAP_STYLE: StyleSpecification = {
@@ -35,21 +59,13 @@ export const BLANK_MAP_STYLE: StyleSpecification = {
   ],
 };
 
-/**
- * 底图服务 Token（通过 `.env` 变量注入，见 `src/env.ts`）
- *
- * - `TIANDITU_TOKEN`：**必需**。缺 token 或 token 失效时天地图瓦片接口会拒绝请求
- *   （实测失效 token 返回 `403 application/json`），底图呈整图空白。
- *   （申请：https://console.tianditu.gov.cn/ → 创建应用 → 浏览器端 key，需加入域名白名单）
- * - `AMAP_KEY`：可选。当前使用的 XYZ 栅格瓦片端点
- *   `wprd0X.is.autonavi.com/appmaptile` 本身免 key，仅改用需授权端点时才需要
- */
 const TIANDITU_TOKEN = env.TIANDITU_TOKEN;
 const AMAP_KEY = env.AMAP_KEY;
 
-let hasWarnedTiandituToken = false;
+export function isTiandituConfigured(tk: string | undefined = TIANDITU_TOKEN): boolean {
+  return Boolean(tk?.trim());
+}
 
-/** 高德栅格瓦片子域（{x}/{y}/{z} 由 MapLibre 填充） */
 const AMAP_TILE_HOSTS = ["wprd01", "wprd02", "wprd03", "wprd04"] as const;
 
 function buildAmapTiles(key?: string): string[] {
@@ -69,6 +85,7 @@ export function createAmapStyle(key: string | undefined = AMAP_KEY): StyleSpecif
         type: "raster",
         tiles: buildAmapTiles(key),
         tileSize: 256,
+        attribution: "© AutoNavi (高德地图)",
       },
     },
     layers: [
@@ -99,6 +116,7 @@ export function createTiandituStyle(tk: string | undefined = TIANDITU_TOKEN): St
         type: "raster",
         tiles: buildTiandituTiles("vec", tokenQuery),
         tileSize: 256,
+        attribution: "© 国家地理信息公共服务平台 (天地图)",
       },
       "tdt-cva": {
         type: "raster",
@@ -146,23 +164,28 @@ export type BasemapConfig = {
     dark?: string | StyleSpecification;
   };
   blank: boolean;
+  /** 当所选底图因缺失密钥（如天地图未配置 Token）自动降级为同坐标系可用底图时记录原底图 */
+  degradedFrom?: BasemapStyleKey;
 };
 
 export function resolveBasemapConfig(
   key: BasemapPreset = "carto",
   customStyles?: { light?: string | StyleSpecification; dark?: string | StyleSpecification },
 ): BasemapConfig {
-  if (key === "tianditu" && !TIANDITU_TOKEN && !hasWarnedTiandituToken) {
-    hasWarnedTiandituToken = true;
-    console.warn(
-      "[map] 未配置 NEXT_PUBLIC_TIANDITU_TOKEN：天地图瓦片会被接口拒绝，底图将显示为空白。请参考 .env.example 配置。",
-    );
-  }
-
   if (customStyles) {
     return { styles: customStyles, blank: false };
   }
   const presetKey: BasemapStyleKey = key === "custom" ? "carto" : key;
+  if (presetKey === "tianditu" && !isTiandituConfigured()) {
+    return {
+      styles: {
+        light: BASEMAP_STYLES.osm.light,
+        dark: BASEMAP_STYLES.osm.dark,
+      },
+      blank: false,
+      degradedFrom: "tianditu",
+    };
+  }
   const preset = BASEMAP_STYLES[presetKey] ?? BASEMAP_STYLES.carto;
   if (preset.blank) {
     return { styles: undefined, blank: true };

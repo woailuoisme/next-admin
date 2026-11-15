@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { debounce, type DebouncedFunction } from "es-toolkit";
@@ -8,95 +10,99 @@ import { Badge } from "@/components/ui/badge";
 import { Map, MapControls, MapMarker, MarkerContent, MarkerPopup } from "@/components/ui/map";
 import { cn } from "cn";
 
-import type { CoordinateSystem } from "../utils/coordinates";
 import type { LocationPickerProps, LocationPickerValue } from "./types";
 
 import { resolveBasemapConfig } from "../presets/basemaps";
-import { MAP_NO_ATTRIBUTION } from "../shared/constants";
+import { DEFAULT_BEIJING_CENTER, MAP_ATTRIBUTION_PROPS } from "../shared/constants";
 import { MapAutoResizer } from "../shared/MapAutoResizer";
 import { MapFlyTo } from "../shared/MapFlyTo";
-import { getBasemapCRS, transformCoordinates } from "../utils/coordinates";
-import { type AmapPlace, isAmapApiEnabled, reverseGeocode } from "./amapGeo";
+import { type CoordinateSystem, getBasemapCRS, isValidCoordinate, transformCoordinates } from "../utils/coordinates";
+import { type AmapPlace, reverseGeocode } from "./amapGeo";
 import { LocationAddressSearch } from "./LocationAddressSearch";
 import { LocationCoordinatesInput } from "./LocationCoordinatesInput";
 import { MapClickHandler } from "./MapClickHandler";
+import { useGeocodeProxyAvailability } from "./useGeocodeProxyAvailability";
 
-const DEFAULT_BEIJING: LocationPickerValue = { lng: 116.4074, lat: 39.9042 };
-
-/** 逆地理编码防抖：拖动结束后再补全地址，避免拖动过程连续请求 */
-const REVERSE_GEOCODE_DEBOUNCE_MS = 400;
+const REVERSE_GEOCODE_DEBOUNCE_MS = 450;
 
 export const LocationPicker = memo(function LocationPicker({
-  coordinateSystem,
-  value: controlledValue,
-  defaultValue = DEFAULT_BEIJING,
+  coordinateSystem: sourceCRS = "WGS84",
+  value,
+  defaultValue,
   onChange,
   disabled = false,
   readOnly = false,
   showCoordinatesInput = true,
   showAddressSearch = true,
   showReset = true,
+  searchPlaceholder,
   height = 320,
   center,
   zoom = 12,
   basemap = "amap",
   customStyleUrl,
   className,
+  externalInteractionEpoch = 0,
 }: LocationPickerProps) {
   const t = useTranslations("map");
-  const [internalValue, setInternalValue] = useState<LocationPickerValue>(controlledValue ?? defaultValue);
 
-  const isControlled = controlledValue !== undefined;
-  const currentValue = isControlled ? controlledValue : internalValue;
-  const sourceLng = currentValue?.lng;
-  const sourceLat = currentValue?.lat;
+  const isControlled = value !== undefined;
+  const [internalValue, setInternalValue] = useState<LocationPickerValue | undefined>(defaultValue);
+  const currentValue = isControlled ? value : internalValue;
+  const hasValidCurrentValue = Boolean(currentValue && isValidCoordinate([currentValue.lng, currentValue.lat]));
 
-  /** 对外契约坐标系：`value` / `onChange` 中的坐标即为该坐标系 */
-  const sourceCRS: CoordinateSystem = coordinateSystem ?? "WGS84";
-  /** 地图显示坐标系，与 useLocationMarkers / RouteTrackingMap 共用同一套底图约定 */
-  const displayCRS = getBasemapCRS(basemap);
+  const amapEnabled = useGeocodeProxyAvailability();
 
-  const basemapConfig = useMemo(() => resolveBasemapConfig(basemap, customStyleUrl), [basemap, customStyleUrl]);
+  const basemapConfig = useMemo(() => {
+    const customStyles = customStyleUrl?.light || customStyleUrl?.dark ? customStyleUrl : undefined;
+    return resolveBasemapConfig(basemap, customStyles);
+  }, [basemap, customStyleUrl]);
 
-  // 外部契约坐标 → 显示坐标。拆成数值依赖，使「仅地址变化」时不会改变引用，
-  // 从而不会反复触发下方的逆地理编码 effect
-  const [displayLng, displayLat] = useMemo(() => {
-    if (sourceLng === undefined || sourceLat === undefined) {
-      return [undefined, undefined] as const;
-    }
+  const displayCRS = useMemo(() => getBasemapCRS(basemap), [basemap]);
+
+  const sourceLng = hasValidCurrentValue ? currentValue?.lng : undefined;
+  const sourceLat = hasValidCurrentValue ? currentValue?.lat : undefined;
+  const currentCoordKey =
+    sourceLng !== undefined && sourceLat !== undefined ? `${sourceLng.toFixed(5)},${sourceLat.toFixed(5)}` : "";
+
+  const displayPosition = useMemo<[number, number] | undefined>(() => {
+    if (sourceLng === undefined || sourceLat === undefined) return undefined;
     return transformCoordinates([sourceLng, sourceLat], sourceCRS, displayCRS);
   }, [sourceLng, sourceLat, sourceCRS, displayCRS]);
 
-  const displayPosition = useMemo<[number, number] | null>(
-    () => (displayLng === undefined || displayLat === undefined ? null : [displayLng, displayLat]),
-    [displayLng, displayLat],
-  );
-
-  /** 初始视野中心：显式 center 优先，其次当前坐标，最后回退默认点（均需为显示坐标系） */
   const mapCenter = useMemo<[number, number]>(() => {
-    if (center) return center;
     if (displayPosition) return displayPosition;
-    return transformCoordinates([DEFAULT_BEIJING.lng, DEFAULT_BEIJING.lat], "WGS84", displayCRS);
-  }, [center, displayPosition, displayCRS]);
+    if (isValidCoordinate(center)) return center;
+    return DEFAULT_BEIJING_CENTER;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center]);
 
-  /** 需要平滑飞往的目标；每次写入新数组以支持对同一坐标重复定位 */
-  const [flyToTarget, setFlyToTarget] = useState<[number, number] | null>(null);
-  /** 首次渲染不飞，避免一打开面板就播一次动画 */
-  const skipInitialFlyRef = useRef(true);
-  /** 上次变更是否来自地图交互（点击 / 拖动）—— 那类变更视角已在现场，无需再飞 */
+  const [flyToTarget, setFlyToTarget] = useState<[number, number] | undefined>(undefined);
   const fromMapInteractionRef = useRef(false);
-
   /**
-   * 「输入完成确认后自动定位」
-   *
-   * 凡非地图交互导致的点位变化（数字输入确认、地名搜索、快捷城市、外部改值）
-   * 都自动飞过去；点击/拖动本身视角就在现场，不重复飞。
+   * 记录用户是否已产生交互变更（点击/拖拽/输入/搜索）：
+   * 仅挂载时对缺失 address 的初始值执行本地逆地理展示丰富，绝不调用 onChange 污染表单 dirty 状态。
    */
-  useEffect(() => {
-    if (!displayPosition) return;
+  const hasUserInteractedRef = useRef(externalInteractionEpoch > 0);
+  const [localDisplayAddress, setLocalDisplayAddress] = useState<{ coordKey: string; address: string } | null>(null);
 
-    if (skipInitialFlyRef.current) {
-      skipInitialFlyRef.current = false;
+  useEffect(() => {
+    if (externalInteractionEpoch > 0) {
+      hasUserInteractedRef.current = true;
+      setLocalDisplayAddress(null);
+    }
+  }, [externalInteractionEpoch]);
+
+  const isFirstRenderRef = useRef(true);
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+
+    if (!displayPosition) {
+      fromMapInteractionRef.current = false;
+      setFlyToTarget(undefined);
       return;
     }
 
@@ -108,14 +114,12 @@ export const LocationPicker = memo(function LocationPicker({
     setFlyToTarget([...displayPosition]);
   }, [displayPosition]);
 
-  /**
-   * 统一写回：把坐标从 `fromCRS` 转到对外契约坐标系后回传。
-   * 传入 `address` 才会更新地址（传 null 表示清空），否则保留原值。
-   */
   const commitPosition = useMemoizedFn(
     (lngLat: [number, number], fromCRS: CoordinateSystem, address?: string | null) => {
       if (disabled || readOnly) return;
 
+      hasUserInteractedRef.current = true;
+      setLocalDisplayAddress(null);
       const [lng, lat] = transformCoordinates(lngLat, fromCRS, sourceCRS);
       const updated: LocationPickerValue = {
         ...currentValue,
@@ -131,13 +135,15 @@ export const LocationPicker = memo(function LocationPicker({
     },
   );
 
-  /**
-   * 仅写回地址（逆地理编码成功后调用）。
-   * 严禁重新计算或修改 lng / lat，阻断坐标微小浮点误差引发的无限循环与漂移。
-   */
-  const commitAddress = useMemoizedFn((address: string) => {
+  const commitAddress = useMemoizedFn((address: string, targetCoordKey: string) => {
     if (disabled || readOnly || !currentValue) return;
     if (currentValue.address === address) return;
+
+    if (!hasUserInteractedRef.current) {
+      // 初始挂载无用户操作时，只补充展示用本地地址，避免触发上游表单 isDirty
+      setLocalDisplayAddress({ coordKey: targetCoordKey, address });
+      return;
+    }
 
     const updated: LocationPickerValue = {
       ...currentValue,
@@ -148,25 +154,23 @@ export const LocationPicker = memo(function LocationPicker({
     onChange?.(updated);
   });
 
-  // 点击地图选点：坐标为显示坐标系（标记本次变更来自地图交互，无需自动飞行，同时清空旧地址以触发逆地理编码）
   const handleMapPick = useMemoizedFn((coords: { lng: number; lat: number }) => {
     fromMapInteractionRef.current = true;
     commitPosition([coords.lng, coords.lat], displayCRS, null);
   });
 
-  // 拖动标记微调：坐标为显示坐标系（同上）
   const handleMarkerDragEnd = useMemoizedFn((lngLat: { lng: number; lat: number }) => {
     fromMapInteractionRef.current = true;
     commitPosition([lngLat.lng, lngLat.lat], displayCRS, null);
   });
 
   const regeoAbortControllerRef = useRef<AbortController | null>(null);
-  const debouncedRegeoRef = useRef<DebouncedFunction<(pos: [number, number], crs: CoordinateSystem) => void> | null>(
-    null,
-  );
+  const debouncedRegeoRef = useRef<DebouncedFunction<
+    (pos: [number, number], crs: CoordinateSystem, key: string) => void
+  > | null>(null);
 
   useEffect(() => {
-    const debounced = debounce(async (pos: [number, number], crs: CoordinateSystem) => {
+    const debounced = debounce(async (pos: [number, number], crs: CoordinateSystem, key: string) => {
       regeoAbortControllerRef.current?.abort();
       const controller = new AbortController();
       regeoAbortControllerRef.current = controller;
@@ -174,7 +178,7 @@ export const LocationPicker = memo(function LocationPicker({
       const gcjPosition = transformCoordinates(pos, crs, "GCJ02");
       const address = await reverseGeocode(gcjPosition, controller.signal);
       if (controller.signal.aborted || !address) return;
-      commitAddress(address);
+      commitAddress(address, key);
     }, REVERSE_GEOCODE_DEBOUNCE_MS);
 
     debouncedRegeoRef.current = debounced;
@@ -187,7 +191,6 @@ export const LocationPicker = memo(function LocationPicker({
 
   const lastGeocodedCoordsRef = useRef<string | null>(null);
 
-  // 地名搜索选中：高德返回的坐标恒为 GCJ-02，已带有地名地址，取消防抖避免多余反查
   const handlePlaceSelect = useMemoizedFn((place: AmapPlace) => {
     debouncedRegeoRef.current?.cancel();
     regeoAbortControllerRef.current?.abort();
@@ -196,33 +199,29 @@ export const LocationPicker = memo(function LocationPicker({
     commitPosition(place.lngLat, "GCJ02", place.address || place.name);
   });
 
-  // 数字输入框遵循对外契约坐标系，直接以 sourceCRS 写回，同时清空旧地址以触发逆地理编码
   const handleCoordinatesChange = useMemoizedFn((coords: { lng: number; lat: number }) => {
     commitPosition([coords.lng, coords.lat], sourceCRS, null);
   });
 
-  // 「获取当前定位」：浏览器 Geolocation 的结果恒为 WGS84，需转回对外契约坐标系
   const handleLocate = useMemoizedFn((coords: { longitude: number; latitude: number }) => {
     commitPosition([coords.longitude, coords.latitude], "WGS84", null);
   });
 
   const handleReset = useMemoizedFn(() => {
     if (disabled || readOnly) return;
+    hasUserInteractedRef.current = true;
+    setLocalDisplayAddress(null);
     debouncedRegeoRef.current?.cancel();
     regeoAbortControllerRef.current?.abort();
     lastGeocodedCoordsRef.current = null;
     if (!isControlled) setInternalValue(defaultValue);
-    onChange?.(defaultValue);
+    onChange?.(defaultValue as LocationPickerValue);
   });
 
-  // 数字输入数值未变、按回车「确认」时：重新定位到当前点
   const handleCoordinatesConfirm = useMemoizedFn(() => {
     if (displayPosition) setFlyToTarget([...displayPosition]);
   });
 
-  const amapEnabled = isAmapApiEnabled();
-
-  // 点位稳定后通过 es-toolkit debounce 防抖逆地理编码补全地址（未配置 key 时整段跳过）
   useEffect(() => {
     if (
       !amapEnabled ||
@@ -235,32 +234,45 @@ export const LocationPicker = memo(function LocationPicker({
       return;
     }
 
-    const coordKey = `${sourceLng.toFixed(5)},${sourceLat.toFixed(5)}`;
-
-    // 1. 若当前已有非空地址，无需反查，记录当前点位作为基准跳过
     if (currentValue?.address) {
-      lastGeocodedCoordsRef.current = coordKey;
+      lastGeocodedCoordsRef.current = currentCoordKey;
       return;
     }
 
-    // 2. 如果该坐标已经提交过反查，避免重复发起
-    if (lastGeocodedCoordsRef.current === coordKey) {
+    if (lastGeocodedCoordsRef.current === currentCoordKey) {
       return;
     }
 
-    lastGeocodedCoordsRef.current = coordKey;
-    debouncedRegeoRef.current?.(displayPosition, displayCRS);
-  }, [amapEnabled, disabled, readOnly, displayPosition, displayCRS, sourceLng, sourceLat, currentValue?.address]);
+    lastGeocodedCoordsRef.current = currentCoordKey;
+    debouncedRegeoRef.current?.(displayPosition, displayCRS, currentCoordKey);
+  }, [
+    amapEnabled,
+    disabled,
+    readOnly,
+    displayPosition,
+    displayCRS,
+    sourceLng,
+    sourceLat,
+    currentCoordKey,
+    currentValue?.address,
+  ]);
 
+  const effectiveAddress =
+    currentValue?.address ||
+    (localDisplayAddress?.coordKey === currentCoordKey ? localDisplayAddress.address : undefined);
   const isPickerBlocked = disabled || readOnly;
 
   return (
     <div className={cn("flex flex-col gap-2.5 select-none", className)}>
       {showAddressSearch ? (
-        <LocationAddressSearch disabled={disabled} readOnly={readOnly} onSelect={handlePlaceSelect} />
+        <LocationAddressSearch
+          disabled={disabled}
+          readOnly={readOnly}
+          placeholder={searchPlaceholder}
+          onSelect={handlePlaceSelect}
+        />
       ) : null}
 
-      {/* Map Viewport Area */}
       <div
         className={cn(
           "relative w-full overflow-hidden rounded-xl border border-border bg-muted/20 shadow-xs",
@@ -271,14 +283,14 @@ export const LocationPicker = memo(function LocationPicker({
         <Map
           center={mapCenter}
           zoom={zoom}
-          {...MAP_NO_ATTRIBUTION}
+          {...MAP_ATTRIBUTION_PROPS}
           styles={basemapConfig.styles}
           blank={basemapConfig.blank}
           interactive={!disabled}
           className="size-full"
         >
           <MapAutoResizer />
-          <MapFlyTo target={flyToTarget} />
+          <MapFlyTo target={flyToTarget ?? null} />
           <MapControls position="bottom-right" showZoom showCompass showLocate onLocate={handleLocate} />
           <MapClickHandler onClick={handleMapPick} disabled={isPickerBlocked} />
 
@@ -300,9 +312,7 @@ export const LocationPicker = memo(function LocationPicker({
               <MarkerPopup className="w-56 p-2.5">
                 <div className="space-y-1 text-xs">
                   <p className="text-foreground font-semibold">{t("picker_selected_location")}</p>
-                  {currentValue?.address ? (
-                    <p className="text-muted-foreground leading-tight">{currentValue.address}</p>
-                  ) : null}
+                  {effectiveAddress ? <p className="text-muted-foreground leading-tight">{effectiveAddress}</p> : null}
                   <p className="text-muted-foreground font-mono text-[11px]">
                     {currentValue?.lng.toFixed(5)}, {currentValue?.lat.toFixed(5)}
                   </p>
@@ -312,15 +322,12 @@ export const LocationPicker = memo(function LocationPicker({
           ) : null}
         </Map>
 
-        {/* Top Hint Pill */}
-        {currentValue || isPickerBlocked ? (
+        {hasValidCurrentValue || isPickerBlocked ? (
           <div className="border-border/80 bg-background/90 pointer-events-none absolute top-3 left-3 z-10 flex max-w-[calc(100%-1.5rem)] items-center gap-2 rounded-md border px-2.5 py-1 text-xs shadow-xs backdrop-blur-md">
             <LocateFixed className="text-primary size-3.5 shrink-0" />
             {isPickerBlocked ? <span className="text-muted-foreground shrink-0">{t("picker_view_only")}</span> : null}
-            {currentValue?.address ? (
-              <span className="text-foreground/80 min-w-0 truncate">{currentValue.address}</span>
-            ) : null}
-            {currentValue ? (
+            {effectiveAddress ? <span className="text-foreground/80 min-w-0 truncate">{effectiveAddress}</span> : null}
+            {hasValidCurrentValue && currentValue ? (
               <Badge variant="outline" className="shrink-0 font-mono text-[11px]">
                 {currentValue.lng.toFixed(4)}, {currentValue.lat.toFixed(4)}
               </Badge>
@@ -331,7 +338,7 @@ export const LocationPicker = memo(function LocationPicker({
 
       {showCoordinatesInput ? (
         <LocationCoordinatesInput
-          value={currentValue}
+          value={hasValidCurrentValue ? currentValue : undefined}
           disabled={disabled}
           readOnly={readOnly}
           showReset={showReset}

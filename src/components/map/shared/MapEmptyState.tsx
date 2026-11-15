@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { AlertCircle, MapPinOff, RefreshCw } from "lucide-react";
 import { memo, type ReactNode } from "react";
@@ -10,11 +12,10 @@ export interface MapEmptyStateProps {
   title?: string;
   description?: string;
   message?: string;
-  type?: "no-data" | "error" | "empty";
+  type?: "no-data" | "error";
   action?: ReactNode;
   actionLabel?: string;
   onAction?: () => void;
-
   className?: string;
 }
 
@@ -43,6 +44,7 @@ export const MapEmptyState = memo(function MapEmptyState({
         className,
       )}
       style={{ height }}
+      role={isError ? "alert" : "status"}
     >
       <div
         className={cn(
@@ -70,7 +72,7 @@ export const MapEmptyState = memo(function MapEmptyState({
             onClick={onAction}
             className="h-8 gap-1.5 text-xs"
           >
-            {isError && <RefreshCw className="size-3.5" />}
+            {isError ? <RefreshCw className="size-3.5" /> : null}
             {actionLabel}
           </Button>
         </div>

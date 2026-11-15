@@ -104,3 +104,23 @@ The pure calculation core (`resolveTrendInfo` in `src/components/stats/shared/tr
 ### `LiveTelemetrySeam` (Interface)
 
 The strict separation between production telemetry UI (`LiveStatCard` with `"online"` / `"warning"` / `"error"` / `"stale"` / `"offline"` status states, localized `Date | number` timestamp formatting, and sibling `onRetry` error recovery) and showcase simulation adapters (`useDemoTelemetryTicker` + split `DemoTelemetryContext`, isolating 2.5s tick updates to leaf showcase cards).
+
+---
+
+## 7. Geospatial & Map Infrastructure
+
+### `MapFrame` (Deep Shell)
+
+The unified deep wrapper in [`src/components/map/frame/MapFrame.tsx`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/map/frame/MapFrame.tsx) hosting all five visualization families (`LocationMarkerMap`, `RouteTrackingMap`, `GeoDistributionMap`, `ArcFlightMap`, `GeoHeatmapMap`). Owns the single loading/error/empty state machine, runtime MapLibre `error` listener with dismissible degraded-tile banner, `MapAutoResizer` / `MapFitBounds` viewport lifecycle, and optional `MapCard` chrome backed by persistent portal mounting (`MapCard` + `MapFullscreenDialog`) so fullscreen transitions never destroy the WebGL canvas. The MapLibre worker uses the `ui/map.tsx` default (unpkg CDN); no self-hosted worker is shipped.
+
+### `GeoEngine` (Pure Module)
+
+The framework-agnostic spatial geometry and projection calculation kernel (`src/components/map/utils/coordinates.ts` and `src/components/map/utils/geoEngine.ts`). Provides finite/Mercator coordinate validation (`isValidCoordinate`), 6-round iterative inverse projection convergence (`gcj02ToWgs84`), out-of-China BD-09 identity guards, antimeridian-aware bounding boxes (`computeBounds`), Mercator international date line arc splitting (`buildSplitArcSegments`), non-mutating `transformGeoJSON`, and decimal-preserving choropleth step generation (`buildChoroplethSteps`). Re-exported cleanly from `@/components/map/core` with zero WebGL runtime weight.
+
+### `TokenBridge` (Style Adapter)
+
+The runtime CSS token normalizer (`src/components/map/shared/tokenBridge.ts`). Resolves dynamic Tailwind v4 / CSS custom properties (`var(--primary)`, OKLCH, `color-mix`) through an offscreen 2D Canvas normalizer into concrete hex/RGBA strings readable by MapLibre GL paint specifications (`resolveCssColorToHex`, `buildAdaptiveSchemeRamp`), synchronized with DOM theme toggles via a singleton `MutationObserver` and `useSyncExternalStore` (`useMapThemeTokens`).
+
+### `GeocodeAdapter` (Proxy & Test Double)
+
+The client-server boundary for Amap POI search and reverse geocoding (`src/components/map/picker/geocodeAdapter.ts` paired with Next.js Route Handler `src/app/api/geocode/route.ts`). Keeps `AMAP_KEY` server-only via `HttpGeocodeAdapter` while enabling deterministic offline testing through `InMemoryGeocodeAdapter`. Layered under `amapGeo.ts` with per-caller `AbortSignal` isolation across shared in-flight requests, 60-second cooldown half-open circuit breaking, and short-TTL negative caching.

@@ -1,18 +1,19 @@
 import type { ReactNode } from "react";
 
-import type { BasemapStyleKey } from "../presets/basemaps";
+import type { BasemapPreset } from "../presets/basemaps";
+import type { MapFeedbackProps } from "../shared/types";
 
-export interface MapCardProps {
+export interface MapCardProps extends MapFeedbackProps {
   title: ReactNode;
   description?: ReactNode;
   actionSlot?: ReactNode;
   legendSlot?: ReactNode;
   footerSlot?: ReactNode;
 
-  /** Active basemap style key */
-  basemap?: BasemapStyleKey;
+  /** Active basemap preset */
+  basemap?: BasemapPreset;
   /** Callback when user changes basemap via dropdown */
-  onBasemapChange?: (basemap: BasemapStyleKey) => void;
+  onBasemapChange?: (basemap: BasemapPreset) => void;
   /** Whether to display basemap selector dropdown in header (default: true) */
   showBasemapSelector?: boolean;
 
@@ -23,19 +24,8 @@ export interface MapCardProps {
   /** Map area height (default: 450) */
   height?: number | string;
 
-  /** Loading state */
-  isLoading?: boolean;
+  /** Loading status message */
   loadingMessage?: string;
-
-  /** Empty state */
-  isEmpty?: boolean;
-  emptyMessage?: string;
-
-  /** Error state and retry callback */
-  isError?: boolean;
-  error?: Error | null;
-  errorMessage?: string;
-  onRetry?: () => void;
 
   /** Fullscreen toggle alias, overrides `showFullscreen` */
   fullscreenable?: boolean;

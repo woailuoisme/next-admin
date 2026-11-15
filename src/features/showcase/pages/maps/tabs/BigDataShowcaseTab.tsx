@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { LazyLocationMarkerMap } from "@/components/map/lazy";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
@@ -8,16 +9,15 @@ import type { DemoStateProps } from "../types";
 const BIG_DATA_MODES: readonly ("auto" | "dom" | "canvas")[] = ["auto", "dom", "canvas"];
 
 export function BigDataShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
+  const t = useTranslations("showcase");
   const [bigDataRenderMode, setBigDataRenderMode] = useState<"auto" | "dom" | "canvas">("auto");
 
   return (
     <TabsContent value="bigdata" className="space-y-4">
       <div className="border-border/70 bg-card flex items-center justify-between rounded-lg border p-3 shadow-xs">
         <div className="space-y-0.5">
-          <div className="text-foreground text-xs font-semibold">自适应降级模式控制 (Auto-Tiering Engine)</div>
-          <div className="text-muted-foreground text-[11px]">
-            当前加载 320 个真实节点：阈值 200。可在 Auto（自动降级为 GPU WebGL）、DOM 与 Canvas 之间强制切换
-          </div>
+          <div className="text-foreground text-xs font-semibold">{t("maps_bigdata_control_title")}</div>
+          <div className="text-muted-foreground text-[11px]">{t("maps_bigdata_control_desc")}</div>
         </div>
         <div className="flex items-center gap-1.5">
           {BIG_DATA_MODES.map((mode) => (
@@ -49,8 +49,8 @@ export function BigDataShowcaseTab({ isLoading, isEmpty, isError, onRetry }: Dem
         isError={isError}
         onRetry={onRetry}
         cardProps={{
-          title: "超大容量自适应降级感知渲染 (320+ 点)",
-          description: "自动触发 GPU WebGL 矢量聚合图层，点击集群自动展开；选中点自动晋升为交互式 DOM 脉冲标点",
+          title: t("maps_bigdata_card_title"),
+          description: t("maps_bigdata_card_desc"),
         }}
       />
     </TabsContent>

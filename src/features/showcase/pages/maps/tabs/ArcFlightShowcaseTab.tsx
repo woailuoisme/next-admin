@@ -1,9 +1,11 @@
+import { useTranslations } from "next-intl";
 import { LazyArcFlightMap } from "@/components/map/lazy";
 import { TabsContent } from "@/components/ui/tabs";
 import { MOCK_FLIGHT_ARCS } from "../constants";
 import type { DemoStateProps } from "../types";
 
 export function ArcFlightShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
+  const t = useTranslations("showcase");
   return (
     <TabsContent value="arc" className="space-y-4">
       <LazyArcFlightMap
@@ -19,8 +21,8 @@ export function ArcFlightShowcaseTab({ isLoading, isEmpty, isError, onRetry }: D
         isError={isError}
         onRetry={onRetry}
         cardProps={{
-          title: "全国航空与城际干线拓扑网络",
-          description: "大圆贝塞尔弯曲飞线、枢纽端点脉冲光晕与航段流量浮层",
+          title: t("maps_arc_card_title"),
+          description: t("maps_arc_card_desc"),
         }}
       />
     </TabsContent>
