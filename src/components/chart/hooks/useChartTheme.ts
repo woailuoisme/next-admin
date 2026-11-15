@@ -1,8 +1,10 @@
+"use client";
+
 import { useId } from "react";
 
 import type { ChartTheme } from "../shared/theme";
 
-import { getChartTheme } from "../shared/theme";
+import { getChartTheme, getSecondaryChartStroke } from "../shared/theme";
 
 export interface UseChartThemeOptions {
   theme?: ChartTheme;
@@ -11,7 +13,7 @@ export interface UseChartThemeOptions {
 }
 
 /**
- * Hook to derive a stable chart stroke color and a unique gradient ID
+ * Hook to derive a stable chart stroke color, contrasting secondary stroke, and a unique gradient ID
  */
 export function useChartTheme({ theme = "primary", color, gradientPrefix = "chart-grad" }: UseChartThemeOptions = {}) {
   const rawId = useId();
@@ -19,6 +21,7 @@ export function useChartTheme({ theme = "primary", color, gradientPrefix = "char
 
   return {
     activeStroke: color || getChartTheme(theme).strokeColor,
+    secondaryStroke: getSecondaryChartStroke(theme),
     gradientId,
   };
 }

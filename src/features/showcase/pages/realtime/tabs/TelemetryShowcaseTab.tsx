@@ -259,6 +259,7 @@ export function TelemetryShowcaseTab() {
             height={320}
             showGrid
             showTooltip
+            isAnimationActive={false}
           />
         </CardContent>
       </Card>

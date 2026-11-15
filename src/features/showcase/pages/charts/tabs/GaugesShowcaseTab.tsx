@@ -6,6 +6,19 @@ import { TabsContent } from "@/components/ui/tabs";
 import { ARCHITECTURE_RADAR_DATA } from "../constants";
 import type { ChartStateProps } from "../types";
 
+const AUDIT_RADAR_SERIES = [
+  {
+    dataKey: "score",
+    name: "当前审计得分",
+    color: CHART_PALETTE[0],
+  },
+  {
+    dataKey: "benchmark",
+    name: "业界标杆水准",
+    color: CHART_PALETTE[3],
+  },
+];
+
 interface GaugesShowcaseTabProps {
   chartStateProps: ChartStateProps;
 }
@@ -55,22 +68,7 @@ export function GaugesShowcaseTab({ chartStateProps }: GaugesShowcaseTabProps) {
         {...chartStateProps}
         height={340}
       >
-        <RadarMetricChart
-          data={ARCHITECTURE_RADAR_DATA}
-          height={340}
-          series={[
-            {
-              dataKey: "score",
-              name: "当前审计得分",
-              color: CHART_PALETTE[0],
-            },
-            {
-              dataKey: "benchmark",
-              name: "业界标杆水准",
-              color: CHART_PALETTE[3],
-            },
-          ]}
-        />
+        <RadarMetricChart data={ARCHITECTURE_RADAR_DATA} height={340} series={AUDIT_RADAR_SERIES} />
       </ChartCard>
     </TabsContent>
   );

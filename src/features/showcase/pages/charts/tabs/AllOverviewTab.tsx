@@ -17,6 +17,38 @@ import {
 } from "../constants";
 import type { ChartStateProps, TimeRange, TrendDataPoint } from "../types";
 
+const VISITS_FORMATTER = (val: number) => `${val.toLocaleString()} 次`;
+
+const OVERVIEW_COMPOSED_BARS = [
+  {
+    dataKey: "revenue",
+    name: "营收",
+    color: CHART_PALETTE[0],
+  },
+];
+
+const OVERVIEW_COMPOSED_LINES = [
+  {
+    dataKey: "profit",
+    name: "净利润",
+    color: CHART_PALETTE[1],
+    strokeWidth: 2.5,
+  },
+];
+
+const OVERVIEW_RADAR_SERIES = [
+  {
+    dataKey: "score",
+    name: "当前指标",
+    color: CHART_PALETTE[7],
+  },
+  {
+    dataKey: "benchmark",
+    name: "行业基准",
+    color: "var(--muted-foreground)",
+  },
+];
+
 interface AllOverviewTabProps {
   activePeriod: TimeRange;
   onPeriodChange: (newPeriod: string) => void;
@@ -100,7 +132,7 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
         >
           <HorizontalBarChart
             data={TRAFFIC_CHANNELS}
-            valueFormatter={(val) => `${val.toLocaleString()} 次`}
+            valueFormatter={VISITS_FORMATTER}
             showPercentage={true}
             maxItems={6}
             theme="chart-4"
@@ -125,21 +157,8 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
               data={trendData}
               xAxisKey="period"
               height={300}
-              bars={[
-                {
-                  dataKey: "revenue",
-                  name: "营收",
-                  color: CHART_PALETTE[0],
-                },
-              ]}
-              lines={[
-                {
-                  dataKey: "profit",
-                  name: "净利润",
-                  color: CHART_PALETTE[1],
-                  strokeWidth: 2.5,
-                },
-              ]}
+              bars={OVERVIEW_COMPOSED_BARS}
+              lines={OVERVIEW_COMPOSED_LINES}
             />
           </ChartCard>
         </div>
@@ -160,22 +179,7 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
             {...chartStateProps}
             height={160}
           >
-            <RadarMetricChart
-              data={ARCHITECTURE_RADAR_DATA}
-              height={160}
-              series={[
-                {
-                  dataKey: "score",
-                  name: "当前指标",
-                  color: CHART_PALETTE[7],
-                },
-                {
-                  dataKey: "benchmark",
-                  name: "行业基准",
-                  color: "var(--muted-foreground)",
-                },
-              ]}
-            />
+            <RadarMetricChart data={ARCHITECTURE_RADAR_DATA} height={160} series={OVERVIEW_RADAR_SERIES} />
           </ChartCard>
         </div>
       </div>

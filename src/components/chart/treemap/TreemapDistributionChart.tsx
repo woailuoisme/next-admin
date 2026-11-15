@@ -1,27 +1,24 @@
-import { useFormatter, useTranslations } from "next-intl";
-import { memo } from "react";
-import { Tooltip, Treemap } from "recharts";
+"use client";
+
+import { useTranslations } from "next-intl";
+
+import { memo, useCallback } from "react";
+import { Tooltip, Treemap, type TreemapNode } from "recharts";
 
 import { cn } from "cn";
 
 import type { ValueFormatter } from "../shared/formatters";
 import type { TreemapDistributionChartProps } from "./types";
 
-import { CHART_ON_FILL_TEXT } from "../shared/constants";
-import { defaultNumberFormatter } from "../shared/formatters";
+import { useChartFormatters } from "../hooks/useChartFormatters";
+import { useChartHeight } from "../shared/ChartContext";
 import { ChartFrame } from "../shared/ChartFrame";
+import { type ChartTooltipEntry, useChartDetailTooltip } from "../shared/ChartTooltip";
+import { CHART_ON_FILL_TEXT } from "../shared/constants";
+import { defaultNumberFormatter, toFiniteNumber } from "../shared/formatters";
 import { useTreemapDistribution } from "./useTreemapDistribution";
 
-interface CustomContentProps {
-  root?: unknown;
-  depth?: number;
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  index?: number;
-  name?: string;
-  value?: number;
+interface CustomContentProps extends Partial<TreemapNode> {
   color?: string;
   percent?: number;
   valueFormatter?: ValueFormatter;
@@ -29,6 +26,8 @@ interface CustomContentProps {
 
 const CustomTreemapNode = memo(function CustomTreemapNode(props: CustomContentProps) {
   const {
+    depth = 0,
+    children,
     x = 0,
     y = 0,
     width = 0,
@@ -40,8 +39,10 @@ const CustomTreemapNode = memo(function CustomTreemapNode(props: CustomContentPr
     valueFormatter = defaultNumberFormatter,
   } = props;
 
-  // Don't render tiny sub-pixels
-  if (width < 4 || height < 4) return null;
+  const hasChildren = Array.isArray(children) && children.length > 0;
+
+  // Skip root wrapper (depth 0), branch containers wrapping child tiles, and sub-pixel nodes
+  if (depth === 0 || hasChildren || width < 4 || height < 4) return null;
 
   const canShowTitle = width >= 48 && height >= 22;
   const canShowValue = width >= 64 && height >= 40;
@@ -95,77 +96,69 @@ interface TreemapTooltipItem {
   percent?: number;
 }
 
-interface TreemapTooltipContentProps {
-  active?: boolean;
-  payload?: Array<{
-    payload?: TreemapTooltipItem;
-  }>;
-  total: number;
-  valueFormatter: ValueFormatter;
-}
-
-const TreemapTooltipContent = memo(function TreemapTooltipContent({
-  active,
-  payload,
-  total,
-  valueFormatter,
-}: TreemapTooltipContentProps) {
-  const t = useTranslations("chart");
-  if (!active || !payload?.length) return null;
-  const item = payload[0]?.payload;
-  if (!item) return null;
-
-  const itemValue = Number(item.value) || 0;
-  const percent = item.percent ?? (total > 0 ? (itemValue / total) * 100 : 0);
-
-  return (
-    <div className="border-border/50 bg-background/95 rounded-lg border px-3 py-2 text-xs shadow-xl backdrop-blur-md">
-      <div className="text-foreground flex items-center gap-2 font-medium">
-        <span
-          className="h-2 w-2 rounded-full"
-          style={{
-            backgroundColor: item.color || "var(--chart-1)",
-          }}
-        />
-        <span>{item.name}</span>
-      </div>
-      <div className="mt-1 flex items-baseline gap-2">
-        <span className="text-muted-foreground">{t("treemap_value")}:</span>
-        <span className="text-foreground font-semibold tabular-nums">{valueFormatter(itemValue)}</span>
-        <span className="text-muted-foreground text-xs">({percent.toFixed(1)}%)</span>
-      </div>
-    </div>
-  );
-});
-
 export const TreemapDistributionChart = memo(function TreemapDistributionChart({
   data,
-  height = 300,
+  height,
   valueFormatter: customValueFormatter,
   colorPalette,
   aspectRatio = 1.618,
   showTooltip = true,
-  nodeGap: _nodeGap = 2,
+  isAnimationActive = false,
   className,
 }: TreemapDistributionChartProps) {
-  const format = useFormatter();
-  const valueFormatter = customValueFormatter ?? ((val: number) => format.number(val));
+  const t = useTranslations("chart");
+  const resolvedHeight = useChartHeight(height, 300);
+  const { valueFormatter } = useChartFormatters({ valueFormatter: customValueFormatter });
   const { enrichedData, total } = useTreemapDistribution({
     data,
     colorPalette,
   });
 
+  const resolveTooltipDetail = useCallback(
+    (payload: ReadonlyArray<ChartTooltipEntry>) => {
+      const item = payload[0]?.payload as TreemapTooltipItem | undefined;
+      if (!item) return null;
+      const itemValue = toFiniteNumber(item.value, 0);
+      const percent = item.percent ?? (total > 0 ? (itemValue / total) * 100 : 0);
+
+      return {
+        title: item.name,
+        color: item.color || "var(--chart-1)",
+        rows: [
+          {
+            label: t("treemap_value"),
+            value: `${valueFormatter(itemValue)} (${percent.toFixed(1)}%)`,
+          },
+        ],
+      };
+    },
+    [t, total, valueFormatter],
+  );
+
+  const renderTooltip = useChartDetailTooltip(resolveTooltipDetail);
+  const renderTreemapNode = useCallback(
+    (nodeProps: TreemapNode) => (
+      <CustomTreemapNode
+        {...nodeProps}
+        color={typeof nodeProps.color === "string" ? nodeProps.color : undefined}
+        percent={typeof nodeProps.percent === "number" ? nodeProps.percent : undefined}
+        valueFormatter={valueFormatter}
+      />
+    ),
+    [valueFormatter],
+  );
+
   return (
-    <ChartFrame height={height} className={cn("w-full overflow-hidden select-none", className)} style={{ height }}>
+    <ChartFrame height={resolvedHeight} className={cn("w-full overflow-hidden select-none", className)}>
       <Treemap
         data={enrichedData}
         dataKey="value"
         nameKey="name"
         aspectRatio={aspectRatio}
-        isAnimationActive={false}
-        content={<CustomTreemapNode valueFormatter={valueFormatter} />}
+        isAnimationActive={isAnimationActive}
+        content={renderTreemapNode}
       >
-        {showTooltip && <Tooltip content={<TreemapTooltipContent total={total} valueFormatter={valueFormatter} />} />}
+        {showTooltip && <Tooltip content={renderTooltip} />}
       </Treemap>
     </ChartFrame>
   );

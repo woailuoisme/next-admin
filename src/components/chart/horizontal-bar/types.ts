@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import type { ChartTheme } from "../shared/theme";
+import type { ChartHeight } from "../shared/types";
 
 export interface HorizontalBarItem {
   id?: string;
@@ -10,7 +11,7 @@ export interface HorizontalBarItem {
   color?: string;
   secondaryLabel?: string;
   icon?: ComponentType<{ className?: string }>;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface EnrichedHorizontalBarItem extends HorizontalBarItem {
@@ -26,6 +27,6 @@ export interface HorizontalBarChartProps {
   percentageFormatter?: (val: number) => string;
   showPercentage?: boolean;
   theme?: ChartTheme;
-  height?: number;
+  height?: ChartHeight;
   className?: string;
 }

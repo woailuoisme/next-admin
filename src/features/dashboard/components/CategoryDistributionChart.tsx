@@ -1,7 +1,11 @@
+"use client";
+
+import { useMemoizedFn } from "ahooks";
+import { useFormatter, useTranslations } from "next-intl";
+
 import { ChartCard, LazyDonutDistributionChart } from "@/components/chart";
 
 import type { CategoryDistributionPoint } from "../types";
-import { useTranslations } from "next-intl";
 
 interface CategoryDistributionChartProps {
   data?: CategoryDistributionPoint[];
@@ -11,10 +15,12 @@ interface CategoryDistributionChartProps {
 
 const EMPTY_DISTRIBUTION_DATA: CategoryDistributionPoint[] = [];
 
-const formatCategoryShare = (val: number) => `$${(val / 1000).toFixed(1)}k`;
-
 export function CategoryDistributionChart({ data, isLoading = false, className }: CategoryDistributionChartProps) {
   const t = useTranslations("dashboard");
+  const format = useFormatter();
+  const formatCategoryShare = useMemoizedFn((val: number) =>
+    format.number(val, { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }),
+  );
   const chartData = data ?? EMPTY_DISTRIBUTION_DATA;
 
   return (
@@ -26,12 +32,12 @@ export function CategoryDistributionChart({ data, isLoading = false, className }
       isLoading={isLoading}
       isEmpty={!isLoading && chartData.length === 0}
       emptyMessage={t("category_empty")}
+      skeletonVariant="donut"
     >
       <LazyDonutDistributionChart
         data={chartData}
         centerLabel={t("category_center_label")}
         valueFormatter={formatCategoryShare}
-        height={240}
       />
     </ChartCard>
   );

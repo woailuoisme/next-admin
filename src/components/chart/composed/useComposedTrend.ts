@@ -1,15 +1,9 @@
-import { useMemoizedFn } from "ahooks";
-import { useFormatter } from "next-intl";
 import { useMemo } from "react";
 
 import type { ComposedTrendChartProps } from "./types";
 
-import { EMPTY_DATA } from "../shared/constants";
-import {
-  defaultAxisNumberFormatter,
-  defaultComposedValueFormatter,
-  defaultPercentageFormatter,
-} from "../shared/formatters";
+import { useChartFormatters } from "../hooks/useChartFormatters";
+import { DEFAULT_LINE_ACTIVE_DOT_BASE, EMPTY_DATA } from "../shared/constants";
 import { CHART_PALETTE } from "../shared/theme";
 
 /**
@@ -24,23 +18,13 @@ export function useComposedTrend(props: ComposedTrendChartProps) {
     valueFormatter: propValueFormatter,
   } = props;
 
-  const format = useFormatter();
-
   const hasRightAxis = bars.some((b) => b.yAxisId === "right") || lines.some((l) => l.yAxisId === "right");
 
-  const leftAxisFormatter = useMemoizedFn((val: number) => {
-    if (propLeftAxisFormatter) return propLeftAxisFormatter(val);
-    return defaultAxisNumberFormatter(val);
-  });
-
-  const rightAxisFormatter = useMemoizedFn((val: number) => {
-    if (propRightAxisFormatter) return propRightAxisFormatter(val);
-    return defaultPercentageFormatter(val);
-  });
-
-  const valueFormatter = useMemoizedFn((val: number) => {
-    if (propValueFormatter) return propValueFormatter(val);
-    return defaultComposedValueFormatter(val, format);
+  const { yAxisFormatter, percentageFormatter, valueFormatter } = useChartFormatters({
+    yAxisFormatter: propLeftAxisFormatter,
+    percentageFormatter: propRightAxisFormatter,
+    valueFormatter: propValueFormatter,
+    composedMode: true,
   });
 
   const normalizedBars = useMemo(
@@ -55,12 +39,19 @@ export function useComposedTrend(props: ComposedTrendChartProps) {
 
   const normalizedLines = useMemo(
     () =>
-      lines.map((line, idx) => ({
-        ...line,
-        color: line.color || CHART_PALETTE[(bars.length + idx) % CHART_PALETTE.length],
-        yAxisId: line.yAxisId ?? (hasRightAxis ? "right" : "left"),
-        strokeWidth: line.strokeWidth ?? 2.5,
-      })),
+      lines.map((line, idx) => {
+        const color = line.color || CHART_PALETTE[(bars.length + idx) % CHART_PALETTE.length];
+        return {
+          ...line,
+          color,
+          yAxisId: line.yAxisId ?? (hasRightAxis ? "right" : "left"),
+          strokeWidth: line.strokeWidth ?? 2.5,
+          activeDot: {
+            ...DEFAULT_LINE_ACTIVE_DOT_BASE,
+            stroke: color,
+          },
+        };
+      }),
     [lines, bars.length, hasRightAxis],
   );
 
@@ -68,8 +59,8 @@ export function useComposedTrend(props: ComposedTrendChartProps) {
     hasRightAxis,
     normalizedBars,
     normalizedLines,
-    leftAxisFormatter,
-    rightAxisFormatter,
+    leftAxisFormatter: yAxisFormatter,
+    rightAxisFormatter: percentageFormatter,
     valueFormatter,
   };
 }

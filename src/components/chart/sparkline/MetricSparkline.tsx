@@ -1,4 +1,7 @@
+"use client";
+
 import { useTranslations } from "next-intl";
+
 import { memo, useId } from "react";
 
 import { cn } from "cn";
@@ -60,7 +63,7 @@ export const MetricSparkline = memo(function MetricSparkline({
         ? t("sparkline_trend_down")
         : t("sparkline_trend_neutral");
 
-  const defaultLabel = `走势微图: 起始 ${first}, 当前 ${last}, 趋势 ${trendText}`;
+  const defaultLabel = t("sparkline_aria_label", { first, last, trend: trendText });
 
   return (
     <div

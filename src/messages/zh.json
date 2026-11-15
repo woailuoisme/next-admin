@@ -517,9 +517,16 @@
     "treemap_value": "数值",
     "scatter_data_point": "数据点",
     "scatter_z_axis": "权重",
+    "scatter_default_category": "默认",
+    "scatter_default_series": "指标分布",
+    "donut_total": "总计",
+    "line_default_series": "数值",
+    "line_reference_target": "目标: {value}",
+    "heatmap_aria_label": "展示 {title} 的热力矩阵",
     "sparkline_trend_up": "上升",
     "sparkline_trend_down": "下降",
-    "sparkline_trend_neutral": "平稳"
+    "sparkline_trend_neutral": "平稳",
+    "sparkline_aria_label": "走势微图: 起始 {first}, 当前 {last}, 趋势 {trend}"
   },
   "stats": {
     "status_online": "运行正常",
@@ -540,7 +547,8 @@
     "pacing_ahead": "超额达成",
     "pacing_on_track": "稳步推进",
     "pacing_behind": "进度滞后",
-    "target_label": "目标: "
+    "target_label": "目标: ",
+    "just_now": "刚刚"
   },
   "infolist": {
     "empty_text": "暂无数据",

@@ -1,3 +1,5 @@
+export type ChartHeight = number | string;
+
 export interface ChartReferenceLine {
   y?: number;
   x?: string | number;

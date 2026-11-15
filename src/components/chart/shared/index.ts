@@ -1,10 +1,7 @@
 export * from "./constants";
 export * from "./formatters";
 export * from "./theme";
-export * from "./types";
+export type * from "./types";
 export * from "./ChartTooltip";
 export * from "./ChartEmptyState";
 export * from "./ChartSkeleton";
-export * from "./ChartBrush";
-export * from "./ChartReferenceLines";
-export * from "./ChartFrame";

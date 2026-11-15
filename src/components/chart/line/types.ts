@@ -1,5 +1,5 @@
 import type { ChartTheme } from "../shared/theme";
-import type { ChartBrushConfig, ChartReferenceLine } from "../shared/types";
+import type { ChartBrushConfig, ChartHeight, ChartReferenceLine } from "../shared/types";
 
 export interface LineSeriesConfig {
   dataKey: string;
@@ -12,7 +12,7 @@ export interface LineSeriesConfig {
 export type LineCurveType = "monotone" | "linear" | "step" | "stepBefore" | "stepAfter" | "natural";
 
 export interface LineTrendChartProps {
-  data: Record<string, any>[];
+  data: Record<string, unknown>[];
   series?: LineSeriesConfig[];
   dataKey?: string;
   seriesName?: string;
@@ -28,8 +28,9 @@ export interface LineTrendChartProps {
   valueFormatter?: (val: number) => string;
   xAxisFormatter?: (val: string | number) => string;
   yAxisFormatter?: (val: number) => string;
-  height?: number;
+  height?: ChartHeight;
   showGrid?: boolean;
   showTooltip?: boolean;
+  isAnimationActive?: boolean;
   className?: string;
 }

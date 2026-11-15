@@ -6,7 +6,16 @@ import { RadarMetricChart } from "@/components/chart/radar/RadarMetricChart";
 import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { DISTRIBUTION_DATA, HORIZONTAL_RANKINGS, RADAR_METRICS } from "../constants";
+import { DISTRIBUTION_DATA, HORIZONTAL_RANKINGS, RADAR_METRICS, STATS_USD_FORMATTER } from "../constants";
+
+const CALLS_FORMATTER = (v: number) => `${v.toLocaleString()} calls`;
+const DISTRIBUTION_RADAR_SERIES = [
+  {
+    dataKey: "score",
+    name: "Quality Index",
+    color: "var(--primary)",
+  },
+];
 
 export function DistributionTab() {
   return (
@@ -31,7 +40,7 @@ export function DistributionTab() {
               height={280}
               innerRadius={60}
               outerRadius={88}
-              valueFormatter={(v) => `$${v.toLocaleString()}`}
+              valueFormatter={STATS_USD_FORMATTER}
             />
           </CardContent>
         </Card>
@@ -43,17 +52,7 @@ export function DistributionTab() {
             <CardDescription>Multi-axis benchmark assessment</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
-            <RadarMetricChart
-              data={RADAR_METRICS}
-              height={280}
-              series={[
-                {
-                  dataKey: "score",
-                  name: "Quality Index",
-                  color: "var(--primary)",
-                },
-              ]}
-            />
+            <RadarMetricChart data={RADAR_METRICS} height={280} series={DISTRIBUTION_RADAR_SERIES} />
           </CardContent>
         </Card>
 
@@ -82,11 +81,7 @@ export function DistributionTab() {
           <CardDescription>Horizontal bar with percentage scale and inline legends</CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
-          <HorizontalBarChart
-            data={HORIZONTAL_RANKINGS}
-            height={260}
-            valueFormatter={(v) => `${v.toLocaleString()} calls`}
-          />
+          <HorizontalBarChart data={HORIZONTAL_RANKINGS} height={260} valueFormatter={CALLS_FORMATTER} />
         </CardContent>
       </Card>
     </div>

@@ -1,20 +1,28 @@
+"use client";
+
+import { useMemoizedFn } from "ahooks";
+import { useFormatter, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { ChartCard, LazyAreaTrendChart } from "@/components/chart";
 
 import type { MonthlyTrendPoint } from "../types";
-import { useTranslations } from "next-intl";
+
+const EMPTY_REVENUE_DATA: MonthlyTrendPoint[] = [];
 
 interface RevenueChartProps {
   data?: MonthlyTrendPoint[];
   isLoading?: boolean;
 }
 
-const formatRevenueTooltip = (val: number) => `$${new Intl.NumberFormat().format(val)}`;
-
-export function RevenueChart({ data = [], isLoading = false }: RevenueChartProps) {
+export function RevenueChart({ data = EMPTY_REVENUE_DATA, isLoading = false }: RevenueChartProps) {
   const t = useTranslations("dashboard");
+  const format = useFormatter();
   const [activePeriod, setActivePeriod] = useState("12M");
+
+  const formatRevenueTooltip = useMemoizedFn((val: number) =>
+    format.number(val, { style: "currency", currency: "USD", maximumFractionDigits: 0 }),
+  );
 
   const revenuePeriods = useMemo(
     () => [
@@ -25,16 +33,15 @@ export function RevenueChart({ data = [], isLoading = false }: RevenueChartProps
     [t],
   );
 
-  // Map MonthlyTrendPoint data to AreaTrendChart data format
-  const chartData = useMemo(
-    () =>
-      data.map((item) => ({
-        label: item.month,
-        value: item.revenue,
-        secondaryValue: item.orders * 100, // normalized scale if needed
-      })),
-    [data],
-  );
+  // Map MonthlyTrendPoint data to AreaTrendChart data format filtered by active period
+  const chartData = useMemo(() => {
+    const sliced = activePeriod === "7D" ? data.slice(-3) : activePeriod === "30D" ? data.slice(-6) : data;
+    return sliced.map((item) => ({
+      label: item.month,
+      value: item.revenue,
+      secondaryValue: item.orders * 100, // normalized scale if needed
+    }));
+  }, [data, activePeriod]);
 
   return (
     <ChartCard
@@ -54,7 +61,6 @@ export function RevenueChart({ data = [], isLoading = false }: RevenueChartProps
         dataKey="value"
         xAxisKey="label"
         valueFormatter={formatRevenueTooltip}
-        height={300}
       />
     </ChartCard>
   );

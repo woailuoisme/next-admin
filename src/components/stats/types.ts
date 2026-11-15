@@ -4,10 +4,10 @@ import type {
   DonutSliceData,
   LineSeriesConfig,
   RadarSeriesConfig,
-} from "@/components/chart";
+} from "@/components/chart/types";
 
 // Re-export chart types in types-only mode to prevent bundling Recharts into stats core
-export type * from "@/components/chart";
+export type * from "@/components/chart/types";
 
 /**
  * Backward compatibility type aliases

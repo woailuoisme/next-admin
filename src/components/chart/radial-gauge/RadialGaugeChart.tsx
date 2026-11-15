@@ -1,4 +1,7 @@
+"use client";
+
 import { useTranslations } from "next-intl";
+
 import { memo } from "react";
 
 import { cn } from "cn";
@@ -9,11 +12,14 @@ import { useRadialGauge } from "./useRadialGauge";
 
 export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaugeChartProps) {
   const t = useTranslations("chart");
-  const { min = 0, max = 100, label: rawLabel, unit = "%", formattedValue, subtext, height = 240, className } = props;
+  const { label: rawLabel, unit = "%", formattedValue, subtext, className } = props;
   const label = rawLabel ?? t("gauge_label");
 
   const {
+    resolvedHeight,
     clampedValue,
+    safeMin,
+    safeMax,
     activeColor,
     size,
     isCompact,
@@ -27,7 +33,13 @@ export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaug
   return (
     <div
       className={cn("relative flex flex-col items-center justify-center select-none", className)}
-      style={{ width: "100%", height }}
+      style={{ width: "100%", height: resolvedHeight }}
+      role="meter"
+      aria-label={label}
+      aria-valuenow={clampedValue}
+      aria-valuemin={safeMin}
+      aria-valuemax={safeMax}
+      aria-valuetext={formattedValue ?? `${clampedValue}${unit}`}
     >
       <svg
         width={size}
@@ -115,11 +127,11 @@ export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaug
         aria-hidden="true"
       >
         <span>
-          {min}
+          {safeMin}
           {unit}
         </span>
         <span>
-          {max}
+          {safeMax}
           {unit}
         </span>
       </div>

@@ -1,8 +1,33 @@
 import { useMemo } from "react";
 
-import { useFormatter } from "next-intl";
-
 import type { WaterfallFinancialChartProps, WaterfallItem, WaterfallItemType, WaterfallProcessedItem } from "./types";
+
+import { useChartFormatters } from "../hooks/useChartFormatters";
+import { toFiniteNumber } from "../shared/formatters";
+
+function resolveWaterfallType(
+  item: WaterfallItem,
+  index: number,
+  totalLength: number,
+  rawVal: number,
+): WaterfallItemType {
+  if (item.type) return item.type;
+  if (item.isTotal) return "total";
+  if (index === 0) return "start";
+
+  const normalizedLabel = item.label.toLowerCase();
+  if (
+    index === totalLength - 1 &&
+    (normalizedLabel.includes("total") ||
+      normalizedLabel.includes("net") ||
+      item.label.includes("总") ||
+      item.label.includes("净利"))
+  ) {
+    return "total";
+  }
+
+  return rawVal >= 0 ? "increase" : "decrease";
+}
 
 export function useWaterfallFinancial(props: WaterfallFinancialChartProps) {
   const { data, valueFormatter: customFormatter } = props;
@@ -10,68 +35,49 @@ export function useWaterfallFinancial(props: WaterfallFinancialChartProps) {
   const processedData = useMemo<WaterfallProcessedItem[]>(() => {
     if (!data || data.length === 0) return [];
 
-    let runningTotal = 0;
+    return data.reduce<{ items: WaterfallProcessedItem[]; runningTotal: number }>(
+      (acc, item, index) => {
+        const rawVal = toFiniteNumber(item.value);
+        const itemType = resolveWaterfallType(item, index, data.length, rawVal);
 
-    return data.map((item: WaterfallItem, index: number) => {
-      let itemType: WaterfallItemType = item.type || "increase";
+        let start = 0;
+        let end = rawVal;
+        let nextRunningTotal = rawVal;
 
-      if (!item.type) {
-        if (index === 0) {
-          itemType = "start";
-        } else if (
-          index === data.length - 1 &&
-          (item.label.toLowerCase().includes("total") ||
-            item.label.toLowerCase().includes("net") ||
-            item.label.includes("总") ||
-            item.label.includes("净利"))
-        ) {
-          itemType = "total";
-        } else {
-          itemType = item.value >= 0 ? "increase" : "decrease";
+        if (itemType === "increase") {
+          start = acc.runningTotal;
+          end = acc.runningTotal + Math.abs(rawVal);
+          nextRunningTotal = end;
+        } else if (itemType === "decrease") {
+          start = acc.runningTotal;
+          end = acc.runningTotal - Math.abs(rawVal);
+          nextRunningTotal = end;
         }
-      }
 
-      let base = 0;
-      let delta = 0;
-      const rawVal = item.value;
+        const range: [number, number] = [Math.min(start, end), Math.max(start, end)];
+        const defaultFill =
+          itemType === "start" || itemType === "total"
+            ? "var(--primary)"
+            : itemType === "increase"
+              ? "var(--chart-1)"
+              : "var(--destructive)";
 
-      if (itemType === "start" || itemType === "total") {
-        base = 0;
-        delta = rawVal;
-        runningTotal = rawVal;
-      } else if (itemType === "increase") {
-        base = runningTotal;
-        delta = Math.abs(rawVal);
-        runningTotal += delta;
-      } else {
-        // decrease
-        const amount = Math.abs(rawVal);
-        runningTotal -= amount;
-        base = runningTotal;
-        delta = amount;
-      }
+        acc.items.push({
+          label: item.label,
+          rawVal,
+          range,
+          type: itemType,
+          fill: item.fill || defaultFill,
+          runningTotal: nextRunningTotal,
+        });
 
-      const defaultFill =
-        itemType === "start" || itemType === "total"
-          ? "var(--primary)"
-          : itemType === "increase"
-            ? "var(--chart-1)"
-            : "var(--destructive)";
-
-      return {
-        label: item.label,
-        rawVal,
-        base,
-        delta,
-        type: itemType,
-        fill: item.fill || defaultFill,
-        runningTotal,
-      };
-    });
+        return { items: acc.items, runningTotal: nextRunningTotal };
+      },
+      { items: [], runningTotal: 0 },
+    ).items;
   }, [data]);
 
-  const format = useFormatter();
-  const valueFormatter = customFormatter ?? ((val: number) => format.number(val));
+  const { valueFormatter } = useChartFormatters({ valueFormatter: customFormatter });
 
   return {
     processedData,

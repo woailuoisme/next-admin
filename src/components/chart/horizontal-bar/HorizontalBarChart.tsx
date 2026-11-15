@@ -1,25 +1,30 @@
+"use client";
+
 import { useTranslations } from "next-intl";
+
 import { memo } from "react";
 
 import { cn } from "cn";
 
 import type { HorizontalBarChartProps } from "./types";
 
+import { useChartHeight } from "../shared/ChartContext";
 import { ChartEmptyState } from "../shared/ChartEmptyState";
 import { useHorizontalBar } from "./useHorizontalBar";
 
 export const HorizontalBarChart = memo(function HorizontalBarChart(props: HorizontalBarChartProps) {
   const { showPercentage = true, height, className } = props;
   const t = useTranslations("chart");
+  const resolvedHeight = useChartHeight(height, 200);
 
   const { items, hasData, valueFormatter, percentageFormatter } = useHorizontalBar(props);
 
   if (!hasData) {
-    return <ChartEmptyState message={t("empty_title")} height={height ?? 200} className={className} />;
+    return <ChartEmptyState message={t("empty_title")} height={resolvedHeight} className={className} />;
   }
 
   return (
-    <div className={cn("w-full space-y-3", className)} style={{ minHeight: height }}>
+    <div className={cn("w-full space-y-3", className)} style={{ minHeight: resolvedHeight }}>
       {items.map((item, idx) => {
         const Icon = item.icon;
         const rank = idx + 1;
@@ -33,9 +38,9 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
                 <span
                   className={cn(
                     "flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-bold",
-                    rank === 1 && "border border-amber-500/30 bg-amber-500/20 text-amber-600 dark:text-amber-400",
-                    rank === 2 && "border border-slate-400/30 bg-slate-400/20 text-slate-600 dark:text-slate-300",
-                    rank === 3 && "border border-amber-700/30 bg-amber-700/20 text-amber-700 dark:text-amber-500",
+                    rank === 1 && "border border-primary/25 bg-primary/15 text-primary",
+                    rank === 2 && "border border-chart-1/30 bg-chart-1/15 text-chart-1",
+                    rank === 3 && "border border-chart-4/30 bg-chart-4/15 text-chart-4",
                     rank > 3 && "border border-border/40 bg-muted text-muted-foreground",
                   )}
                 >
@@ -64,7 +69,14 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
             </div>
 
             {/* Progress Track */}
-            <div className="bg-muted/60 h-2 w-full overflow-hidden rounded-full">
+            <div
+              className="bg-muted/60 h-2 w-full overflow-hidden rounded-full"
+              role="progressbar"
+              aria-label={item.label}
+              aria-valuenow={Math.round(item.barPct)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{

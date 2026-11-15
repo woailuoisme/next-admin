@@ -2,6 +2,7 @@ import type { DemoState, RawTrendItem, TimeRange } from "./types";
 
 export const TIME_RANGES: readonly TimeRange[] = ["7d", "30d", "90d", "12m"] as const;
 export const DEMO_STATES: readonly DemoState[] = ["normal", "loading", "empty", "error"] as const;
+export const STATS_USD_FORMATTER = (v: number) => `$${v.toLocaleString()}`;
 
 // Mock datasets for different time ranges
 export const TREND_DATA_MAP: Record<TimeRange, RawTrendItem[]> = {

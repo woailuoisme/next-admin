@@ -3,7 +3,7 @@
 import { useMemoizedFn } from "ahooks";
 import { delay } from "es-toolkit";
 import { Briefcase, Gauge, PieChart as PieChartIcon, SlidersHorizontal, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChartsFeatureHighlights } from "./components/ChartsFeatureHighlights";
 import { ChartsHeaderBar } from "./components/ChartsHeaderBar";
@@ -31,12 +31,15 @@ export function ChartsShowcasePage() {
     setDemoState("normal");
   });
 
-  const chartStateProps: ChartStateProps = {
-    isLoading: demoState === "loading",
-    isEmpty: demoState === "empty",
-    errorMessage: demoState === "error" ? "图表数据请求异常，无法加载最新聚合指标 (HTTP 502)" : undefined,
-    onRetry: handleRetry,
-  };
+  const chartStateProps = useMemo<ChartStateProps>(
+    () => ({
+      isLoading: demoState === "loading",
+      isEmpty: demoState === "empty",
+      errorMessage: demoState === "error" ? "图表数据请求异常，无法加载最新聚合指标 (HTTP 502)" : undefined,
+      onRetry: handleRetry,
+    }),
+    [demoState, handleRetry],
+  );
 
   return (
     <div className="mx-auto max-w-7xl flex-1 space-y-6 p-4 pt-6 md:p-8">

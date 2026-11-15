@@ -2,58 +2,54 @@ import { useMemo } from "react";
 
 import type { TreemapItem } from "./types";
 
+import { toFiniteNumber } from "../shared/formatters";
+import { CHART_PALETTE } from "../shared/theme";
+
 interface UseTreemapDistributionOptions {
   data: TreemapItem[];
   colorPalette?: string[];
 }
 
-const DEFAULT_TREEMAP_PALETTE = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-  "var(--primary)",
-];
-
 export function useTreemapDistribution({ data, colorPalette }: UseTreemapDistributionOptions) {
   return useMemo(() => {
-    const palette = colorPalette && colorPalette.length > 0 ? colorPalette : DEFAULT_TREEMAP_PALETTE;
+    const safeData = data ?? [];
+    const palette = colorPalette && colorPalette.length > 0 ? colorPalette : CHART_PALETTE;
 
     let total = 0;
     function sumNode(node: TreemapItem): number {
       if (node.children && node.children.length > 0) {
         return node.children.reduce((acc, child) => acc + sumNode(child), 0);
       }
-      return node.value ?? node.size ?? 0;
+      return Math.max(0, toFiniteNumber(node.value ?? node.size, 0));
     }
 
-    for (const item of data) {
+    for (const item of safeData) {
       total += sumNode(item);
     }
 
-    // Enrich root items with colors and percentages
-    const enrichedData = data.map((item, index) => {
-      const itemValue = sumNode(item);
-      const percent = total > 0 ? (itemValue / total) * 100 : 0;
-      const color = palette[index % palette.length];
+    // Recursively enrich hierarchy items with computed totals, percentages, and palette colors
+    function enrichNode(
+      node: TreemapItem,
+      paletteIndex: number,
+    ): TreemapItem & {
+      value: number;
+      percent: number;
+      color: string;
+    } {
+      const nodeValue = sumNode(node);
+      const percent = total > 0 ? (nodeValue / total) * 100 : 0;
+      const color = palette[paletteIndex % palette.length];
 
       return {
-        ...item,
-        value: item.value ?? item.size ?? itemValue,
+        ...node,
+        value: nodeValue,
         percent,
         color,
-        children: item.children?.map((child, cIdx) => {
-          const childVal = child.value ?? child.size ?? sumNode(child);
-          return {
-            ...child,
-            value: childVal,
-            percent: total > 0 ? (childVal / total) * 100 : 0,
-            color: palette[(index + cIdx + 1) % palette.length],
-          };
-        }),
+        children: node.children?.map((child, childIndex) => enrichNode(child, paletteIndex + childIndex + 1)),
       };
-    });
+    }
+
+    const enrichedData = safeData.map((item, index) => enrichNode(item, index));
 
     return {
       total,

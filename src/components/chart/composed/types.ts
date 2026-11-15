@@ -1,4 +1,4 @@
-import type { ChartBrushConfig, ChartReferenceLine } from "../shared/types";
+import type { ChartBrushConfig, ChartHeight, ChartReferenceLine } from "../shared/types";
 
 export interface ComposedBarConfig {
   dataKey: string;
@@ -17,17 +17,19 @@ export interface ComposedLineConfig {
 }
 
 export interface ComposedTrendChartProps {
-  data: Record<string, any>[];
+  data: Record<string, unknown>[];
   bars: ComposedBarConfig[];
   lines: ComposedLineConfig[];
   xAxisKey?: string;
+  xAxisFormatter?: (val: string | number) => string;
   leftAxisFormatter?: (val: number) => string;
   rightAxisFormatter?: (val: number) => string;
   valueFormatter?: (val: number) => string;
   referenceLines?: ChartReferenceLine[];
   showBrush?: boolean | ChartBrushConfig;
-  height?: number;
+  height?: ChartHeight;
   showGrid?: boolean;
   showTooltip?: boolean;
+  isAnimationActive?: boolean;
   className?: string;
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, type ComponentType, lazy, Suspense } from "react";
 
 import { ChartSkeleton, type ChartSkeletonProps } from "../shared/ChartSkeleton";

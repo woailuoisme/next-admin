@@ -1,4 +1,7 @@
+"use client";
+
 import { memo } from "react";
+
 import { ReferenceLine } from "recharts";
 
 import type { ChartReferenceLine } from "./types";

@@ -56,7 +56,14 @@ export function useSparklinePath({
       return EMPTY_SPARKLINE_RESULT;
     }
 
-    const values = data.map((item) => (typeof item === "number" ? item : item.value));
+    const values = data.flatMap((item) => {
+      const val = typeof item === "number" ? item : item.value;
+      return Number.isFinite(val) ? [val] : [];
+    });
+
+    if (values.length === 0) {
+      return EMPTY_SPARKLINE_RESULT;
+    }
 
     const min = minBy(values, (x) => x) ?? 0;
     const max = maxBy(values, (x) => x) ?? 0;

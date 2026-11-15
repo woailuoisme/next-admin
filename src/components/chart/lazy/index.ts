@@ -1,4 +1,7 @@
+"use client";
+
 import type { AreaTrendChartProps } from "../area/types";
+
 import type { BarTrendChartProps } from "../bar/types";
 import type { ComposedTrendChartProps } from "../composed/types";
 import type { DonutDistributionChartProps } from "../donut/types";
@@ -69,7 +72,7 @@ export const LazyWaterfallFinancialChart = createLazyChart<WaterfallFinancialCha
 
 export const LazyScatterMetricChart = createLazyChart<ScatterMetricChartProps>(
   () => import("../scatter").then((m) => ({ default: m.ScatterMetricChart })),
-  { defaultHeight: 320, variant: "trend" },
+  { defaultHeight: 340, variant: "trend" },
 );
 
 export const LazyHeatmapMatrixChart = createLazyChart<HeatmapMatrixChartProps>(

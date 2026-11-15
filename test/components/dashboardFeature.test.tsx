@@ -4,6 +4,7 @@ import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
 import { MetricsCards } from "@/features/dashboard/components/MetricsCards";
 import { RecentOrdersTable } from "@/features/dashboard/components/RecentOrdersTable";
 import { QuickActions } from "@/features/dashboard/components/QuickActions";
+import { RevenueChart } from "@/features/dashboard/components/RevenueChart";
 import type { DashboardMetrics, DashboardSparklines, MonthlyTrendPoint } from "@/features/dashboard/types";
 import type { Order } from "@/features/orders";
 import { fireEvent, renderWithProviders, screen, within } from "test/test-utils";
@@ -72,6 +73,48 @@ describe("Dashboard Feature Tests", () => {
     expect(screen.getByText("总订单量 (Orders)")).toBeInTheDocument();
     expect(screen.getByText("商品类目 (Products)")).toBeInTheDocument();
     expect(screen.getByText("活跃客户 (Customers)")).toBeInTheDocument();
+  });
+
+  it("formats negative growth without double sign and formats totalProducts", () => {
+    renderWithProviders(
+      <MetricsCards
+        metrics={{
+          ...mockMetrics,
+          revenueGrowth: -5.2,
+          ordersGrowth: -1.5,
+          customersGrowth: -3,
+          totalProducts: 1250,
+        }}
+        monthlyTrends={mockTrends}
+        sparklines={mockSparklines}
+      />,
+    );
+
+    expect(screen.getByText("-5.2%")).toBeInTheDocument();
+    expect(screen.queryByText("+-5.2%")).not.toBeInTheDocument();
+    expect(screen.getByText("-1.5%")).toBeInTheDocument();
+    expect(screen.getByText("-3%")).toBeInTheDocument();
+    expect(screen.getByText("1,250")).toBeInTheDocument();
+  });
+
+  it("allows RevenueChart period tabs to switch active slice cleanly", () => {
+    const eightMonths: MonthlyTrendPoint[] = Array.from({ length: 8 }, (_, idx) => ({
+      month: `${idx + 1}月`,
+      revenue: 50000 + idx * 5000,
+      orders: 500 + idx * 50,
+    }));
+
+    renderWithProviders(<RevenueChart data={eightMonths} />);
+
+    const tab7d = screen.getByRole("tab", { name: "7天" });
+    const tab30d = screen.getByRole("tab", { name: "30天" });
+    const tab12m = screen.getByRole("tab", { name: "12月" });
+
+    expect(tab12m).toHaveAttribute("aria-selected", "true");
+    fireEvent.mouseDown(tab7d);
+    expect(tab7d).toHaveAttribute("aria-selected", "true");
+    fireEvent.mouseDown(tab30d);
+    expect(tab30d).toHaveAttribute("aria-selected", "true");
   });
 
   it("renders RecentOrdersTable with semantic status tokens", () => {

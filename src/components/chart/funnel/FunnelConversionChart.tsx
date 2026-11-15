@@ -1,12 +1,21 @@
+"use client";
+
 import { useTranslations } from "next-intl";
-import { memo } from "react";
+
+import { memo, useCallback } from "react";
 import { Funnel, FunnelChart, LabelList, Tooltip } from "recharts";
 
 import type { FunnelConversionChartProps } from "./types";
 
-import { DEFAULT_ANIMATION_DURATION } from "../shared/constants";
+import { useChartHeight } from "../shared/ChartContext";
 import { ChartFrame } from "../shared/ChartFrame";
+import { type ChartTooltipEntry, type ChartTooltipRow, useChartDetailTooltip } from "../shared/ChartTooltip";
+import { DEFAULT_ANIMATION_DURATION } from "../shared/constants";
 import { useFunnelConversion } from "./useFunnelConversion";
+
+const FUNNEL_CHART_MARGIN = { top: 10, right: 30, left: 30, bottom: 10 } as const;
+const FUNNEL_TOOLTIP_CURSOR = { fill: "transparent" } as const;
+const formatFunnelRate = (val: unknown) => `${val}%`;
 
 interface FunnelTooltipItem {
   name: string;
@@ -16,72 +25,72 @@ interface FunnelTooltipItem {
   dropoffRate: number;
 }
 
-interface FunnelTooltipContentProps {
-  active?: boolean;
-  payload?: Array<{
-    payload?: FunnelTooltipItem;
-  }>;
-  valueFormatter: (value: number) => string;
-}
-
-const FunnelTooltipContent = memo(function FunnelTooltipContent({
-  active,
-  payload,
-  valueFormatter,
-}: FunnelTooltipContentProps) {
-  const t = useTranslations("chart");
-  if (!active || !payload?.length) return null;
-  const item = payload[0]?.payload;
-  if (!item) return null;
-
-  return (
-    <div className="border-border/60 bg-popover/95 text-popover-foreground rounded-lg border p-2.5 text-xs shadow-md backdrop-blur-xs select-none">
-      <div className="flex items-center gap-2 font-semibold">
-        <span className="size-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
-        <span>{item.name}</span>
-      </div>
-      <div className="mt-2 space-y-1">
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">{t("funnel_value")}:</span>
-          <span className="font-mono font-medium">{valueFormatter(item.value)}</span>
-        </div>
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">{t("funnel_retention")}:</span>
-          <span className="text-primary font-mono font-semibold">{item.conversionRate}%</span>
-        </div>
-        {item.dropoffRate > 0 ? (
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">{t("funnel_dropoff")}:</span>
-            <span className="text-destructive font-mono font-medium">-{item.dropoffRate}%</span>
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-});
-
 export const FunnelConversionChart = memo(function FunnelConversionChart(props: FunnelConversionChartProps) {
-  const { height = 320, showTooltip = true, showLabels = true, showRates = true, className } = props;
+  const {
+    dataKey = "value",
+    nameKey = "name",
+    height,
+    showTooltip = true,
+    showLabels = true,
+    showRates = true,
+    isAnimationActive = true,
+    className,
+  } = props;
 
+  const t = useTranslations("chart");
+  const resolvedHeight = useChartHeight(height, 320);
   const { processedData, valueFormatter } = useFunnelConversion(props);
 
-  return (
-    <ChartFrame height={height} className={className}>
-      <FunnelChart margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
-        {showTooltip && (
-          <Tooltip
-            content={<FunnelTooltipContent valueFormatter={valueFormatter} />}
-            cursor={{ fill: "transparent" }}
-          />
-        )}
+  const resolveTooltipDetail = useCallback(
+    (payload: ReadonlyArray<ChartTooltipEntry>) => {
+      const item = payload[0]?.payload as FunnelTooltipItem | undefined;
+      if (!item) return null;
 
-        <Funnel dataKey="value" data={processedData} isAnimationActive animationDuration={DEFAULT_ANIMATION_DURATION}>
+      const rows: ChartTooltipRow[] = [
+        { label: t("funnel_value"), value: valueFormatter(item.value), valueClassName: "font-medium" },
+        {
+          label: t("funnel_retention"),
+          value: `${item.conversionRate}%`,
+          valueClassName: "text-primary font-semibold",
+        },
+      ];
+      if (item.dropoffRate > 0) {
+        rows.push({
+          label: t("funnel_dropoff"),
+          value: `-${item.dropoffRate}%`,
+          valueClassName: "text-destructive font-medium",
+        });
+      }
+
+      return {
+        title: item.name,
+        color: item.fill,
+        rows,
+      };
+    },
+    [t, valueFormatter],
+  );
+
+  const renderTooltip = useChartDetailTooltip(resolveTooltipDetail);
+
+  return (
+    <ChartFrame height={resolvedHeight} className={className}>
+      <FunnelChart margin={FUNNEL_CHART_MARGIN}>
+        {showTooltip && <Tooltip content={renderTooltip} cursor={FUNNEL_TOOLTIP_CURSOR} />}
+
+        <Funnel
+          dataKey={dataKey}
+          nameKey={nameKey}
+          data={processedData}
+          isAnimationActive={isAnimationActive}
+          animationDuration={DEFAULT_ANIMATION_DURATION}
+        >
           {showLabels && (
             <LabelList
               position="right"
               fill="var(--foreground)"
               stroke="none"
-              dataKey="name"
+              dataKey={nameKey}
               className="text-xs font-medium"
             />
           )}
@@ -91,7 +100,7 @@ export const FunnelConversionChart = memo(function FunnelConversionChart(props: 
               fill="var(--muted-foreground)"
               stroke="none"
               dataKey="conversionRate"
-              formatter={(val: unknown) => `${val}%`}
+              formatter={formatFunnelRate}
               className="font-mono text-[11px]"
             />
           )}

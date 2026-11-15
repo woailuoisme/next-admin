@@ -1,3 +1,2 @@
 export * from "./ChartCard";
-export * from "./ChartFullscreenDialog";
-export * from "./types";
+export type * from "./types";

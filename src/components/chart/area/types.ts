@@ -1,5 +1,5 @@
 import type { ChartTheme } from "../shared/theme";
-import type { ChartBrushConfig, ChartReferenceLine } from "../shared/types";
+import type { ChartBrushConfig, ChartHeight, ChartReferenceLine } from "../shared/types";
 
 export interface AreaTrendChartProps {
   /** Data points array */
@@ -20,12 +20,14 @@ export interface AreaTrendChartProps {
   xAxisFormatter?: (value: string | number) => string;
   /** Formatter for Y axis ticks */
   yAxisFormatter?: (value: number) => string;
-  /** Height in pixels or string */
-  height?: number;
+  /** Height in pixels */
+  height?: ChartHeight;
   /** Whether to display background grid lines */
   showGrid?: boolean;
   /** Whether to show tooltip */
   showTooltip?: boolean;
+  /** Toggle Recharts enter/update animation (disable on streaming data) */
+  isAnimationActive?: boolean;
   /** Custom benchmark reference lines */
   referenceLines?: ChartReferenceLine[];
   /** Interactive timeline range slider / brush */

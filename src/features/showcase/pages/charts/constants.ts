@@ -1,5 +1,5 @@
 import { CheckCircle2, Compass, Layers, Sparkles } from "lucide-react";
-import { CHART_PALETTE } from "@/components/chart";
+import { CHART_PALETTE } from "@/components/chart/shared/theme";
 import type { DemoState, TimeRange, TrendDataPoint } from "./types";
 
 export const DEMO_STATES: readonly DemoState[] = ["normal", "loading", "empty", "error"] as const;
@@ -38,8 +38,8 @@ export const FEATURE_HIGHLIGHTS = [
   {
     icon: CheckCircle2,
     iconClass: "bg-chart-4/10 text-chart-4",
-    title: "向下 100% 兼容",
-    description: "@/components/stats 无损桥接重导出",
+    title: "按需拆包零泄漏",
+    description: "纯静态主题接缝与按需懒加载隔离 Recharts 运行时",
   },
 ] as const;
 

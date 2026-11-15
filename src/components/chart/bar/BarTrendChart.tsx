@@ -1,76 +1,80 @@
+"use client";
+
 import { memo } from "react";
-import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+
+import { Bar } from "recharts";
 
 import type { BarTrendChartProps } from "./types";
 
-import { ChartBrush } from "../shared/ChartBrush";
-import { ChartReferenceLines } from "../shared/ChartReferenceLines";
-import { ChartTooltip } from "../shared/ChartTooltip";
-import {
-  AXIS_TICK_STYLE,
-  CHART_GRID_STROKE,
-  DEFAULT_ANIMATION_DURATION,
-  DEFAULT_CHART_MARGIN,
-} from "../shared/constants";
-import { ChartFrame } from "../shared/ChartFrame";
-import { useBarTrend } from "./useBarTrend";
+import { useChartFormatters } from "../hooks/useChartFormatters";
+import { useChartTheme } from "../hooks/useChartTheme";
+import { CartesianScaffold } from "../shared/CartesianScaffold";
+import { DEFAULT_ANIMATION_DURATION, DEFAULT_CHART_MARGIN } from "../shared/constants";
 
-export const BarTrendChart = memo(function BarTrendChart(props: BarTrendChartProps) {
-  const {
-    data,
-    dataKey = "value",
-    xAxisKey = "label",
-    secondaryDataKey,
-    referenceLines,
-    showBrush,
-    height = 300,
-    showGrid = true,
-    showTooltip = true,
-    className,
-  } = props;
+const BAR_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 
-  const { activeStroke, valueFormatter, xAxisFormatter, yAxisFormatter } = useBarTrend(props);
+export const BarTrendChart = memo(function BarTrendChart({
+  data,
+  dataKey = "value",
+  xAxisKey = "label",
+  secondaryDataKey,
+  theme = "primary",
+  color,
+  valueFormatter: propValueFormatter,
+  xAxisFormatter: propXAxisFormatter,
+  yAxisFormatter: propYAxisFormatter,
+  referenceLines,
+  showBrush,
+  height,
+  showGrid = true,
+  showTooltip = true,
+  isAnimationActive = true,
+  className,
+}: BarTrendChartProps) {
+  const { activeStroke, secondaryStroke } = useChartTheme({ theme, color });
+
+  const { valueFormatter, xAxisFormatter, yAxisFormatter } = useChartFormatters({
+    valueFormatter: propValueFormatter,
+    xAxisFormatter: propXAxisFormatter,
+    yAxisFormatter: propYAxisFormatter,
+  });
 
   return (
-    <ChartFrame height={height} className={className}>
-      <BarChart data={data} margin={DEFAULT_CHART_MARGIN}>
-        {showGrid && <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />}
+    <CartesianScaffold
+      chartType="bar"
+      data={data}
+      height={height}
+      margin={DEFAULT_CHART_MARGIN}
+      xAxisKey={xAxisKey}
+      xAxisFormatter={xAxisFormatter}
+      yAxisFormatter={yAxisFormatter}
+      valueFormatter={valueFormatter}
+      showGrid={showGrid}
+      showTooltip={showTooltip}
+      referenceLines={referenceLines}
+      showBrush={showBrush}
+      className={className}
+    >
+      <Bar
+        dataKey={dataKey}
+        fill={activeStroke}
+        radius={BAR_RADIUS}
+        maxBarSize={40}
+        isAnimationActive={isAnimationActive}
+        animationDuration={DEFAULT_ANIMATION_DURATION}
+      />
 
-        <XAxis
-          dataKey={xAxisKey}
-          axisLine={false}
-          tickLine={false}
-          tick={AXIS_TICK_STYLE}
-          tickFormatter={xAxisFormatter}
-        />
-
-        <YAxis axisLine={false} tickLine={false} tick={AXIS_TICK_STYLE} tickFormatter={yAxisFormatter} />
-
-        {showTooltip && <Tooltip content={<ChartTooltip valueFormatter={valueFormatter} />} />}
-
-        <ChartReferenceLines lines={referenceLines} />
-
+      {secondaryDataKey && (
         <Bar
-          dataKey={dataKey}
-          fill={activeStroke}
-          radius={[4, 4, 0, 0]}
+          dataKey={secondaryDataKey}
+          fill={secondaryStroke}
+          opacity={0.7}
+          radius={BAR_RADIUS}
           maxBarSize={40}
+          isAnimationActive={isAnimationActive}
           animationDuration={DEFAULT_ANIMATION_DURATION}
         />
-
-        {secondaryDataKey && (
-          <Bar
-            dataKey={secondaryDataKey}
-            fill="var(--chart-2)"
-            opacity={0.7}
-            radius={[4, 4, 0, 0]}
-            maxBarSize={40}
-            animationDuration={DEFAULT_ANIMATION_DURATION}
-          />
-        )}
-
-        <ChartBrush showBrush={showBrush} xAxisKey={xAxisKey} tickFormatter={xAxisFormatter} />
-      </BarChart>
-    </ChartFrame>
+      )}
+    </CartesianScaffold>
   );
 });

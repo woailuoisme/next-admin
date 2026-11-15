@@ -2,6 +2,8 @@ import { useMemo } from "react";
 
 import type { HeatmapCell } from "./types";
 
+import { toFiniteNumber } from "../shared/formatters";
+
 interface UseHeatmapMatrixOptions {
   data: HeatmapCell[];
   xKey?: string;
@@ -34,23 +36,24 @@ export function useHeatmapMatrix({
   yLabels,
 }: UseHeatmapMatrixOptions) {
   return useMemo(() => {
+    const safeData = data ?? [];
     const getX = (item: HeatmapCell): string | number => {
       const val = item[xKey] ?? item.x;
       return typeof val === "number" || typeof val === "string" ? val : "";
     };
     const getY = (item: HeatmapCell): string => String(item[yKey] ?? item.y ?? "");
-    const getValue = (item: HeatmapCell): number => Number(item[valueKey] ?? item.value ?? 0);
+    const getValue = (item: HeatmapCell): number => toFiniteNumber(item[valueKey] ?? item.value, 0);
 
-    const computedXLabels = xLabels && xLabels.length > 0 ? xLabels : Array.from(new Set(data.map(getX)));
+    const computedXLabels = xLabels && xLabels.length > 0 ? xLabels : Array.from(new Set(safeData.map(getX)));
 
-    const computedYLabels = yLabels && yLabels.length > 0 ? yLabels : Array.from(new Set(data.map(getY)));
+    const computedYLabels = yLabels && yLabels.length > 0 ? yLabels : Array.from(new Set(safeData.map(getY)));
 
     let min = Number.POSITIVE_INFINITY;
     let max = Number.NEGATIVE_INFINITY;
 
     const cellLookup = new Map<string, HeatmapCell>();
 
-    for (const item of data) {
+    for (const item of safeData) {
       const xVal = getX(item);
       const yVal = getY(item);
       const val = getValue(item);

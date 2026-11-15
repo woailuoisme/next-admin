@@ -1,4 +1,5 @@
 import type { ChartTheme } from "../shared/theme";
+import type { ChartHeight } from "../shared/types";
 
 export interface RadialGaugeThreshold {
   value: number;
@@ -15,7 +16,7 @@ export interface RadialGaugeChartProps {
   subtext?: string;
   theme?: ChartTheme;
   color?: string;
-  height?: number;
+  height?: ChartHeight;
   thresholds?: RadialGaugeThreshold[];
   className?: string;
 }

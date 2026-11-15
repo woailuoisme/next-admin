@@ -1,12 +1,40 @@
+import { useMemoizedFn } from "ahooks";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
-
-import { useFormatter } from "next-intl";
 
 import type { ScatterMetricChartProps, ScatterPoint, ScatterSeries } from "./types";
 
+import { useChartFormatters } from "../hooks/useChartFormatters";
+import { toFiniteNumber } from "../shared/formatters";
 import { CHART_PALETTE } from "../shared/theme";
 
+function normalizeScatterPoint(
+  point: Record<string, unknown>,
+  xAxisKey: string,
+  yAxisKey: string,
+  zAxisKey: string,
+  nameKey: string,
+  categoryKey: string,
+): ScatterPoint {
+  const rawZ = point[zAxisKey] ?? point.z;
+  const hasZ = rawZ !== undefined && rawZ !== null && rawZ !== "";
+  const categoryRaw = point[categoryKey] ?? point.category;
+
+  return {
+    ...point,
+    x: toFiniteNumber(point[xAxisKey] ?? point.x, 0),
+    y: toFiniteNumber(point[yAxisKey] ?? point.y, 0),
+    z: hasZ ? toFiniteNumber(rawZ, 0) : undefined,
+    name: String(point[nameKey] ?? point.name ?? ""),
+    category: categoryRaw ? String(categoryRaw) : undefined,
+  };
+}
+
 export function useScatterMetric(props: ScatterMetricChartProps) {
+  const t = useTranslations("chart");
+  const defaultCategoryLabel = t("scatter_default_category");
+  const defaultSeriesLabel = t("scatter_default_series");
+
   const {
     data,
     series: propSeries,
@@ -27,44 +55,22 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
     if (propSeries && propSeries.length > 0) {
       return propSeries.map((s, idx) => ({
         ...s,
-        data: s.data.map((point: Record<string, unknown>) => ({
-          ...point,
-          x: Number(point[xAxisKey] ?? point.x ?? 0),
-          y: Number(point[yAxisKey] ?? point.y ?? 0),
-          z:
-            point[zAxisKey] !== undefined
-              ? Number(point[zAxisKey])
-              : point.z !== undefined
-                ? Number(point.z)
-                : undefined,
-          name: String(point[nameKey] ?? point.name ?? ""),
-          category: point[categoryKey]
-            ? String(point[categoryKey])
-            : point.category
-              ? String(point.category)
-              : undefined,
-        })),
+        data: s.data.map((point) => normalizeScatterPoint(point, xAxisKey, yAxisKey, zAxisKey, nameKey, categoryKey)),
         fill: s.fill || CHART_PALETTE[idx % CHART_PALETTE.length],
       }));
     }
 
     if (data && data.length > 0) {
-      const normalizedPoints: ScatterPoint[] = data.map((point: Record<string, unknown>) => ({
-        ...point,
-        x: Number(point[xAxisKey] ?? point.x ?? 0),
-        y: Number(point[yAxisKey] ?? point.y ?? 0),
-        z:
-          point[zAxisKey] !== undefined ? Number(point[zAxisKey]) : point.z !== undefined ? Number(point.z) : undefined,
-        name: String(point[nameKey] ?? point.name ?? ""),
-        category: point[categoryKey] ? String(point[categoryKey]) : point.category ? String(point.category) : undefined,
-      }));
+      const normalizedPoints: ScatterPoint[] = data.map((point) =>
+        normalizeScatterPoint(point, xAxisKey, yAxisKey, zAxisKey, nameKey, categoryKey),
+      );
 
       // Group by category if present
       const hasCategories = normalizedPoints.some((d) => Boolean(d.category));
       if (hasCategories) {
         const map = new Map<string, typeof normalizedPoints>();
         for (const point of normalizedPoints) {
-          const cat = point.category || "默认";
+          const cat = point.category || defaultCategoryLabel;
           if (!map.has(cat)) map.set(cat, []);
           map.get(cat)!.push(point);
         }
@@ -78,7 +84,7 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
 
       return [
         {
-          name: "指标分布",
+          name: defaultSeriesLabel,
           data: normalizedPoints,
           fill: "var(--primary)",
         },
@@ -86,13 +92,12 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
     }
 
     return [];
-  }, [data, propSeries, xAxisKey, yAxisKey, zAxisKey, nameKey, categoryKey]);
+  }, [data, propSeries, xAxisKey, yAxisKey, zAxisKey, nameKey, categoryKey, defaultCategoryLabel, defaultSeriesLabel]);
 
-  const format = useFormatter();
-  const formatNumber = (val: number) => format.number(val);
-  const xFormatter = customXFormatter ?? xValueFormatter ?? formatNumber;
-  const yFormatter = customYFormatter ?? yValueFormatter ?? formatNumber;
-  const zFormatter = customZFormatter ?? zValueFormatter ?? formatNumber;
+  const { valueFormatter: baseFormatter } = useChartFormatters();
+  const xFormatter = useMemoizedFn((val: number) => (customXFormatter ?? xValueFormatter ?? baseFormatter)(val));
+  const yFormatter = useMemoizedFn((val: number) => (customYFormatter ?? yValueFormatter ?? baseFormatter)(val));
+  const zFormatter = useMemoizedFn((val: number) => (customZFormatter ?? zValueFormatter ?? baseFormatter)(val));
 
   return {
     resolvedSeries,

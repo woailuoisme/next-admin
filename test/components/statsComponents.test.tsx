@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import React from "react";
-import { act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { fireEvent, renderWithProviders, screen } from "test/test-utils";
+import zhMessages from "@/messages/zh.json";
 
 import { StatCard } from "@/components/stats/stat-card/StatCard";
 import { LiveStatCard } from "@/components/stats/live-card/LiveStatCard";
+import { useLiveTicker } from "@/components/stats/live-card/useLiveTicker";
 import { MultiMetricStatCard } from "@/components/stats/multi-metric-card/MultiMetricStatCard";
 import { ProgressStatCard } from "@/components/stats/progress-card/ProgressStatCard";
 import { StatsGrid } from "@/components/stats/grid/StatsGrid";
@@ -122,14 +125,29 @@ describe("Stats Subsystem Components", () => {
 
   describe("ProgressStatCard (Goals & Pacing)", () => {
     it("renders progress stat card with target and percentage", () => {
-      renderWithProviders(
-        <ProgressStatCard title="年度销售配额" value={750000} targetValue={1000000} pacingStatus="on_track" />,
+      const { container } = renderWithProviders(
+        <ProgressStatCard
+          title="年度销售配额"
+          value={750000}
+          targetValue={1000000}
+          pacingStatus="on_track"
+          theme="chart-2"
+        />,
       );
 
       expect(screen.getByText("年度销售配额")).toBeInTheDocument();
       expect(screen.getByText("75%")).toBeInTheDocument();
       expect(screen.getByText("稳步推进")).toBeInTheDocument();
       expect(screen.getByText(/1,000,000/)).toBeInTheDocument();
+      const progressbar = container.querySelector("[data-slot=progress]");
+      expect(progressbar?.className).toContain("[&>[data-slot=progress-indicator]]:bg-chart-2");
+    });
+
+    it("guards non-finite progress values in ProgressStatCard", () => {
+      renderWithProviders(<ProgressStatCard title="异常目标" value={100} progress={Number.NaN} />);
+
+      expect(screen.queryByText("NaN%")).not.toBeInTheDocument();
+      expect(screen.getByText("0%")).toBeInTheDocument();
     });
   });
 
@@ -178,6 +196,50 @@ describe("Stats Subsystem Components", () => {
 
       const rects = container.querySelectorAll("rect");
       expect(rects.length).toBe(5);
+    });
+
+    it("filters non-finite values in MiniSparkline without breaking SVG paths", () => {
+      const { container, rerender } = renderWithProviders(
+        <MiniSparkline data={[10, Number.NaN, Number.POSITIVE_INFINITY, 30]} type="area" width={100} height={30} />,
+      );
+
+      const path = container.querySelector("path");
+      expect(path).toBeInTheDocument();
+      expect(path?.getAttribute("d")).not.toContain("NaN");
+
+      rerender(<MiniSparkline data={[Number.NaN]} type="area" width={100} height={30} />);
+      expect(container.querySelector("path")).toBeNull();
+    });
+  });
+
+  describe("useLiveTicker (Localized & Side-Effect Safe)", () => {
+    it("initializes localized lastUpdated and appends exactly one sparkline point per tick", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <NextIntlClientProvider locale="zh" messages={zhMessages}>
+          {children}
+        </NextIntlClientProvider>
+      );
+
+      const { result } = renderHook(
+        () =>
+          useLiveTicker({
+            initialValue: 100,
+            initialData: [90, 95, 100],
+            bufferSize: 10,
+            autoStart: false,
+          }),
+        { wrapper },
+      );
+
+      expect(result.current.lastUpdated).toBe("刚刚");
+      expect(result.current.sparklineData).toHaveLength(3);
+
+      act(() => {
+        result.current.tick();
+      });
+
+      expect(result.current.sparklineData).toHaveLength(4);
+      expect(result.current.lastUpdated).not.toBe("刚刚");
     });
   });
 });

@@ -1,4 +1,7 @@
+"use client";
+
 import { useTranslations } from "next-intl";
+
 import dynamic from "next/dynamic";
 import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
 import { memo, useMemo, useState } from "react";
@@ -10,6 +13,7 @@ import { cn } from "cn";
 
 import type { ChartCardProps, ChartPeriodOption } from "./types";
 
+import { ChartProvider } from "../shared/ChartContext";
 import { ChartEmptyState } from "../shared/ChartEmptyState";
 import { ChartSkeleton } from "../shared/ChartSkeleton";
 import type { MessageKeyOf } from "@/types/i18n";
@@ -49,6 +53,7 @@ export const ChartCard = memo(function ChartCard({
   emptyMessage,
   errorMessage,
   onRetry,
+  skeletonVariant = "trend",
   className,
   children,
   showFullscreen = false,
@@ -119,7 +124,7 @@ export const ChartCard = memo(function ChartCard({
 
         <CardContent className="min-w-0 flex-1 pt-2 pb-5">
           {isLoading ? (
-            <ChartSkeleton height={height} />
+            <ChartSkeleton height={height} variant={skeletonVariant} />
           ) : errorMessage ? (
             <div
               className="flex w-full flex-col items-center justify-center space-y-3 p-6 text-center"
@@ -140,7 +145,7 @@ export const ChartCard = memo(function ChartCard({
             <ChartEmptyState message={emptyMessage} height={height} />
           ) : (
             <div className="w-full min-w-0" style={{ height }}>
-              {children}
+              <ChartProvider height={height}>{children}</ChartProvider>
             </div>
           )}
 

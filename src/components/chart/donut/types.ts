@@ -1,3 +1,5 @@
+import type { ChartHeight } from "../shared/types";
+
 export interface DonutSliceData {
   name: string;
   value: number;
@@ -14,9 +16,10 @@ export interface DonutDistributionChartProps {
   centerLabel?: string;
   centerValue?: string;
   valueFormatter?: (val: number) => string;
-  innerRadius?: number;
-  outerRadius?: number;
-  height?: number;
+  innerRadius?: number | string;
+  outerRadius?: number | string;
+  height?: ChartHeight;
   showLegend?: boolean;
+  isAnimationActive?: boolean;
   className?: string;
 }

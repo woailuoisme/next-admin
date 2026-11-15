@@ -1,6 +1,5 @@
-import { useTranslations } from "next-intl";
-import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
-import { memo, type ComponentType } from "react";
+import { useFormatter, useTranslations } from "next-intl";
+import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -8,25 +7,18 @@ import { cn } from "cn";
 
 import type { PacingStatus } from "../progress-card/types";
 import type { StatCardTheme } from "../shared/types";
-import type { StatCardTrendData, TrendDirection } from "../stat-card/types";
+import type { StatCardTrendData } from "../stat-card/types";
 
 import { useProgressStat } from "../progress-card/useProgressStat";
 import { getStatTheme } from "../shared/theme";
-import { calculateTrendInfo } from "../stat-card/useTrendInfo";
 import { useStatCardContext } from "./StatCardContext";
+import { StatCardTrend } from "./StatCardTrend";
 
 /** 进度节奏状态的默认文案 */
 const PACING_LABELS: Record<PacingStatus, string> = {
   ahead: "超额达成",
   on_track: "稳步推进",
   behind: "进度滞后",
-};
-
-/** 趋势方向 → 图标 */
-const TREND_DIR_ICONS: Record<TrendDirection, ComponentType<{ className?: string }>> = {
-  up: ArrowUpRight,
-  down: ArrowDownRight,
-  neutral: Minus,
 };
 
 export interface StatCardProgressProps {
@@ -57,6 +49,7 @@ export const StatCardProgress = memo(function StatCardProgress({
 }: StatCardProgressProps) {
   const context = useStatCardContext();
   const t = useTranslations("stats");
+  const format = useFormatter();
   const resolvedTheme = theme ?? context.theme ?? "primary";
   const themeConfig = getStatTheme(resolvedTheme);
 
@@ -68,10 +61,8 @@ export const StatCardProgress = memo(function StatCardProgress({
     pacingLabel,
   });
 
-  const trendInfo = calculateTrendInfo(trend);
-
-  const targetDisplay = typeof targetValue === "number" ? targetValue.toLocaleString() : targetValue;
-  const DirIcon = trendInfo ? TREND_DIR_ICONS[trendInfo.dir] : null;
+  const targetDisplay =
+    typeof targetValue === "number" ? (Number.isFinite(targetValue) ? format.number(targetValue) : "0") : targetValue;
 
   const resolvePacingLabel = (status: PacingStatus) => {
     switch (status) {
@@ -89,13 +80,7 @@ export const StatCardProgress = memo(function StatCardProgress({
   return (
     <div className={cn("space-y-2", className)}>
       {/* Track & Filled Bar via Shadcn Progress primitive */}
-      <Progress
-        value={calculatedProgress}
-        className={cn(
-          "h-2 w-full",
-          themeConfig.accentBar && `[&>[data-slot=progress-indicator]]:${themeConfig.accentBar}`,
-        )}
-      />
+      <Progress value={calculatedProgress} className={cn("h-2 w-full", themeConfig.progressIndicator)} />
 
       {/* Status row: Target Value + Pacing / Trend Info */}
       <div className="text-muted-foreground flex items-center justify-between gap-2 text-xs">
@@ -121,17 +106,8 @@ export const StatCardProgress = memo(function StatCardProgress({
             <pacingInfo.PacingIcon className="h-3 w-3" />
             <span>{pacingLabel || resolvePacingLabel(pacingInfo.status)}</span>
           </Badge>
-        ) : trend && trendInfo ? (
-          <Badge
-            variant="outline"
-            className={cn(
-              "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
-              trendInfo.colorClass,
-            )}
-          >
-            {DirIcon ? <DirIcon className="h-3 w-3" /> : null}
-            <span>{trendInfo.displayValue}</span>
-          </Badge>
+        ) : trend ? (
+          <StatCardTrend trend={trend} showLabel={false} />
         ) : null}
       </div>
     </div>

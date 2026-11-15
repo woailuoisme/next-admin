@@ -1,11 +1,12 @@
-import { useMemoizedFn } from "ahooks";
 import { maxBy, orderBy, sumBy } from "es-toolkit";
 import { useMemo } from "react";
 
 import type { EnrichedHorizontalBarItem, HorizontalBarChartProps } from "./types";
 
+import { useChartFormatters } from "../hooks/useChartFormatters";
 import { useChartTheme } from "../hooks/useChartTheme";
 import { EMPTY_DATA } from "../shared/constants";
+import { toFiniteNumber } from "../shared/formatters";
 import { CHART_PALETTE } from "../shared/theme";
 
 /**
@@ -24,25 +25,29 @@ export function useHorizontalBar(props: HorizontalBarChartProps) {
     theme,
   });
 
-  const valueFormatter = useMemoizedFn((val: number) => {
-    if (propValueFormatter) return propValueFormatter(val);
-    return val.toLocaleString();
-  });
-
-  const percentageFormatter = useMemoizedFn((val: number) => {
-    if (propPercentageFormatter) return propPercentageFormatter(val);
-    return Number.isInteger(val) ? `${val}%` : `${Math.round(val)}%`;
+  const { valueFormatter, percentageFormatter } = useChartFormatters({
+    valueFormatter: propValueFormatter,
+    percentageFormatter: propPercentageFormatter,
   });
 
   const items = useMemo<EnrichedHorizontalBarItem[]>(() => {
     if (!data.length) return [];
-    const sorted = orderBy(data, [(item) => item.value], ["desc"]);
+    const normalized = data.map((item) => ({
+      ...item,
+      value: Math.max(0, toFiniteNumber(item.value, 0)),
+    }));
+    const sorted = orderBy(normalized, [(item) => item.value], ["desc"]);
     const sliced = sorted.slice(0, maxItems);
     const max = maxBy(sliced, (item) => item.value)?.value ?? 1;
     const sum = sumBy(sliced, (item) => item.value);
 
     return sliced.map((item, idx) => {
-      const pct = typeof item.percentage === "number" ? item.percentage : sum > 0 ? (item.value / sum) * 100 : 0;
+      const pct =
+        typeof item.percentage === "number" && Number.isFinite(item.percentage)
+          ? item.percentage
+          : sum > 0
+            ? (item.value / sum) * 100
+            : 0;
       const barPct = max > 0 ? (item.value / max) * 100 : 0;
       const color = item.color || CHART_PALETTE[idx % CHART_PALETTE.length] || activeStroke;
 

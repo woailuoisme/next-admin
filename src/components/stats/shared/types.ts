@@ -30,6 +30,8 @@ export interface ThemeConfig {
   iconBadge: string;
   /** Tailwind classes for card top border or accent bar (optional) */
   accentBar: string;
+  /** Static Tailwind classes for Progress indicator fill */
+  progressIndicator: string;
   /** Hex color or CSS var for SVG / Recharts lines & strokes */
   strokeColor: string;
   /** Hex color or RGBA or CSS var for Recharts gradient fills */

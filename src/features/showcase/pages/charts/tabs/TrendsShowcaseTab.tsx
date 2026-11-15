@@ -6,6 +6,19 @@ import { TabsContent } from "@/components/ui/tabs";
 import { CURRENCY_FORMATTER, PERIOD_OPTIONS } from "../constants";
 import type { ChartStateProps, TimeRange, TrendDataPoint } from "../types";
 
+const MULTI_LINE_SERIES = [
+  {
+    dataKey: "orders",
+    name: "下单量",
+    color: CHART_PALETTE[0],
+  },
+  {
+    dataKey: "refunds",
+    name: "退款单量",
+    color: CHART_PALETTE[3],
+  },
+];
+
 interface TrendsShowcaseTabProps {
   activePeriod: TimeRange;
   onPeriodChange: (newPeriod: string) => void;
@@ -52,23 +65,7 @@ export function TrendsShowcaseTab({
           {...chartStateProps}
           height={320}
         >
-          <LineTrendChart
-            data={trendData}
-            xAxisKey="period"
-            height={320}
-            series={[
-              {
-                dataKey: "orders",
-                name: "下单量",
-                color: CHART_PALETTE[0],
-              },
-              {
-                dataKey: "refunds",
-                name: "退款单量",
-                color: CHART_PALETTE[3],
-              },
-            ]}
-          />
+          <LineTrendChart data={trendData} xAxisKey="period" height={320} series={MULTI_LINE_SERIES} />
         </ChartCard>
       </div>
 

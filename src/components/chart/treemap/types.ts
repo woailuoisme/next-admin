@@ -1,4 +1,5 @@
 import type { ValueFormatter } from "../shared/formatters";
+import type { ChartHeight } from "../shared/types";
 
 export interface TreemapItem {
   name: string;
@@ -11,11 +12,11 @@ export interface TreemapItem {
 
 export interface TreemapDistributionChartProps {
   data: TreemapItem[];
-  height?: number;
+  height?: ChartHeight;
   valueFormatter?: ValueFormatter;
   colorPalette?: string[];
   aspectRatio?: number;
   showTooltip?: boolean;
-  nodeGap?: number;
+  isAnimationActive?: boolean;
   className?: string;
 }

@@ -1,15 +1,20 @@
+"use client";
+
 import { useTranslations } from "next-intl";
-import { memo, useMemo } from "react";
-import { CartesianGrid, ReferenceLine, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
+
+import { memo, useCallback, useMemo } from "react";
+import { Scatter, ZAxis } from "recharts";
 
 import type { ScatterMetricChartProps } from "./types";
 
-import { AXIS_TICK_STYLE, CHART_GRID_STROKE, DEFAULT_CHART_MARGIN } from "../shared/constants";
-import { ChartFrame } from "../shared/ChartFrame";
+import { CartesianScaffold } from "../shared/CartesianScaffold";
+import { type ChartTooltipEntry, type ChartTooltipRow, useChartDetailTooltip } from "../shared/ChartTooltip";
+import { DEFAULT_CHART_MARGIN } from "../shared/constants";
 import { useScatterMetric } from "./useScatterMetric";
 
-/** 气泡尺寸范围的默认值（模块级常量，避免每次渲染新建数组） */
+/** 气泡尺寸范围与光标默认值（模块级常量，避免每次渲染新建引用） */
 const DEFAULT_Z_RANGE: [number, number] = [50, 450];
+const SCATTER_TOOLTIP_CURSOR = { strokeDasharray: "3 3", stroke: "var(--border)" } as const;
 
 interface ScatterTooltipPoint {
   x: number;
@@ -19,60 +24,6 @@ interface ScatterTooltipPoint {
   category?: string;
   fill?: string;
 }
-
-interface ScatterTooltipContentProps {
-  active?: boolean;
-  payload?: Array<{
-    payload?: ScatterTooltipPoint;
-  }>;
-  xAxisName: string;
-  yAxisName: string;
-  zAxisName: string;
-  xFormatter: (val: number) => string;
-  yFormatter: (val: number) => string;
-  zFormatter: (val: number) => string;
-}
-
-const ScatterTooltipContent = memo(function ScatterTooltipContent({
-  active,
-  payload,
-  xAxisName,
-  yAxisName,
-  zAxisName,
-  xFormatter,
-  yFormatter,
-  zFormatter,
-}: ScatterTooltipContentProps) {
-  const t = useTranslations("chart");
-  if (!active || !payload?.length) return null;
-  const point = payload[0]?.payload;
-  if (!point) return null;
-
-  return (
-    <div className="border-border/60 bg-popover/95 text-popover-foreground rounded-lg border p-2.5 text-xs shadow-md backdrop-blur-xs select-none">
-      <div className="flex items-center gap-2 font-semibold">
-        <span className="size-2.5 rounded-full" style={{ backgroundColor: point.fill || "var(--primary)" }} />
-        <span>{point.name || point.category || t("scatter_data_point")}</span>
-      </div>
-      <div className="mt-2 space-y-1">
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">{xAxisName}:</span>
-          <span className="font-mono font-medium">{xFormatter(point.x)}</span>
-        </div>
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-muted-foreground">{yAxisName}:</span>
-          <span className="font-mono font-medium">{yFormatter(point.y)}</span>
-        </div>
-        {point.z !== undefined && (
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">{zAxisName}:</span>
-            <span className="text-primary font-mono font-medium">{zFormatter(point.z)}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-});
 
 export const ScatterMetricChart = memo(function ScatterMetricChart(props: ScatterMetricChartProps) {
   const t = useTranslations("chart");
@@ -85,9 +36,10 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
     zAxisLabel,
     xReferenceLine,
     yReferenceLine,
-    height = 340,
+    height,
     showGrid = true,
     showTooltip = true,
+    isAnimationActive = true,
     zRange = DEFAULT_Z_RANGE,
     referenceLines: propReferenceLines,
     className,
@@ -112,74 +64,64 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
 
   const { resolvedSeries, xFormatter, yFormatter, zFormatter } = useScatterMetric(props);
 
+  const resolveTooltipDetail = useCallback(
+    (payload: ReadonlyArray<ChartTooltipEntry>) => {
+      const point = payload[0]?.payload as ScatterTooltipPoint | undefined;
+      if (!point) return null;
+
+      const rows: ChartTooltipRow[] = [
+        { label: xAxisName, value: xFormatter(point.x), valueClassName: "font-medium" },
+        { label: yAxisName, value: yFormatter(point.y), valueClassName: "font-medium" },
+      ];
+      if (point.z !== undefined) {
+        rows.push({ label: zAxisName, value: zFormatter(point.z), valueClassName: "text-primary font-medium" });
+      }
+
+      return {
+        title: point.name || point.category || t("scatter_data_point"),
+        color: point.fill || "var(--primary)",
+        rows,
+      };
+    },
+    [t, xAxisName, xFormatter, yAxisName, yFormatter, zAxisName, zFormatter],
+  );
+
+  const renderTooltip = useChartDetailTooltip(resolveTooltipDetail);
+
   return (
-    <ChartFrame height={height} className={className}>
-      <ScatterChart margin={DEFAULT_CHART_MARGIN}>
-        {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />}
+    <CartesianScaffold
+      chartType="scatter"
+      height={height}
+      defaultHeight={340}
+      margin={DEFAULT_CHART_MARGIN}
+      xAxisKey="x"
+      xAxisType="number"
+      xAxisName={xAxisName}
+      xAxisFormatter={xFormatter}
+      yAxisKey="y"
+      yAxisType="number"
+      yAxisName={yAxisName}
+      yAxisFormatter={yFormatter}
+      showGrid={showGrid}
+      gridVertical
+      showTooltip={showTooltip}
+      referenceLines={referenceLines}
+      tooltipContent={renderTooltip}
+      tooltipCursor={SCATTER_TOOLTIP_CURSOR}
+      className={className}
+    >
+      <ZAxis type="number" dataKey="z" range={zRange} name={zAxisName} />
 
-        <XAxis
-          type="number"
-          dataKey="x"
-          name={xAxisName}
-          axisLine={false}
-          tickLine={false}
-          tick={AXIS_TICK_STYLE}
-          tickFormatter={xFormatter}
+      {resolvedSeries.map((series) => (
+        <Scatter
+          key={series.name}
+          name={series.name}
+          data={series.data}
+          fill={series.fill}
+          fillOpacity={0.85}
+          isAnimationActive={isAnimationActive}
         />
-
-        <YAxis
-          type="number"
-          dataKey="y"
-          name={yAxisName}
-          axisLine={false}
-          tickLine={false}
-          tick={AXIS_TICK_STYLE}
-          tickFormatter={yFormatter}
-        />
-
-        <ZAxis type="number" dataKey="z" range={zRange} name={zAxisName} />
-
-        {referenceLines?.map((refLine, idx) => (
-          <ReferenceLine
-            key={`scatter-ref-line-${idx}`}
-            x={refLine.x}
-            y={refLine.y}
-            stroke={refLine.stroke || "color-mix(in oklab, var(--border) 80%, transparent)"}
-            strokeDasharray={refLine.strokeDasharray || "4 4"}
-            strokeWidth={refLine.strokeWidth ?? 1.5}
-            label={
-              refLine.label
-                ? {
-                    value: refLine.label,
-                    fill: "var(--muted-foreground)",
-                    fontSize: 10,
-                    position: refLine.position || "insideTopRight",
-                  }
-                : undefined
-            }
-          />
-        ))}
-
-        {showTooltip && (
-          <Tooltip
-            content={
-              <ScatterTooltipContent
-                xAxisName={xAxisName}
-                yAxisName={yAxisName}
-                zAxisName={zAxisName}
-                xFormatter={xFormatter}
-                yFormatter={yFormatter}
-                zFormatter={zFormatter}
-              />
-            }
-            cursor={{ strokeDasharray: "3 3", stroke: "var(--border)" }}
-          />
-        )}
-
-        {resolvedSeries.map((series) => (
-          <Scatter key={series.name} name={series.name} data={series.data} fill={series.fill} fillOpacity={0.85} />
-        ))}
-      </ScatterChart>
-    </ChartFrame>
+      ))}
+    </CartesianScaffold>
   );
 });

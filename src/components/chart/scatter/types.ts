@@ -1,5 +1,5 @@
 import type { ValueFormatter } from "../shared/formatters";
-import type { ChartReferenceLine } from "../shared/types";
+import type { ChartHeight, ChartReferenceLine } from "../shared/types";
 
 export interface ScatterPoint {
   x?: number;
@@ -33,9 +33,10 @@ export interface ScatterMetricChartProps {
   zAxisLabel?: string;
   xReferenceLine?: number;
   yReferenceLine?: number;
-  height?: number;
+  height?: ChartHeight;
   showGrid?: boolean;
   showTooltip?: boolean;
+  isAnimationActive?: boolean;
   xFormatter?: ValueFormatter;
   yFormatter?: ValueFormatter;
   zFormatter?: ValueFormatter;

@@ -14,9 +14,10 @@ export const StatCardTrend = memo(function StatCardTrend({
   direction,
   label,
   isPositiveGood,
+  showLabel = true,
   className,
   ...props
-}: StatCardTrendProps) {
+}: StatCardTrendProps & { showLabel?: boolean }) {
   const trendConfig = trend ?? (value !== undefined ? { value, direction, label, isPositiveGood } : null);
   const trendInfo = calculateTrendInfo(trendConfig);
 
@@ -36,7 +37,7 @@ export const StatCardTrend = memo(function StatCardTrend({
         {trendInfo.dir === "neutral" && <Minus className="h-3 w-3" />}
         {trendInfo.displayValue}
       </Badge>
-      {trendInfo.label ? (
+      {showLabel && trendInfo.label ? (
         <span className="text-muted-foreground truncate text-[11px]" title={trendInfo.label}>
           {trendInfo.label}
         </span>

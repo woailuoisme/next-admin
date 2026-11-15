@@ -5,8 +5,44 @@ import { LineTrendChart } from "@/components/chart/line/LineTrendChart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { TIME_RANGES } from "../constants";
+import { STATS_USD_FORMATTER, TIME_RANGES } from "../constants";
 import type { RawTrendItem, TimeRange } from "../types";
+
+const NUMBER_FORMATTER = (v: number) => v.toLocaleString();
+const USD_THOUSANDS_FORMATTER = (v: number) => `$${(v / 1000).toFixed(0)}k`;
+
+const STATS_LINE_SERIES = [
+  {
+    dataKey: "users",
+    name: "Active Users",
+    color: "var(--chart-1)",
+    strokeWidth: 2,
+  },
+  {
+    dataKey: "revenue",
+    name: "Invoiced ARR",
+    color: "var(--chart-2)",
+    strokeWidth: 2,
+    strokeDasharray: "4 4",
+  },
+];
+
+const STATS_COMPOSED_BARS = [
+  {
+    dataKey: "cost",
+    name: "Monthly Outflow",
+    color: "var(--chart-3)",
+  },
+];
+
+const STATS_COMPOSED_LINES = [
+  {
+    dataKey: "revenue",
+    name: "Gross Inflow",
+    color: "var(--chart-1)",
+    strokeWidth: 2.5,
+  },
+];
 
 export interface TrendsTabProps {
   timeRange: TimeRange;
@@ -51,7 +87,7 @@ export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: Tr
               xAxisKey="label"
               height={260}
               theme="primary"
-              valueFormatter={(v) => `$${v.toLocaleString()}`}
+              valueFormatter={STATS_USD_FORMATTER}
             />
           </CardContent>
         </Card>
@@ -67,22 +103,8 @@ export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: Tr
               data={currentTrendData}
               xAxisKey="label"
               height={260}
-              series={[
-                {
-                  dataKey: "users",
-                  name: "Active Users",
-                  color: "var(--chart-1)",
-                  strokeWidth: 2,
-                },
-                {
-                  dataKey: "revenue",
-                  name: "Invoiced ARR",
-                  color: "var(--chart-2)",
-                  strokeWidth: 2,
-                  strokeDasharray: "4 4",
-                },
-              ]}
-              valueFormatter={(v) => v.toLocaleString()}
+              series={STATS_LINE_SERIES}
+              valueFormatter={NUMBER_FORMATTER}
             />
           </CardContent>
         </Card>
@@ -98,22 +120,9 @@ export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: Tr
               data={currentTrendData}
               xAxisKey="label"
               height={260}
-              bars={[
-                {
-                  dataKey: "cost",
-                  name: "Monthly Outflow",
-                  color: "var(--chart-3)",
-                },
-              ]}
-              lines={[
-                {
-                  dataKey: "revenue",
-                  name: "Gross Inflow",
-                  color: "var(--chart-1)",
-                  strokeWidth: 2.5,
-                },
-              ]}
-              leftAxisFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+              bars={STATS_COMPOSED_BARS}
+              lines={STATS_COMPOSED_LINES}
+              leftAxisFormatter={USD_THOUSANDS_FORMATTER}
             />
           </CardContent>
         </Card>
@@ -132,7 +141,7 @@ export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: Tr
               secondaryDataKey="cost"
               height={260}
               theme="primary"
-              valueFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+              valueFormatter={USD_THOUSANDS_FORMATTER}
             />
           </CardContent>
         </Card>

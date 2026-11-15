@@ -22,19 +22,33 @@ export function useNumberTween(
   { duration = 600, enabled = true }: UseNumberTweenOptions = {},
 ): number {
   const [current, setCurrent] = useState<number>(targetValue);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(false);
   const startValRef = useRef<number>(targetValue);
+  const latestValRef = useRef<number>(targetValue);
   const startTimeRef = useRef<number | null>(null);
   const rafIdRef = useRef<number | null>(null);
 
-  // Check prefers-reduced-motion
-  const prefersReducedMotion =
-    typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
 
-  const isDirect = !enabled || Boolean(prefersReducedMotion) || duration <= 0;
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPreference = () => setPrefersReducedMotion(mediaQuery.matches);
+    syncPreference();
+    mediaQuery.addEventListener("change", syncPreference);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncPreference);
+    };
+  }, []);
+
+  const isDirect = !enabled || prefersReducedMotion || duration <= 0;
 
   useEffect(() => {
     if (isDirect) {
       startValRef.current = targetValue;
+      latestValRef.current = targetValue;
       return;
     }
 
@@ -56,12 +70,14 @@ export function useNumberTween(
       const progress = Math.min(elapsed / duration, 1);
       const easedProgress = easeOutCubic(progress);
 
-      const nextVal = startVal + diff * easedProgress;
-      setCurrent(Math.round(nextVal));
+      const nextVal = Math.round(startVal + diff * easedProgress);
+      latestValRef.current = nextVal;
+      setCurrent(nextVal);
 
       if (progress < 1) {
         rafIdRef.current = requestAnimationFrame(step);
       } else {
+        latestValRef.current = targetValue;
         setCurrent(targetValue);
         startValRef.current = targetValue;
       }
@@ -73,6 +89,7 @@ export function useNumberTween(
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
       }
+      startValRef.current = latestValRef.current;
     };
   }, [targetValue, duration, isDirect]);
 

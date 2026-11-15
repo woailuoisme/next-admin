@@ -61,6 +61,14 @@ The responsive container seam for data visualizations. Drives Recharts SVG gradi
 
 An on-demand dynamically split modal seam decoupling `ChartCard` from static Radix Dialog bundle weight. Only evaluates and mounts Dialog dependencies when the user actively triggers fullscreen mode.
 
+### `CartesianScaffold` (Module)
+
+The shared Cartesian visualization scaffold unifying `ChartFrame`, grid lines, X/Y/dual axes, tooltips, reference lines, and timeline brushes across `AreaTrendChart`, `BarTrendChart`, `ComposedTrendChart`, `LineTrendChart`, `ScatterMetricChart`, and `WaterfallFinancialChart`.
+
+### `ChartContext` (Interface)
+
+The height propagation seam (`ChartProvider` / `useChartHeight`) allowing `ChartCard` and `ChartFullscreenDialog` to control descendant chart height as a single source of truth, overriding explicit card heights automatically during fullscreen expansion.
+
 ---
 
 ## 5. Infolist Subsystem

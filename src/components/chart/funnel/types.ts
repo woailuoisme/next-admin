@@ -1,4 +1,5 @@
 import type { ValueFormatter } from "../shared/formatters";
+import type { ChartHeight } from "../shared/types";
 
 export interface FunnelItem {
   name: string;
@@ -17,10 +18,11 @@ export interface FunnelConversionChartProps {
   data: FunnelItem[];
   dataKey?: string;
   nameKey?: string;
-  height?: number;
+  height?: ChartHeight;
   valueFormatter?: ValueFormatter;
   showTooltip?: boolean;
   showLabels?: boolean;
   showRates?: boolean;
+  isAnimationActive?: boolean;
   className?: string;
 }

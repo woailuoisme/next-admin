@@ -1,13 +1,19 @@
+"use client";
+
 import { memo, type ReactNode } from "react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+import type { ChartHeight } from "../shared/types";
+
+import { ChartProvider } from "../shared/ChartContext";
 
 export interface ChartFullscreenDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: ReactNode;
   description?: ReactNode;
-  fullscreenHeight: number | string;
+  fullscreenHeight: ChartHeight;
   children: ReactNode;
 }
 
@@ -30,7 +36,11 @@ export const ChartFullscreenDialog = memo(function ChartFullscreenDialog({
           )}
         </DialogHeader>
         <div className="w-full min-w-0 pt-2" style={{ height: fullscreenHeight }}>
-          {open ? children : null}
+          {open ? (
+            <ChartProvider height={fullscreenHeight} isFullscreen>
+              {children}
+            </ChartProvider>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>

@@ -18,7 +18,12 @@ export function useMetricSparkline({
   padding = 3,
 }: UseMetricSparklineOptions) {
   return useMemo(() => {
-    const values: number[] = data.map((item) => (typeof item === "number" ? item : Number(item.value) || 0));
+    const safeData = data ?? [];
+    const values: number[] = safeData.flatMap((item) => {
+      const raw = typeof item === "number" ? item : item?.value;
+      const parsed = typeof raw === "number" ? raw : Number(raw);
+      return Number.isFinite(parsed) ? [parsed] : [];
+    });
 
     if (values.length === 0) {
       return {

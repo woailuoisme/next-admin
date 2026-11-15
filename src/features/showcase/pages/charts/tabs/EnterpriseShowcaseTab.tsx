@@ -23,6 +23,23 @@ import {
 } from "../constants";
 import type { ChartStateProps } from "../types";
 
+const FUNNEL_USERS_FORMATTER = (val: number) => `${val.toLocaleString()} 人`;
+const HEATMAP_QPS_FORMATTER = (val: number) => `${val} QPS 负载`;
+const BRUSH_REFERENCE_LINES = [
+  {
+    y: 100000,
+    label: "目标冲刺线",
+    stroke: "var(--destructive)",
+    strokeDasharray: "4 4",
+  },
+  {
+    y: 60000,
+    label: "保底基准线",
+    stroke: "var(--chart-2)",
+    strokeDasharray: "3 3",
+  },
+];
+
 interface EnterpriseShowcaseTabProps {
   chartStateProps: ChartStateProps;
 }
@@ -103,23 +120,20 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
           description="自动计算阶段转化率、留存率与流失率，直观呈现销售管道流转效率"
           showFullscreen={true}
           {...chartStateProps}
-          height={340}
+          height={320}
         >
-          <FunnelConversionChart
-            data={ENTERPRISE_FUNNEL_DATA}
-            valueFormatter={(val) => `${val.toLocaleString()} 人`}
-            height={320}
-          />
+          <FunnelConversionChart data={ENTERPRISE_FUNNEL_DATA} valueFormatter={FUNNEL_USERS_FORMATTER} />
         </ChartCard>
 
         <ChartCard
           title="企业财务损益结构瀑布图 (WaterfallFinancialChart)"
           description="解析主营收入、采购成本、研发与营销扣减，区分正负增量与汇总柱"
           showFullscreen={true}
+          skeletonVariant="bar"
           {...chartStateProps}
-          height={340}
+          height={320}
         >
-          <WaterfallFinancialChart data={ENTERPRISE_WATERFALL_DATA} valueFormatter={CURRENCY_FORMATTER} height={320} />
+          <WaterfallFinancialChart data={ENTERPRISE_WATERFALL_DATA} valueFormatter={CURRENCY_FORMATTER} />
         </ChartCard>
       </div>
 
@@ -130,7 +144,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
           description="获客成本 vs 客户生命周期价值，气泡大小映射订单量，内置四象限基准线"
           showFullscreen={true}
           {...chartStateProps}
-          height={340}
+          height={320}
         >
           <ScatterMetricChart
             data={ENTERPRISE_SCATTER_DATA}
@@ -145,7 +159,6 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
             yReferenceLine={45000}
             xValueFormatter={CURRENCY_FORMATTER}
             yValueFormatter={CURRENCY_FORMATTER}
-            height={320}
           />
         </ChartCard>
 
@@ -154,9 +167,9 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
           description="多层级板块面积权重分布，支持悬浮占比卡片与自适应布局"
           showFullscreen={true}
           {...chartStateProps}
-          height={340}
+          height={320}
         >
-          <TreemapDistributionChart data={ENTERPRISE_TREEMAP_DATA} valueFormatter={CURRENCY_FORMATTER} height={320} />
+          <TreemapDistributionChart data={ENTERPRISE_TREEMAP_DATA} valueFormatter={CURRENCY_FORMATTER} />
         </ChartCard>
       </div>
 
@@ -167,7 +180,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
           description="纯矢量 SVG 栅格矩阵，清晰识别访问高峰与调度维护窗口"
           showFullscreen={true}
           {...chartStateProps}
-          height={340}
+          height={320}
         >
           <HeatmapMatrixChart
             data={ENTERPRISE_HEATMAP_DATA}
@@ -176,8 +189,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
             valueKey="value"
             xLabel="时段"
             yLabel="星期"
-            valueFormatter={(val) => `${val} QPS 负载`}
-            height={320}
+            valueFormatter={HEATMAP_QPS_FORMATTER}
           />
         </ChartCard>
 
@@ -186,31 +198,17 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
           description="内置 Recharts 微缩滑块 (Brush) 与多目标预警参考线，满足自由时序缩放"
           showFullscreen={true}
           {...chartStateProps}
-          height={340}
+          height={320}
         >
           <AreaTrendChart
             data={BRUSH_TIMELINE_DATA}
             dataKey="revenue"
             secondaryDataKey="cost"
             xAxisKey="period"
-            height={320}
             valueFormatter={CURRENCY_FORMATTER}
             theme="chart-1"
             showBrush={true}
-            referenceLines={[
-              {
-                y: 100000,
-                label: "目标冲刺线",
-                stroke: "var(--destructive)",
-                strokeDasharray: "4 4",
-              },
-              {
-                y: 60000,
-                label: "保底基准线",
-                stroke: "var(--chart-2)",
-                strokeDasharray: "3 3",
-              },
-            ]}
+            referenceLines={BRUSH_REFERENCE_LINES}
           />
         </ChartCard>
       </div>

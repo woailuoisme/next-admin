@@ -48,14 +48,15 @@ export function useProgressStat({
   return useMemo(() => {
     let rawProgress = 0;
 
-    if (typeof progress === "number") {
+    if (typeof progress === "number" && Number.isFinite(progress)) {
       rawProgress = Math.max(0, progress);
     } else {
       const numVal = parseNumericValue(value);
       const numTarget = parseNumericValue(targetValue);
 
-      if (!Number.isNaN(numVal) && !Number.isNaN(numTarget) && numTarget !== 0) {
-        rawProgress = (numVal / numTarget) * 100;
+      if (Number.isFinite(numVal) && Number.isFinite(numTarget) && numTarget !== 0) {
+        const ratio = (numVal / numTarget) * 100;
+        rawProgress = Number.isFinite(ratio) ? ratio : 0;
       }
     }
 

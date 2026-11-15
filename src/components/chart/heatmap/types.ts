@@ -1,4 +1,6 @@
 import type { ValueFormatter } from "../shared/formatters";
+import type { ChartTheme } from "../shared/theme";
+import type { ChartHeight } from "../shared/types";
 
 export interface HeatmapCell {
   x?: string | number;
@@ -16,9 +18,9 @@ export interface HeatmapMatrixChartProps {
   yLabels?: string[];
   xLabel?: string;
   yLabel?: string;
-  height?: number;
+  height?: ChartHeight;
   valueFormatter?: ValueFormatter;
-  colorTheme?: "primary" | "chart-1" | "chart-2";
+  colorTheme?: ChartTheme;
   legendTitle?: string;
   showTooltip?: boolean;
   showLegend?: boolean;

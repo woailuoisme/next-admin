@@ -1,14 +1,16 @@
+import { fireEvent } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { HeatmapMatrixChart } from "@/components/chart/heatmap/HeatmapMatrixChart";
 import { HorizontalBarChart } from "@/components/chart/horizontal-bar/HorizontalBarChart";
 import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
+import { ChartEmptyState } from "@/components/chart/shared/ChartEmptyState";
 import { ChartSkeleton } from "@/components/chart/shared/ChartSkeleton";
 import { MetricSparkline } from "@/components/chart/sparkline/MetricSparkline";
 import { renderWithProviders, screen } from "test/test-utils";
 
 describe("Chart Components", () => {
-  it("renders HorizontalBarChart with ranks and percentage", () => {
+  it("renders HorizontalBarChart with ranks, percentage, and accessible progressbars", () => {
     const data = [
       { label: "Chrome", value: 6500 },
       { label: "Safari", value: 2000 },
@@ -23,45 +25,89 @@ describe("Chart Components", () => {
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getAllByRole("progressbar")).toHaveLength(3);
   });
 
-  it("renders RadialGaugeChart with default label and value", () => {
-    renderWithProviders(<RadialGaugeChart value={75} max={100} unit="%" />);
+  it("renders RadialGaugeChart with meter role and guards non-finite values", () => {
+    const { rerender } = renderWithProviders(<RadialGaugeChart value={75} min={0} max={100} unit="%" />);
 
-    expect(screen.getByText("达成率")).toBeInTheDocument();
+    const meter = screen.getByRole("meter", { name: /达成率|achievement/i });
+    expect(meter).toHaveAttribute("aria-valuenow", "75");
+    expect(meter).toHaveAttribute("aria-valuemin", "0");
+    expect(meter).toHaveAttribute("aria-valuemax", "100");
     expect(screen.getByText("75")).toBeInTheDocument();
-    expect(screen.getByText("%")).toBeInTheDocument();
+
+    rerender(<RadialGaugeChart value={Number.NaN} min={Number.NaN} max={100} unit="%" height="20rem" />);
+    const updatedMeter = screen.getByRole("meter");
+    expect(updatedMeter).toHaveAttribute("aria-valuenow", "0");
+    expect(updatedMeter).toHaveAttribute("aria-valuemin", "0");
+    expect(updatedMeter.style.height).toBe("20rem");
+    expect(screen.queryByText("NaN%")).not.toBeInTheDocument();
   });
 
-  it("renders MetricSparkline with valid SVG paths and accessible label", () => {
-    renderWithProviders(<MetricSparkline data={[10, 20, 15, 30, 45]} width={120} height={36} />);
+  it("renders MetricSparkline with valid SVG paths, single-point resilience, and NaN filtering", () => {
+    const { container, rerender } = renderWithProviders(
+      <MetricSparkline data={[10, 20, 15, 30, 45]} width={120} height={36} />,
+    );
 
     const sparkline = screen.getByRole("img");
     expect(sparkline).toBeInTheDocument();
-    expect(sparkline.getAttribute("aria-label")).toContain("走势微图");
+    expect(sparkline.getAttribute("aria-label")).toMatch(/走势微图|Sparkline/i);
+
+    rerender(<MetricSparkline data={[Number.NaN, 42]} width={120} height={36} />);
+    expect(screen.getByRole("img")).toHaveAttribute("aria-label", expect.stringMatching(/42/));
+    expect(container.querySelector("path")).not.toBeNull();
   });
 
-  it("renders HeatmapMatrixChart matrix cells and legend", () => {
+  it("renders HeatmapMatrixChart matrix cells, axis labels, and supports keyboard focus tooltips", () => {
     const data = [
       { day: "Mon", hour: "09:00", count: 12 },
       { day: "Tue", hour: "09:00", count: 25 },
     ];
 
     renderWithProviders(
-      <HeatmapMatrixChart data={data} xKey="hour" yKey="day" valueKey="count" legendTitle="访问频次" />,
+      <HeatmapMatrixChart
+        data={data}
+        xKey="hour"
+        yKey="day"
+        valueKey="count"
+        xLabel="Hour"
+        yLabel="Day"
+        colorTheme="chart-4"
+        legendTitle="访问频次"
+        height="320px"
+      />,
     );
 
-    expect(screen.getByRole("img", { name: /Heatmap matrix showing 访问频次/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: /(展示 访问频次 的热力矩阵|Heatmap matrix showing 访问频次)/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Hour")).toBeInTheDocument();
+    expect(screen.getByText("Day")).toBeInTheDocument();
+
+    const firstCell = screen.getByLabelText("Mon 09:00: 12");
+    fireEvent.focus(firstCell);
+    const tooltipHeading = screen.getByText("Mon · 09:00");
+    expect(tooltipHeading).toBeInTheDocument();
+    const tooltipSurface = tooltipHeading.closest("div.absolute");
+    expect(tooltipSurface).not.toBeNull();
+
+    fireEvent.keyDown(firstCell, { key: "Escape" });
+    expect(screen.queryByText("Mon · 09:00")).not.toBeInTheDocument();
   });
 
-  it("renders ChartSkeleton variants correctly", () => {
+  it("renders ChartSkeleton variants and ChartEmptyState with accessible status roles", () => {
     const { rerender } = renderWithProviders(<ChartSkeleton variant="donut" height={200} />);
     expect(screen.getByTestId("chart-skeleton")).toHaveAttribute("data-variant", "donut");
+    expect(screen.getByTestId("chart-skeleton")).toHaveAttribute("role", "status");
 
     rerender(<ChartSkeleton variant="bar" height={200} />);
     expect(screen.getByTestId("chart-skeleton")).toHaveAttribute("data-variant", "bar");
 
     rerender(<ChartSkeleton variant="gauge" height={200} />);
     expect(screen.getByTestId("chart-skeleton")).toHaveAttribute("data-variant", "gauge");
+
+    rerender(<ChartEmptyState height={180} />);
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 });

@@ -1,12 +1,18 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 import { memo } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "cn";
 
+export type ChartSkeletonVariant = "trend" | "bar" | "donut" | "gauge" | "radar" | "default";
+
 export interface ChartSkeletonProps {
   height?: number | string;
   className?: string;
-  variant?: "trend" | "bar" | "donut" | "gauge" | "radar" | "default";
+  variant?: ChartSkeletonVariant;
 }
 
 const BAR_HEIGHT_PERCENTAGES = [45, 75, 55, 90, 60, 80, 50];
@@ -16,6 +22,8 @@ export const ChartSkeleton = memo(function ChartSkeleton({
   className,
   variant = "trend",
 }: ChartSkeletonProps) {
+  const t = useTranslations("chart");
+
   return (
     <div
       className={cn(
@@ -23,6 +31,9 @@ export const ChartSkeleton = memo(function ChartSkeleton({
         className,
       )}
       style={{ height }}
+      role="status"
+      aria-busy="true"
+      aria-label={t("loading")}
       data-testid="chart-skeleton"
       data-variant={variant}
     >

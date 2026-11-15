@@ -14,6 +14,8 @@ export interface ChartThemeConfig {
   iconBadge: string;
   /** Tailwind classes for card top border or accent bar */
   accentBar: string;
+  /** Static Tailwind classes for Progress indicator fill */
+  progressIndicator: string;
   /** CSS var or Hex color for SVG / Recharts stroke */
   strokeColor: string;
   /** CSS var or Hex color for Recharts fill */
@@ -30,6 +32,7 @@ export interface ChartThemeConfig {
 interface ThemeClasses {
   iconBadge: string;
   accentBar: string;
+  progressIndicator: string;
   textClass: string;
 }
 
@@ -37,46 +40,55 @@ const THEME_CLASSES: Record<ChartTheme, ThemeClasses> = {
   primary: {
     iconBadge: "bg-primary/10 text-primary border-primary/20",
     accentBar: "bg-primary",
+    progressIndicator: "[&>[data-slot=progress-indicator]]:bg-primary",
     textClass: "text-primary",
   },
   secondary: {
     iconBadge: "bg-secondary/10 text-secondary border-secondary/20",
     accentBar: "bg-secondary",
+    progressIndicator: "[&>[data-slot=progress-indicator]]:bg-secondary",
     textClass: "text-secondary",
   },
   accent: {
     iconBadge: "bg-accent/10 text-accent border-accent/20",
     accentBar: "bg-accent",
+    progressIndicator: "[&>[data-slot=progress-indicator]]:bg-accent",
     textClass: "text-accent",
   },
   destructive: {
     iconBadge: "bg-destructive/10 text-destructive border-destructive/20",
     accentBar: "bg-destructive",
+    progressIndicator: "[&>[data-slot=progress-indicator]]:bg-destructive",
     textClass: "text-destructive",
   },
   "chart-1": {
     iconBadge: "bg-chart-1/10 text-chart-1 border-chart-1/20",
     accentBar: "bg-chart-1",
+    progressIndicator: "[&>[data-slot=progress-indicator]]:bg-chart-1",
     textClass: "text-chart-1",
   },
   "chart-2": {
     iconBadge: "bg-chart-2/10 text-chart-2 border-chart-2/20",
     accentBar: "bg-chart-2",
+    progressIndicator: "[&>[data-slot=progress-indicator]]:bg-chart-2",
     textClass: "text-chart-2",
   },
   "chart-3": {
     iconBadge: "bg-chart-3/10 text-chart-3 border-chart-3/20",
     accentBar: "bg-chart-3",
+    progressIndicator: "[&>[data-slot=progress-indicator]]:bg-chart-3",
     textClass: "text-chart-3",
   },
   "chart-4": {
     iconBadge: "bg-chart-4/10 text-chart-4 border-chart-4/20",
     accentBar: "bg-chart-4",
+    progressIndicator: "[&>[data-slot=progress-indicator]]:bg-chart-4",
     textClass: "text-chart-4",
   },
   "chart-5": {
     iconBadge: "bg-chart-5/10 text-chart-5 border-chart-5/20",
     accentBar: "bg-chart-5",
+    progressIndicator: "[&>[data-slot=progress-indicator]]:bg-chart-5",
     textClass: "text-chart-5",
   },
 };
@@ -84,6 +96,7 @@ const THEME_CLASSES: Record<ChartTheme, ThemeClasses> = {
 const createThemeConfig = (theme: ChartTheme): ChartThemeConfig => ({
   iconBadge: THEME_CLASSES[theme].iconBadge,
   accentBar: THEME_CLASSES[theme].accentBar,
+  progressIndicator: THEME_CLASSES[theme].progressIndicator,
   strokeColor: `var(--${theme})`,
   fillColor: `var(--${theme})`,
   textClass: THEME_CLASSES[theme].textClass,
@@ -126,4 +139,11 @@ export const CHART_PALETTE = [
  */
 export function getChartTheme(theme: ChartTheme = "primary"): ChartThemeConfig {
   return CHART_THEMES[theme] || CHART_THEMES.primary;
+}
+
+/**
+ * Derive a contrasting secondary series stroke color that never collides with the primary theme token.
+ */
+export function getSecondaryChartStroke(theme: ChartTheme = "primary"): string {
+  return theme === "chart-2" ? "var(--chart-1)" : "var(--chart-2)";
 }

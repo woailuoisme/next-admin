@@ -5,6 +5,8 @@ import { TabsContent } from "@/components/ui/tabs";
 import { CATEGORY_DISTRIBUTION, CURRENCY_FORMATTER, TRAFFIC_CHANNELS } from "../constants";
 import type { ChartStateProps } from "../types";
 
+const UV_FORMATTER = (v: number) => `${v.toLocaleString()} UV`;
+
 interface DistributionShowcaseTabProps {
   chartStateProps: ChartStateProps;
 }
@@ -36,7 +38,7 @@ export function DistributionShowcaseTab({ chartStateProps }: DistributionShowcas
         >
           <HorizontalBarChart
             data={TRAFFIC_CHANNELS}
-            valueFormatter={(v) => `${v.toLocaleString()} UV`}
+            valueFormatter={UV_FORMATTER}
             showPercentage={true}
             theme="chart-2"
             height={320}

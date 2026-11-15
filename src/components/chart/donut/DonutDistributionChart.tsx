@@ -1,70 +1,69 @@
-import { memo } from "react";
-import { Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+"use client";
+
+import { memo, useCallback } from "react";
+
+import { Pie, PieChart, Tooltip } from "recharts";
 
 import { cn } from "cn";
 
 import type { DonutDistributionChartProps, EnrichedDonutSliceData } from "./types";
 
+import { useChartHeight } from "../shared/ChartContext";
+import { ChartFrame } from "../shared/ChartFrame";
+import { type ChartTooltipEntry, useChartDetailTooltip } from "../shared/ChartTooltip";
 import { DEFAULT_ANIMATION_DURATION } from "../shared/constants";
+import { resolveNumericChartHeight } from "../shared/formatters";
 import { useDonutDistribution } from "./useDonutDistribution";
 
-interface DonutTooltipPayloadItem {
-  payload: EnrichedDonutSliceData;
-}
-
-interface DonutTooltipContentProps {
-  active?: boolean;
-  payload?: DonutTooltipPayloadItem[];
-  valueFormatter: (val: number) => string;
-}
-
-const DonutTooltipContent = memo(function DonutTooltipContent({
-  active,
-  payload,
-  valueFormatter,
-}: DonutTooltipContentProps) {
-  if (active && payload?.length) {
-    const item = payload[0].payload;
-    return (
-      <div className="border-border/80 bg-background/95 rounded-lg border p-2.5 text-xs shadow-lg backdrop-blur-md">
-        <div className="mb-1 flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-          <span className="text-foreground font-semibold">{item.name}</span>
-        </div>
-        <p className="text-foreground font-mono font-bold">
-          {valueFormatter(item.value)}{" "}
-          <span className="text-muted-foreground font-normal">({item.percentage.toFixed(1)}%)</span>
-        </p>
-      </div>
-    );
-  }
-  return null;
-});
-
 export const DonutDistributionChart = memo(function DonutDistributionChart(props: DonutDistributionChartProps) {
-  const { innerRadius = 60, outerRadius = 85, height = 260, showLegend = true, className } = props;
+  const {
+    innerRadius = "58%",
+    outerRadius = "82%",
+    height,
+    showLegend = true,
+    isAnimationActive = true,
+    className,
+  } = props;
 
+  const resolvedHeight = useChartHeight(height, 260);
+  const numericHeight = resolveNumericChartHeight(resolvedHeight, 260);
   const { enrichedData, centerLabel, displayCenterValue, valueFormatter } = useDonutDistribution(props);
+
+  const resolveTooltipDetail = useCallback(
+    (payload: ReadonlyArray<ChartTooltipEntry>) => {
+      const item = payload[0]?.payload as EnrichedDonutSliceData | undefined;
+      if (!item) return null;
+      return {
+        title: item.name,
+        color: item.color,
+        rows: [
+          {
+            value: `${valueFormatter(item.value)} (${item.percentage.toFixed(1)}%)`,
+          },
+        ],
+      };
+    },
+    [valueFormatter],
+  );
+
+  const renderTooltip = useChartDetailTooltip(resolveTooltipDetail);
 
   return (
     <div
       className={cn("flex w-full flex-col items-center justify-between gap-6 md:flex-row", className)}
-      style={{ minHeight: height }}
+      style={{ minHeight: resolvedHeight }}
     >
       {/* Donut chart with centered text */}
       <div
-        className="relative flex w-full shrink-0 items-center justify-center md:w-auto"
-        style={{ width: height, height }}
+        className={cn(
+          "relative flex w-full min-w-0 shrink-0 items-center justify-center",
+          showLegend && "md:w-[46%] md:max-w-[360px]",
+        )}
+        style={{ height: resolvedHeight }}
       >
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
-          minWidth={0}
-          minHeight={height}
-          initialDimension={{ width: height, height }}
-        >
+        <ChartFrame height={resolvedHeight} initialWidth={numericHeight}>
           <PieChart>
-            <Tooltip content={<DonutTooltipContent valueFormatter={valueFormatter} />} />
+            <Tooltip content={renderTooltip} />
             <Pie
               data={enrichedData}
               dataKey="value"
@@ -76,10 +75,11 @@ export const DonutDistributionChart = memo(function DonutDistributionChart(props
               paddingAngle={3}
               stroke="var(--background)"
               strokeWidth={2}
+              isAnimationActive={isAnimationActive}
               animationDuration={DEFAULT_ANIMATION_DURATION}
             />
           </PieChart>
-        </ResponsiveContainer>
+        </ChartFrame>
 
         {/* Center summary text overlay */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center select-none">
@@ -91,9 +91,9 @@ export const DonutDistributionChart = memo(function DonutDistributionChart(props
       {/* Legend list */}
       {showLegend && (
         <div className="max-h-[220px] w-full flex-1 space-y-2.5 overflow-y-auto pr-1">
-          {enrichedData.map((item) => (
+          {enrichedData.map((item, index) => (
             <div
-              key={item.name}
+              key={`${item.name}-${index}`}
               className="hover:bg-muted/40 flex items-center justify-between rounded-md px-2 py-1 text-xs transition-colors"
             >
               <div className="flex min-w-0 items-center gap-2">

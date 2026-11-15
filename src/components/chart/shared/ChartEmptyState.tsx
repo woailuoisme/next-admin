@@ -1,4 +1,7 @@
+"use client";
+
 import { useTranslations } from "next-intl";
+
 import type { ComponentType, ReactNode } from "react";
 
 import { BarChart3 } from "lucide-react";
@@ -34,6 +37,8 @@ export const ChartEmptyState = memo(function ChartEmptyState({
         className,
       )}
       style={{ height }}
+      role="status"
+      aria-live="polite"
     >
       <div className="border-border/40 bg-muted/60 text-muted-foreground/60 mb-1 rounded-full border p-3">
         <Icon className="h-6 w-6" />

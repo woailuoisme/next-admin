@@ -1,4 +1,7 @@
+"use client";
+
 import { memo } from "react";
+
 import { Brush } from "recharts";
 
 import type { ChartBrushConfig } from "./types";

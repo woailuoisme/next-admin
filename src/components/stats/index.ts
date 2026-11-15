@@ -9,6 +9,3 @@ export * from "./grid";
 
 export * from "./theme";
 export * from "./types";
-
-// Runtime chart re-export bridge for seamless backward compatibility
-export * from "./chartBridge";

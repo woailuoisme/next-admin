@@ -517,9 +517,16 @@
     "treemap_value": "Value",
     "scatter_data_point": "Data Point",
     "scatter_z_axis": "Weight",
+    "scatter_default_category": "Default",
+    "scatter_default_series": "Distribution",
+    "donut_total": "Total",
+    "line_default_series": "Value",
+    "line_reference_target": "Target: {value}",
+    "heatmap_aria_label": "Heatmap matrix showing {title}",
     "sparkline_trend_up": "Upward",
     "sparkline_trend_down": "Downward",
-    "sparkline_trend_neutral": "Neutral"
+    "sparkline_trend_neutral": "Neutral",
+    "sparkline_aria_label": "Sparkline: start {first}, current {last}, trend {trend}"
   },
   "stats": {
     "status_online": "Operational",
@@ -540,7 +547,8 @@
     "pacing_ahead": "Ahead of schedule",
     "pacing_on_track": "On track",
     "pacing_behind": "Behind schedule",
-    "target_label": "Target: "
+    "target_label": "Target: ",
+    "just_now": "Just now"
   },
   "infolist": {
     "empty_text": "No data",

@@ -1,39 +1,46 @@
 import { useMemo } from "react";
 
-import { useFormatter } from "next-intl";
-
 import type { FunnelConversionChartProps, FunnelItemWithRates } from "./types";
 
+import { useChartFormatters } from "../hooks/useChartFormatters";
+import { toFiniteNumber } from "../shared/formatters";
 import { CHART_PALETTE } from "../shared/theme";
 
 export function useFunnelConversion(props: FunnelConversionChartProps) {
-  const { data, valueFormatter: customFormatter } = props;
+  const { data, dataKey = "value", nameKey = "name", valueFormatter: customFormatter } = props;
 
   const processedData = useMemo<FunnelItemWithRates[]>(() => {
     if (!data || data.length === 0) return [];
 
-    const initialValue = data[0]?.value || 1;
+    const initialValue = toFiniteNumber(data[0]?.[dataKey] ?? data[0]?.value);
 
     return data.map((item, index) => {
-      const prevValue = index === 0 ? item.value : data[index - 1]?.value || 1;
-      const conversionRate = Math.round((item.value / initialValue) * 1000) / 10;
-      const stepRate = Math.round((item.value / prevValue) * 1000) / 10;
-      const dropoffRate = index === 0 ? 0 : Math.max(0, Math.round(((prevValue - item.value) / prevValue) * 1000) / 10);
+      const value = toFiniteNumber(item[dataKey] ?? item.value);
+      const name = String(item[nameKey] ?? item.name ?? "");
+      const prevValue = index === 0 ? value : toFiniteNumber(data[index - 1]?.[dataKey] ?? data[index - 1]?.value);
+
+      const conversionRate = initialValue > 0 ? Math.round((value / initialValue) * 1000) / 10 : 0;
+      const stepRate = prevValue > 0 ? Math.round((value / prevValue) * 1000) / 10 : 0;
+      const dropoffRate =
+        index === 0 || prevValue <= 0 ? 0 : Math.max(0, Math.round(((prevValue - value) / prevValue) * 1000) / 10);
 
       const color = item.fill || CHART_PALETTE[index % CHART_PALETTE.length] || "var(--chart-1)";
 
       return {
         ...item,
+        [dataKey]: value,
+        [nameKey]: name,
+        name,
+        value,
         fill: color,
         conversionRate,
         dropoffRate,
         stepRate,
       };
     });
-  }, [data]);
+  }, [data, dataKey, nameKey]);
 
-  const format = useFormatter();
-  const valueFormatter = customFormatter ?? ((val: number) => format.number(val));
+  const { valueFormatter } = useChartFormatters({ valueFormatter: customFormatter });
 
   return {
     processedData,

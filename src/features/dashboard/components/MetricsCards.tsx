@@ -15,6 +15,10 @@ interface MetricsCardsProps {
 
 const EMPTY_NUMBER_ARRAY: number[] = [];
 
+function formatSignedGrowth(value: number): string {
+  return `${value > 0 ? "+" : ""}${value}%`;
+}
+
 export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = false }: MetricsCardsProps) {
   const t = useTranslations("dashboard");
   const format = useFormatter();
@@ -34,8 +38,10 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
     return <StatsGrid columns={4} isLoading />;
   }
 
+  const customerGrowth = metrics.customersGrowth ?? 8.2;
+
   return (
-    <StatsGrid columns={4} isLoading={isLoading}>
+    <StatsGrid columns={4}>
       {/* 1. Total Revenue */}
       <StatCard
         title={t("metric_revenue_title")}
@@ -45,7 +51,7 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
         theme="chart-2"
         description={t("metric_revenue_desc")}
         trend={{
-          value: `+${metrics.revenueGrowth}%`,
+          value: formatSignedGrowth(metrics.revenueGrowth),
           direction: metrics.revenueGrowth >= 0 ? "up" : "down",
           label: t("metric_revenue_trend"),
           isPositiveGood: true,
@@ -62,7 +68,7 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
         theme="chart-1"
         description={t("metric_orders_desc")}
         trend={{
-          value: `+${metrics.ordersGrowth}%`,
+          value: formatSignedGrowth(metrics.ordersGrowth),
           direction: metrics.ordersGrowth >= 0 ? "up" : "down",
           label: t("metric_orders_trend"),
           isPositiveGood: true,
@@ -75,7 +81,7 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
       {/* 3. Catalog Products (with drilldown to /products) */}
       <StatCard
         title={t("metric_products_title")}
-        value={metrics.totalProducts}
+        value={format.number(metrics.totalProducts)}
         icon={Package}
         theme="chart-4"
         description={t("metric_products_desc")}
@@ -97,8 +103,8 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
         theme="chart-3"
         description={t("metric_customers_desc")}
         trend={{
-          value: `+${metrics.customersGrowth ?? 8.2}%`,
-          direction: "up",
+          value: formatSignedGrowth(customerGrowth),
+          direction: customerGrowth >= 0 ? "up" : "down",
           label: t("metric_customers_trend"),
           isPositiveGood: true,
         }}

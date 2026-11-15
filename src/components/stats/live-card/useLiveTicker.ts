@@ -1,6 +1,7 @@
+import { useTranslations } from "next-intl";
 import { useInterval, useMemoizedFn } from "ahooks";
 import { clamp } from "es-toolkit";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { LiveStatus } from "./types";
 
@@ -55,32 +56,38 @@ export function useLiveTicker({
   maxJitter = 12,
   autoStart = true,
 }: UseLiveTickerOptions = {}): UseLiveTickerResult {
+  const t = useTranslations("stats");
   const [value, setValue] = useState<number>(initialValue);
+  const valueRef = useRef<number>(initialValue);
   const [sparklineData, setSparklineData] = useState<number[]>(initialData);
-  const [lastUpdated, setLastUpdated] = useState<string>("刚刚");
+  const [lastUpdatedTime, setLastUpdatedTime] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState<boolean>(autoStart);
+
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+
   const toggle = useMemoizedFn(() => setIsRunning((prev) => !prev));
   const start = useMemoizedFn(() => setIsRunning(true));
   const stop = useMemoizedFn(() => setIsRunning(false));
 
   const tick = useMemoizedFn(() => {
-    setValue((prevValue) => {
-      let delta: number;
-      if (volatility !== undefined) {
-        const range = prevValue * volatility;
-        delta = Math.round((Math.random() * 2 - 1) * range);
-      } else {
-        delta = Math.floor(Math.random() * (maxJitter - minJitter + 1)) + minJitter;
-      }
+    const prevValue = valueRef.current;
+    let delta: number;
+    if (volatility !== undefined) {
+      const range = prevValue * volatility;
+      delta = Math.round((Math.random() * 2 - 1) * range);
+    } else {
+      delta = Math.floor(Math.random() * (maxJitter - minJitter + 1)) + minJitter;
+    }
 
-      const nextValue = clamp(prevValue + delta, min, max);
+    const nextValue = clamp(prevValue + delta, min, max);
+    valueRef.current = nextValue;
+    setValue(nextValue);
 
-      setSparklineData((prev) => {
-        const nextBuffer = [...prev, nextValue];
-        return nextBuffer.length > bufferSize ? nextBuffer.slice(nextBuffer.length - bufferSize) : nextBuffer;
-      });
-
-      return nextValue;
+    setSparklineData((prev) => {
+      const nextBuffer = [...prev, nextValue];
+      return nextBuffer.length > bufferSize ? nextBuffer.slice(nextBuffer.length - bufferSize) : nextBuffer;
     });
 
     const now = new Date();
@@ -88,12 +95,13 @@ export function useLiveTicker({
       .getMinutes()
       .toString()
       .padStart(2, "0")}:${now.getSeconds().toString().padStart(2, "0")}`;
-    setLastUpdated(formattedTime);
+    setLastUpdatedTime(formattedTime);
   });
 
   useInterval(tick, isRunning ? intervalMs : undefined);
 
   const status: LiveStatus = isRunning ? "online" : "offline";
+  const lastUpdated = lastUpdatedTime ?? t("just_now");
 
   return {
     value,
