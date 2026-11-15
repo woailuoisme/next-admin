@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import type { DataTableFilterLayout } from "@/components/data-table";
+import type { DataTableFilterLayout } from "@/components/data-table/core";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 

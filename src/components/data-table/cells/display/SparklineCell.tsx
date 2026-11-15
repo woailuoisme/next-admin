@@ -46,7 +46,11 @@ export const SparklineCell = memo(function SparklineCell({
   barGap = 2,
   color,
   showFill = true,
+  fillGradient,
+  autoTrendColor = true,
   showEndpoint = true,
+  showDot,
+  showMinMax = false,
   interactive = false,
   tooltip,
   align = "left",
@@ -59,8 +63,24 @@ export const SparklineCell = memo(function SparklineCell({
     return <span className="text-muted-foreground/40 text-xs italic">-</span>;
   }
 
-  const min = Math.min(...data);
-  const max = Math.max(...data);
+  const effectiveShowEndpoint = showDot ?? showEndpoint;
+  const effectiveShowFill = fillGradient ?? showFill;
+
+  let min = data[0];
+  let max = data[0];
+  let minIdx = 0;
+  let maxIdx = 0;
+  for (let i = 1; i < data.length; i++) {
+    const val = data[i];
+    if (val < min) {
+      min = val;
+      minIdx = i;
+    }
+    if (val > max) {
+      max = val;
+      maxIdx = i;
+    }
+  }
   const range = max - min || 1;
   const paddingY = 3;
   const effectiveHeight = height - paddingY * 2;
@@ -68,7 +88,7 @@ export const SparklineCell = memo(function SparklineCell({
   const isUp = data[data.length - 1] >= data[0];
   const autoColorClass = isUp ? "text-chart-2" : "text-destructive";
 
-  const resolvedColorClass = color ? "" : autoColorClass;
+  const resolvedColorClass = color ? "" : autoTrendColor ? autoColorClass : "text-primary";
   const isTooltipOpen = interactive ? hoveredIndex !== null : undefined;
 
   // 处理鼠标移动交互
@@ -194,7 +214,7 @@ export const SparklineCell = memo(function SparklineCell({
           </linearGradient>
         </defs>
 
-        {showFill && <path d={fillPath} fill={`url(#${gradientId})`} />}
+        {effectiveShowFill && <path d={fillPath} fill={`url(#${gradientId})`} />}
 
         <path
           d={linePath}
@@ -205,8 +225,34 @@ export const SparklineCell = memo(function SparklineCell({
           strokeLinejoin="round"
         />
 
-        {showEndpoint && hoveredIndex === null && (
-          <circle cx={lastPoint.x} cy={lastPoint.y} r={2} fill={color || "currentColor"} className="animate-pulse" />
+        {showMinMax && (
+          <>
+            <circle
+              cx={points[minIdx].x}
+              cy={points[minIdx].y}
+              r={2}
+              className="fill-destructive stroke-background stroke-[1.5]"
+              data-testid="sparkline-min-dot"
+            />
+            <circle
+              cx={points[maxIdx].x}
+              cy={points[maxIdx].y}
+              r={2}
+              className="fill-chart-2 stroke-background stroke-[1.5]"
+              data-testid="sparkline-max-dot"
+            />
+          </>
+        )}
+
+        {effectiveShowEndpoint && hoveredIndex === null && (
+          <circle
+            cx={lastPoint.x}
+            cy={lastPoint.y}
+            r={2}
+            fill={color || "currentColor"}
+            className="animate-pulse"
+            data-testid="sparkline-endpoint-dot"
+          />
         )}
 
         {/* 交互模式十字十字游标与浮动点 */}

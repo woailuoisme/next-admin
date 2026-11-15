@@ -1,4 +1,5 @@
 import { fireEvent } from "@testing-library/react";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ColorCell } from "@/components/data-table/cells/display/ColorCell";
@@ -19,7 +20,21 @@ describe("DataTable Standardization & Best Practices", () => {
         { id: "archived", label: "已归档", badge: 30 },
       ];
 
-      renderWithProviders(<DataTableStatusTabs tabs={tabs} activeTab="all" onTabChange={onTabChange} />, {
+      function ControlledTabs() {
+        const [activeTab, setActiveTab] = useState("all");
+        return (
+          <DataTableStatusTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={(id) => {
+              setActiveTab(id);
+              onTabChange(id);
+            }}
+          />
+        );
+      }
+
+      renderWithProviders(<ControlledTabs />, {
         locale: "zh",
       });
 
@@ -27,7 +42,8 @@ describe("DataTable Standardization & Best Practices", () => {
       expect(screen.getByText("42")).toBeInTheDocument();
 
       const activeTabBtn = screen.getByRole("tab", { name: /进行中/i });
-      fireEvent.click(activeTabBtn);
+      fireEvent.mouseDown(activeTabBtn);
+      expect(onTabChange).toHaveBeenCalledTimes(1);
       expect(onTabChange).toHaveBeenCalledWith("active");
     });
   });

@@ -44,6 +44,9 @@ export function useToolbarState<TData = any>(props: InternalDataTableToolbarProp
   const showExport = props.showExport ?? toolbarProps.showExport ?? true;
   const quickFilterPlaceholder = props.quickFilterPlaceholder ?? toolbarProps.quickFilterPlaceholder;
   const quickFilterEntity = props.quickFilterEntity ?? toolbarProps.quickFilterEntity;
+  const customActions = props.customActions;
+  const filterConfig = props.filterConfig ?? toolbarProps.filterConfig;
+  const filters = props.filters ?? toolbarProps.filters;
 
   return {
     columns,
@@ -60,9 +63,9 @@ export function useToolbarState<TData = any>(props: InternalDataTableToolbarProp
     onExportJson,
     onPrint,
     toolbarProps,
-    customActions: props.customActions,
-    filterConfig: props.filterConfig,
-    filters: props.filters,
+    customActions,
+    filterConfig,
+    filters,
     data: props.data,
     tabs,
     activeTab,

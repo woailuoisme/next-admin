@@ -8,13 +8,13 @@ import { cn } from "cn";
 import type { DataTableColDef, DataTableSlots } from "../core/types";
 import type { TableEmptyStateConfig, TableEmptyStateContext, TableEmptyStateProps } from "../empty-state";
 
-import { EMPTY_ARRAY, EMPTY_RECORD } from "../core/constants";
+import { EMPTY_ARRAY } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
 import { TableEmptyState } from "../empty-state";
 
 export interface DataTableSkeletonRowsProps<TData = any> {
   count: number;
-  visibleColumns: DataTableColDef<TData>[];
+  visibleColumns?: DataTableColDef<TData>[];
   checkboxSelection?: boolean;
   hasExpandColumn?: boolean;
   pinnedLeftFields?: string[];
@@ -29,16 +29,29 @@ const WIDTH_CLASSES = ["w-4/5", "w-2/3", "w-1/2", "w-3/5", "w-3/4"];
 
 export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData = any>({
   count,
-  visibleColumns,
-  checkboxSelection = false,
-  hasExpandColumn = false,
-  pinnedLeftFields = EMPTY_ARRAY,
-  pinnedRightFields = EMPTY_ARRAY,
-  leftOffsets = EMPTY_RECORD,
-  rightOffsets = EMPTY_RECORD,
-  columnWidths = EMPTY_RECORD,
-  densityRowClass,
+  visibleColumns: propVisibleColumns,
+  checkboxSelection: propCheckboxSelection,
+  hasExpandColumn: propHasExpandColumn,
+  pinnedLeftFields: propPinnedLeftFields,
+  pinnedRightFields: propPinnedRightFields,
+  leftOffsets,
+  rightOffsets,
+  columnWidths,
+  densityRowClass: propDensityRowClass,
 }: DataTableSkeletonRowsProps<TData>) {
+  const ctx = useOptionalDataTableContext<TData>();
+  const visibleColumns = propVisibleColumns ?? ctx?.visibleColumns ?? EMPTY_ARRAY;
+  const checkboxSelection = propCheckboxSelection ?? ctx?.checkboxSelection ?? false;
+  const hasExpandColumn = propHasExpandColumn ?? Boolean(ctx?.renderExpandedRow);
+  const pinnedLeftFields = propPinnedLeftFields ?? ctx?.pinnedLeftFields ?? EMPTY_ARRAY;
+  const pinnedRightFields = propPinnedRightFields ?? ctx?.pinnedRightFields ?? EMPTY_ARRAY;
+  const densityRowClass = propDensityRowClass ?? ctx?.densityRowClass;
+
+  const pinnedLeftSet = useMemo(() => new Set(pinnedLeftFields), [pinnedLeftFields]);
+  const pinnedRightSet = useMemo(() => new Set(pinnedRightFields), [pinnedRightFields]);
+  const lastPinnedLeftField = pinnedLeftFields[pinnedLeftFields.length - 1];
+  const firstPinnedRightField = pinnedRightFields[0];
+
   const rows = useMemo(() => {
     return Array.from({ length: Math.max(1, count) });
   }, [count]);
@@ -53,7 +66,7 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
               <TableCell
                 className={cn(
                   "w-12 px-3 py-2 text-center",
-                  pinnedLeftFields.includes("__checkbox__") && "sticky left-0 z-10 bg-card",
+                  pinnedLeftSet.has("__checkbox__") && "sticky left-0 z-10 bg-card",
                 )}
               >
                 <Skeleton className="mx-auto size-4 rounded-xs" />
@@ -76,19 +89,20 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
             )}
 
             {visibleColumns.map((col, colIndex) => {
-              const isPinnedLeft = pinnedLeftFields.includes(col.field);
-              const isPinnedRight = pinnedRightFields.includes(col.field);
-              const isLastPinnedLeft =
-                pinnedLeftFields.length > 0 && pinnedLeftFields[pinnedLeftFields.length - 1] === col.field;
-              const isFirstPinnedRight = pinnedRightFields.length > 0 && pinnedRightFields[0] === col.field;
+              const isPinnedLeft = pinnedLeftSet.has(col.field);
+              const isPinnedRight = pinnedRightSet.has(col.field);
+              const isLastPinnedLeft = lastPinnedLeftField === col.field;
+              const isFirstPinnedRight = firstPinnedRightField === col.field;
 
-              const actualWidth = columnWidths[col.field] ?? col.width;
+              const actualWidth = columnWidths?.[col.field] ?? col.width;
               const style: CSSProperties = {
-                width: actualWidth ? `${actualWidth}px` : undefined,
+                width: `var(--col-w-${col.field}, ${actualWidth ? `${actualWidth}px` : "auto"})`,
                 minWidth: col.minWidth ? `${col.minWidth}px` : undefined,
                 maxWidth: col.maxWidth ? `${col.maxWidth}px` : undefined,
-                ...(isPinnedLeft ? { left: `${leftOffsets[col.field] ?? 0}px` } : {}),
-                ...(isPinnedRight ? { right: `${rightOffsets[col.field] ?? 0}px` } : {}),
+                ...(isPinnedLeft ? { left: `var(--col-left-${col.field}, ${leftOffsets?.[col.field] ?? 0}px)` } : {}),
+                ...(isPinnedRight
+                  ? { right: `var(--col-right-${col.field}, ${rightOffsets?.[col.field] ?? 0}px)` }
+                  : {}),
               };
 
               const cellKey = `skeleton-cell-${rowIndex}-${col.field}`;

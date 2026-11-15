@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import * as React from "react";
 
-import { TableEmptyState } from "@/components/data-table";
+import { TableEmptyState } from "@/components/data-table/empty-state";
 import { cn } from "cn";
 
 import type { RepeatableEntryProps } from "./types";

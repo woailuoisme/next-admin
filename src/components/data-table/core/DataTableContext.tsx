@@ -13,15 +13,12 @@ import type {
   TableEmptyStateContext,
 } from "./types";
 
-export interface DataTableContextValue<TData = unknown> {
-  // Column metadata & layout
+export interface DataTableConfigContextValue<TData = unknown> {
+  // Column metadata & layout (static / low-frequency only — volatile widths & offsets live in LayoutSeam CSS vars)
   columns: DataTableColDef<TData>[];
   visibleColumns: DataTableColDef<TData>[];
-  columnWidths: Record<string, number>;
   pinnedLeftFields: string[];
   pinnedRightFields: string[];
-  leftOffsets: Record<string, number>;
-  rightOffsets: Record<string, number>;
   density: DataTableDensity;
   densityRowClass: string;
 
@@ -30,9 +27,8 @@ export interface DataTableContextValue<TData = unknown> {
   getRowId: (row: TData) => DataTableRowId;
   isRowSelectable?: (row: TData) => boolean;
 
-  // Row Expansion
+  // Row Expansion (static config & callbacks — expanded state passed per-row via boolean prop)
   renderExpandedRow?: (params: DataTableRenderExpandedRowParams<TData>) => React.ReactNode;
-  expandedRowIds?: DataTableRowId[];
   isRowExpandable?: (row: TData) => boolean;
   expandOnRowClick?: boolean;
   toggleRowExpanded?: (id: DataTableRowId) => void;
@@ -55,25 +51,28 @@ export interface DataTableContextValue<TData = unknown> {
   handleSortClick: (field: string) => void;
 }
 
-const DataTableContext = createContext<DataTableContextValue<any> | null>(null);
+/** @deprecated Use DataTableConfigContextValue */
+export type DataTableContextValue<TData = unknown> = DataTableConfigContextValue<TData>;
+
+const DataTableConfigContext = createContext<DataTableConfigContextValue<any> | null>(null);
 
 export interface DataTableProviderProps<TData = any> {
-  value: DataTableContextValue<TData>;
+  value: DataTableConfigContextValue<TData>;
   children: React.ReactNode;
 }
 
 export function DataTableProvider<TData = any>({ value, children }: DataTableProviderProps<TData>) {
-  return <DataTableContext value={value}>{children}</DataTableContext>;
+  return <DataTableConfigContext value={value}>{children}</DataTableConfigContext>;
 }
 
-export function useDataTableContext<TData = unknown>(): DataTableContextValue<TData> {
-  const context = useContext(DataTableContext);
+export function useDataTableContext<TData = unknown>(): DataTableConfigContextValue<TData> {
+  const context = useContext(DataTableConfigContext);
   if (!context) {
     throw new Error("useDataTableContext must be used within a DataTable component or DataTableProvider.");
   }
-  return context as DataTableContextValue<TData>;
+  return context as DataTableConfigContextValue<TData>;
 }
 
-export function useOptionalDataTableContext<TData = unknown>(): DataTableContextValue<TData> | null {
-  return useContext(DataTableContext) as DataTableContextValue<TData> | null;
+export function useOptionalDataTableContext<TData = unknown>(): DataTableConfigContextValue<TData> | null {
+  return useContext(DataTableConfigContext) as DataTableConfigContextValue<TData> | null;
 }

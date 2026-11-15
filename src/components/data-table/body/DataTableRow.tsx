@@ -1,3 +1,4 @@
+import { useMemoizedFn } from "ahooks";
 import { useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
 import { memo, useMemo, type HTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
@@ -10,7 +11,7 @@ import { cn } from "cn";
 import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableRowId } from "../core/types";
 
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
-import { EMPTY_ARRAY, EMPTY_RECORD, NOOP } from "../core/constants";
+import { EMPTY_ARRAY, NOOP } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
 import { readCellValue } from "../core/utils";
 
@@ -78,15 +79,15 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
   const pinnedRightFields = propPinnedRightFields ?? ctx?.pinnedRightFields ?? EMPTY_ARRAY;
   const pinnedLeftSet = useMemo(() => new Set(pinnedLeftFields), [pinnedLeftFields]);
   const pinnedRightSet = useMemo(() => new Set(pinnedRightFields), [pinnedRightFields]);
-  const leftOffsets = propLeftOffsets ?? ctx?.leftOffsets ?? EMPTY_RECORD;
-  const rightOffsets = propRightOffsets ?? ctx?.rightOffsets ?? EMPTY_RECORD;
-  const columnWidths = propColumnWidths ?? ctx?.columnWidths ?? EMPTY_RECORD;
+  const leftOffsets = propLeftOffsets;
+  const rightOffsets = propRightOffsets;
+  const columnWidths = propColumnWidths;
   const densityRowClass = propDensityRowClass ?? ctx?.densityRowClass ?? "h-11 py-2 px-3 text-xs";
   const onSelectRow = propOnSelectRow ?? ctx?.onSelectRow ?? NOOP;
   const onRowClick = propOnRowClick ?? ctx?.onRowClick;
 
   const renderExpandedRow = propRenderExpandedRow ?? ctx?.renderExpandedRow;
-  const isExpanded = propIsExpanded ?? (ctx?.expandedRowIds ? ctx.expandedRowIds.includes(rowId) : false);
+  const isExpanded = propIsExpanded ?? false;
   const isRowExpandable = propIsRowExpandable ?? ctx?.isRowExpandable;
   const expandOnRowClick = propExpandOnRowClick ?? ctx?.expandOnRowClick ?? false;
   const onToggleExpand = propOnToggleExpand ?? ctx?.toggleRowExpanded;
@@ -100,6 +101,10 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
     }
     onRowClick?.(row, e);
   };
+
+  const handleCollapse = useMemoizedFn(() => {
+    onToggleExpand?.(rowId);
+  });
 
   return (
     <>
@@ -165,7 +170,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
         {visibleColumns.map((col, idx) => {
           const { field, align = "left", width, minWidth, maxWidth, cellClassName, renderCell, valueFormatter } = col;
 
-          const currentWidth = columnWidths[field] ?? width;
+          const currentWidth = columnWidths?.[field] ?? width;
           const isLeftPinned = pinnedLeftSet.has(field);
           const isRightPinned = pinnedRightSet.has(field);
 
@@ -179,8 +184,8 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
                 width: `var(--col-w-${field}, ${currentWidth ? `${currentWidth}px` : "auto"})`,
                 minWidth: minWidth ? `${minWidth}px` : undefined,
                 maxWidth: maxWidth ? `${maxWidth}px` : undefined,
-                left: isLeftPinned ? `var(--col-left-${field}, ${leftOffsets[field]}px)` : undefined,
-                right: isRightPinned ? `var(--col-right-${field}, ${rightOffsets[field]}px)` : undefined,
+                left: isLeftPinned ? `var(--col-left-${field}, ${leftOffsets?.[field] ?? 0}px)` : undefined,
+                right: isRightPinned ? `var(--col-right-${field}, ${rightOffsets?.[field] ?? 0}px)` : undefined,
               }}
               className={cn(
                 densityRowClass,
@@ -224,7 +229,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
               {renderExpandedRow({
                 row,
                 index,
-                collapse: () => onToggleExpand?.(rowId),
+                collapse: handleCollapse,
               })}
             </div>
           </TableCell>

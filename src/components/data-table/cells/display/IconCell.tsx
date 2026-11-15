@@ -19,6 +19,7 @@ export const IconCell = memo(function IconCell({
   value,
   icon: DefaultIcon,
   iconMap,
+  colorMap,
   size = "sm",
   label,
   labelPosition = "right",
@@ -30,14 +31,15 @@ export const IconCell = memo(function IconCell({
   let iconNode: ReactNode = null;
   let resolvedTooltip = tooltip;
   let extractedLabel: ReactNode = label;
+  const mappedColor = !isNil(value) ? colorMap?.[String(value)] : undefined;
 
   // 1. Boolean value mode
   if (typeof value === "boolean") {
     if (value) {
-      iconNode = <CheckCircle2 className={cn(sizeClasses[size], "text-chart-2 shrink-0")} />;
+      iconNode = <CheckCircle2 className={cn(sizeClasses[size], mappedColor || "text-chart-2", "shrink-0")} />;
       resolvedTooltip = resolvedTooltip || "是 / 已启用";
     } else {
-      iconNode = <XCircle className={cn(sizeClasses[size], "text-destructive shrink-0")} />;
+      iconNode = <XCircle className={cn(sizeClasses[size], mappedColor || "text-destructive", "shrink-0")} />;
       resolvedTooltip = resolvedTooltip || "否 / 未启用";
     }
   } else if (isNil(value)) {
@@ -55,7 +57,9 @@ export const IconCell = memo(function IconCell({
       if (typeof mapped === "object" && "icon" in mapped) {
         const opt = mapped as IconCellOption;
         const IconComponent = opt.icon;
-        iconNode = <IconComponent className={cn(sizeClasses[size], opt.color || "text-foreground", "shrink-0")} />;
+        iconNode = (
+          <IconComponent className={cn(sizeClasses[size], mappedColor || opt.color || "text-foreground", "shrink-0")} />
+        );
         if (opt.label) {
           if (!extractedLabel) extractedLabel = opt.label;
           if (!resolvedTooltip) resolvedTooltip = opt.label;
@@ -64,12 +68,12 @@ export const IconCell = memo(function IconCell({
         const IconComponent = mapped as React.ComponentType<{
           className?: string;
         }>;
-        iconNode = <IconComponent className={cn(sizeClasses[size], "shrink-0 text-foreground")} />;
+        iconNode = <IconComponent className={cn(sizeClasses[size], mappedColor || "text-foreground", "shrink-0")} />;
       }
     } else if (DefaultIcon) {
-      iconNode = <DefaultIcon className={cn(sizeClasses[size], "shrink-0 text-muted-foreground")} />;
+      iconNode = <DefaultIcon className={cn(sizeClasses[size], mappedColor || "text-muted-foreground", "shrink-0")} />;
     } else {
-      iconNode = <Minus className={cn(sizeClasses[size], "shrink-0 text-muted-foreground/40")} />;
+      iconNode = <Minus className={cn(sizeClasses[size], mappedColor || "text-muted-foreground/40", "shrink-0")} />;
     }
   }
 

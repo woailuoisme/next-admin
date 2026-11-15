@@ -4,28 +4,23 @@ import { Edit, Eye, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { actionsCol } from "@/components/data-table/columns/actions";
+import { badgeCol } from "@/components/data-table/columns/badge";
+import { dateCol } from "@/components/data-table/columns/date";
 import {
-  actionsCol,
-  avatarCol,
-  badgeCol,
-  checkboxCol,
   colorCol,
-  currencyCol,
-  type DataTableColDef,
-  dateCol,
   iconCol,
-  imageCol,
   maskedCol,
-  numberCol,
   progressCol,
   ratingCol,
-  selectCol,
   sparklineCol,
-  textCol,
-  textInputCol,
-  toggleCol,
   userCol,
-} from "@/components/data-table";
+} from "@/components/data-table/columns/display";
+import { checkboxCol, selectCol, textInputCol, toggleCol } from "@/components/data-table/columns/interactive";
+import { avatarCol, imageCol } from "@/components/data-table/columns/media";
+import { currencyCol, numberCol } from "@/components/data-table/columns/number";
+import { textCol } from "@/components/data-table/columns/text";
+import type { DataTableColDef } from "@/components/data-table/core";
 
 import { ROLE_OPTIONS, STATUS_VARIANT_MAP } from "./constants";
 import type { ShowcaseItem } from "./types";

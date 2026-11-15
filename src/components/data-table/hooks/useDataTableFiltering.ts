@@ -1,5 +1,4 @@
-import { useMemoizedFn } from "ahooks";
-import { keyBy } from "es-toolkit";
+import { useLatest, useMemoizedFn } from "ahooks";
 import { useMemo, useState } from "react";
 
 import { EMPTY_ARRAY } from "../core/constants";
@@ -29,24 +28,57 @@ export function useDataTableFiltering<TData = Record<string, any>>({
     quickFilterValues: EMPTY_ARRAY,
   });
   const filterModel = controlledFilterModel ?? internalFilterModel;
-  const [quickFilterText, setQuickFilterText] = useState("");
+  const [internalQuickFilterText, setInternalQuickFilterText] = useState("");
+  const quickFilterText =
+    controlledFilterModel !== undefined
+      ? (controlledFilterModel.quickFilterValues ?? EMPTY_ARRAY).join(" ")
+      : internalQuickFilterText;
+
+  const latestRef = useLatest({
+    filterModel,
+    controlledFilterModel,
+    onFilterModelChange,
+  });
 
   const handleFilterModelChange = useMemoizedFn((m: DataTableFilterModel) => {
-    setInternalFilterModel(m);
-    onFilterModelChange?.(m);
+    if (latestRef.current.controlledFilterModel === undefined) {
+      setInternalFilterModel(m);
+    }
+    latestRef.current.onFilterModelChange?.(m);
   });
 
   const handleQuickFilterChange = useMemoizedFn((val: string) => {
-    setQuickFilterText(val);
-    setInternalFilterModel((prev) => {
-      const newModel: DataTableFilterModel = {
-        ...prev,
-        quickFilterValues: val.trim() ? val.trim().toLowerCase().split(/\s+/) : [],
-      };
-      onFilterModelChange?.(newModel);
-      return newModel;
-    });
+    const trimmed = val.trim();
+    const newModel: DataTableFilterModel = {
+      ...latestRef.current.filterModel,
+      quickFilterValues: trimmed ? trimmed.toLowerCase().split(/\s+/) : (EMPTY_ARRAY as unknown as string[]),
+    };
+    if (latestRef.current.controlledFilterModel === undefined) {
+      setInternalQuickFilterText(val);
+      setInternalFilterModel(newModel);
+    }
+    latestRef.current.onFilterModelChange?.(newModel);
   });
+
+  const handleResetFilters = useMemoizedFn(() => {
+    const emptyModel: DataTableFilterModel = {
+      items: EMPTY_ARRAY as unknown as DataTableFilterModel["items"],
+      quickFilterValues: EMPTY_ARRAY as unknown as string[],
+    };
+    if (latestRef.current.controlledFilterModel === undefined) {
+      setInternalQuickFilterText("");
+      setInternalFilterModel(emptyModel);
+    }
+    latestRef.current.onFilterModelChange?.(emptyModel);
+  });
+
+  const columnMap = useMemo(() => {
+    const map = new Map<string, DataTableColDef<TData>>();
+    for (const col of columns) {
+      map.set(col.field, col);
+    }
+    return map;
+  }, [columns]);
 
   const filteredRows = useMemo(() => {
     if (filterMode === "server") {
@@ -64,27 +96,36 @@ export function useDataTableFiltering<TData = Record<string, any>>({
 
     let list = rows;
 
-    // 1. Quick Filter (Full text across visible columns)
+    // 1. Quick Filter (Full text across visible columns; pre-extract lowered strings per row instead of per term)
     if (hasQuickFilter && searchTerms) {
       list = list.filter((row) => {
-        return searchTerms.every((term) =>
-          visibleColumns.some((col) => {
-            const val = readCellValue(row, col);
-            return String(val ?? "")
-              .toLowerCase()
-              .includes(term);
-          }),
-        );
+        const cellStrings: string[] = [];
+        for (const col of visibleColumns) {
+          const val = readCellValue(row, col);
+          if (val !== null && val !== undefined && val !== "") {
+            cellStrings.push(String(val).toLowerCase());
+          }
+        }
+        for (const term of searchTerms) {
+          let matched = false;
+          for (const str of cellStrings) {
+            if (str.includes(term)) {
+              matched = true;
+              break;
+            }
+          }
+          if (!matched) return false;
+        }
+        return true;
       });
     }
 
     // 2. Advanced rule items
     if (hasItems && filterModel.items) {
-      const columnMap = keyBy(columns, (c) => c.field);
       // Pre-normalize filter values outside the row loop
       const preparedItems = filterModel.items.map((item: DataTableFilterItem) => ({
         item,
-        col: columnMap[item.field],
+        col: columnMap.get(item.field),
         lowerItemValue: String(item.value ?? "").toLowerCase(),
         numItemValue: Number(item.value),
       }));
@@ -106,6 +147,7 @@ export function useDataTableFiltering<TData = Record<string, any>>({
               return !String(val ?? "")
                 .toLowerCase()
                 .includes(lowerItemValue);
+            case "is":
             case "equals": {
               if (typeof val === "boolean") {
                 return val === (lowerItemValue === "true" || lowerItemValue === "1");
@@ -148,7 +190,7 @@ export function useDataTableFiltering<TData = Record<string, any>>({
     }
 
     return list;
-  }, [rows, filterMode, filterModel, visibleColumns, columns]);
+  }, [rows, filterMode, filterModel, visibleColumns, columnMap]);
 
   return {
     filterModel,
@@ -156,6 +198,7 @@ export function useDataTableFiltering<TData = Record<string, any>>({
     filteredRows,
     handleFilterModelChange,
     handleQuickFilterChange,
+    handleResetFilters,
     quickFilterTokens: filterModel.quickFilterValues ?? EMPTY_ARRAY,
   };
 }

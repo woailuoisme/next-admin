@@ -9,7 +9,7 @@ import { cn } from "cn";
 import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableSortModel } from "../core/types";
 
 import { JUSTIFY_ALIGN_CLASSES } from "../cells/base";
-import { EMPTY_ARRAY, EMPTY_RECORD, NOOP } from "../core/constants";
+import { EMPTY_ARRAY, NOOP } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
 
 export interface DataTableHeaderProps<TData = unknown> {
@@ -41,14 +41,15 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
   const isAllPageSelected = props.isAllPageSelected ?? false;
   const isSomePageSelected = props.isSomePageSelected ?? false;
   const onSelectAll = props.onSelectAll ?? NOOP;
-  const columnWidths = props.columnWidths ?? ctx?.columnWidths ?? EMPTY_RECORD;
+  const columnWidths = props.columnWidths;
   const pinnedLeftFields = props.pinnedLeftFields ?? ctx?.pinnedLeftFields ?? EMPTY_ARRAY;
   const pinnedRightFields = props.pinnedRightFields ?? ctx?.pinnedRightFields ?? EMPTY_ARRAY;
   const pinnedLeftSet = useMemo(() => new Set(pinnedLeftFields), [pinnedLeftFields]);
   const pinnedRightSet = useMemo(() => new Set(pinnedRightFields), [pinnedRightFields]);
-  const leftOffsets = props.leftOffsets ?? ctx?.leftOffsets ?? EMPTY_RECORD;
-  const rightOffsets = props.rightOffsets ?? ctx?.rightOffsets ?? EMPTY_RECORD;
+  const leftOffsets = props.leftOffsets;
+  const rightOffsets = props.rightOffsets;
   const sortModel = props.sortModel ?? EMPTY_ARRAY;
+  const sortDirectionByField = useMemo(() => new Map(sortModel.map((s) => [s.field, s.sort])), [sortModel]);
   const onSortClick = props.onSortClick ?? ctx?.handleSortClick ?? NOOP;
   const onResizeStart = props.onResizeStart ?? ctx?.handleResizeStart ?? NOOP;
 
@@ -97,18 +98,18 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
             headerClassName,
           } = col;
 
-          const currentWidth = columnWidths[field] ?? width;
+          const currentWidth = columnWidths?.[field] ?? width;
           const isLeftPinned = pinnedLeftSet.has(field);
           const isRightPinned = pinnedRightSet.has(field);
-          const sortItem = sortModel.find((s: { field: string }) => s.field === field);
+          const sortDirection = sortDirectionByField.get(field);
 
           return (
             <TableHead
               key={col.id ?? `${field}_${idx}`}
               aria-sort={
-                sortItem?.sort === "asc"
+                sortDirection === "asc"
                   ? "ascending"
-                  : sortItem?.sort === "desc"
+                  : sortDirection === "desc"
                     ? "descending"
                     : sortable
                       ? "none"
@@ -118,8 +119,8 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
                 width: `var(--col-w-${field}, ${currentWidth ? `${currentWidth}px` : "auto"})`,
                 minWidth: `${minWidth}px`,
                 maxWidth: maxWidth ? `${maxWidth}px` : undefined,
-                left: isLeftPinned ? `var(--col-left-${field}, ${leftOffsets[field]}px)` : undefined,
-                right: isRightPinned ? `var(--col-right-${field}, ${rightOffsets[field]}px)` : undefined,
+                left: isLeftPinned ? `var(--col-left-${field}, ${leftOffsets?.[field] ?? 0}px)` : undefined,
+                right: isRightPinned ? `var(--col-right-${field}, ${rightOffsets?.[field] ?? 0}px)` : undefined,
               }}
               className={cn(
                 "group/header relative text-xs font-semibold whitespace-nowrap text-foreground transition-colors select-none",
@@ -149,9 +150,9 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
                 {/* Sort Indicator */}
                 {sortable && (
                   <span className="text-muted-foreground group-hover/header:text-foreground transition-colors">
-                    {sortItem?.sort === "asc" ? (
+                    {sortDirection === "asc" ? (
                       <ArrowUp className="text-primary size-3" />
-                    ) : sortItem?.sort === "desc" ? (
+                    ) : sortDirection === "desc" ? (
                       <ArrowDown className="text-primary size-3" />
                     ) : (
                       <ArrowUpDown className="size-3 opacity-0 transition-opacity group-hover/header:opacity-60" />
@@ -165,7 +166,7 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
                 <div
                   role="separator"
                   aria-orientation="vertical"
-                  aria-label={t("aria_resize_column", { name: headerName ?? field })}
+                  aria-label={t("aria_resize_column", { name: headerName || field })}
                   onMouseDown={(e) => onResizeStart(field, currentWidth ?? 120, e)}
                   className="hover:bg-primary/50 absolute top-0 right-0 z-30 h-full w-2 cursor-col-resize opacity-0 transition-opacity group-hover/header:opacity-100"
                 >

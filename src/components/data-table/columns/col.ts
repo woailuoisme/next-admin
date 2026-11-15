@@ -1,4 +1,4 @@
-import { actionsCol } from "./action";
+import { actionsCol } from "./actions";
 import {
   badgeCol,
   colorCol,

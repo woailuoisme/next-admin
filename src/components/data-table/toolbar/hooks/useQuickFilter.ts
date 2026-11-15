@@ -9,13 +9,12 @@ export interface UseQuickFilterOptions {
 }
 
 export function useQuickFilter({ value = "", onChange, debounceWait = 250 }: UseQuickFilterOptions = {}) {
-  const [localSearch, setLocalSearch] = useState(value);
-  const [prevQuickFilter, setPrevQuickFilter] = useState(value);
+  const [draftState, setDraftState] = useState<{ baseValue: string; text: string } | null>(null);
+  const search = draftState && draftState.baseValue === value ? draftState.text : value;
 
-  if (prevQuickFilter !== value) {
-    setPrevQuickFilter(value);
-    setLocalSearch(value);
-  }
+  const setSearch = useMemoizedFn((text: string) => {
+    setDraftState({ baseValue: value, text });
+  });
 
   const debouncer = useDebouncer(
     (val: string) => {
@@ -25,19 +24,19 @@ export function useQuickFilter({ value = "", onChange, debounceWait = 250 }: Use
   );
 
   const handleSearchChange = useMemoizedFn((val: string) => {
-    setLocalSearch(val);
+    setDraftState({ baseValue: value, text: val });
     debouncer.maybeExecute(val);
   });
 
   const handleClearSearch = useMemoizedFn(() => {
     debouncer.cancel();
-    setLocalSearch("");
+    setDraftState({ baseValue: value, text: "" });
     onChange?.("");
   });
 
   return {
-    search: localSearch,
-    setSearch: setLocalSearch,
+    search,
+    setSearch,
     handleSearchChange,
     handleClearSearch,
   };

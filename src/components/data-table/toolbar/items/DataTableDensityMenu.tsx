@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Check, SlidersHorizontal } from "lucide-react";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,10 +12,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { NOOP } from "../../core/constants";
 import type { DataTableDensity } from "../../core/types";
 import type { DataTableDensityMenuProps } from "../types";
 
-export function DataTableDensityMenu({ density = "standard", onDensityChange = () => {} }: DataTableDensityMenuProps) {
+export const DataTableDensityMenu = memo(function DataTableDensityMenu({
+  density = "standard",
+  onDensityChange = NOOP,
+}: DataTableDensityMenuProps) {
   const t = useTranslations("table");
 
   const densityOptions = useMemo<Array<{ value: DataTableDensity; label: string }>>(
@@ -51,4 +55,4 @@ export function DataTableDensityMenu({ density = "standard", onDensityChange = (
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});

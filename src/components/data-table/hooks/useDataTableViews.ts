@@ -1,6 +1,7 @@
 import { useMemoizedFn } from "ahooks";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
+import { EMPTY_ARRAY } from "../core/constants";
 import type {
   DataTableDensity,
   DataTableFilterModel,
@@ -42,7 +43,7 @@ export function useDataTableViews<TData = any>({
   defaultActiveTab,
   onTabChange,
   savedViews: controlledSavedViews,
-  defaultSavedViews = [],
+  defaultSavedViews = EMPTY_ARRAY,
   onSavedViewsChange,
   storageKey,
   currentFilterModel,
@@ -59,7 +60,9 @@ export function useDataTableViews<TData = any>({
   const [uncontrolledActiveTab, setUncontrolledActiveTab] = useState<string>(initialTab);
 
   const isTabControlled = controlledActiveTab !== undefined;
-  const currentActiveTab = isTabControlled ? controlledActiveTab : uncontrolledActiveTab;
+  const rawActiveTab = isTabControlled ? controlledActiveTab : uncontrolledActiveTab;
+  const currentActiveTab =
+    tabs && tabs.length > 0 && !tabs.some((t) => t.id === rawActiveTab) ? tabs[0].id : rawActiveTab;
 
   const handleTabChange = useMemoizedFn((tabId: string) => {
     if (!isTabControlled) {
@@ -169,13 +172,6 @@ export function useDataTableViews<TData = any>({
     const nextViews = allViews.map((v) => (v.id === viewId ? { ...v, name: newName } : v));
     updateViews(nextViews);
   });
-
-  // Sync default tab if tabs change and activeTab is invalid
-  useEffect(() => {
-    if (tabs && tabs.length > 0 && !tabs.some((t) => t.id === currentActiveTab)) {
-      handleTabChange(tabs[0].id);
-    }
-  }, [tabs, currentActiveTab, handleTabChange]);
 
   return {
     // Tabs

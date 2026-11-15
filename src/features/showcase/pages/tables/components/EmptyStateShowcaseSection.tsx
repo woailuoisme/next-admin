@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Plus, RotateCcw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
-import { DataTable, type DataTableColDef, TableEmptyState } from "@/components/data-table";
+import { DataTable, type DataTableColDef } from "@/components/data-table/core";
+import { TableEmptyState } from "@/components/data-table/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -102,7 +103,7 @@ export function EmptyStateShowcaseSection({ columns }: EmptyStateShowcaseSection
           {showEmptyData && (
             <div className="border-border/60 bg-card overflow-hidden rounded-lg border">
               <DataTable
-                rows={[]}
+                data={[]}
                 columns={columns.slice(0, 5)}
                 getRowId={getShowcaseRowId}
                 hidePagination

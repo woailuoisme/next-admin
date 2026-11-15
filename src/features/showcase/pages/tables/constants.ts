@@ -1,4 +1,5 @@
-import type { DataTableFilterDefinition, DataTableSavedView, SelectCellOption } from "@/components/data-table";
+import type { SelectCellOption } from "@/components/data-table/cells/interactive/types";
+import type { DataTableFilterDefinition, DataTableSavedView } from "@/components/data-table/core";
 
 import type { ShowcaseItem } from "./types";
 

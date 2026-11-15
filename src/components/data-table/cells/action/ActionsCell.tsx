@@ -1,17 +1,13 @@
+import { useMemoizedFn } from "ahooks";
 import { useTranslations } from "next-intl";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { cn } from "cn";
 
 import type { ActionItem, ActionsCellProps } from "./types";
 
+import { JUSTIFY_ALIGN_CLASSES } from "../base";
 import { DropdownActionsMenu } from "./DropdownActionsMenu";
 import { QuickActionButton } from "./QuickActionButton";
-
-const ALIGN_CLASSES = {
-  left: "justify-start",
-  center: "justify-center",
-  right: "justify-end",
-} as const;
 
 const EMPTY_QUICK_ACTIONS: ActionItem<any>[] = [];
 const EMPTY_DROPDOWN_ACTIONS: ActionItem<any>[] = [];
@@ -38,35 +34,41 @@ function ActionsCellInner<TData = unknown>({
 
   const resolvedMoreActionsLabel = moreActionsLabel ?? t("actions_more");
 
-  const resolveActionItem = (a: ActionItem<TData>): ActionItem<TData> => {
-    // 全序回落：显式 label → CRUD 预设 → ariaLabel → 通用占位，保证渲染结果永不空白
-    const presetKey = a.id && a.id in CRUD_LABEL_KEYS ? CRUD_LABEL_KEYS[a.id as CrudActionId] : undefined;
-    const resolvedLabel = a.label ?? (presetKey ? t(presetKey) : undefined) ?? a.ariaLabel ?? t("actions_generic");
-    const labelString = typeof resolvedLabel === "string" ? resolvedLabel : undefined;
-    return {
-      ...a,
-      label: resolvedLabel,
-      ariaLabel: a.ariaLabel ?? labelString,
-      tooltip: a.tooltip ?? resolvedLabel,
+  const { inlineActions, overflowActions } = useMemo(() => {
+    const resolveActionItem = (a: ActionItem<TData>): ActionItem<TData> => {
+      // 全序回落：显式 label → CRUD 预设 → ariaLabel → 通用占位，保证渲染结果永不空白
+      const presetKey = a.id && a.id in CRUD_LABEL_KEYS ? CRUD_LABEL_KEYS[a.id as CrudActionId] : undefined;
+      const resolvedLabel = a.label ?? (presetKey ? t(presetKey) : undefined) ?? a.ariaLabel ?? t("actions_generic");
+      const labelString = typeof resolvedLabel === "string" ? resolvedLabel : undefined;
+      return {
+        ...a,
+        label: resolvedLabel,
+        ariaLabel: a.ariaLabel ?? labelString,
+        tooltip: a.tooltip ?? resolvedLabel,
+      };
     };
-  };
 
-  // Filter out hidden actions and resolve labels
-  const visibleQuick = quickActions
-    .filter((a) => (typeof a.hidden === "function" ? !a.hidden(row) : !a.hidden))
-    .map(resolveActionItem);
-  const visibleDropdown = dropdownActions
-    .filter((a) => (typeof a.hidden === "function" ? !a.hidden(row) : !a.hidden))
-    .map(resolveActionItem);
+    const visibleQuick = quickActions
+      .filter((a) => (typeof a.hidden === "function" ? !a.hidden(row) : !a.hidden))
+      .map(resolveActionItem);
+    const visibleDropdown = dropdownActions
+      .filter((a) => (typeof a.hidden === "function" ? !a.hidden(row) : !a.hidden))
+      .map(resolveActionItem);
 
-  // Partition if visibleQuick exceeds maxQuickActions
-  const inlineActions = visibleQuick.slice(0, maxQuickActions);
-  const overflowActions = [...visibleQuick.slice(maxQuickActions), ...visibleDropdown];
+    return {
+      inlineActions: visibleQuick.slice(0, maxQuickActions),
+      overflowActions: [...visibleQuick.slice(maxQuickActions), ...visibleDropdown],
+    };
+  }, [quickActions, dropdownActions, maxQuickActions, row, t]);
+
+  const handleStopPropagation = useMemoizedFn((e: React.MouseEvent) => {
+    e.stopPropagation();
+  });
 
   return (
     <div
-      className={cn("flex items-center gap-1", ALIGN_CLASSES[align], className)}
-      onClick={(e) => e.stopPropagation()}
+      className={cn("flex items-center gap-1", JUSTIFY_ALIGN_CLASSES[align], className)}
+      onClick={handleStopPropagation}
     >
       {inlineActions.map((action, index) => (
         <QuickActionButton

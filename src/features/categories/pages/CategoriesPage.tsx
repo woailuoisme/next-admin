@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 
-import { useResourceManagement } from "@/components/data-table";
+import { useResourceManagement } from "@/components/data-table/hooks/useResourceManagement";
 import { DeleteDialog } from "@/components/dialogs";
 import { Button } from "@/components/ui/button";
 
@@ -21,29 +21,27 @@ export interface CategoriesPageProps {
   onDeleteCategory?: (categoryId: string) => void;
 }
 
-export function CategoriesPage({
-  search = {},
-  onCreateCategory,
-  onEditCategory,
-  onDeleteCategory,
-}: CategoriesPageProps) {
+export function CategoriesPage({ search, onCreateCategory, onEditCategory, onDeleteCategory }: CategoriesPageProps) {
   const t = useTranslations("categories");
-  const { rows, total, isLoading, modal, activeEditItem, isFormOpen, handleFormOpenChange, deleteDialogProps } =
-    useResourceManagement<Category, CategorySearchParams>({
-      search,
-      entityName: "Category",
-      queryOptions: categoryQueries.list,
-      deleteMutationFn: deleteCategoryApi,
-      invalidateQueryKeys: [categoryQueries.all()],
-      modalKeys: {
-        createKey: "createCategory",
-        editKey: "editCategoryId",
-        deleteKey: "deleteCategoryId",
-      },
-      onOpenCreate: onCreateCategory,
-      onOpenEdit: onEditCategory,
-      onOpenDelete: onDeleteCategory,
-    });
+  const { state, modal, activeEditItem, isFormOpen, handleFormOpenChange, deleteDialogProps } = useResourceManagement<
+    Category,
+    CategorySearchParams
+  >({
+    search,
+    entityName: "Category",
+    queryOptions: categoryQueries.list,
+    paginationMode: "client",
+    deleteMutationFn: deleteCategoryApi,
+    invalidateQueryKeys: [categoryQueries.all()],
+    modalKeys: {
+      createKey: "createCategory",
+      editKey: "editCategoryId",
+      deleteKey: "deleteCategoryId",
+    },
+    onOpenCreate: onCreateCategory,
+    onOpenEdit: onEditCategory,
+    onOpenDelete: onDeleteCategory,
+  });
 
   return (
     <div className="space-y-6">
@@ -59,13 +57,7 @@ export function CategoriesPage({
       </div>
 
       {/* Enterprise CategoryTable */}
-      <CategoryTable
-        categories={rows}
-        total={total}
-        loading={isLoading}
-        onEditCategory={modal.openEdit}
-        onDeleteCategory={modal.openDelete}
-      />
+      <CategoryTable state={state} onEditCategory={modal.openEdit} onDeleteCategory={modal.openDelete} />
 
       {/* Singleton Category Form Dialog (Create & Edit) */}
       <CategoryFormDialog open={isFormOpen} onOpenChange={handleFormOpenChange} categoryToEdit={activeEditItem} />

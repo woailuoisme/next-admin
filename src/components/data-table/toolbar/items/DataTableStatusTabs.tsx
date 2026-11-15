@@ -29,18 +29,13 @@ function DataTableStatusTabsInner<TData = any>({
         className,
       )}
     >
-      <Tabs value={activeTab} onValueChange={onTabChange}>
+      <Tabs value={activeTab} onValueChange={onTabChange} activationMode="manual">
         <TabsList className="bg-muted/60 h-8.5 p-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = tab.id === activeTab;
             return (
-              <TabsTrigger
-                key={tab.id}
-                value={tab.id}
-                onClick={() => onTabChange(tab.id)}
-                className="cursor-pointer gap-1.5 px-2.5 py-1 text-xs"
-              >
+              <TabsTrigger key={tab.id} value={tab.id} className="cursor-pointer gap-1.5 px-2.5 py-1 text-xs">
                 {Icon ? <Icon className="size-3.5 shrink-0" /> : null}
                 <span>{tab.label}</span>
                 {tab.badge !== undefined ? (

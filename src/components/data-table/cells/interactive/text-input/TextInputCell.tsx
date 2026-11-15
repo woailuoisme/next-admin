@@ -25,21 +25,14 @@ function TextInputCellInner<TData = unknown>({
   align = "left",
   className,
 }: TextInputCellProps<TData>) {
-  const initialVal = !isNil(value) ? String(value) : "";
+  const externalVal = !isNil(value) ? String(value) : "";
   const [isEditing, setIsEditing] = useState(false);
-  const [currentVal, setCurrentVal] = useState(initialVal);
-  const [savedVal, setSavedVal] = useState(initialVal);
-  const [prevValue, setPrevValue] = useState(value);
+  const [currentVal, setCurrentVal] = useState(externalVal);
+  const [savedOverride, setSavedOverride] = useState<{ baseValue: unknown; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | undefined>();
 
-  if (value !== prevValue) {
-    setPrevValue(value);
-    const nextStr = !isNil(value) ? String(value) : "";
-    setCurrentVal(nextStr);
-    setSavedVal(nextStr);
-    setErrorMsg(undefined);
-  }
+  const savedVal = savedOverride && Object.is(savedOverride.baseValue, value) ? savedOverride.text : externalVal;
 
   const validateValue = useMemoizedFn((val: string): string | undefined => {
     if (schema) {
@@ -84,7 +77,7 @@ function TextInputCellInner<TData = unknown>({
     setErrorMsg(undefined);
     setIsEditing(false);
     const previous = savedVal;
-    setSavedVal(currentVal);
+    setSavedOverride({ baseValue: value, text: currentVal });
 
     if (onCellChange) {
       try {
@@ -95,7 +88,7 @@ function TextInputCellInner<TData = unknown>({
         }
       } catch (err) {
         // Rollback on error
-        setSavedVal(previous);
+        setSavedOverride({ baseValue: value, text: previous });
         setCurrentVal(previous);
         if (showErrorToast) {
           const msg =
@@ -117,6 +110,7 @@ function TextInputCellInner<TData = unknown>({
   });
 
   const handleStartEdit = useMemoizedFn(() => {
+    setCurrentVal(savedVal);
     setErrorMsg(undefined);
     setIsEditing(true);
   });

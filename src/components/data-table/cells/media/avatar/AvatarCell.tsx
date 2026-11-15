@@ -4,7 +4,7 @@ import { cn } from "cn";
 
 import type { AvatarCellProps } from "./types";
 
-import { AVATAR_ALIGN_CLASSES } from "../../base";
+import { TEXT_ALIGN_CLASSES } from "../../base";
 import { StackedAvatarGroup } from "./AvatarGroup";
 import { AvatarThumb } from "./AvatarThumb";
 
@@ -26,7 +26,7 @@ function AvatarCellInner({
   // 1. Stacked Avatar Group Mode
   if (stacked && stacked.length > 0) {
     return (
-      <div className={cn("flex items-center", AVATAR_ALIGN_CLASSES[align], className)}>
+      <div className={cn("flex items-center", TEXT_ALIGN_CLASSES[align], className)}>
         <StackedAvatarGroup items={stacked} maxStacked={maxStacked} size={size} shape={shape} />
       </div>
     );
@@ -47,11 +47,11 @@ function AvatarCellInner({
   );
 
   if (!name && !subtext) {
-    return <div className={cn("flex items-center", AVATAR_ALIGN_CLASSES[align], className)}>{avatarElement}</div>;
+    return <div className={cn("flex items-center", TEXT_ALIGN_CLASSES[align], className)}>{avatarElement}</div>;
   }
 
   return (
-    <div className={cn("flex max-w-full min-w-0 items-center gap-2.5", AVATAR_ALIGN_CLASSES[align], className)}>
+    <div className={cn("flex max-w-full min-w-0 items-center gap-2.5", TEXT_ALIGN_CLASSES[align], className)}>
       {avatarElement}
       <div className="flex min-w-0 flex-col truncate">
         {name && <span className="text-foreground truncate text-xs leading-tight font-medium">{name}</span>}

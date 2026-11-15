@@ -1,34 +1,14 @@
-// Core Data Table
+// Root entry intentionally kept minimal to enforce subpath imports and prevent barrel bloat.
+// Prefer importing from "@/components/data-table/core", "@/components/data-table/adapters",
+// "@/components/data-table/columns/*", "@/components/data-table/cells/*", or "@/components/data-table/hooks/*".
 export { DataTable } from "./core/DataTable";
-export {
-  DataTableProvider,
-  useDataTableContext,
-  useOptionalDataTableContext,
-  type DataTableContextValue,
-} from "./core/DataTableContext";
-export * from "./core/types";
-export * from "./core/constants";
-export { baseTableSearchSchema, type BaseTableSearchParams } from "./core/tableSearchSchema";
-
-// Resource Table
-export { ResourceTable, type ResourceTableProps } from "./resource-table/ResourceTable";
-
-// Hooks
-export { useResourceTable, type UseResourceTableOptions, type UseResourceTableReturn } from "./hooks/useResourceTable";
-export * from "./hooks";
-
-// Columns & Cells
-export * from "./columns";
-export * from "./cells";
-
-// Empty State
-export { TableEmptyState, type TableEmptyStateProps } from "./empty-state";
-
-// Toolbar
-export { DataTableToolbar } from "./toolbar/DataTableToolbar";
-
-// Footer & Summary
-export { DataTableSummaryRow, type DataTableSummaryRowProps } from "./footer/DataTableSummaryRow";
-
-// Dialog state helpers
-export { useResourceModalState, type UseResourceModalStateOptions, type ResourceModalState } from "../dialogs";
+export type {
+  DataTableColDef,
+  DataTableFilterDefinition,
+  DataTableFilterLayout,
+  DataTableProps,
+  DataTableRenderCellParams,
+  DataTableSavedView,
+  DataTableTabItem,
+  TableStateAdapter,
+} from "./core/types";

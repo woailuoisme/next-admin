@@ -1,7 +1,10 @@
 import { Download } from "lucide-react";
 import { useMemo } from "react";
 
-import { col, type DataTableColDef, exportRowsAsJson, ResourceTable } from "@/components/data-table";
+import { useResolvedTableState } from "@/components/data-table/adapters";
+import { col } from "@/components/data-table/columns/col";
+import { DataTable, type DataTableColDef, type TableStateAdapter } from "@/components/data-table/core";
+import { exportRowsAsJson } from "@/components/data-table/hooks/useDataTableExport";
 import { Button } from "@/components/ui/button";
 
 import type { Category } from "../types";
@@ -10,6 +13,7 @@ import { categoryQueries } from "../queries";
 import { useTranslations } from "next-intl";
 
 export interface CategoryTableProps {
+  state?: TableStateAdapter<Category>;
   categories?: Category[];
   loading?: boolean;
   total?: number;
@@ -33,8 +37,24 @@ const getCategoryRowId = (c: Category) => c.id;
 const exportCategoriesJson = (selectedRows: Category[], clearSelection: () => void) =>
   exportRowsAsJson(selectedRows, `categories-${selectedRows.length}.json`, clearSelection);
 
-export function CategoryTable({ categories, loading, total, onEditCategory, onDeleteCategory }: CategoryTableProps) {
+export function CategoryTable({
+  state,
+  categories,
+  loading,
+  total,
+  onEditCategory,
+  onDeleteCategory,
+}: CategoryTableProps) {
   const t = useTranslations("categories");
+
+  const resolvedState = useResolvedTableState<Category>({
+    state,
+    data: categories,
+    total,
+    loading,
+    queryOptions: categoryQueries.list,
+    paginationMode: "client",
+  });
 
   const columns = useMemo<DataTableColDef<Category>[]>(
     () => [
@@ -73,15 +93,11 @@ export function CategoryTable({ categories, loading, total, onEditCategory, onDe
   );
 
   return (
-    <ResourceTable<Category>
-      queryOptions={!categories ? categoryQueries.list : undefined}
-      data={categories}
-      loading={loading}
-      total={total}
+    <DataTable<Category>
+      state={resolvedState}
       columns={columns}
       getRowId={getCategoryRowId}
       checkboxSelection
-      paginationMode="client"
       pinnedColumns={PINNED_COLUMNS}
       slotProps={SLOT_PROPS}
       batchActions={(selectedRows, clearSelection) => (

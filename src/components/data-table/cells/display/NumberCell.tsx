@@ -7,7 +7,7 @@ import { cn } from "cn";
 
 import type { NumberCellProps } from "./types";
 
-import { AVATAR_ALIGN_CLASSES, TEXT_ALIGN_CLASSES } from "../base";
+import { STACK_ALIGN_CLASSES, TEXT_ALIGN_CLASSES } from "../base";
 
 type NumberFormatter = ReturnType<typeof useFormatter>;
 
@@ -91,11 +91,13 @@ export const NumberCell = memo(function NumberCell({
   currency = "$",
   currencyCode,
   precision = 2,
+  decimals,
   compact = false,
   accounting = false,
   prefix,
   suffix,
   trend = false,
+  colorize,
   delta,
   deltaType = "auto",
   deltaDescription,
@@ -109,10 +111,12 @@ export const NumberCell = memo(function NumberCell({
     return <span className="text-muted-foreground/40 text-xs italic">-</span>;
   }
 
+  const effectivePrecision = decimals ?? precision;
+  const effectiveTrend = colorize ?? trend;
   const isPositive = value > 0;
   const isNegative = value < 0;
-  const formattedNumber = formatValue(format, value, mode, precision, compact, accounting, currencyCode);
-  const trendColor = getTrendColor(trend, isPositive, isNegative);
+  const formattedNumber = formatValue(format, value, mode, effectivePrecision, compact, accounting, currencyCode);
+  const trendColor = getTrendColor(effectiveTrend, isPositive, isNegative);
   const resolvedDeltaType = resolveDeltaType(delta, deltaType);
 
   const numberRow = (
@@ -123,8 +127,10 @@ export const NumberCell = memo(function NumberCell({
         trendColor,
       )}
     >
-      {trend && isPositive && <ArrowUpRight className={`size-3.5 shrink-0 stroke-[2.5] ${TREND_ICON_CLASSES.up}`} />}
-      {trend && isNegative && (
+      {effectiveTrend && isPositive && (
+        <ArrowUpRight className={`size-3.5 shrink-0 stroke-[2.5] ${TREND_ICON_CLASSES.up}`} />
+      )}
+      {effectiveTrend && isNegative && (
         <ArrowDownRight className={`size-3.5 shrink-0 stroke-[2.5] ${TREND_ICON_CLASSES.down}`} />
       )}
 
@@ -146,7 +152,7 @@ export const NumberCell = memo(function NumberCell({
     const deltaText = typeof delta === "number" ? `${resolvedDeltaPrefix}${delta}%` : `${resolvedDeltaPrefix}${delta}`;
 
     return (
-      <div className={cn("flex flex-col", AVATAR_ALIGN_CLASSES[align], className)}>
+      <div className={cn("flex flex-col", STACK_ALIGN_CLASSES[align], className)}>
         {numberRow}
         <div
           className={cn(

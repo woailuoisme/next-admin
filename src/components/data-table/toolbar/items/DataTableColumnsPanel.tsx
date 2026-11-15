@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 
 import type { DataTableColDef } from "../../core/types";
 import type { DataTableColumnsPanelProps } from "../types";
+import { isSystemColumn } from "../filters/utils";
 
 export type { DataTableColumnsPanelProps };
 
@@ -25,19 +26,15 @@ function DataTableColumnsPanelInner<TData = unknown>({
   const [search, setSearch] = useState("");
 
   const toggleableColumns = useMemo(() => {
-    return columns.filter(
-      (col: DataTableColDef<TData>) =>
-        col.field !== "__checkbox__" &&
-        col.field !== "__actions__" &&
-        col.field !== "__actions" &&
-        col.field !== "actions",
-    );
+    return columns.filter((col: DataTableColDef<TData>) => !isSystemColumn(col));
   }, [columns]);
 
   const filteredColumns = useMemo(() => {
     if (!search.trim()) return toggleableColumns;
     const s = search.toLowerCase();
-    return toggleableColumns.filter((col: DataTableColDef<TData>) => col.headerName.toLowerCase().includes(s));
+    return toggleableColumns.filter((col: DataTableColDef<TData>) =>
+      (col.headerName || col.field).toLowerCase().includes(s),
+    );
   }, [toggleableColumns, search]);
 
   const handleToggle = useMemoizedFn((field: string, checked: boolean) => {
@@ -121,7 +118,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
                   key={col.id ?? `${col.field}_${idx}`}
                   className="hover:bg-muted/50 flex cursor-pointer items-center justify-between rounded-md p-1.5 text-xs transition-colors"
                 >
-                  <span className="text-foreground truncate">{col.headerName}</span>
+                  <span className="text-foreground truncate">{col.headerName || col.field}</span>
                   <Checkbox checked={isVisible} onCheckedChange={(val) => handleToggle(col.field, Boolean(val))} />
                 </label>
               );

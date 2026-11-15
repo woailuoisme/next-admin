@@ -1,40 +1,45 @@
 import { useTranslations } from "next-intl";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMemoizedFn } from "ahooks";
+import dynamic from "next/dynamic";
 import { useMemo, useRef, useState } from "react";
 
 import { Table, TableFooter } from "@/components/ui/table";
 import { cn } from "cn";
 
-import type {
-  DataTableDensity,
-  DataTableFilterModel,
-  DataTablePaginationModel,
-  DataTableProps,
-  DataTableRowSelectionModel,
-} from "./types";
+import type { DataTableBatchActionBarProps } from "../footer/DataTableBatchActionBar";
+import type { DataTableSummaryRowProps } from "../footer/DataTableSummaryRow";
+import type { DataTableFilterPanelProps } from "../toolbar/filters/types";
+import type { DataTableDensity, DataTablePaginationModel, DataTableProps, DataTableRowSelectionModel } from "./types";
 
 import { DataTableBody } from "../body/DataTableBody";
-import { DataTableBatchActionBar } from "../footer/DataTableBatchActionBar";
 import { DataTablePagination } from "../footer/DataTablePagination";
-import { DataTableSummaryRow } from "../footer/DataTableSummaryRow";
 import { DataTableHeader } from "../header/DataTableHeader";
-import {
-  resolveNextSortDirection,
-  useDataTableExpansion,
-  useDataTableExport,
-  useDataTableFiltering,
-  useDataTablePinning,
-  useDataTableResize,
-  useDataTableSelection,
-  useDataTableSorting,
-  useDataTableViews,
-} from "../hooks";
+import { useDataTableExpansion } from "../hooks/useDataTableExpansion";
+import { useDataTableExport } from "../hooks/useDataTableExport";
+import { useDataTableFiltering } from "../hooks/useDataTableFiltering";
+import { useDataTablePinning } from "../hooks/useDataTablePinning";
+import { useDataTableResize } from "../hooks/useDataTableResize";
+import { useDataTableSelection } from "../hooks/useDataTableSelection";
+import { resolveNextSortDirection, useDataTableSorting } from "../hooks/useDataTableSorting";
+import { useDataTableViews } from "../hooks/useDataTableViews";
 import { DataTableBackdropLoader } from "../overlays/DataTableOverlays";
-import { DataTableFilterPanel } from "../toolbar";
+import { isSystemColumn } from "../toolbar/filters/utils";
 import { DataTableToolbar } from "../toolbar/DataTableToolbar";
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, defaultGetRowId, EMPTY_ARRAY, EMPTY_RECORD } from "./constants";
-import { type DataTableContextValue, DataTableProvider } from "./DataTableContext";
+import { type DataTableConfigContextValue, DataTableProvider } from "./DataTableContext";
+
+const LazyBatchActionBar = dynamic(() =>
+  import("../footer/DataTableBatchActionBar").then((mod) => mod.DataTableBatchActionBar),
+) as <TData = unknown>(props: DataTableBatchActionBarProps<TData>) => React.ReactNode;
+
+const LazySummaryRow = dynamic(() =>
+  import("../footer/DataTableSummaryRow").then((mod) => mod.DataTableSummaryRow),
+) as <TData = unknown>(props: DataTableSummaryRowProps<TData>) => React.ReactNode;
+
+const LazyFilterPanel = dynamic(() =>
+  import("../toolbar/filters/FilterRegistry").then((mod) => mod.DataTableFilterPanel),
+) as <TData = any>(props: DataTableFilterPanelProps<TData>) => React.ReactNode;
 
 const DENSITY_ROW_CLASSES: Record<DataTableDensity, string> = {
   compact: "h-9 py-1 text-xs",
@@ -51,7 +56,6 @@ const DENSITY_ROW_HEIGHTS: Record<DataTableDensity, number> = {
 
 export function DataTable<TData extends Record<string, any> = Record<string, any>>({
   state,
-  rows: rawRows,
   data: propData,
   columns,
   getRowId = defaultGetRowId<TData>,
@@ -65,25 +69,17 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   isRowSelectable,
 
   // Row Expansion
-  expansionProps,
-  renderExpandedRow: propRenderExpandedRow,
-  expandedRowIds: propExpandedRowIds,
-  defaultExpandedRowIds: propDefaultExpandedRowIds,
-  onExpandedRowsChange: propOnExpandedRowsChange,
-  isRowExpandable: propIsRowExpandable,
-  expandOnRowClick: propExpandOnRowClick,
-  singleExpand: propSingleExpand,
+  renderExpandedRow,
+  expandedRowIds: controlledExpandedRowIds,
+  defaultExpandedRowIds,
+  onExpandedRowsChange,
+  isRowExpandable,
+  expandOnRowClick,
+  singleExpand,
 
   // Pagination
-  pagination,
-  initialPaginationModel,
   paginationMode: propPaginationMode = "client",
-  rowCount: customRowCount,
-  total: propTotal,
-  page: propPage,
   pageSize: propPageSize,
-  onPageChange: propOnPageChange,
-  onPageSizeChange: propOnPageSizeChange,
   paginationModel: controlledPaginationModel,
   onPaginationModelChange,
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
@@ -91,16 +87,14 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   paginationVariant = "capsule",
 
   // Sorting
-  sortingMode = "client",
+  sortingMode: propSortingMode = "client",
   sortModel: propSortModel,
-  onSortModelChange,
-  onSortChange: propOnSortChange,
+  onSortModelChange: propOnSortModelChange,
 
   // Filtering
-  filterMode = "client",
+  filterMode: propFilterMode = "client",
   filterModel: propFilterModel,
-  onFilterModelChange,
-  onSearchChange: propOnSearchChange,
+  onFilterModelChange: propOnFilterModelChange,
   filterConfig,
   filters,
 
@@ -149,21 +143,16 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   const resolvedNoResultsMessage = noResultsMessage ?? t("no_results_heading");
   const resolvedResetFiltersText = resetFiltersText ?? t("reset_filters_action");
 
-  // Reconcile unified TableStateAdapter seam with backward-compatible loose props
-  const rows = state?.data ?? propData ?? rawRows ?? (EMPTY_ARRAY as unknown as TData[]);
+  // Reconcile unified TableStateAdapter seam with standalone direct props
+  const rows = state?.data ?? propData ?? (EMPTY_ARRAY as unknown as TData[]);
   const loading = state?.loading ?? propLoading;
   const paginationMode = state?.paginationMode ?? propPaginationMode;
+  const sortingMode = state?.paginationMode === "server" ? "server" : propSortingMode;
+  const filterMode = state?.paginationMode === "server" ? "server" : propFilterMode;
   const controlledSortModel = state?.sortModel ?? propSortModel;
   const controlledFilterModel = state?.filterModel ?? propFilterModel;
-
-  // ==================== Resolved Expansion Options ====================
-  const renderExpandedRow = propRenderExpandedRow ?? expansionProps?.renderExpandedRow;
-  const controlledExpandedRowIds = propExpandedRowIds ?? expansionProps?.expandedRowIds;
-  const defaultExpandedRowIds = propDefaultExpandedRowIds ?? expansionProps?.defaultExpandedRowIds;
-  const onExpandedRowsChange = propOnExpandedRowsChange ?? expansionProps?.onExpandedRowsChange;
-  const isRowExpandable = propIsRowExpandable ?? expansionProps?.isRowExpandable;
-  const expandOnRowClick = propExpandOnRowClick ?? expansionProps?.expandOnRowClick;
-  const singleExpand = propSingleExpand ?? expansionProps?.singleExpand;
+  const onSortModelChange = state?.onSortModelChange ?? propOnSortModelChange;
+  const onFilterModelChange = state?.onFilterModelChange ?? propOnFilterModelChange;
 
   // ==================== Density State ====================
   const [internalDensity, setInternalDensity] = useState<DataTableDensity>("standard");
@@ -187,7 +176,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   // ==================== Column Normalization ====================
   const normalizedColumns = useMemo(() => {
     return columns.map((col) => {
-      const isActionCol = col.field === "actions" || col.field === "__actions" || col.field === "__actions__";
+      const isActionCol = isSystemColumn(col);
       return {
         ...col,
         sortable: col.sortable ?? !isActionCol,
@@ -207,9 +196,12 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const { columnWidths, handleResizeStart } = useDataTableResize({
-    columns: normalizedColumns,
+    columns: visibleColumns,
     storageKey,
     containerRef: tableContainerRef,
+    pinnedColumns,
+    checkboxSelection,
+    hasExpandColumn: Boolean(renderExpandedRow),
   });
 
   // ==================== Sorting (useDataTableSorting) ====================
@@ -229,7 +221,6 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     baseHandleSortClick(field);
     const nextDir = resolveNextSortDirection(sortModel, field);
     state?.onSortChange?.(field, nextDir);
-    propOnSortChange?.(field, nextDir);
   });
 
   // ==================== Filtering (useDataTableFiltering) ====================
@@ -239,6 +230,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     filteredRows,
     handleFilterModelChange,
     handleQuickFilterChange: baseHandleQuickFilterChange,
+    handleResetFilters: baseHandleResetFilters,
   } = useDataTableFiltering({
     rows,
     columns: normalizedColumns,
@@ -249,20 +241,29 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   });
 
   const handleQuickFilterChange = useMemoizedFn((val: string) => {
+    if (state?.onSearchChange && controlledFilterModel !== undefined) {
+      state.onSearchChange(val);
+      return;
+    }
     baseHandleQuickFilterChange(val);
     state?.onSearchChange?.(val);
-    propOnSearchChange?.(val);
   });
 
-  const isFiltered = Boolean(quickFilterText.trim() || (filterModel.items && filterModel.items.length > 0));
+  const isFiltered = Boolean(
+    quickFilterText.trim() ||
+    (filterModel.quickFilterValues && filterModel.quickFilterValues.length > 0) ||
+    (filterModel.items && filterModel.items.length > 0),
+  );
 
   const handleResetFilters = useMemoizedFn(() => {
-    handleFilterModelChange({ items: EMPTY_ARRAY as unknown as DataTableFilterModel["items"] });
-    handleQuickFilterChange("");
+    baseHandleResetFilters();
+    if (state?.onSearchChange && !state?.onFilterModelChange) {
+      state.onSearchChange("");
+    }
   });
 
   // ==================== Row Expansion (useDataTableExpansion) ====================
-  const { expandedRowIds, toggleRowExpanded } = useDataTableExpansion({
+  const { expandedSet, toggleRowExpanded } = useDataTableExpansion({
     expandedRowIds: controlledExpandedRowIds,
     defaultExpandedRowIds,
     onExpandedRowsChange,
@@ -305,14 +306,12 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
 
   // ==================== Pagination State ====================
   const [internalPagination, setInternalPagination] = useState<DataTablePaginationModel>({
-    page: state?.page ?? propPage ?? initialPaginationModel?.page ?? pagination?.page ?? 1,
-    pageSize:
-      state?.pageSize ?? propPageSize ?? initialPaginationModel?.pageSize ?? pagination?.pageSize ?? DEFAULT_PAGE_SIZE,
+    page: state?.page ?? 1,
+    pageSize: state?.pageSize ?? propPageSize ?? DEFAULT_PAGE_SIZE,
   });
 
-  const effectivePage = state?.page ?? propPage ?? controlledPaginationModel?.page ?? internalPagination.page;
-  const effectivePageSize =
-    state?.pageSize ?? propPageSize ?? controlledPaginationModel?.pageSize ?? internalPagination.pageSize;
+  const effectivePage = state?.page ?? controlledPaginationModel?.page ?? internalPagination.page;
+  const effectivePageSize = state?.pageSize ?? controlledPaginationModel?.pageSize ?? internalPagination.pageSize;
 
   const paginationModel = useMemo(
     () => ({ page: effectivePage, pageSize: effectivePageSize }),
@@ -323,17 +322,14 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     setInternalPagination(model);
     if (model.page !== effectivePage) {
       state?.onPageChange?.(model.page);
-      propOnPageChange?.(model.page);
     }
     if (model.pageSize !== effectivePageSize) {
       state?.onPageSizeChange?.(model.pageSize);
-      propOnPageSizeChange?.(model.pageSize);
     }
     onPaginationModelChange?.(model);
   });
 
-  const totalRowCount =
-    paginationMode === "server" ? (state?.total ?? propTotal ?? customRowCount ?? rows.length) : processedRows.length;
+  const totalRowCount = paginationMode === "server" ? (state?.total ?? rows.length) : processedRows.length;
 
   const pagedRows = useMemo(() => {
     if (paginationMode === "server") {
@@ -350,7 +346,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   });
 
   const {
-    selection,
+    selectionSet,
     selectedFullRows,
     isAllPageSelected,
     isSomePageSelected,
@@ -430,23 +426,20 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     return styles;
   }, [visibleColumns, columnWidths, leftOffsets, rightOffsets]);
 
-  // Context Provider Value for deep tree re-render isolation & zero props-drilling
-  const contextValue = useMemo<DataTableContextValue<TData>>(
+  // Static Config Context Value for deep tree re-render isolation & zero prop-drilling
+  // Volatile widths/offsets live on container CSS variables (LayoutSeam); selection/expansion sets flow to Body.
+  const contextValue = useMemo<DataTableConfigContextValue<TData>>(
     () => ({
       columns: normalizedColumns,
       visibleColumns,
-      columnWidths,
       pinnedLeftFields,
       pinnedRightFields,
-      leftOffsets,
-      rightOffsets,
       density,
       densityRowClass,
       checkboxSelection,
       getRowId,
       isRowSelectable,
       renderExpandedRow,
-      expandedRowIds,
       isRowExpandable,
       expandOnRowClick,
       toggleRowExpanded,
@@ -466,18 +459,14 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     [
       normalizedColumns,
       visibleColumns,
-      columnWidths,
       pinnedLeftFields,
       pinnedRightFields,
-      leftOffsets,
-      rightOffsets,
       density,
       densityRowClass,
       checkboxSelection,
       getRowId,
       isRowSelectable,
       renderExpandedRow,
-      expandedRowIds,
       isRowExpandable,
       expandOnRowClick,
       toggleRowExpanded,
@@ -541,7 +530,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
         {/* Inline Above-Content Filters */}
         {filterConfig?.layout === "aboveContent" && (
           <div className="border-border/50 bg-card/30 border-b p-2.5">
-            <DataTableFilterPanel
+            <LazyFilterPanel
               columns={normalizedColumns}
               filterModel={filterModel}
               onFilterModelChange={handleFilterModelChange}
@@ -567,65 +556,27 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
 
           <Table className={cn("w-full border-collapse", tableClassName)} aria-busy={loading}>
             <DataTableHeader
-              visibleColumns={visibleColumns}
-              checkboxSelection={checkboxSelection}
-              hasExpandColumn={Boolean(renderExpandedRow)}
               isAllPageSelected={isAllPageSelected}
               isSomePageSelected={isSomePageSelected}
               onSelectAll={onSelectAllOnPage}
-              columnWidths={columnWidths}
-              pinnedLeftFields={pinnedLeftFields}
-              pinnedRightFields={pinnedRightFields}
-              leftOffsets={leftOffsets}
-              rightOffsets={rightOffsets}
               sortModel={sortModel}
-              onSortClick={handleSortClick}
-              onResizeStart={handleResizeStart}
             />
 
             <DataTableBody
               loading={loading}
               virtualize={virtualize}
               pagedRows={pagedRows}
-              visibleColumns={visibleColumns}
-              getRowId={getRowId}
-              selection={selection}
-              checkboxSelection={checkboxSelection}
-              isRowSelectable={isRowSelectable}
-              renderExpandedRow={renderExpandedRow}
-              expandedRowIds={expandedRowIds}
-              toggleRowExpanded={toggleRowExpanded}
-              isRowExpandable={isRowExpandable}
-              expandOnRowClick={expandOnRowClick}
-              pinnedLeftFields={pinnedLeftFields}
-              pinnedRightFields={pinnedRightFields}
-              leftOffsets={leftOffsets}
-              rightOffsets={rightOffsets}
-              columnWidths={columnWidths}
-              densityRowClass={densityRowClass}
+              selectionSet={selectionSet}
+              expandedSet={renderExpandedRow ? expandedSet : undefined}
               rowVirtualizer={rowVirtualizer}
-              emptyState={emptyState}
-              emptyMessage={resolvedEmptyMessage}
-              noResultsMessage={resolvedNoResultsMessage}
-              resetFiltersText={resolvedResetFiltersText}
-              loadingText={resolvedLoadingText}
               isFiltered={isFiltered}
               onResetFilters={handleResetFilters}
               skeletonRowCount={paginationModel.pageSize}
-              slots={slots}
-              onSelectRow={handleSelectRow}
-              onRowClick={onRowClick}
             />
 
             {summaryRow && pagedRows.length > 0 && !loading ? (
               <TableFooter className="border-border/80 bg-muted/90 sticky bottom-0 z-20 border-t-2 backdrop-blur-xs">
-                <DataTableSummaryRow
-                  columns={visibleColumns}
-                  rows={processedRows}
-                  checkboxSelection={checkboxSelection}
-                  hasExpandColumn={Boolean(renderExpandedRow)}
-                  summaryLabel={summaryLabel}
-                />
+                <LazySummaryRow rows={processedRows} />
               </TableFooter>
             ) : null}
           </Table>
@@ -644,7 +595,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
 
         {/* Floating Batch Action Bar */}
         {checkboxSelection && selectedFullRows.length > 0 ? (
-          <DataTableBatchActionBar
+          <LazyBatchActionBar
             selectedRows={selectedFullRows}
             onClearSelection={clearSelection}
             batchActions={batchActions}

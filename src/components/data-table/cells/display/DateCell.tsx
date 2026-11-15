@@ -10,7 +10,7 @@ import { cn } from "cn";
 
 import type { DateCellProps } from "./types";
 
-import { AVATAR_ALIGN_CLASSES, TEXT_ALIGN_CLASSES } from "../base";
+import { STACK_ALIGN_CLASSES, TEXT_ALIGN_CLASSES } from "../base";
 
 function parseDate(value: Date | number | string): Date {
   if (value instanceof Date) return value;
@@ -22,6 +22,7 @@ export const DateCell = memo(function DateCell({
   value,
   format: formatStr = "yyyy-MM-dd HH:mm",
   relative = false,
+  showTooltip = true,
   dualLine = false,
   primaryFormat = "relative",
   showIcon = false,
@@ -64,7 +65,7 @@ export const DateCell = memo(function DateCell({
     const secondaryText = isRelativePrimary ? customFormatted : relativeString;
 
     return (
-      <div className={cn("flex max-w-full flex-col leading-tight", AVATAR_ALIGN_CLASSES[align], className)}>
+      <div className={cn("flex max-w-full flex-col leading-tight", STACK_ALIGN_CLASSES[align], className)}>
         <div
           className={cn(
             "flex items-center gap-1 text-xs",
@@ -82,7 +83,7 @@ export const DateCell = memo(function DateCell({
               {t("overdue")}
             </span>
           )}
-          {countdown && !isPast && (
+          {countdown && !dateIsPast && (
             <span className="bg-primary/10 text-primary rounded-xs px-1 font-sans text-[9px]">{countdownString}</span>
           )}
         </div>
@@ -125,6 +126,10 @@ export const DateCell = memo(function DateCell({
       )}
     </div>
   );
+
+  if (!showTooltip) {
+    return content;
+  }
 
   return (
     <Tooltip>

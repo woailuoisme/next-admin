@@ -10,66 +10,75 @@ import type { MaskedCellProps, MaskType } from "./types";
 
 import { TEXT_ALIGN_CLASSES } from "../base";
 
-export function formatMaskedValue(val: string, type: MaskType = "custom", customMask?: (v: string) => string): string {
+export function formatMaskedValue(
+  val: string,
+  type: MaskType = "custom",
+  customMask?: (v: string) => string,
+  maskChar?: string,
+): string {
   if (!val) return "";
   if (customMask) return customMask(val);
+
+  const star = maskChar ? maskChar.repeat(4) : "****";
+  const dotGroup = (count: number) => (maskChar ?? "•").repeat(count);
+  const starGroup = (count: number) => (maskChar ?? "*").repeat(count);
 
   switch (type) {
     case "phone": {
       const clean = val.replace(/\s+/g, "");
       if (clean.length === 11) {
-        return clean.replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2");
+        return `${clean.slice(0, 3)}${star}${clean.slice(-4)}`;
       }
       if (clean.length > 6) {
-        return `${clean.slice(0, 3)}****${clean.slice(-3)}`;
+        return `${clean.slice(0, 3)}${star}${clean.slice(-3)}`;
       }
-      return "******";
+      return starGroup(6);
     }
     case "email": {
       const [user, domain] = val.split("@");
-      if (!domain) return "******";
+      if (!domain) return starGroup(6);
       if (user.length <= 2) {
-        return `${user[0]}*@${domain}`;
+        return `${user[0]}${maskChar ?? "*"}@${domain}`;
       }
       const visiblePrefix = user.slice(0, 2);
       const visibleSuffix = user.slice(-1);
-      return `${visiblePrefix}****${visibleSuffix}@${domain}`;
+      return `${visiblePrefix}${star}${visibleSuffix}@${domain}`;
     }
     case "apiKey": {
-      if (val.length <= 8) return "••••••••";
+      if (val.length <= 8) return dotGroup(8);
       const prefix = val.includes("_") ? val.split("_")[0] + "_" : val.slice(0, 4);
       const suffix = val.slice(-4);
-      return `${prefix}••••••••${suffix}`;
+      return `${prefix}${dotGroup(8)}${suffix}`;
     }
     case "idCard": {
       if (val.length === 18) {
-        return val.replace(/^(\d{6})\d{8}(\d{3}[\dXx])$/, "$1********$2");
+        return `${val.slice(0, 6)}${starGroup(8)}${val.slice(-4)}`;
       }
       if (val.length > 8) {
-        return `${val.slice(0, 4)}********${val.slice(-4)}`;
+        return `${val.slice(0, 4)}${starGroup(8)}${val.slice(-4)}`;
       }
-      return "********";
+      return starGroup(8);
     }
     case "creditCard": {
       const clean = val.replace(/[\s-]+/g, "");
       if (clean.length >= 12) {
-        return `${clean.slice(0, 4)} **** **** ${clean.slice(-4)}`;
+        return `${clean.slice(0, 4)} ${star} ${star} ${clean.slice(-4)}`;
       }
-      return "**** **** **** ****";
+      return `${star} ${star} ${star} ${star}`;
     }
     case "jwt": {
       const parts = val.split(".");
       if (parts.length === 3) {
-        return `${parts[0].slice(0, 6)}...••••••••...${parts[2].slice(-6)}`;
+        return `${parts[0].slice(0, 6)}...${dotGroup(8)}...${parts[2].slice(-6)}`;
       }
       if (val.length > 16) {
-        return `${val.slice(0, 6)}••••••••${val.slice(-6)}`;
+        return `${val.slice(0, 6)}${dotGroup(8)}${val.slice(-6)}`;
       }
-      return "••••••••";
+      return dotGroup(8);
     }
     default: {
-      if (val.length <= 4) return "••••";
-      return `${val.slice(0, 2)}••••••••${val.slice(-2)}`;
+      if (val.length <= 4) return dotGroup(4);
+      return `${val.slice(0, 2)}${dotGroup(8)}${val.slice(-2)}`;
     }
   }
 }
@@ -82,6 +91,7 @@ export const MaskedCell = memo(function MaskedCell({
   autoHideDuration,
   copyable = true,
   allowCopy,
+  maskChar,
   mono = true,
   align = "left",
   className,
@@ -116,7 +126,7 @@ export const MaskedCell = memo(function MaskedCell({
   }
 
   const stringVal = String(value);
-  const displayedText = revealed ? stringVal : formatMaskedValue(stringVal, maskType, customMask);
+  const displayedText = revealed ? stringVal : formatMaskedValue(stringVal, maskType, customMask, maskChar);
 
   const handleToggleReveal = () => {
     setRevealed((prev) => {

@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { ArrowDownToLine, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { memo } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,13 +11,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { NOOP } from "../../core/constants";
 import type { DataTableExportMenuProps } from "../types";
 
-export function DataTableExportMenu({
-  onExportExcel = () => {},
-  onExportCsv = () => {},
-  onExportJson = () => {},
-  onPrint = () => {},
+export const DataTableExportMenu = memo(function DataTableExportMenu({
+  onExportExcel = NOOP,
+  onExportCsv = NOOP,
+  onExportJson = NOOP,
+  onPrint = NOOP,
 }: DataTableExportMenuProps) {
   const t = useTranslations("table");
 
@@ -49,4 +51,4 @@ export function DataTableExportMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});

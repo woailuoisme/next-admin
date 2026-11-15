@@ -3,7 +3,14 @@ import { useMemoizedFn } from "ahooks";
 import { Ban, UserCheck } from "lucide-react";
 import { useMemo } from "react";
 
-import { col, type DataTableColDef, type DataTableFilterDefinition, ResourceTable } from "@/components/data-table";
+import { useResolvedTableState } from "@/components/data-table/adapters";
+import { col } from "@/components/data-table/columns/col";
+import {
+  DataTable,
+  type DataTableColDef,
+  type DataTableFilterDefinition,
+  type TableStateAdapter,
+} from "@/components/data-table/core";
 import { Button } from "@/components/ui/button";
 import { useBatchMutation } from "@/hooks/useBatchMutation";
 
@@ -33,15 +40,25 @@ const SLOT_PROPS = {
 const getCustomerRowId = (c: Customer) => c.id;
 
 export interface CustomerTableProps {
+  state?: TableStateAdapter<Customer>;
   customers?: Customer[];
   loading?: boolean;
   total?: number;
   onToggleCustomerStatus?: (customer: Customer) => void;
 }
 
-export function CustomerTable({ customers, loading, total, onToggleCustomerStatus }: CustomerTableProps) {
+export function CustomerTable({ state, customers, loading, total, onToggleCustomerStatus }: CustomerTableProps) {
   const t = useTranslations("users");
   const queryClient = useQueryClient();
+
+  const resolvedState = useResolvedTableState<Customer>({
+    state,
+    data: customers,
+    total,
+    loading,
+    queryOptions: customerQueries.list,
+    paginationMode: "client",
+  });
 
   const statusLabelMap = useMemo<Record<string, string>>(
     () => ({
@@ -162,15 +179,11 @@ export function CustomerTable({ customers, loading, total, onToggleCustomerStatu
   ));
 
   return (
-    <ResourceTable<Customer>
-      queryOptions={!customers ? customerQueries.list : undefined}
-      data={customers}
-      loading={loading}
-      total={total}
+    <DataTable<Customer>
+      state={resolvedState}
       columns={columns}
       getRowId={getCustomerRowId}
       checkboxSelection
-      paginationMode="client"
       pinnedColumns={PINNED_COLUMNS}
       filters={customerFilters}
       slotProps={SLOT_PROPS}

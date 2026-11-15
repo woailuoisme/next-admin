@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useMemoizedFn } from "ahooks";
 import { toast } from "sonner";
 
-import type { DataTableFilterLayout } from "@/components/data-table";
+import type { DataTableFilterLayout } from "@/components/data-table/core";
 
 import { createShowcaseColumns } from "./columns";
 import { EmptyStateShowcaseSection } from "./components/EmptyStateShowcaseSection";

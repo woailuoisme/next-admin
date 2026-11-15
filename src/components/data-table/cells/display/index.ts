@@ -3,7 +3,6 @@ export * from "./TextCell";
 export * from "./BadgeCell";
 export * from "./DateCell";
 export * from "./NumberCell";
-export * from "./CurrencyCell";
 export * from "./ProgressCell";
 export * from "./IconCell";
 export * from "./ColorCell";

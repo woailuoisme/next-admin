@@ -1,15 +1,17 @@
 import { Download, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
+import { useResolvedTableState } from "@/components/data-table/adapters";
+import { BadgeCell } from "@/components/data-table/cells/display/BadgeCell";
+import { col } from "@/components/data-table/columns/col";
 import {
-  BadgeCell,
-  col,
+  DataTable,
   type DataTableColDef,
   type DataTableFilterDefinition,
   type DataTableRenderCellParams,
-  exportRowsAsJson,
-  ResourceTable,
-} from "@/components/data-table";
+  type TableStateAdapter,
+} from "@/components/data-table/core";
+import { exportRowsAsJson } from "@/components/data-table/hooks/useDataTableExport";
 import { Button } from "@/components/ui/button";
 
 import type { Product } from "../types";
@@ -39,6 +41,7 @@ const exportProductsJson = (selectedRows: Product[], clearSelection: () => void)
   exportRowsAsJson(selectedRows, `products-selected-${selectedRows.length}.json`, clearSelection);
 
 interface ProductTableProps {
+  state?: TableStateAdapter<Product>;
   products?: Product[];
   total?: number;
   loading?: boolean;
@@ -48,6 +51,7 @@ interface ProductTableProps {
 }
 
 export function ProductTable({
+  state,
   products,
   total,
   loading,
@@ -56,6 +60,14 @@ export function ProductTable({
   onBatchDelete,
 }: ProductTableProps) {
   const t = useTranslations("products");
+
+  const resolvedState = useResolvedTableState<Product>({
+    state,
+    data: products,
+    total,
+    loading,
+    queryOptions: productQueries.list,
+  });
 
   const statusLabelMap = useMemo<Record<string, string>>(
     () => ({ active: t("status_active"), draft: t("status_draft") }),
@@ -171,14 +183,11 @@ export function ProductTable({
   );
 
   return (
-    <ResourceTable<Product>
-      queryOptions={!products ? productQueries.list : undefined}
-      data={products}
+    <DataTable<Product>
+      state={resolvedState}
       columns={columns}
       getRowId={getProductRowId}
       checkboxSelection
-      loading={loading}
-      total={total}
       pinnedColumns={PINNED_COLUMNS}
       filters={productFilters}
       slotProps={SLOT_PROPS}

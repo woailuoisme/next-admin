@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import type { DataTableColDef, DataTableFilterConfig, DataTableFilterDefinition } from "../../../core/types";
+import { isSystemColumn, resolveFilterField } from "../utils";
 
 export interface UseFilterInferenceOptions<TData = any> {
   columns: DataTableColDef<TData>[];
@@ -21,15 +22,7 @@ export function useFilterInference<TData = any>({
   data,
 }: UseFilterInferenceOptions<TData>): UseFilterInferenceResult<TData> {
   const filterableColumns = useMemo(
-    () =>
-      columns.filter(
-        (col) =>
-          col.field !== "__checkbox__" &&
-          col.field !== "__actions__" &&
-          col.field !== "__actions" &&
-          col.field !== "actions" &&
-          col.filterable !== false,
-      ),
+    () => columns.filter((col) => !isSystemColumn(col) && col.filterable !== false),
     [columns],
   );
 
@@ -64,7 +57,7 @@ export function useFilterInference<TData = any>({
       ) ||
       filterableColumns[0];
 
-    if (selectCandidate && !autoList.some((f) => (f.field ?? f.name) === selectCandidate.field)) {
+    if (selectCandidate && !autoList.some((f) => resolveFilterField(f) === selectCandidate.field)) {
       let options: { label: string; value: string }[] = [];
       if (selectCandidate.valueOptions && Array.isArray(selectCandidate.valueOptions)) {
         options = selectCandidate.valueOptions.map((opt) =>

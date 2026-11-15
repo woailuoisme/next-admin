@@ -10,15 +10,7 @@ export {
   getAvatarPalette,
   hashString,
 } from "./avatar";
-export {
-  ImageCell,
-  ImageThumb,
-  ImageLightboxModal,
-  sizeClasses,
-  shapeClasses,
-  aspectClasses,
-  fitClasses,
-} from "./image";
+export { ImageCell, ImageThumb, sizeClasses, shapeClasses, aspectClasses, fitClasses } from "./image";
 
 export type {
   AvatarCellProps,

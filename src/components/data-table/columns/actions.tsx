@@ -5,7 +5,7 @@ import type { ActionItem } from "../cells/action/types";
 import type { DataTableColDef, DataTableRenderCellParams } from "../core/types";
 import type { ActionsColOptions } from "./types";
 
-import { ActionsCell } from "../cells/action";
+import { ActionsCell } from "../cells/action/ActionsCell";
 
 function ActionsColHeader({ headerName }: { headerName?: string }) {
   const t = useTranslations("table");
@@ -98,7 +98,8 @@ export function actionsCol<TData = any>(options: ActionsColOptions<TData> = {}):
 
   return {
     field,
-    headerName: headerName ?? "操作",
+    type: "actions",
+    headerName: headerName ?? "",
     renderHeader: propRenderHeader ?? (() => <ActionsColHeader headerName={headerName} />),
     sortable: false,
     filterable: false,

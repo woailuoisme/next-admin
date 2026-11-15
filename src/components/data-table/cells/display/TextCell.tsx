@@ -1,6 +1,6 @@
 import { isNil } from "es-toolkit";
 import { ExternalLink } from "lucide-react";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 
 import { CopyButton } from "@/components/shared/CopyButton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -8,7 +8,7 @@ import { cn } from "cn";
 
 import type { TextCellProps } from "./types";
 
-import { AVATAR_ALIGN_CLASSES } from "../base";
+import { STACK_ALIGN_CLASSES } from "../base";
 
 const sizeClasses = {
   xs: "text-[11px]",
@@ -36,19 +36,34 @@ const tagVariantClasses = {
   muted: "border border-border/50 bg-muted/60 text-muted-foreground",
 };
 
+const REGEXP_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g;
+
+interface HighlightMatcher {
+  regex: RegExp;
+  lowerQuery: string;
+}
+
+function buildHighlightMatcher(query?: string): HighlightMatcher | null {
+  const trimmed = query?.trim();
+  if (!trimmed) return null;
+  const escaped = trimmed.replace(REGEXP_SPECIAL_CHARS, "\\$&");
+  return {
+    regex: new RegExp(`(${escaped})`, "gi"),
+    lowerQuery: trimmed.toLowerCase(),
+  };
+}
+
 /** 安全高亮匹配字符串 */
-function highlightString(text: string, query?: string): React.ReactNode {
-  if (!query || !query.trim()) return text;
-  const escaped = query.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(`(${escaped})`, "gi");
-  const parts = text.split(regex);
+function highlightString(text: string, matcher: HighlightMatcher | null): React.ReactNode {
+  if (!matcher) return text;
+  const parts = text.split(matcher.regex);
 
   if (parts.length <= 1) return text;
 
   return (
     <>
       {parts.map((part, i) =>
-        part.toLowerCase() === query.trim().toLowerCase() ? (
+        part.toLowerCase() === matcher.lowerQuery ? (
           <mark key={i} className="bg-primary/20 text-primary dark:bg-primary/30 rounded-xs px-0.5 font-medium">
             {part}
           </mark>
@@ -95,8 +110,12 @@ export const TextCell = memo(function TextCell({
         ? String(resolvedTitle)
         : "";
 
+  const highlightMatcher = useMemo(() => buildHighlightMatcher(highlightText), [highlightText]);
+
   const renderedTitle =
-    typeof resolvedTitle === "string" && highlightText ? highlightString(resolvedTitle, highlightText) : resolvedTitle;
+    typeof resolvedTitle === "string" && highlightMatcher
+      ? highlightString(resolvedTitle, highlightMatcher)
+      : resolvedTitle;
 
   const titleElement = (
     <span
@@ -132,13 +151,13 @@ export const TextCell = memo(function TextCell({
   );
 
   const renderedDescription =
-    typeof description === "string" && highlightText ? highlightString(description, highlightText) : description;
+    typeof description === "string" && highlightMatcher ? highlightString(description, highlightMatcher) : description;
 
   const content = (
     <div
       className={cn(
         "group/text-cell flex max-w-full min-w-0 flex-col",
-        AVATAR_ALIGN_CLASSES[align],
+        STACK_ALIGN_CLASSES[align],
         onClick && "cursor-pointer hover:underline",
         className,
       )}

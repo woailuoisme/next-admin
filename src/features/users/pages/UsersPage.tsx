@@ -2,7 +2,7 @@
 
 import { useMemoizedFn } from "ahooks";
 
-import { useResourceManagement } from "@/components/data-table";
+import { useResourceManagement } from "@/components/data-table/hooks/useResourceManagement";
 
 import type { Customer, CustomerSearchParams } from "../types";
 
@@ -15,13 +15,14 @@ export interface UsersPageProps {
   search?: CustomerSearchParams;
 }
 
-export function UsersPage({ search = {} }: UsersPageProps) {
+export function UsersPage({ search }: UsersPageProps) {
   const t = useTranslations("users");
   const { mutate: toggleStatus } = useToggleCustomerStatusMutation();
 
-  const { rows, total, isLoading } = useResourceManagement<Customer, CustomerSearchParams>({
+  const { state } = useResourceManagement<Customer, CustomerSearchParams>({
     search,
     queryOptions: customerQueries.list,
+    paginationMode: "client",
   });
 
   const handleToggleStatus = useMemoizedFn((customer: Customer) => {
@@ -42,7 +43,7 @@ export function UsersPage({ search = {} }: UsersPageProps) {
       </div>
 
       {/* Enterprise CustomerTable */}
-      <CustomerTable customers={rows} total={total} loading={isLoading} onToggleCustomerStatus={handleToggleStatus} />
+      <CustomerTable state={state} onToggleCustomerStatus={handleToggleStatus} />
     </div>
   );
 }

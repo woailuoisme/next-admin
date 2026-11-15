@@ -250,6 +250,8 @@ export interface TableStateAdapter<TData = any> {
   onPageSizeChange: (pageSize: number) => void;
   onSortChange: (field: string, direction: "asc" | "desc" | null) => void;
   onSearchChange?: (val: string) => void;
+  onFilterModelChange?: (model: DataTableFilterModel) => void;
+  onSortModelChange?: (model: DataTableSortModel) => void;
 }
 
 export interface DataTableProps<TData = any> extends DataTableExpansionProps<TData> {
@@ -259,14 +261,10 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
    */
   state?: TableStateAdapter<TData>;
 
-  rows?: TData[];
   data?: TData[];
   columns: DataTableColDef<TData>[];
   getRowId?: (row: TData) => DataTableRowId;
   loading?: boolean;
-
-  // Row Expansion (grouped option)
-  expansionProps?: DataTableExpansionProps<TData>;
 
   // Selection
   checkboxSelection?: boolean;
@@ -275,16 +273,9 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
   onSelectedRowsChange?: (selectedRows: TData[]) => void;
   isRowSelectable?: (row: TData) => boolean;
 
-  // Pagination
-  pagination?: { page?: number; pageSize?: number };
-  initialPaginationModel?: Partial<DataTablePaginationModel>;
+  // Pagination (direct standalone overrides when `state` is not supplied)
   paginationMode?: "client" | "server";
-  rowCount?: number;
-  total?: number;
-  page?: number;
   pageSize?: number;
-  onPageChange?: (page: number) => void;
-  onPageSizeChange?: (pageSize: number) => void;
   paginationModel?: DataTablePaginationModel;
   onPaginationModelChange?: (model: DataTablePaginationModel) => void;
   pageSizeOptions?: readonly number[];
@@ -295,13 +286,11 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
   sortingMode?: "client" | "server";
   sortModel?: DataTableSortModel;
   onSortModelChange?: (model: DataTableSortModel) => void;
-  onSortChange?: (field: string, direction: "asc" | "desc" | null) => void;
 
   // Filtering
   filterMode?: "client" | "server";
   filterModel?: DataTableFilterModel;
   onFilterModelChange?: (model: DataTableFilterModel) => void;
-  onSearchChange?: (search: string) => void;
   filterConfig?: DataTableFilterConfig;
   filters?: DataTableFilterDefinition[];
 

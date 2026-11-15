@@ -12,6 +12,7 @@ import type {
   DataTableFilterModel,
   DataTableSelectFilterOption,
 } from "../../../core/types";
+import { isActiveFilterItem, resolveFilterField } from "../utils";
 
 const DEFAULT_FILTERS: DataTableFilterDefinition[] = [];
 
@@ -31,13 +32,25 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
   const t = useTranslations("table");
 
   const activeItems = React.useMemo(() => {
-    return (filterModel.items || []).filter(
-      (item) =>
-        item.operator === "isEmpty" ||
-        item.operator === "isNotEmpty" ||
-        (item.value !== undefined && item.value !== "" && item.value !== "__all__"),
-    );
+    return (filterModel.items || []).filter(isActiveFilterItem);
   }, [filterModel.items]);
+
+  const columnByField = React.useMemo(() => {
+    const map = new Map<string, DataTableColDef<any>>();
+    for (const col of columns) {
+      map.set(col.field, col);
+    }
+    return map;
+  }, [columns]);
+
+  const filterByField = React.useMemo(() => {
+    const map = new Map<string, DataTableFilterDefinition>();
+    for (const def of filters) {
+      const key = resolveFilterField(def);
+      if (key) map.set(key, def);
+    }
+    return map;
+  }, [filters]);
 
   const quickFilterValues = filterModel.quickFilterValues?.filter((v) => v.trim().length > 0) || [];
 
@@ -70,7 +83,7 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
   };
 
   const getPillText = (item: DataTableFilterItem) => {
-    const col = columns.find((c) => c.field === item.field);
+    const col = columnByField.get(item.field);
     const fieldName = col?.headerName || item.field;
 
     // Null check operators
@@ -82,7 +95,7 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
     }
 
     // Find preset filter if available
-    const filterDef = filters.find((f) => (f.field ?? f.name ?? f.columnField) === item.field);
+    const filterDef = filterByField.get(item.field);
 
     let displayVal = String(item.value);
 

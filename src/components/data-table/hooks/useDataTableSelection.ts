@@ -15,6 +15,34 @@ export interface UseDataTableSelectionOptions<TData> {
   isRowSelectable?: (row: TData) => boolean;
 }
 
+function computePageSelectionState<TData>(
+  pagedRows: TData[],
+  selectionSet: Set<DataTableRowId>,
+  getRowId: (row: TData) => DataTableRowId,
+  isRowSelectable?: (row: TData) => boolean,
+): { isAllPageSelected: boolean; isSomePageSelected: boolean } {
+  if (pagedRows.length === 0) {
+    return { isAllPageSelected: false, isSomePageSelected: false };
+  }
+  let hasSelected = false;
+  let hasUnselected = false;
+  for (const r of pagedRows) {
+    if (isRowSelectable && !isRowSelectable(r)) continue;
+    if (selectionSet.has(getRowId(r))) {
+      hasSelected = true;
+    } else {
+      hasUnselected = true;
+    }
+    if (hasSelected && hasUnselected) {
+      return { isAllPageSelected: false, isSomePageSelected: true };
+    }
+  }
+  return {
+    isAllPageSelected: hasSelected && !hasUnselected,
+    isSomePageSelected: false,
+  };
+}
+
 export function useDataTableSelection<TData extends Record<string, any> = Record<string, any>>({
   rows,
   pagedRows,
@@ -26,22 +54,41 @@ export function useDataTableSelection<TData extends Record<string, any> = Record
   const [internalSelection, setInternalSelection] = useState<DataTableRowSelectionModel>(EMPTY_ARRAY);
   const selection = rowSelectionModel ?? internalSelection;
 
+  const selectionSet = useMemo(() => new Set(selection), [selection]);
+
+  const rowMap = useMemo(() => {
+    const map = new Map<DataTableRowId, TData>();
+    for (const row of rows) {
+      map.set(getRowId(row), row);
+    }
+    return map;
+  }, [rows, getRowId]);
+
   const latestRef = useLatest({
-    rows,
     selection,
+    selectionSet,
+    rowMap,
     getRowId,
     onRowSelectionModelChange,
     isRowSelectable,
   });
 
-  const selectionSet = useMemo(() => new Set(selection), [selection]);
+  const resolveSelectedRows = (ids: DataTableRowSelectionModel, map: Map<DataTableRowId, TData>): TData[] => {
+    if (ids.length === 0) return EMPTY_ARRAY as TData[];
+    const result: TData[] = [];
+    for (const id of ids) {
+      const row = map.get(id);
+      if (row) result.push(row);
+    }
+    return result;
+  };
 
   const handleSelectRow = useMemoizedFn((id: DataTableRowId, checked: boolean, row: TData) => {
     const {
       isRowSelectable: canSelect,
       selection: currentSelection,
-      rows: currentRows,
-      getRowId: getId,
+      selectionSet: currentSet,
+      rowMap: currentRowMap,
       onRowSelectionModelChange: notify,
     } = latestRef.current;
 
@@ -49,36 +96,36 @@ export function useDataTableSelection<TData extends Record<string, any> = Record
 
     let next: DataTableRowSelectionModel;
     if (checked) {
-      next = currentSelection.includes(id) ? currentSelection : [...currentSelection, id];
+      next = currentSet.has(id) ? currentSelection : [...currentSelection, id];
     } else {
-      next = currentSelection.filter((i) => i !== id);
+      next = currentSet.has(id) ? currentSelection.filter((i) => i !== id) : currentSelection;
     }
     setInternalSelection(next);
-    const nextSet = new Set(next);
-    const selectedRows = currentRows.filter((r) => nextSet.has(getId(r)));
-    notify?.(next, selectedRows);
+    notify?.(next, resolveSelectedRows(next, currentRowMap));
   });
 
   const handleSelectAll = useMemoizedFn((checked: boolean, candidateRows: TData[]) => {
     const {
       isRowSelectable: canSelect,
       selection: currentSelection,
-      rows: currentRows,
+      rowMap: currentRowMap,
       getRowId: getId,
       onRowSelectionModelChange: notify,
     } = latestRef.current;
 
-    const selectable = candidateRows.filter((r) => !canSelect || canSelect(r));
-    const selectableIds = selectable.map((r) => getId(r));
+    const selectableIds: DataTableRowId[] = [];
+    for (const r of candidateRows) {
+      if (!canSelect || canSelect(r)) {
+        selectableIds.push(getId(r));
+      }
+    }
 
     const next: DataTableRowSelectionModel = checked
       ? union(currentSelection, selectableIds)
       : difference(currentSelection, selectableIds);
 
     setInternalSelection(next);
-    const nextSet = new Set(next);
-    const selectedRows = currentRows.filter((r) => nextSet.has(getId(r)));
-    notify?.(next, selectedRows);
+    notify?.(next, resolveSelectedRows(next, currentRowMap));
   });
 
   const clearSelection = useMemoizedFn(() => {
@@ -86,20 +133,18 @@ export function useDataTableSelection<TData extends Record<string, any> = Record
     latestRef.current.onRowSelectionModelChange?.(EMPTY_ARRAY, EMPTY_ARRAY);
   });
 
-  const isAllPageSelected = useMemo(() => {
-    return pagedRows.length > 0 && pagedRows.every((r) => selectionSet.has(getRowId(r)));
-  }, [pagedRows, selectionSet, getRowId]);
-
-  const isSomePageSelected = useMemo(() => {
-    return pagedRows.some((r) => selectionSet.has(getRowId(r))) && !isAllPageSelected;
-  }, [pagedRows, selectionSet, getRowId, isAllPageSelected]);
+  const { isAllPageSelected, isSomePageSelected } = useMemo(
+    () => computePageSelectionState(pagedRows, selectionSet, getRowId, isRowSelectable),
+    [pagedRows, selectionSet, getRowId, isRowSelectable],
+  );
 
   const selectedFullRows = useMemo(() => {
-    return rows.filter((r) => selectionSet.has(getRowId(r)));
-  }, [rows, selectionSet, getRowId]);
+    return resolveSelectedRows(selection, rowMap);
+  }, [selection, rowMap]);
 
   return {
     selection,
+    selectionSet,
     selectedFullRows,
     isAllPageSelected,
     isSomePageSelected,

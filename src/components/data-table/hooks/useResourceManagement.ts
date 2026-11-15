@@ -5,9 +5,10 @@ import { toast } from "sonner";
 
 import { toastMessages } from "@/lib/toastMessages";
 
+import type { UseUrlTableStateAdapterOptions, UseUrlTableStateAdapterReturn } from "../adapters/types";
+import { useUrlTableStateAdapter } from "../adapters/useUrlTableStateAdapter";
 import type { BaseTableSearchParams } from "../core/tableSearchSchema";
-import type { UseResourceTableOptions, UseResourceTableReturn } from "./useResourceTable";
-import { useResourceTable } from "./useResourceTable";
+import type { TableStateAdapter } from "../core/types";
 import {
   type ModalKeyMapping,
   type ResourceModalState,
@@ -19,7 +20,7 @@ export interface UseResourceManagementOptions<
   TData extends { id: string | number } = { id: string | number } & Record<string, any>,
   TSearch extends BaseTableSearchParams = BaseTableSearchParams,
   TQueryResponse = any,
-> extends UseResourceTableOptions<TData, TSearch, TQueryResponse> {
+> extends UseUrlTableStateAdapterOptions<TData, TSearch, TQueryResponse> {
   /** Entity domain label for dialog titles and toast notifications, e.g. "Product", "Order" */
   entityName?: string;
   /** Custom URL search key mappings for create, edit, view, delete modals */
@@ -50,7 +51,9 @@ export interface UseResourceManagementReturn<
   TData extends { id: string | number } = { id: string | number } & Record<string, any>,
   TSearch extends BaseTableSearchParams = BaseTableSearchParams,
   TQueryResponse = any,
-> extends UseResourceTableReturn<TData, TSearch, TQueryResponse> {
+> extends UseUrlTableStateAdapterReturn<TData, TSearch, TQueryResponse> {
+  /** Unified TableStateAdapter alias (`state` and `tableState` reference the same stable adapter) */
+  tableState: TableStateAdapter<TData>;
   /** Modal and drawer state machine */
   modal: ResourceModalState<TData>;
   /** Resolved entity being edited (found by modal.editId) */
@@ -126,8 +129,8 @@ export function useResourceManagement<
 
   const queryClient = useQueryClient();
 
-  // 1. Table Data & Query Management
-  const table = useResourceTable<TData, TSearch, TQueryResponse>(tableOptions);
+  // 1. Table Data & Query Management via UrlTableStateAdapter
+  const table = useUrlTableStateAdapter<TData, TSearch, TQueryResponse>(tableOptions);
 
   // 2. Modal & Drawer State Machine
   const modal = useResourceModalState<TData, TSearch>({
@@ -268,6 +271,7 @@ export function useResourceManagement<
 
   return {
     ...table,
+    tableState: table.state,
     modal,
     activeEditItem,
     activeDeleteItem,

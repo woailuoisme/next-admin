@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { baseTableSearchSchema } from "@/components/data-table";
+import { baseTableSearchSchema } from "@/components/data-table/adapters";
 
 export const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
 

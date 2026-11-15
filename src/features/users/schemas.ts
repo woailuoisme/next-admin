@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { baseTableSearchSchema } from "@/components/data-table";
+import { baseTableSearchSchema } from "@/components/data-table/adapters";
 
 export const CUSTOMER_STATUSES = ["active", "inactive"] as const;
 export const CUSTOMER_STATUS_OPTIONS = [

@@ -19,7 +19,6 @@ v*:
               -f Dockerfile \
               -t "${REGISTRY}:latest" \
               -t "${REGISTRY}:${VERSION}" \
-              -t "${REGISTRY}:${VERSION#v}" \
               --push .
 
         - name: Helm chart package & push
@@ -29,7 +28,8 @@ v*:
             VERSION="${CNB_BRANCH##*/}"
             CHART_VERSION="${VERSION#v}"
             HELM_REGISTRY="${CNB_HELM_REGISTRY:-helm.cnb.cool}"
-            TARGET_NAMESPACE="${CNB_REPO_SLUG_LOWERCASE}"
+            # 命名空间取组织级，避免与 chart 名重复成 .../next-admin/next-admin
+            TARGET_NAMESPACE="${CNB_GROUP_SLUG_LOWERCASE:-${CNB_REPO_SLUG_LOWERCASE%%/*}}"
 
             echo "${CNB_TOKEN}" | helm registry login "${HELM_REGISTRY}" -u "${CNB_TOKEN_USER_NAME:-cnb}" --password-stdin
             helm package helm --version "${CHART_VERSION}" --app-version "${VERSION}" -d .

@@ -12,6 +12,7 @@ import type {
   DataTableFilterItem,
   DataTableFilterOperator,
 } from "../../../core/types";
+import { isSystemColumn } from "../utils";
 import type { MessageKeyOf } from "@/types/i18n";
 
 export interface QueryBuilderControlProps<TData = any> {
@@ -80,9 +81,17 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
   const t = useTranslations("table");
 
   const availableColumns = React.useMemo(
-    () => filterableColumns.filter((col) => col.field && col.field !== "__actions"),
+    () => filterableColumns.filter((col) => Boolean(col.field) && !isSystemColumn(col)),
     [filterableColumns],
   );
+
+  const columnByField = React.useMemo(() => {
+    const map = new Map<string, DataTableColDef<any>>();
+    for (const col of availableColumns) {
+      map.set(col.field, col);
+    }
+    return map;
+  }, [availableColumns]);
 
   const handleAddClick = () => {
     if (availableColumns.length === 0) return;
@@ -122,7 +131,7 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
       ) : (
         <div className="space-y-2">
           {rules.map((rule) => {
-            const currentCol = availableColumns.find((c) => c.field === rule.field);
+            const currentCol = columnByField.get(rule.field);
             const operators = getOperatorsForColumn(currentCol?.type, t);
             const isNullCheck = rule.operator === "isEmpty" || rule.operator === "isNotEmpty";
 
@@ -137,7 +146,7 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
                   <Select
                     value={rule.field}
                     onValueChange={(newField) => {
-                      const targetCol = availableColumns.find((c) => c.field === newField);
+                      const targetCol = columnByField.get(newField);
                       const newOps = getOperatorsForColumn(targetCol?.type, t);
                       const newOp = newOps.some((op) => op.value === rule.operator) ? rule.operator : newOps[0].value;
                       onUpdateRule(rule.id, {

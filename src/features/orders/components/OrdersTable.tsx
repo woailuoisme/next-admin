@@ -2,13 +2,15 @@ import { sumBy } from "es-toolkit";
 import { FileDown, Printer } from "lucide-react";
 import { useMemo } from "react";
 
+import { useResolvedTableState } from "@/components/data-table/adapters";
+import { col } from "@/components/data-table/columns/col";
 import {
-  col,
+  DataTable,
   type DataTableColDef,
   type DataTableFilterDefinition,
-  exportRowsAsJson,
-  ResourceTable,
-} from "@/components/data-table";
+  type TableStateAdapter,
+} from "@/components/data-table/core";
+import { exportRowsAsJson } from "@/components/data-table/hooks/useDataTableExport";
 import { Button } from "@/components/ui/button";
 
 import type { Order } from "../types";
@@ -17,6 +19,7 @@ import { orderQueries } from "../queries";
 import { useTranslations } from "next-intl";
 
 interface OrdersTableProps {
+  state?: TableStateAdapter<Order>;
   orders?: Order[];
   total?: number;
   loading?: boolean;
@@ -49,8 +52,16 @@ const getItemsQuantity = (row: Order) => sumBy(row.items, (item) => item.quantit
 const exportOrdersJson = (selectedRows: Order[], clearSelection: () => void) =>
   exportRowsAsJson(selectedRows, `selected-orders-${selectedRows.length}.json`, clearSelection);
 
-export function OrdersTable({ orders, total, loading, onViewOrder, onSelectOrder }: OrdersTableProps) {
+export function OrdersTable({ state, orders, total, loading, onViewOrder, onSelectOrder }: OrdersTableProps) {
   const t = useTranslations("orders");
+
+  const resolvedState = useResolvedTableState<Order>({
+    state,
+    data: orders,
+    total,
+    loading,
+    queryOptions: orderQueries.list,
+  });
 
   const statusLabelMap = useMemo<Record<string, string>>(
     () => ({
@@ -129,14 +140,11 @@ export function OrdersTable({ orders, total, loading, onViewOrder, onSelectOrder
   );
 
   return (
-    <ResourceTable<Order>
-      queryOptions={!orders ? orderQueries.list : undefined}
-      data={orders}
+    <DataTable<Order>
+      state={resolvedState}
       columns={columns}
       getRowId={getOrderRowId}
       checkboxSelection
-      loading={loading}
-      total={total}
       pinnedColumns={PINNED_COLUMNS}
       filters={orderFilters}
       onRowClick={onSelectOrder ? (row) => onSelectOrder(row.id) : undefined}

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useMemoizedFn } from "ahooks";
 import { Archive, CheckCircle2, Clock } from "lucide-react";
 
-import { DataTable, type DataTableTabItem } from "@/components/data-table";
+import { DataTable, type DataTableTabItem } from "@/components/data-table/core";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -108,7 +108,7 @@ export function MasterDetailTableSection({ data }: MasterDetailTableSectionProps
       <CardContent className="max-w-full min-w-0 overflow-hidden p-0">
         <div className="w-full max-w-full min-w-0 overflow-hidden">
           <DataTable
-            rows={data}
+            data={data}
             columns={MASTER_DETAIL_COLUMNS}
             getRowId={getShowcaseRowId}
             paginationMode="client"
@@ -116,10 +116,8 @@ export function MasterDetailTableSection({ data }: MasterDetailTableSectionProps
             tabs={showcaseTabs}
             savedViews={SHOWCASE_SAVED_VIEWS}
             renderExpandedRow={renderExpandedRow}
-            expansionProps={{
-              singleExpand,
-              expandOnRowClick,
-            }}
+            singleExpand={singleExpand}
+            expandOnRowClick={expandOnRowClick}
           />
         </div>
       </CardContent>

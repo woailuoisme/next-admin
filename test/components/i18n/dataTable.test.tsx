@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { actionsCol } from "@/components/data-table/columns/action";
+import { actionsCol } from "@/components/data-table/columns/actions";
 import { DataTable } from "@/components/data-table/core/DataTable";
 import { TableEmptyState } from "@/components/data-table/empty-state/TableEmptyState";
 import { DataTableBatchActionBar } from "@/components/data-table/footer/DataTableBatchActionBar";

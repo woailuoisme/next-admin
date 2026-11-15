@@ -1,4 +1,4 @@
-export * from "./action";
+export * from "./actions";
 export * from "./col";
 export * from "./display";
 export * from "./interactive";

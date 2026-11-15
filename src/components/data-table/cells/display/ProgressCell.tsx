@@ -37,6 +37,7 @@ export const ProgressCell = memo(function ProgressCell({
   max = 100,
   showLabel = true,
   showPercentage,
+  showValue,
   size = "sm",
   colorByValue = false,
   segments,
@@ -45,7 +46,7 @@ export const ProgressCell = memo(function ProgressCell({
   align = "left",
   className,
 }: ProgressCellProps) {
-  const shouldShowLabel = showPercentage !== undefined ? showPercentage : showLabel;
+  const shouldShowLabel = showPercentage ?? showValue ?? showLabel;
 
   // 1. 多段堆叠进度条模式
   if (segments && segments.length > 0) {

@@ -6,5 +6,4 @@ export * from "./useDataTablePinning";
 export * from "./useDataTableExport";
 export * from "./useDataTableExpansion";
 export * from "./useDataTableViews";
-export * from "./useResourceTable";
 export * from "./useResourceManagement";

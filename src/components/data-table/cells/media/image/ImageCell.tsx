@@ -68,6 +68,10 @@ function ImageCellInner({
     });
   });
 
+  const handleOpenPreview = useMemoizedFn((imgUrl: string) => {
+    setActivePreviewUrl(imgUrl);
+  });
+
   const handleClosePreview = useMemoizedFn(() => {
     setActivePreviewUrl(null);
   });
@@ -112,9 +116,9 @@ function ImageCellInner({
             objectFit={objectFit}
             preview={preview}
             isFailed={Boolean(failedImages[url])}
-            onError={() => handleImageError(url)}
-            onRetry={() => handleImageRetry(url)}
-            onPreview={() => setActivePreviewUrl(url)}
+            onError={handleImageError}
+            onRetry={handleImageRetry}
+            onPreview={handleOpenPreview}
           />
         ))}
         {remainingCount > 0 ? (
@@ -155,7 +159,7 @@ function ImageCellInner({
       )}
 
       {/* Lightbox Dialog Preview */}
-      {preview && (
+      {preview && Boolean(activePreviewUrl) && (
         <ImageLightboxModal
           previewUrl={activePreviewUrl}
           images={gallery ? images : undefined}

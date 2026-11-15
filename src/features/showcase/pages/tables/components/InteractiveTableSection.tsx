@@ -1,4 +1,4 @@
-import { DataTable, type DataTableColDef, type DataTableFilterLayout } from "@/components/data-table";
+import { DataTable, type DataTableColDef, type DataTableFilterLayout } from "@/components/data-table/core";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { getShowcaseRowId, SHOWCASE_FILTERS } from "../constants";
@@ -37,7 +37,7 @@ export function InteractiveTableSection({
       <CardContent className="max-w-full min-w-0 overflow-hidden p-0">
         <div className="w-full max-w-full min-w-0 overflow-hidden">
           <DataTable
-            rows={data}
+            data={data}
             columns={columns}
             loading={false}
             getRowId={getShowcaseRowId}

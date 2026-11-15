@@ -1,7 +1,8 @@
-import { useMemoizedFn } from "ahooks";
+import { useLatest, useMemoizedFn } from "ahooks";
 import { useMemo, useState } from "react";
 
 import type { DataTableFilterItem, DataTableFilterModel } from "../../../core/types";
+import { isActiveFilterItem, isQueryBuilderRule } from "../utils";
 
 export interface UseFilterPanelStateOptions {
   filterModel: DataTableFilterModel;
@@ -31,40 +32,28 @@ function generateFilterId(): string {
     : Math.random().toString(36).substring(2, 9);
 }
 
-const isPreset = (item: DataTableFilterItem) => !item.id?.startsWith("qb_");
-
 export function useFilterPanelState({
   filterModel,
   onFilterModelChange,
   deferFilters = false,
 }: UseFilterPanelStateOptions): UseFilterPanelStateResult {
-  const [open, setOpen] = useState(false);
+  const [open, setOpenState] = useState(false);
 
-  // Local draft state for deferred filter commits
-  const [draftItems, setDraftItems] = useState<DataTableFilterItem[]>(filterModel.items || []);
-  const [prevFilterItems, setPrevFilterItems] = useState(filterModel.items);
-  const [prevOpen, setPrevOpen] = useState(open);
+  // Local draft state for deferred filter commits (synced on open transition without render-time setState)
+  const [draftItems, setDraftItems] = useState<DataTableFilterItem[]>(() => filterModel.items || []);
 
-  if (open !== prevOpen || (open && filterModel.items !== prevFilterItems)) {
-    setPrevOpen(open);
-    setPrevFilterItems(filterModel.items);
-    if (open) {
-      setDraftItems(filterModel.items || []);
+  const latestItemsRef = useLatest(filterModel.items || []);
+
+  const setOpen = useMemoizedFn((nextOpen: boolean) => {
+    if (nextOpen) {
+      setDraftItems(latestItemsRef.current);
     }
-  }
+    setOpenState(nextOpen);
+  });
 
   const currentItems = deferFilters ? draftItems : filterModel.items || [];
 
-  const activeCount = useMemo(
-    () =>
-      (filterModel.items || []).filter(
-        (item) =>
-          item.operator === "isEmpty" ||
-          item.operator === "isNotEmpty" ||
-          (item.value !== undefined && item.value !== "" && item.value !== "__all__"),
-      ).length,
-    [filterModel.items],
-  );
+  const activeCount = useMemo(() => (filterModel.items || []).filter(isActiveFilterItem).length, [filterModel.items]);
 
   const updateItems = useMemoizedFn((nextItems: DataTableFilterItem[]) => {
     if (deferFilters) {
@@ -80,10 +69,10 @@ export function useFilterPanelState({
   const setFieldFilter = useMemoizedFn(
     (field: string, val: unknown, operator: DataTableFilterItem["operator"] = "equals") => {
       if (val === undefined || val === null || val === "" || val === "__all__") {
-        updateItems(currentItems.filter((i) => !(isPreset(i) && i.field === field)));
+        updateItems(currentItems.filter((i) => !(!isQueryBuilderRule(i) && i.field === field)));
       } else {
         const existingIndex = currentItems.findIndex(
-          (i) => isPreset(i) && i.field === field && (operator ? i.operator === operator : true),
+          (i) => !isQueryBuilderRule(i) && i.field === field && (operator ? i.operator === operator : true),
         );
         if (existingIndex >= 0) {
           const updated = [...currentItems];

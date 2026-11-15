@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
-import { useResourceManagement } from "@/components/data-table";
+import { useResourceManagement } from "@/components/data-table/hooks/useResourceManagement";
 
 import type { Order, OrderFilters, OrderListResponse } from "../types";
 
@@ -21,10 +21,10 @@ export interface OrdersPageProps {
   onSelectOrder?: (orderId: string) => void;
 }
 
-export function OrdersPage({ search = {}, onSelectOrder }: OrdersPageProps) {
+export function OrdersPage({ search, onSelectOrder }: OrdersPageProps) {
   const t = useTranslations("orders");
   // Centralized Resource Management (Query, URL state, Drawer modal)
-  const { rows, total, isLoading, rawResponse, modal, handleViewOpenChange } = useResourceManagement<
+  const { state, rows, total, isLoading, rawResponse, modal, handleViewOpenChange } = useResourceManagement<
     Order,
     OrderFilters,
     OrderListResponse
@@ -55,13 +55,7 @@ export function OrdersPage({ search = {}, onSelectOrder }: OrdersPageProps) {
       <OrderMetricsCards stats={orderStats} isLoading={isLoading} />
 
       {/* Table Content */}
-      <OrdersTable
-        orders={rows}
-        total={total}
-        loading={isLoading}
-        onViewOrder={modal.openView}
-        onSelectOrder={modal.openView}
-      />
+      <OrdersTable state={state} onViewOrder={modal.openView} onSelectOrder={modal.openView} />
 
       {/* Singleton Order Details Sheet */}
       <OrderDetailsSheet orderId={modal.viewId} open={modal.isViewOpen} onOpenChange={handleViewOpenChange} />

@@ -8,12 +8,13 @@ import { cn } from "cn";
 import type { DataTableColDef } from "../core/types";
 
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
+import { EMPTY_ARRAY } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
 import { readCellValue } from "../core/utils";
 import type { MessageKeyOf } from "@/types/i18n";
 
 export interface DataTableSummaryRowProps<TData = unknown> {
-  columns: DataTableColDef<TData>[];
+  columns?: DataTableColDef<TData>[];
   rows: TData[];
   checkboxSelection?: boolean;
   hasExpandColumn?: boolean;
@@ -58,9 +59,16 @@ function computeAggregationValue<TData>(
       return round(avg, 2).toLocaleString();
     }
     case "min":
-      return nums.length > 0 ? Math.min(...nums) : "—";
-    case "max":
-      return nums.length > 0 ? Math.max(...nums) : "—";
+    case "max": {
+      if (nums.length === 0) return "—";
+      let extreme = nums[0];
+      for (let i = 1; i < nums.length; i++) {
+        if (aggregation === "min" ? nums[i] < extreme : nums[i] > extreme) {
+          extreme = nums[i];
+        }
+      }
+      return extreme;
+    }
     case "count":
       return rows.length;
     default:
@@ -69,14 +77,17 @@ function computeAggregationValue<TData>(
 }
 
 function DataTableSummaryRowInner<TData = unknown>({
-  columns,
+  columns: propColumns,
   rows,
-  checkboxSelection,
-  hasExpandColumn,
+  checkboxSelection: propCheckboxSelection,
+  hasExpandColumn: propHasExpandColumn,
   summaryLabel,
 }: DataTableSummaryRowProps<TData>) {
   const ctx = useOptionalDataTableContext<TData>();
   const t = useTranslations("table");
+  const columns = propColumns ?? ctx?.visibleColumns ?? EMPTY_ARRAY;
+  const checkboxSelection = propCheckboxSelection ?? ctx?.checkboxSelection ?? false;
+  const hasExpandColumn = propHasExpandColumn ?? Boolean(ctx?.renderExpandedRow);
   const resolvedSummaryLabel = summaryLabel ?? ctx?.summaryLabel ?? t("summary_label");
 
   return (

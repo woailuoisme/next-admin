@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
-import { useResourceManagement } from "@/components/data-table";
+import { useResourceManagement } from "@/components/data-table/hooks/useResourceManagement";
 import { DeleteDialog } from "@/components/dialogs/DeleteDialog";
 import { Button } from "@/components/ui/button";
 import { categoryKeys } from "@/features/categories/queries";
@@ -32,7 +32,7 @@ export interface ProductsPageProps {
   onDeleteProduct?: (productId: string) => void;
 }
 
-export function ProductsPage({ search = {}, onCreateProduct, onEditProduct, onDeleteProduct }: ProductsPageProps) {
+export function ProductsPage({ search, onCreateProduct, onEditProduct, onDeleteProduct }: ProductsPageProps) {
   const t = useTranslations("products");
   // Unified Deep Resource Management Module
   const resource = useResourceManagement<Product, ProductFilters, ProductListResponse>({
@@ -79,9 +79,7 @@ export function ProductsPage({ search = {}, onCreateProduct, onEditProduct, onDe
 
       {/* Table Content */}
       <ProductTable
-        products={resource.rows}
-        total={resource.total}
-        loading={resource.isLoading}
+        state={resource.state}
         onEditProduct={resource.modal.openEdit}
         onDeleteProduct={resource.modal.openDelete}
         onBatchDelete={resource.handleBatchDelete}

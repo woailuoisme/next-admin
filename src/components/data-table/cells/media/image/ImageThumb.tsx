@@ -45,9 +45,9 @@ interface ImageThumbProps {
   objectFit?: keyof typeof fitClasses;
   preview?: boolean;
   isFailed: boolean;
-  onError: () => void;
-  onRetry?: () => void;
-  onPreview: () => void;
+  onError: (imgUrl: string) => void;
+  onRetry?: (imgUrl: string) => void;
+  onPreview: (imgUrl: string) => void;
 }
 
 function ImageThumbInner({
@@ -80,7 +80,7 @@ function ImageThumbInner({
         style={customStyle}
         onClick={(e) => {
           e.stopPropagation();
-          onRetry?.();
+          onRetry?.(imgUrl);
         }}
         className={cn(
           "group/failed flex shrink-0 cursor-pointer items-center justify-center border border-dashed border-destructive/30 bg-destructive/5 text-destructive/70 transition-colors select-none hover:border-destructive/60 hover:bg-destructive/10",
@@ -106,7 +106,7 @@ function ImageThumbInner({
         alt={alt}
         loading="lazy"
         onLoad={() => setIsLoaded(true)}
-        onError={onError}
+        onError={() => onError(imgUrl)}
         className={cn(
           "size-full transition-opacity duration-300",
           isLoaded ? "opacity-100" : "opacity-0",
@@ -124,13 +124,13 @@ function ImageThumbInner({
         aria-label={`查看 ${alt} 大图`}
         onClick={(e) => {
           e.stopPropagation();
-          onPreview();
+          onPreview(imgUrl);
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             e.stopPropagation();
-            onPreview();
+            onPreview(imgUrl);
           }
         }}
         className={cn(

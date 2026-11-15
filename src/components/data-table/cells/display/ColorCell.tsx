@@ -1,10 +1,7 @@
-import { useMemoizedFn } from "ahooks";
 import { isNil } from "es-toolkit";
-import { Check, Copy } from "lucide-react";
-import { memo, useEffect, useState } from "react";
+import { memo } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { CopyButton } from "@/components/shared/CopyButton";
 import { cn } from "cn";
 
 import type { ColorCellProps } from "./types";
@@ -26,21 +23,6 @@ export const ColorCell = memo(function ColorCell({
   align = "left",
   className,
 }: ColorCellProps) {
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), 1500);
-    return () => clearTimeout(timer);
-  }, [copied]);
-
-  const handleCopy = useMemoizedFn((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!value || copied) return;
-    navigator.clipboard?.writeText(value).catch(() => {});
-    setCopied(true);
-  });
-
   if (isNil(value) || value === "") {
     return <span className="text-muted-foreground/40 text-xs italic">-</span>;
   }
@@ -70,25 +52,7 @@ export const ColorCell = memo(function ColorCell({
         <span className="absolute inset-0" style={{ backgroundColor: value }} />
       </span>
       {showHex && <span className="text-foreground/90 font-mono text-xs uppercase tabular-nums">{value}</span>}
-      {copyable ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={handleCopy}
-              className="text-muted-foreground hover:text-foreground size-5 cursor-pointer rounded p-0 transition-colors"
-              aria-label="Copy color hex code"
-            >
-              {copied ? <Check className="text-chart-2 size-3" /> : <Copy className="size-3" />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">
-            {copied ? "已复制" : "复制颜色代码"}
-          </TooltipContent>
-        </Tooltip>
-      ) : null}
+      {copyable ? <CopyButton text={value} className="size-5 rounded p-0" /> : null}
     </div>
   );
 });

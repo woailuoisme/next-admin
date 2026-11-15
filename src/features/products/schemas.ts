@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { baseTableSearchSchema } from "@/components/data-table";
+import { baseTableSearchSchema } from "@/components/data-table/adapters";
 
 export const PRODUCT_STATUSES = ["active", "draft", "out_of_stock"] as const;
 

@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -16,24 +16,28 @@ function ImageLightboxModalInner({ previewUrl, images = [], initialIndex = 0, al
   // Active images list for gallery navigation
   const activeImages = images.length > 0 ? images : previewUrl ? [previewUrl] : [];
 
-  const [currentIndex, setCurrentIndex] = useState(() => {
+  const resolvedInitialIndex = useMemo(() => {
     if (previewUrl && images.length > 0) {
       const foundIdx = images.indexOf(previewUrl);
       return foundIdx >= 0 ? foundIdx : initialIndex;
     }
     return initialIndex;
-  });
+  }, [previewUrl, images, initialIndex]);
 
-  const [prevPreviewUrl, setPrevPreviewUrl] = useState(previewUrl);
-  if (previewUrl !== prevPreviewUrl) {
-    setPrevPreviewUrl(previewUrl);
-    if (previewUrl && images.length > 0) {
-      const foundIdx = images.indexOf(previewUrl);
-      if (foundIdx >= 0) {
-        setCurrentIndex(foundIdx);
-      }
-    }
-  }
+  const [navState, setNavState] = useState<{ baseUrl: string | null; index: number } | null>(null);
+  const currentIndex = navState && navState.baseUrl === previewUrl ? navState.index : resolvedInitialIndex;
+
+  const stepIndex = useCallback(
+    (delta: number) => {
+      if (activeImages.length === 0) return;
+      setNavState((prev) => {
+        const base = prev && prev.baseUrl === previewUrl ? prev.index : resolvedInitialIndex;
+        const next = (base + delta + activeImages.length) % activeImages.length;
+        return { baseUrl: previewUrl, index: next };
+      });
+    },
+    [activeImages.length, previewUrl, resolvedInitialIndex],
+  );
 
   const currentUrl = activeImages[currentIndex] || previewUrl;
   const hasMultiple = activeImages.length > 1;
@@ -45,16 +49,16 @@ function ImageLightboxModalInner({ previewUrl, images = [], initialIndex = 0, al
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        setCurrentIndex((prev) => (prev > 0 ? prev - 1 : activeImages.length - 1));
+        stepIndex(-1);
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        setCurrentIndex((prev) => (prev < activeImages.length - 1 ? prev + 1 : 0));
+        stepIndex(1);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [previewUrl, hasMultiple, activeImages.length]);
+  }, [previewUrl, hasMultiple, stepIndex]);
 
   return (
     <Dialog open={Boolean(previewUrl)} onOpenChange={(open) => !open && onClose()}>
@@ -80,7 +84,7 @@ function ImageLightboxModalInner({ previewUrl, images = [], initialIndex = 0, al
                     size="icon"
                     aria-label="上一张图片"
                     className="bg-background/60 text-foreground hover:bg-background/90 absolute top-1/2 left-2 -translate-y-1/2 rounded-full backdrop-blur-xs"
-                    onClick={() => setCurrentIndex((prev) => (prev > 0 ? prev - 1 : activeImages.length - 1))}
+                    onClick={() => stepIndex(-1)}
                   >
                     <ChevronLeft className="size-5" />
                   </Button>
@@ -90,7 +94,7 @@ function ImageLightboxModalInner({ previewUrl, images = [], initialIndex = 0, al
                     size="icon"
                     aria-label="下一张图片"
                     className="bg-background/60 text-foreground hover:bg-background/90 absolute top-1/2 right-2 -translate-y-1/2 rounded-full backdrop-blur-xs"
-                    onClick={() => setCurrentIndex((prev) => (prev < activeImages.length - 1 ? prev + 1 : 0))}
+                    onClick={() => stepIndex(1)}
                   >
                     <ChevronRight className="size-5" />
                   </Button>

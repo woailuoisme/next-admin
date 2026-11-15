@@ -12,7 +12,7 @@ The core high-leverage data grid module. Presents a unified interface to dashboa
 
 ### `LayoutSeam` (Seam)
 
-The boundary between high-frequency user interactions (column resizing, reordering, pinning offset calculation) and DOM rendering. Driven via CSS custom properties (`--col-w-*`, `--col-pin-left-*`) injected at the table container, isolating row and cell components from React re-render cascades.
+The boundary between high-frequency user interactions (column resizing, reordering, pinning offset calculation) and DOM rendering. Driven via CSS custom properties (`--col-w-*`, `--col-left-*`, `--col-right-*`) injected at the table container, isolating row and cell components from React re-render cascades.
 
 ### `TableStateAdapter` (Adapter)
 

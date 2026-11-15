@@ -2,6 +2,8 @@ import { Edit2, Loader2 } from "lucide-react";
 
 import { cn } from "cn";
 
+import { TEXT_ALIGN_CLASSES } from "../../base";
+
 interface InlineEditDisplayProps {
   value: string;
   placeholder?: string;
@@ -11,12 +13,6 @@ interface InlineEditDisplayProps {
   className?: string;
   onStartEdit: () => void;
 }
-
-const alignClasses = {
-  left: "justify-start text-left",
-  center: "justify-center text-center",
-  right: "justify-end text-right",
-};
 
 export function InlineEditDisplay({
   value,
@@ -35,7 +31,7 @@ export function InlineEditDisplay({
       className={cn(
         "group/cell -mx-1.5 flex cursor-pointer items-center gap-1.5 rounded px-1.5 py-1 transition-colors select-none hover:bg-muted/50 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden",
         disabled && "cursor-default opacity-70",
-        alignClasses[align],
+        TEXT_ALIGN_CLASSES[align],
         className,
       )}
       onClick={(e) => {
