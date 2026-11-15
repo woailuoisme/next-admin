@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-const mockNotFound = vi.fn(() => {
-  throw new Error("NEXT_NOT_FOUND");
-});
+const { mockNotFound, mockPrefetchQuery } = vi.hoisted(() => ({
+  mockNotFound: vi.fn(() => {
+    throw new Error("NEXT_NOT_FOUND");
+  }),
+  mockPrefetchQuery: vi.fn(async () => undefined),
+}));
 
 vi.mock("next/navigation", () => ({
   notFound: mockNotFound,
@@ -19,14 +22,15 @@ vi.mock("@/app/(app)/loading", () => ({
   },
 }));
 
-const mockPrefetchQuery = vi.fn(async () => undefined);
-
-vi.mock("@/lib/queryClient", () => ({
-  getQueryClient: () => ({
-    prefetchQuery: mockPrefetchQuery,
-  }),
-  prefetchWithTimeout: async (promise: Promise<unknown>) => promise,
-}));
+vi.mock("@/lib/queryClient", async () => {
+  const { QueryClient } = await import("@tanstack/react-query");
+  const client = new QueryClient();
+  client.prefetchQuery = mockPrefetchQuery as unknown as typeof client.prefetchQuery;
+  return {
+    getQueryClient: () => client,
+    prefetchWithTimeout: async (promise: Promise<unknown>) => promise,
+  };
+});
 
 import { defineResource } from "@/lib/resource";
 import { createResourceActionPage } from "@/lib/resource/nextServerPage";
