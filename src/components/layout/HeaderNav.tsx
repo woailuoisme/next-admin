@@ -3,11 +3,10 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 
-import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { useRouteTitle } from "@/components/layout/sidebar/menu.config";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { ThemeColorPicker } from "@/components/shared/ThemeColorPicker";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import {
@@ -23,7 +22,12 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 import { GlobalSearch } from "./search/GlobalSearch";
 
-export const HeaderNav = memo(function HeaderNav() {
+export interface HeaderNavProps {
+  /** 业务层注入的头部右侧扩展插槽（例如 ConnectedNotificationBell） */
+  rightSlot?: ReactNode;
+}
+
+export const HeaderNav = memo(function HeaderNav({ rightSlot }: HeaderNavProps) {
   const t = useTranslations("layout");
   const pathname = usePathname();
   const pageTitle = useRouteTitle(pathname);
@@ -50,7 +54,7 @@ export const HeaderNav = memo(function HeaderNav() {
 
       <div className="flex items-center gap-2">
         <GlobalSearch />
-        <NotificationBell />
+        {rightSlot}
         <Separator orientation="vertical" className="h-4" />
         <LanguageSwitcher />
         <ThemeColorPicker />

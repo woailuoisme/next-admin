@@ -1,5 +1,5 @@
 // Public API seam for notifications feature
-export { deleteNotification, fetchNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "./api";
+export { ConnectedNotificationBell, type ConnectedNotificationBellProps } from "./components/ConnectedNotificationBell";
 export {
   NOTIFICATIONS_QUERY_KEY,
   notificationKeys,
@@ -11,7 +11,15 @@ export {
   useRealtimeNotifications,
   useUnreadNotificationCount,
 } from "./hooks";
-export { EMPTY_NOTIFICATION_FILTERS, selectUnreadCount } from "./queries";
+export {
+  deleteNotification,
+  EMPTY_NOTIFICATION_FILTERS,
+  fetchNotifications,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+  notificationsEndpoint,
+  selectUnreadCount,
+} from "./resource";
 export type {
   NotificationCategory,
   NotificationFilters,

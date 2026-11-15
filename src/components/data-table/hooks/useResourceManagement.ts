@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemoizedFn } from "ahooks";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { toastMessages } from "@/lib/toastMessages";
@@ -77,7 +77,7 @@ export interface UseResourceManagementReturn<
   /** Confirms single or batch deletion */
   handleDeleteConfirm: () => Promise<void>;
   /** Opens batch delete modal with selected items */
-  handleBatchDelete: (selected: TData[]) => void;
+  handleBatchDelete: (selected: TData[], clearSelection?: () => void) => void;
   /** Ready-to-spread props configured for FormDialog / ResourceFormHost */
   formDialogProps: {
     open: boolean;
@@ -182,8 +182,9 @@ export function useResourceManagement<
     }
   });
 
-  // 5. Single Item Delete State
+  // 5. Single Item Delete State & Pending Batch Clear Callback
   const [isSingleDeleting, setIsSingleDeleting] = useState(false);
+  const pendingBatchClearRef = useRef<(() => void) | null>(null);
 
   // 6. Batch Mutation Runner
   const batchDelete = useBatchMutation<TData>({
@@ -219,6 +220,8 @@ export function useResourceManagement<
             onBeforeItemDelete?.(item);
           }
           await batchDelete.mutateBatchAsync(itemsToDelete);
+          pendingBatchClearRef.current?.();
+          pendingBatchClearRef.current = null;
         }
       } else if (modal.deleteId && deleteMutationFn) {
         setIsSingleDeleting(true);
@@ -238,7 +241,8 @@ export function useResourceManagement<
   });
 
   // 8. Dialog Event Handlers
-  const handleBatchDelete = useMemoizedFn((selected: TData[]) => {
+  const handleBatchDelete = useMemoizedFn((selected: TData[], clearSelection?: () => void) => {
+    pendingBatchClearRef.current = clearSelection ?? null;
     modal.openBatchDelete(
       selected.map((item) => String(item.id)),
       selected,
@@ -259,6 +263,7 @@ export function useResourceManagement<
 
   const handleDeleteOpenChange = useMemoizedFn((open: boolean) => {
     if (!open && !isDeleting) {
+      pendingBatchClearRef.current = null;
       modal.closeDelete();
     }
   });

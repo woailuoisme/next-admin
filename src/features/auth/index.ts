@@ -1,7 +1,9 @@
 // Public API seam for auth feature
 
 export { fetchCurrentAdminApi, forgotPasswordApi, loginApi, logoutApi, resetPasswordApi, verifyOtpApi } from "./api";
+export { AuthAppBridge } from "./components/AuthAppBridge";
 export { AuthCard, AuthShell } from "./components/AuthShell";
+export { SessionValidator } from "./components/SessionValidator";
 export { ForgotPasswordForm } from "./components/ForgotPasswordForm";
 export { LoginForm } from "./components/LoginForm";
 export { ResetPasswordForm } from "./components/ResetPasswordForm";

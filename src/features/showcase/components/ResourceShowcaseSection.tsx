@@ -5,15 +5,11 @@ import { memo, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "cn";
 
+import { useResourceModalState } from "@/components/dialogs";
 import { TextInput } from "@/components/form/basic";
 import { SelectInput, SwitchInput } from "@/components/form/choice";
 import { FormGrid } from "@/components/form/layout";
-import {
-  ResourceFormHost,
-  type ResourcePresentation,
-  ResourceViewHost,
-  useResourceOperations,
-} from "@/components/resource";
+import { ResourceFormHost, type ResourcePresentation, ResourceViewHost } from "@/components/resource";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,9 +57,9 @@ export const ResourceShowcaseSection = memo(function ResourceShowcaseSection() {
   const [customer, setCustomer] = useState<SampleCustomer>(INITIAL_CUSTOMER);
   const [copied, setCopied] = useState(false);
 
-  // Unified operations controller
-  const ops = useResourceOperations<SampleCustomer>({
-    presentation,
+  // Unified modal/presentation controller
+  const modal = useResourceModalState<SampleCustomer>({
+    syncWithUrl: false,
     onCreate: () => {
       toast.info(`Triggered Create operation in [${presentation}] presentation mode`);
     },
@@ -88,36 +84,30 @@ export const ResourceShowcaseSection = memo(function ResourceShowcaseSection() {
 
   // Form instance for Create/Edit
   const form = useForm({
-    defaultValues: ops.editId ? customer : newCustomerDefaults,
+    defaultValues: modal.editId ? customer : newCustomerDefaults,
     onSubmit: async ({ value }) => {
       await new Promise((r) => setTimeout(r, 600));
       setCustomer(value as SampleCustomer);
       toast.success(
-        ops.editId ? "Customer details updated successfully!" : "New customer record created successfully!",
+        modal.editId ? "Customer details updated successfully!" : "New customer record created successfully!",
       );
-      ops.closeFormDialog();
+      modal.closeFormDialog();
     },
   });
 
   const handleCopyCode = useMemoizedFn(() => {
-    const sampleCode = `// Filament v5 风格：一行配置即可在 弹窗 / 抽屉 / 独立页面 自由切换
-const ops = useResourceOperations<Customer>({
-  basePath: "/customers",
-  presentation: "${presentation}", // "dialog" | "drawer" | "page"
-  syncWithUrl: true,
+    const sampleCode = `// Filament v5 + Refine 风格：presentation 在 resource.ts 中声明，UI Schema 统一收口于 ui.tsx
+// customerResource.presentation = "${presentation}"; // "dialog" | "drawer" | "page"
+export const customerUI = defineResourceUI(customerResource, {
+  table: {
+    columns: ({ t }) => [...],
+    rowActions: () => ({ crud: { view: true, edit: true, delete: true } }),
+  },
+  form: { fields: [...] },
+  infolist: { render: ({ entity }) => <CustomerInfolist customer={entity} /> },
 });
 
-return (
-  <ResourceFormHost
-    presentation={ops.createPresentation}
-    open={ops.isCreateOpen}
-    onOpenChange={ops.closeCreate}
-    title="Create Customer"
-    onSubmit={form.handleSubmit}
-  >
-    <CustomerForm form={form} />
-  </ResourceFormHost>
-);`;
+export const CustomersListView = customerUI.ListView;`;
     navigator.clipboard.writeText(sampleCode);
     setCopied(true);
     toast.success("Code snippet copied to clipboard!");
@@ -191,7 +181,7 @@ return (
             <Button
               type="button"
               size="sm"
-              onClick={() => ops.openCreate()}
+              onClick={() => modal.openCreate()}
               className="h-8.5 gap-1.5 text-xs shadow-xs"
             >
               <Plus className="size-3.5" />
@@ -202,7 +192,7 @@ return (
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => ops.openEdit(customer.id)}
+              onClick={() => modal.openEdit(customer.id)}
               className="h-8.5 gap-1.5 text-xs shadow-xs"
             >
               <Pencil className="size-3.5" />
@@ -213,7 +203,7 @@ return (
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() => ops.openView(customer.id)}
+              onClick={() => modal.openView(customer.id)}
               className="h-8.5 gap-1.5 text-xs shadow-xs"
             >
               <Eye className="size-3.5" />
@@ -291,23 +281,18 @@ return (
             </Button>
           </div>
           <pre className="text-foreground overflow-x-auto pt-3 text-[11px] leading-relaxed">
-            {`// 1. 在业务 Page 或 Feature 中定义统一调度器
-const ops = useResourceOperations<Customer>({
-  basePath: "/customers",
-  presentation: "${presentation}", // "dialog" | "drawer" | "page"
-  syncWithUrl: true,
+            {`// 1. 在领域 ui.tsx 中声明 UI Schema（形态由 resource.presentation="${presentation}" 托管）
+export const customerUI = defineResourceUI(customerResource, {
+  table: {
+    columns: ({ t }) => [...],
+    rowActions: () => ({ crud: { view: true, edit: true, delete: true } }),
+  },
+  form: { fields: [...] },
+  infolist: { render: ({ entity }) => <CustomerInfolist customer={entity} /> },
 });
 
-// 2. 挂载宿主容器（表单与详情视图根据当前 presentation 自动渲染对应形态）
-<ResourceFormHost
-  presentation={ops.createPresentation}
-  open={ops.isCreateOpen}
-  onOpenChange={ops.closeCreate}
-  title="Create Customer"
-  onSubmit={form.handleSubmit}
->
-  <CustomerFormFields form={form} />
-</ResourceFormHost>`}
+// 2. 导出零胶水视图并在 App Router page.tsx 中绑定
+export const CustomersListView = customerUI.ListView;`}
           </pre>
         </div>
       </CardContent>
@@ -315,11 +300,11 @@ const ops = useResourceOperations<Customer>({
       {/* Form Host Modal/Drawer/Page Container */}
       <ResourceFormHost
         presentation={presentation}
-        open={ops.isCreateOpen || ops.isEditOpen}
+        open={modal.isCreateOpen || modal.isEditOpen}
         onOpenChange={(next) => {
-          if (!next) ops.closeFormDialog();
+          if (!next) modal.closeFormDialog();
         }}
-        title={ops.isCreateOpen ? "Create Customer" : `Edit ${customer.name}`}
+        title={modal.isCreateOpen ? "Create Customer" : `Edit ${customer.name}`}
         description="Manage organization customer records and enterprise account settings."
         badge={
           <Badge variant="secondary" className="text-[10px]">
@@ -330,18 +315,18 @@ const ops = useResourceOperations<Customer>({
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
           { label: "Customers", href: "/customers" },
-          { label: ops.isCreateOpen ? "Create" : "Edit", active: true },
+          { label: modal.isCreateOpen ? "Create" : "Edit", active: true },
         ]}
-        backTo={() => ops.closeFormDialog()}
+        backTo={() => modal.closeFormDialog()}
         backLabel="Return to showcase"
-        submitText={ops.isCreateOpen ? "Create Customer" : "Save Changes"}
+        submitText={modal.isCreateOpen ? "Create Customer" : "Save Changes"}
         saveAndContinueText="Save & Continue Editing"
         onSaveAndContinue={async () => {
           await form.handleSubmit();
           toast.info("Saved! Ready for continued editing.");
         }}
         onSubmit={() => form.handleSubmit()}
-        onCancel={() => ops.closeFormDialog()}
+        onCancel={() => modal.closeFormDialog()}
       >
         {/* ResourceFormHost/FormDialog 已拥有 form 元素并接管提交，此处严禁再嵌套 form */}
         <div className="space-y-4">
@@ -421,9 +406,9 @@ const ops = useResourceOperations<Customer>({
       {/* View Host Modal/Drawer/Page Container */}
       <ResourceViewHost
         presentation={presentation}
-        open={ops.isViewOpen}
+        open={modal.isViewOpen}
         onOpenChange={(next) => {
-          if (!next) ops.closeView();
+          if (!next) modal.closeView();
         }}
         title={customer.name}
         description={`Customer ID: ${customer.id}`}
@@ -441,11 +426,11 @@ const ops = useResourceOperations<Customer>({
           { label: "Customers", href: "/customers" },
           { label: customer.name, active: true },
         ]}
-        backTo={() => ops.closeView()}
+        backTo={() => modal.closeView()}
         backLabel="Return to showcase"
         onEdit={() => {
-          ops.closeView();
-          ops.openEdit(customer.id);
+          modal.closeView();
+          modal.openEdit(customer.id);
         }}
         editText="Edit Customer"
         closeText="Close View"

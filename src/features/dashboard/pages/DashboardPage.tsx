@@ -15,7 +15,7 @@ import { MetricsCards } from "../components/MetricsCards";
 import { QuickActions } from "../components/QuickActions";
 import { RecentOrdersTable } from "../components/RecentOrdersTable";
 import { RevenueChart } from "../components/RevenueChart";
-import { useDashboardSummaryQuery } from "../hooks";
+import { useDashboardSummary } from "../hooks";
 import { DASHBOARD_TIME_RANGE_OPTIONS } from "../schemas";
 import { useTranslations } from "next-intl";
 
@@ -26,7 +26,7 @@ export interface DashboardPageProps {
 
 export function DashboardPage({ range = "30d", onRangeChange }: DashboardPageProps) {
   const t = useTranslations("dashboard");
-  const { data, isLoading, isError, refetch, isFetching } = useDashboardSummaryQuery(range);
+  const { data, isLoading, isError, refetch, isFetching } = useDashboardSummary(range);
 
   const handleRefetch = useMemoizedFn(() => {
     refetch();
@@ -35,6 +35,10 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
   const handleRangeChange = useMemoizedFn((newRange: DashboardTimeRange) => {
     if (newRange === range) return;
     onRangeChange?.(newRange);
+  });
+
+  const handleTabsValueChange = useMemoizedFn((value: string) => {
+    handleRangeChange(value as DashboardTimeRange);
   });
 
   if (isLoading) {
@@ -61,15 +65,10 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Tabs value={range} onValueChange={(val) => handleRangeChange(val as DashboardTimeRange)} className="w-auto">
+          <Tabs value={range} activationMode="manual" onValueChange={handleTabsValueChange} className="w-auto">
             <TabsList aria-label={t("period_aria")} className="h-8 p-0.5">
               {DASHBOARD_TIME_RANGE_OPTIONS.map((item) => (
-                <TabsTrigger
-                  key={item.value}
-                  value={item.value}
-                  onClick={() => handleRangeChange(item.value)}
-                  className="px-2.5 py-1 text-xs"
-                >
+                <TabsTrigger key={item.value} value={item.value} className="px-2.5 py-1 text-xs">
                   {t(item.labelKey)}
                 </TabsTrigger>
               ))}

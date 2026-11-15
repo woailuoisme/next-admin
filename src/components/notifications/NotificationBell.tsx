@@ -1,127 +1,100 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-
 import { useMemoizedFn } from "ahooks";
-import { memo, useMemo, useState } from "react";
+import { memo, useState } from "react";
 
 import { Popover } from "@/components/ui/popover";
-import {
-  fetchNotifications,
-  notificationKeys,
-  useDeleteNotificationMutation,
-  useMarkAllAsReadMutation,
-  useMarkAsReadMutation,
-  useNotifications,
-  useRealtimeNotifications,
-  useUnreadNotificationCount,
-  type NotificationItem,
-} from "@/features/notifications";
 
-import type { NotificationTabKey } from "./shared";
+import type { NotificationItem, NotificationTabKey } from "./shared";
 
 import { NotificationPopover } from "./popover";
-import { resolveNotificationTabFilters } from "./shared";
 import { NotificationTrigger } from "./trigger";
 
 export interface NotificationBellProps {
   className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  activeTab?: NotificationTabKey;
+  onTabChange?: (tab: NotificationTabKey) => void;
+  unreadCount?: number;
+  totalCount?: number;
+  items?: NotificationItem[];
+  isLoading?: boolean;
+  isMarkingAllAsRead?: boolean;
+  onPrefetch?: () => void;
+  onMarkAllRead?: (e: React.MouseEvent) => void;
+  onMarkAsRead?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onItemClick?: (item: NotificationItem) => void;
+  onGotoOverview?: () => void;
 }
 
 const EMPTY_ITEMS: NotificationItem[] = [];
+const NOOP = () => {};
 
-export const NotificationBell = memo(function NotificationBell({ className }: NotificationBellProps = {}) {
-  const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<NotificationTabKey>("all");
-  const router = useRouter();
-  const queryClient = useQueryClient();
+/**
+ * 纯 UI 通知铃铛组件（领域无关）：
+ * 数据查询与实时推送由调用方或业务容器（如 ConnectedNotificationBell）通过 Props 注入。
+ */
+export const NotificationBell = memo(function NotificationBell({
+  className,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  activeTab: controlledActiveTab,
+  onTabChange: controlledOnTabChange,
+  unreadCount = 0,
+  totalCount = 0,
+  items = EMPTY_ITEMS,
+  isLoading = false,
+  isMarkingAllAsRead = false,
+  onPrefetch,
+  onMarkAllRead,
+  onMarkAsRead,
+  onDelete,
+  onItemClick,
+  onGotoOverview,
+}: NotificationBellProps = {}) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const [uncontrolledTab, setUncontrolledTab] = useState<NotificationTabKey>("all");
 
-  const { category: filterCategory, unreadOnly: filterUnread } = resolveNotificationTabFilters(activeTab);
-  const filters = useMemo(
-    () => ({ category: filterCategory, unreadOnly: filterUnread }),
-    [filterCategory, filterUnread],
-  );
+  const open = controlledOpen ?? uncontrolledOpen;
+  const activeTab = controlledActiveTab ?? uncontrolledTab;
 
-  // 闭合态：轻量未读数（与 "all" 页签共享归一化后的 queryKey 缓存）
-  const { data: countData } = useUnreadNotificationCount();
-
-  // 实时推送监听：按分类与未读条件精准增量写入缓存并触发 Toast
-  useRealtimeNotifications();
-
-  // 展开态：按需拉取详情列表
-  const { data: listData, isLoading } = useNotifications(filters, { enabled: open });
-
-  const markAsReadMutation = useMarkAsReadMutation();
-  const markAllAsReadMutation = useMarkAllAsReadMutation();
-  const deleteMutation = useDeleteNotificationMutation();
-
-  const unreadCount = open ? (listData?.unreadCount ?? countData ?? 0) : (countData ?? listData?.unreadCount ?? 0);
-  const items = listData?.items ?? EMPTY_ITEMS;
-  const totalCount = listData?.total ?? 0;
-
-  // 鼠标悬停预拉取 (bundle-preload & TanStack Query 推荐最佳实践)
-  const handlePrefetch = useMemoizedFn(() => {
-    void queryClient
-      .prefetchQuery({
-        queryKey: notificationKeys.list(filters),
-        queryFn: () => fetchNotifications(filters),
-        staleTime: 10000,
-      })
-      .catch(() => {});
-  });
-
-  const handleItemClick = useMemoizedFn((item: NotificationItem) => {
-    if (!item.read) {
-      markAsReadMutation.mutate(item.id);
+  const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
+    if (controlledOpen === undefined) {
+      setUncontrolledOpen(nextOpen);
     }
-    if (
-      item.actionUrl &&
-      item.actionUrl.startsWith("/") &&
-      !item.actionUrl.startsWith("//") &&
-      !item.actionUrl.startsWith("/\\")
-    ) {
-      setOpen(false);
-      router.push(item.actionUrl);
+    controlledOnOpenChange?.(nextOpen);
+  });
+
+  const handleTabChange = useMemoizedFn((nextTab: NotificationTabKey) => {
+    if (controlledActiveTab === undefined) {
+      setUncontrolledTab(nextTab);
     }
-  });
-
-  const handleSingleMarkRead = useMemoizedFn((id: string) => {
-    markAsReadMutation.mutate(id);
-  });
-
-  const handleDelete = useMemoizedFn((id: string) => {
-    deleteMutation.mutate(id);
+    controlledOnTabChange?.(nextTab);
   });
 
   const handleMarkAllRead = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();
-    if (unreadCount > 0) {
-      markAllAsReadMutation.mutate();
-    }
-  });
-
-  const handleGotoOverview = useMemoizedFn(() => {
-    setOpen(false);
-    router.push("/orders");
+    onMarkAllRead?.(e);
   });
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <NotificationTrigger unreadCount={unreadCount} onPrefetch={handlePrefetch} className={className} />
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <NotificationTrigger unreadCount={unreadCount} onPrefetch={onPrefetch} className={className} />
       <NotificationPopover
         unreadCount={unreadCount}
         totalCount={totalCount}
         activeTab={activeTab}
         items={items}
         isLoading={isLoading}
-        isMarkingAllAsRead={markAllAsReadMutation.isPending}
-        onTabChange={setActiveTab}
+        isMarkingAllAsRead={isMarkingAllAsRead}
+        onTabChange={handleTabChange}
         onMarkAllAsRead={handleMarkAllRead}
-        onMarkAsRead={handleSingleMarkRead}
-        onDelete={handleDelete}
-        onItemClick={handleItemClick}
-        onGotoOverview={handleGotoOverview}
+        onMarkAsRead={onMarkAsRead}
+        onDelete={onDelete}
+        onItemClick={onItemClick ?? NOOP}
+        onGotoOverview={onGotoOverview ?? NOOP}
       />
     </Popover>
   );

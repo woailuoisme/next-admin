@@ -8,13 +8,15 @@ import { useAuthAdmin } from "@/stores/auth";
 
 import type { NotificationFilters, NotificationItem, NotificationListResponse } from "./types";
 
-import { deleteNotification, markAllNotificationsAsRead, markNotificationAsRead } from "./api";
 import {
+  deleteNotification,
   extractNotificationFiltersFromKey,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
   normalizeNotificationFilters,
   notificationKeys,
   notificationQueries,
-} from "./queries";
+} from "./resource";
 
 export { extractNotificationFiltersFromKey, normalizeNotificationFilters, notificationKeys, notificationQueries };
 export const NOTIFICATIONS_QUERY_KEY = notificationKeys.all;

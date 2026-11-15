@@ -1,4 +1,4 @@
-import type { NotificationItem } from "@/features/notifications";
+import type { NotificationItem } from "../shared";
 
 export interface NotificationItemRowProps {
   item: NotificationItem;

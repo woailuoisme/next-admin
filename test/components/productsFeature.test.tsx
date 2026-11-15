@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { ProductMetricsCards } from "@/features/products/components/ProductMetricsCards";
-import { ProductTable } from "@/features/products/components/ProductTable";
-import { computeProductStats, ProductsPage } from "@/features/products/pages/ProductsPage";
+import { ResourceStats } from "@/components/resource";
+import { computeProductStats } from "@/features/products/resource";
 import type { Product } from "@/features/products/types";
+import { ProductsActionView, ProductsListView, productUI } from "@/features/products/ui";
 import { renderWithProviders, screen } from "test/test-utils";
 
 const mockProducts: Product[] = [
@@ -46,9 +46,16 @@ describe("Products Feature Tests", () => {
     expect(stats.avgPrice).toBe(1099.5);
   });
 
-  it("renders ProductMetricsCards with formatted average price and negative low-stock alert tone", () => {
-    const stats = computeProductStats(mockProducts);
-    const { container } = renderWithProviders(<ProductMetricsCards stats={stats} />);
+  it("renders ResourceStats with productUI.config.stats showing average price and negative low-stock tone", () => {
+    const { container } = renderWithProviders(
+      <ResourceStats
+        i18nNamespace="products"
+        schema={productUI.config.stats!}
+        rows={mockProducts}
+        total={2}
+        isLoading={false}
+      />,
+    );
 
     expect(screen.getByText("总商品 SKU")).toBeInTheDocument();
     expect(screen.getByText("在架正常在售")).toBeInTheDocument();
@@ -58,31 +65,33 @@ describe("Products Feature Tests", () => {
     expect(container.querySelector(".text-destructive")).toBeInTheDocument();
   });
 
-  it("renders neutral tone in ProductMetricsCards when lowStockCount is zero", () => {
+  it("renders neutral tone in product stats when no product has low stock", () => {
+    const healthyStockProducts = mockProducts.map((item) => ({ ...item, stock: 50 }));
     const { container } = renderWithProviders(
-      <ProductMetricsCards stats={{ total: 2, activeCount: 2, lowStockCount: 0, avgPrice: 500 }} />,
+      <ResourceStats
+        i18nNamespace="products"
+        schema={productUI.config.stats!}
+        rows={healthyStockProducts}
+        total={2}
+        isLoading={false}
+      />,
     );
     expect(container.querySelector(".text-destructive")).toBeNull();
   });
 
-  it("renders ProductTable with items, margin financials and inventory", () => {
-    const handleEdit = vi.fn();
-    const handleDelete = vi.fn();
-
-    renderWithProviders(
-      <ProductTable products={mockProducts} total={2} onEditProduct={handleEdit} onDeleteProduct={handleDelete} />,
-    );
-
-    expect(screen.getByText("无线降噪耳机 Ultra")).toBeInTheDocument();
-    expect(screen.getByText("wireless-anc-headphones-ultra")).toBeInTheDocument();
-    expect(screen.getByText("人体工学办公椅")).toBeInTheDocument();
-    expect(screen.getByText("ergonomic-office-chair")).toBeInTheDocument();
-  });
-
-  it("renders ProductsPage with title, create action and catalog table", async () => {
-    renderWithProviders(<ProductsPage />);
+  it("renders ProductsListView with title, create action and catalog stats", async () => {
+    renderWithProviders(<ProductsListView />);
 
     expect(await screen.findByText("商品目录")).toBeInTheDocument();
     expect(await screen.findByRole("button", { name: /添加商品/ })).toBeInTheDocument();
+    expect(await screen.findByText("总商品 SKU")).toBeInTheDocument();
+  });
+
+  it("renders ProductsActionView in create mode with ProductForm", async () => {
+    renderWithProviders(<ProductsActionView mode="create" />);
+
+    expect(await screen.findByText("SKU 平均单价").catch(() => null)).toBeNull();
+    // Form header & submit button rendered inside ResourceSubPageScaffold
+    expect(await screen.findByRole("button", { name: /确认新增|保存/ })).toBeInTheDocument();
   });
 });

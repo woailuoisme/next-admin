@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import type { productInputSchema, productSearchSchema, productStatusSchema } from "./schemas";
+import type { productInputSchema, productSearchSchema, productStatusSchema } from "./resource";
 
 export type ProductStatus = z.infer<typeof productStatusSchema>;
 export type ProductInput = z.infer<typeof productInputSchema>;

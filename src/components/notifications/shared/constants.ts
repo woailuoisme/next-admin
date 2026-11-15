@@ -1,8 +1,6 @@
 import { AlertTriangle, Info, Package, ShieldAlert, UserCheck } from "lucide-react";
 
-import type { NotificationCategory, NotificationSeverity } from "@/features/notifications";
-
-import type { CategoryIconResult, NotificationTabKey } from "./types";
+import type { CategoryIconResult, NotificationCategory, NotificationSeverity, NotificationTabKey } from "./types";
 
 export const NOTIFICATION_TABS: readonly {
   key: NotificationTabKey;

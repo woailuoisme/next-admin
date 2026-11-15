@@ -29,6 +29,7 @@ export const ResourceViewPage = memo(function ResourceViewPage({
   children,
 }: Omit<ResourceViewHostProps, "presentation" | "open" | "onOpenChange" | "size">) {
   const t = useTranslations("resource");
+  const tCommon = useTranslations("common");
   const handleBack = useResourceBackNavigation(backTo);
 
   const resolvedEditText = editText ?? t("edit");
@@ -59,8 +60,9 @@ export const ResourceViewPage = memo(function ResourceViewPage({
       />
 
       {loading ? (
-        <div className="flex h-64 items-center justify-center">
-          <Loader2 className="text-primary size-6 animate-spin" />
+        <div role="status" aria-label={tCommon("loading_page_aria")} className="flex h-64 items-center justify-center">
+          <Loader2 className="text-primary size-6 animate-spin" aria-hidden="true" />
+          <span className="sr-only">{tCommon("loading_page_aria")}</span>
         </div>
       ) : (
         <div className="space-y-6">{children}</div>

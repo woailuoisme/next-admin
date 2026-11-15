@@ -7,11 +7,10 @@ import { ResourceFormPage } from "@/components/resource/ResourceFormPage";
 import { ResourceFormHost } from "@/components/resource/ResourceFormHost";
 import { ResourceViewPage } from "@/components/resource/ResourceViewPage";
 import { ResourceViewHost } from "@/components/resource/ResourceViewHost";
-import { useResourceOperations } from "@/components/resource/useResourceOperations";
 import { GlitchTipDiagnostic } from "@/components/shared/GlitchTipDiagnostic";
 import { LabelHelpTooltip } from "@/components/shared/LabelHelpTooltip";
 import { CopyButton } from "@/components/shared/CopyButton";
-import { act, renderHook } from "@testing-library/react";
+import { act } from "@testing-library/react";
 
 describe("Resource Subsystem Components", () => {
   describe("ResourcePageHeader", () => {
@@ -119,30 +118,6 @@ describe("Resource Subsystem Components", () => {
 
       expect(screen.getByText("视图页面")).toBeInTheDocument();
       expect(screen.getByText("View Host Page")).toBeInTheDocument();
-    });
-  });
-
-  describe("useResourceOperations hook", () => {
-    it("resolves default presentation modes to dialog", () => {
-      const { result } = renderHook(() => useResourceOperations({ basePath: "/orders" }));
-
-      expect(result.current.createPresentation).toBe("dialog");
-      expect(result.current.editPresentation).toBe("dialog");
-      expect(result.current.viewPresentation).toBe("dialog");
-      expect(result.current.basePath).toBe("/orders");
-    });
-
-    it("resolves per-operation presentation modes when configured", () => {
-      const { result } = renderHook(() =>
-        useResourceOperations({
-          basePath: "/orders",
-          presentation: { create: "page", edit: "drawer", view: "dialog" },
-        }),
-      );
-
-      expect(result.current.createPresentation).toBe("page");
-      expect(result.current.editPresentation).toBe("drawer");
-      expect(result.current.viewPresentation).toBe("dialog");
     });
   });
 });

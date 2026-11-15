@@ -5,7 +5,7 @@ import { Suspense } from "react";
 
 import DashboardLoading from "@/app/(app)/loading";
 import { DashboardContainer } from "@/features/dashboard/pages/DashboardContainer";
-import { dashboardQueries } from "@/features/dashboard/queries";
+import { dashboardQueries } from "@/features/dashboard/resource";
 import type { DashboardTimeRange } from "@/features/dashboard/types";
 import { getQueryClient, prefetchWithTimeout } from "@/lib/queryClient";
 

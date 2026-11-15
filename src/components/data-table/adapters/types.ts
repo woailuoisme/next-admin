@@ -1,4 +1,5 @@
 import type { UndefinedInitialDataOptions, useQuery } from "@tanstack/react-query";
+import type { z } from "zod";
 
 import type { BaseTableSearchParams } from "../core/tableSearchSchema";
 import type { DataTableFilterModel, DataTableSortModel, TableStateAdapter } from "../core/types";
@@ -24,6 +25,8 @@ export interface UseUrlTableStateAdapterOptions<
 > {
   /** Partial or SSR-seeded search overrides merged over active URL search parameters (undefined keys preserve URL state) */
   search?: Partial<TSearch>;
+  /** Optional Zod schema applied before passing search filters to queryOptions (keeps SSR & CSR queryKeys aligned) */
+  searchSchema?: z.ZodType<TSearch>;
   /** Pluggable router port (defaults to Next.js App Router) */
   router?: TableRouterPort;
   queryOptions?:

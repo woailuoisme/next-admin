@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import type { categoryInputSchema, categorySearchSchema } from "./schemas";
+import type { categoryInputSchema, categorySearchSchema } from "./resource";
 
 export interface Category {
   id: string;

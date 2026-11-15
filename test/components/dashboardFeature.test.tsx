@@ -1,13 +1,18 @@
+import { renderHook, waitFor } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
+import { useDashboardSummary } from "@/features/dashboard/hooks";
+import { dashboardKeys, dashboardResource } from "@/features/dashboard/resource";
 import { MetricsCards } from "@/features/dashboard/components/MetricsCards";
 import { RecentOrdersTable } from "@/features/dashboard/components/RecentOrdersTable";
 import { QuickActions } from "@/features/dashboard/components/QuickActions";
 import { RevenueChart } from "@/features/dashboard/components/RevenueChart";
 import type { DashboardMetrics, DashboardSparklines, MonthlyTrendPoint } from "@/features/dashboard/types";
 import type { Order } from "@/features/orders";
-import { fireEvent, renderWithProviders, screen, within } from "test/test-utils";
+import { createTestQueryClient, fireEvent, renderWithProviders, screen, within } from "test/test-utils";
 
 const mockMetrics: DashboardMetrics = {
   totalRevenue: 128450.5,
@@ -157,7 +162,7 @@ describe("Dashboard Feature Tests", () => {
   it("renders DashboardPage with Tabs-based time range switcher", async () => {
     const handleRangeChange = vi.fn();
 
-    renderWithProviders(<DashboardPage range="30d" onRangeChange={handleRangeChange} />);
+    const { user } = renderWithProviders(<DashboardPage range="30d" onRangeChange={handleRangeChange} />);
 
     const tablist = await screen.findByRole("tablist", { name: "选择统计周期" });
     expect(tablist).toBeInTheDocument();
@@ -165,7 +170,28 @@ describe("Dashboard Feature Tests", () => {
     const tab7d = within(tablist).getByRole("tab", { name: "7天" });
     expect(tab7d).toBeInTheDocument();
 
-    fireEvent.click(tab7d);
+    await user.click(tab7d);
+    expect(handleRangeChange).toHaveBeenCalledTimes(1);
     expect(handleRangeChange).toHaveBeenCalledWith("7d");
+  });
+
+  it("exposes dashboardResource, dashboardKeys and useDashboardSummary backed by MSW", async () => {
+    expect(dashboardResource.name).toBe("dashboard");
+    expect(dashboardKeys.summary("7d")).toEqual(["dashboard", "summary", "7d"]);
+
+    const queryClient = createTestQueryClient();
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    const { result } = renderHook(() => useDashboardSummary("7d"), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(result.current.data?.metrics).toBeDefined();
+    expect(Array.isArray(result.current.data?.monthlyTrends)).toBe(true);
+    expect(Array.isArray(result.current.data?.recentOrders)).toBe(true);
   });
 });

@@ -16,7 +16,7 @@ import {
   useMarkAsReadMutation,
   useRealtimeNotifications,
 } from "@/features/notifications/hooks";
-import { EMPTY_NOTIFICATION_FILTERS } from "@/features/notifications/queries";
+import { EMPTY_NOTIFICATION_FILTERS } from "@/features/notifications/resource";
 import type { NotificationItem, NotificationListResponse } from "@/features/notifications/types";
 import { THEME_MODE_STORAGE_KEY, THEME_RADIUS_STORAGE_KEY, usePreferencesStore } from "@/stores/preferences";
 import { createTestQueryClient, renderWithProviders, screen, waitFor } from "test/test-utils";
@@ -30,12 +30,16 @@ vi.mock("@/integrations/centrifuge", () => ({
   },
 }));
 
-vi.mock("@/features/notifications/api", () => ({
-  fetchNotifications: vi.fn(),
-  markNotificationAsRead: vi.fn(async (id: string) => ({ id, read: true })),
-  markAllNotificationsAsRead: vi.fn(async () => ({ success: true })),
-  deleteNotification: vi.fn(async (id: string) => ({ id })),
-}));
+vi.mock("@/features/notifications/resource", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/notifications/resource")>();
+  return {
+    ...actual,
+    fetchNotifications: vi.fn(),
+    markNotificationAsRead: vi.fn(async (id: string) => ({ id, read: true })),
+    markAllNotificationsAsRead: vi.fn(async () => ({ success: true, count: 1 })),
+    deleteNotification: vi.fn(async () => undefined),
+  };
+});
 
 function makeNotification(overrides: Partial<NotificationItem> & { id: string }): NotificationItem {
   return {

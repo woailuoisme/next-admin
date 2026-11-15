@@ -31,10 +31,11 @@ export type FormDialogMode = "create" | "edit";
 
 export interface BaseFormInstance {
   reset(values?: Record<string, unknown>): void;
-  setFieldValue(field: any, value: any): void;
+  setFieldValue(field: any, value: any, opts?: { dontUpdateMeta?: boolean }): void;
+  getFieldValue?(field: any): unknown;
   handleSubmit?(): void | Promise<void>;
   store?: {
-    get(): { isDirty?: boolean } | undefined;
+    get(): { isDirty?: boolean; values?: Record<string, any> } | undefined;
     subscribe(listener: (value: any) => void): { unsubscribe(): void };
   };
   state?: {
@@ -194,22 +195,6 @@ export interface ViewDialogProps extends BaseDialogProps {
    * Content to display.
    */
   children: ReactNode;
-}
-
-export interface DataListItem {
-  label: ReactNode;
-  value?: ReactNode;
-  copyable?: boolean;
-  badge?: boolean;
-  badgeVariant?: "default" | "secondary" | "destructive" | "outline";
-  span?: number;
-  className?: string;
-}
-
-export interface DataListProps {
-  items: DataListItem[];
-  columns?: 1 | 2 | 3 | 4;
-  className?: string;
 }
 
 export interface DeleteDialogProps {

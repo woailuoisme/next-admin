@@ -5,95 +5,80 @@ import {
   LayoutDashboard,
   type LucideIcon,
   MapPin,
-  Package,
   Radio,
   Sparkles,
   TableProperties,
-  Users,
 } from "lucide-react";
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 
 import { createNamespaceTranslator } from "@/i18n";
-import { useAuthSession } from "@/stores/auth";
+import { mergeWithResourceMenu } from "@/lib/resource/registry";
 
+import { useLayoutAuth } from "../LayoutAuthContext";
 import type { NavGroup } from "./types";
 
 const getMenuTranslator = () => createNamespaceTranslator("menu");
 
 /**
  * Get localized sidebar navigation menu groups with concise wording.
- * Accepts an optional translation function (e.g. from useTranslations('menu')).
+ * 资源导航项由 RESOURCE_MANIFEST 自动驱动，并与静态非资源菜单组合。
  */
 export function getSidebarMenuGroups(tMenu?: (key: any) => string): NavGroup[] {
   const t = tMenu ?? getMenuTranslator();
-  return [
-    {
-      items: [
-        {
-          title: t("overview"),
-          to: "/overview",
-          icon: LayoutDashboard,
-        },
-        {
-          title: t("catalog"),
-          icon: Package,
-          defaultOpen: true,
-          items: [
-            { title: t("products"), to: "/products", badge: 12 },
-            { title: t("categories"), to: "/categories", badge: 4 },
-            { title: t("orders"), to: "/orders", badge: 15 },
-          ],
-        },
-        {
-          title: t("users"),
-          to: "/users",
-          icon: Users,
-        },
-      ],
-    },
-    {
-      title: t("showcase"),
-      items: [
-        {
-          title: t("showcase_tables"),
-          to: "/showcase/tables",
-          icon: TableProperties,
-        },
-        {
-          title: t("showcase_forms"),
-          to: "/showcase/forms",
-          icon: Sparkles,
-        },
-        {
-          title: t("showcase_infolists"),
-          to: "/showcase/infolists",
-          icon: FileText,
-        },
-        {
-          title: t("showcase_stats"),
-          to: "/showcase/stats",
-          icon: BarChart3,
-        },
-        {
-          title: t("showcase_charts"),
-          to: "/showcase/charts",
-          icon: AreaChart,
-        },
-        {
-          title: t("showcase_maps"),
-          to: "/showcase/maps",
-          icon: MapPin,
-        },
-        {
-          title: t("showcase_realtime"),
-          to: "/showcase/realtime",
-          icon: Radio,
-        },
-      ],
-    },
-  ];
+  return mergeWithResourceMenu(
+    (key) => t(key as never),
+    [
+      {
+        title: t("overview"),
+        to: "/overview",
+        icon: LayoutDashboard,
+      },
+    ],
+    [
+      {
+        title: t("showcase"),
+        items: [
+          {
+            title: t("showcase_tables"),
+            to: "/showcase/tables",
+            icon: TableProperties,
+          },
+          {
+            title: t("showcase_forms"),
+            to: "/showcase/forms",
+            icon: Sparkles,
+          },
+          {
+            title: t("showcase_infolists"),
+            to: "/showcase/infolists",
+            icon: FileText,
+          },
+          {
+            title: t("showcase_stats"),
+            to: "/showcase/stats",
+            icon: BarChart3,
+          },
+          {
+            title: t("showcase_charts"),
+            to: "/showcase/charts",
+            icon: AreaChart,
+          },
+          {
+            title: t("showcase_maps"),
+            to: "/showcase/maps",
+            icon: MapPin,
+          },
+          {
+            title: t("showcase_realtime"),
+            to: "/showcase/realtime",
+            icon: Radio,
+          },
+        ],
+      },
+    ],
+  );
 }
 
 /** 未声明 roles 视为对所有角色开放 */
@@ -218,9 +203,9 @@ export function useSidebarMenuGroups(): NavGroup[] {
 /**
  * 统一的菜单权限过滤与扁平化组合 Hooks（AppSidebar 与 GlobalSearchDialog 共用）
  */
-export function useAuthorizedMenuGroups(customGroups?: NavGroup[]): NavGroup[] {
-  const session = useAuthSession();
-  const userRole = session?.admin?.role;
+export function useAuthorizedMenuGroups(customGroups?: NavGroup[], userRoleProp?: string): NavGroup[] {
+  const layoutAuth = useLayoutAuth();
+  const userRole = userRoleProp ?? layoutAuth.user?.role;
   const dynamicGroups = useSidebarMenuGroups();
 
   return useMemo(() => {
@@ -229,7 +214,7 @@ export function useAuthorizedMenuGroups(customGroups?: NavGroup[]): NavGroup[] {
   }, [customGroups, dynamicGroups, userRole]);
 }
 
-export function useAuthorizedFlatNavItems(customGroups?: NavGroup[]): FlatNavItem[] {
-  const authorizedGroups = useAuthorizedMenuGroups(customGroups);
+export function useAuthorizedFlatNavItems(customGroups?: NavGroup[], userRoleProp?: string): FlatNavItem[] {
+  const authorizedGroups = useAuthorizedMenuGroups(customGroups, userRoleProp);
   return useMemo(() => getFlatNavItems(authorizedGroups), [authorizedGroups]);
 }

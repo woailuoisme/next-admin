@@ -1,50 +1,35 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { CustomerTable } from "@/features/users/components/CustomerTable";
-import { UsersPage } from "@/features/users/pages/UsersPage";
-import type { Customer } from "@/features/users/types";
+import { customerUI, UsersListView } from "@/features/users/ui";
+import { AccessControlProvider } from "@/lib/resource";
 import { renderWithProviders, screen } from "test/test-utils";
 
-const mockCustomers: Customer[] = [
-  {
-    id: "cust-1",
-    name: "张三",
-    email: "zhangsan@example.com",
-    avatarUrl: "https://example.com/avatar1.jpg",
-    phone: "+86 13800138000",
-    status: "active",
-    totalOrders: 12,
-    totalSpent: 4580.5,
-    createdAt: "2026-01-01T00:00:00Z",
-  },
-  {
-    id: "cust-2",
-    name: "李四",
-    email: "lisi@example.com",
-    avatarUrl: "https://example.com/avatar2.jpg",
-    phone: "+86 13900139000",
-    status: "inactive",
-    totalOrders: 3,
-    totalSpent: 920.0,
-    createdAt: "2026-01-02T00:00:00Z",
-  },
-];
-
 describe("Users Feature Tests", () => {
-  it("renders CustomerTable with customer details, contact info and badges", () => {
-    const handleToggle = vi.fn();
-
-    renderWithProviders(<CustomerTable customers={mockCustomers} total={2} onToggleCustomerStatus={handleToggle} />);
-
-    expect(screen.getAllByText("张三").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("zhangsan@example.com")).toBeInTheDocument();
-    expect(screen.getByText("+86 13800138000")).toBeInTheDocument();
-    expect(screen.getAllByText("李四").length).toBeGreaterThanOrEqual(1);
+  it("exposes declarative customerUI config with status filter and batch suspend action", () => {
+    expect(customerUI.resource.name).toBe("users");
+    expect(customerUI.config.table.exportFileName).toBe("customers-directory.csv");
+    expect(customerUI.config.table.batchActions).toHaveLength(1);
   });
 
-  it("renders UsersPage with heading and table structure", async () => {
-    renderWithProviders(<UsersPage />);
+  it("renders UsersListView with heading, status filter and customer directory rows", async () => {
+    renderWithProviders(<UsersListView />);
 
     expect(await screen.findByText("客户账户")).toBeInTheDocument();
+    expect(await screen.findByText("客户")).toBeInTheDocument();
+    expect((await screen.findAllByRole("button", { name: /停用|启用/ })).length).toBeGreaterThan(0);
+  });
+
+  it("respects AccessControlProvider inside UsersListView and hides edit rowActions when unauthorized", async () => {
+    renderWithProviders(
+      <AccessControlProvider evaluator={({ action }) => action === "list"}>
+        <UsersListView />
+      </AccessControlProvider>,
+    );
+
+    expect(await screen.findByText("客户账户")).toBeInTheDocument();
+    // 等待表格行数据加载完成（邮箱域名或手机列内容渲染出现后）
+    expect((await screen.findAllByText(/@/)).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "停用" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "启用" })).toBeNull();
   });
 });

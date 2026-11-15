@@ -1,12 +1,12 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo } from "react";
 
 import { Sidebar, SidebarFooter, SidebarRail } from "@/components/ui/sidebar";
 import { cn } from "cn";
-import { useAuthSession } from "@/stores/auth";
 
-import type { NavGroup, SidebarUser } from "./types";
+import { useLayoutAuth } from "../LayoutAuthContext";
+import type { NavGroup } from "./types";
 
 import { useAuthorizedMenuGroups } from "./menu.config";
 import { NavMain } from "./nav-main";
@@ -18,28 +18,15 @@ export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export const AppSidebar = memo(function AppSidebar({ className, customGroups, ...props }: AppSidebarProps) {
-  const session = useAuthSession();
-  const admin = session?.admin;
-  const userRole = admin?.role;
-
-  const menuGroups = useAuthorizedMenuGroups(customGroups);
-
-  const currentUser: SidebarUser | null = useMemo(() => {
-    if (!admin) return null;
-    return {
-      name: admin.name,
-      email: admin.email,
-      avatar: admin.avatarUrl ?? "",
-      role: userRole,
-    };
-  }, [admin, userRole]);
+  const { user } = useLayoutAuth();
+  const menuGroups = useAuthorizedMenuGroups(customGroups, user?.role);
 
   return (
     <Sidebar collapsible="icon" className={cn("border-sidebar-border border-r", className)} {...props}>
       <SidebarHeader />
       <NavMain groups={menuGroups} />
       <SidebarFooter>
-        <NavUser user={currentUser} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

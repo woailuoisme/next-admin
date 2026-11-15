@@ -1,6 +1,4 @@
-import type { NotificationItem } from "@/features/notifications";
-
-import type { NotificationTabKey } from "../shared";
+import type { NotificationItem, NotificationTabKey } from "../shared";
 
 export interface NotificationListProps {
   items: NotificationItem[];

@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
 import { AppProviders } from "@/components/providers/AppProviders";
+import { AuthAppBridge, SessionValidator } from "@/features/auth";
 import { cn } from "cn";
 import "./globals.css";
 
@@ -35,7 +36,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} suppressHydrationWarning className={cn("h-full font-sans antialiased", inter.variable)}>
       <body className="flex min-h-full flex-col font-sans">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <AppProviders>{children}</AppProviders>
+          <AppProviders guardSlot={<SessionValidator />}>
+            <AuthAppBridge>{children}</AuthAppBridge>
+          </AppProviders>
         </NextIntlClientProvider>
       </body>
     </html>

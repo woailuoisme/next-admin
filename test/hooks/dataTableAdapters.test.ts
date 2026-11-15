@@ -2,6 +2,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import { type ReactNode, createElement, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 
 import type { TableRouterPort } from "@/components/data-table/adapters";
 import {
@@ -67,7 +68,9 @@ describe("DataTable State Adapters", () => {
   });
 
   it("parses URLSearchParams primitives cleanly without corrupting leading zeros or long strings", () => {
-    const params = new URLSearchParams("page=2&pageSize=25&active=true&archived=false&zip=00123&search=hello");
+    const params = new URLSearchParams(
+      "page=2&pageSize=25&active=true&archived=false&zip=00123&search=hello&empty=&dup=first&dup=second",
+    );
     expect(parseNextSearchParams(params)).toEqual({
       page: 2,
       pageSize: 25,
@@ -75,7 +78,38 @@ describe("DataTable State Adapters", () => {
       archived: false,
       zip: "00123",
       search: "hello",
+      dup: "first",
     });
+  });
+
+  it("strips unknown URL params via searchSchema when building queryOptions so CSR queryKey matches SSR", () => {
+    const memory = createMemoryRouterPort({ page: 2, utm_source: "newsletter" });
+    const searchSchema = z.object({
+      page: z.coerce.number().optional(),
+      search: z.string().optional(),
+    });
+    const receivedFilters: Array<Record<string, unknown>> = [];
+
+    renderHook(
+      () => {
+        const { router } = memory.usePort();
+        return useUrlTableStateAdapterWithPort({
+          router,
+          search: { page: 2 },
+          searchSchema,
+          queryOptions: (filters) => {
+            receivedFilters.push(filters);
+            return {
+              queryKey: ["orders", "list", filters],
+              queryFn: async () => ({ items: [], total: 0 }),
+            };
+          },
+        });
+      },
+      { wrapper: createWrapper() },
+    );
+
+    expect(receivedFilters[0]).toEqual({ page: 2 });
   });
 
   it("useUrlTableStateAdapterWithPort manages pagination, sorting, and search via memory TableRouterPort", () => {

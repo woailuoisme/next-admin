@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLogoutMutation } from "@/features/auth";
 
+import { useLayoutAuth } from "../LayoutAuthContext";
 import type { SidebarUser } from "./types";
 
 function getUserInitials(name: string): string {
@@ -51,8 +51,6 @@ export const NavUserSkeleton = memo(function NavUserSkeleton() {
 });
 
 export interface NavUserProps {
-  user?: SidebarUser | null;
-
   defaultOpen?: boolean;
 }
 
@@ -72,13 +70,13 @@ const UserIdentity = memo(function UserIdentity({ user, initials }: { user: Side
   );
 });
 
-export const NavUser = memo(function NavUser({ user, defaultOpen }: NavUserProps) {
+export const NavUser = memo(function NavUser({ defaultOpen }: NavUserProps) {
   const t = useTranslations("layout");
   const { isMobile, state } = useSidebar();
-  const logoutMutation = useLogoutMutation();
+  const { user, onLogout, isLoggingOut = false } = useLayoutAuth();
 
   const handleLogout = useMemoizedFn(() => {
-    logoutMutation.mutate();
+    onLogout?.();
   });
 
   if (!user) {
@@ -142,10 +140,10 @@ export const NavUser = memo(function NavUser({ user, defaultOpen }: NavUserProps
                 variant="destructive"
                 className="cursor-pointer"
                 onSelect={handleLogout}
-                disabled={logoutMutation.isPending}
+                disabled={isLoggingOut || !onLogout}
               >
                 <LogOut className="mr-2 size-4" />
-                <span>{logoutMutation.isPending ? t("nav_user_logging_out") : t("nav_user_logout")}</span>
+                <span>{isLoggingOut ? t("nav_user_logging_out") : t("nav_user_logout")}</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

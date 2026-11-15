@@ -1,15 +1,14 @@
 // Public API seam for dashboard feature
 
-export { fetchDashboardSummary } from "./api";
 export { CategoryDistributionChart } from "./components/CategoryDistributionChart";
+export { DashboardSkeleton } from "./components/DashboardSkeleton";
 export { MetricsCards } from "./components/MetricsCards";
 export { QuickActions } from "./components/QuickActions";
 export { RecentOrdersTable } from "./components/RecentOrdersTable";
 export { RevenueChart } from "./components/RevenueChart";
-export { useDashboardSummaryQuery } from "./hooks";
-export { DashboardSkeleton } from "./components/DashboardSkeleton";
+export { useDashboardSummary } from "./hooks";
 export { DashboardPage, type DashboardPageProps } from "./pages/DashboardPage";
-export { dashboardKeys, dashboardQueries } from "./queries";
+export { dashboardKeys, dashboardQueries, dashboardResource, fetchDashboardSummary } from "./resource";
 export {
   DASHBOARD_TIME_RANGE_OPTIONS,
   DASHBOARD_TIME_RANGES,

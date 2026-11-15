@@ -3,7 +3,11 @@ import { useDebounceFn, useMemoizedFn } from "ahooks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import type { BaseTableSearchParams } from "../core/tableSearchSchema";
+import {
+  type BaseTableSearchParams,
+  normalizeSearchParamsWithSchema,
+  parseScalarSearchParam,
+} from "../core/tableSearchSchema";
 import type { DataTableFilterModel, DataTableSortItem, DataTableSortModel, TableStateAdapter } from "../core/types";
 import type {
   TablePaginationMode,
@@ -27,17 +31,17 @@ export function parseNextSearchParams(
   const obj: Record<string, string | number | boolean | undefined> = {};
   let hasEntries = false;
   searchParams.forEach((value, key) => {
-    hasEntries = true;
-    if (value === "true") {
-      obj[key] = true;
-    } else if (value === "false") {
-      obj[key] = false;
-    } else if (/^\d+$/.test(value) && value.length < 10 && !value.startsWith("0")) {
-      const num = Number(value);
-      obj[key] = Number.isNaN(num) ? value : num;
-    } else {
-      obj[key] = value;
+    if (
+      value === "" ||
+      key === "__proto__" ||
+      key === "constructor" ||
+      key === "prototype" ||
+      Object.prototype.hasOwnProperty.call(obj, key)
+    ) {
+      return;
     }
+    hasEntries = true;
+    obj[key] = parseScalarSearchParam(value);
   });
   return hasEntries ? obj : EMPTY_RECORD;
 }
@@ -139,6 +143,7 @@ export function useUrlTableStateAdapterWithPort<
 ): UseUrlTableStateAdapterReturn<TData, TSearch, TQueryResponse> {
   const {
     search: propSearch,
+    searchSchema,
     router,
     queryOptions,
     selectRows,
@@ -255,10 +260,15 @@ export function useUrlTableStateAdapterWithPort<
     ];
   }, [currentSortBy, currentSortOrder]);
 
+  const querySearch = useMemo(
+    () => (searchSchema ? normalizeSearchParamsWithSchema(search, searchSchema) : search),
+    [search, searchSchema],
+  );
+
   const resolvedQueryOptions = useMemo(() => {
     if (!queryOptions) return null;
-    return typeof queryOptions === "function" ? queryOptions(search) : queryOptions;
-  }, [queryOptions, search]);
+    return typeof queryOptions === "function" ? queryOptions(querySearch) : queryOptions;
+  }, [queryOptions, querySearch]);
 
   const query = useQuery(resolvedQueryOptions ?? DISABLED_QUERY_OPTIONS);
   const isLoading = explicitLoading ?? (resolvedQueryOptions ? query.isLoading : false);

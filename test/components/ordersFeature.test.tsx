@@ -1,10 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { OrderDetailsSheet } from "@/features/orders/components/OrderDetailsSheet";
-import { OrderMetricsCards } from "@/features/orders/components/OrderMetricsCards";
-import { OrdersTable } from "@/features/orders/components/OrdersTable";
-import { computeOrderStats, OrdersPage } from "@/features/orders/pages/OrdersPage";
+import { ResourceStats, ResourceViewHost } from "@/components/resource";
+import { computeOrderStats } from "@/features/orders/resource";
 import type { Order } from "@/features/orders/types";
+import { OrdersListView, orderUI } from "@/features/orders/ui";
 import { renderWithProviders, screen } from "test/test-utils";
 
 const mockOrders: Order[] = [
@@ -51,9 +50,16 @@ describe("Orders Feature Tests", () => {
     expect(stats.avgOrderValue).toBe(500);
   });
 
-  it("renders OrderMetricsCards with formatted currency and negative pending alert tone", () => {
-    const stats = computeOrderStats(mockOrders);
-    const { container } = renderWithProviders(<OrderMetricsCards stats={stats} />);
+  it("renders ResourceStats with orderUI.config.stats showing formatted AOV and pending alert tone", () => {
+    const { container } = renderWithProviders(
+      <ResourceStats
+        i18nNamespace="orders"
+        schema={orderUI.config.stats!}
+        rows={mockOrders}
+        total={2}
+        isLoading={false}
+      />,
+    );
 
     expect(screen.getByText("平台总订单数")).toBeInTheDocument();
     expect(screen.getByText("待发货 / 履约中")).toBeInTheDocument();
@@ -63,34 +69,38 @@ describe("Orders Feature Tests", () => {
     expect(container.querySelector(".text-destructive")).toBeInTheDocument();
   });
 
-  it("renders neutral tone in OrderMetricsCards when pendingCount is zero", () => {
+  it("renders neutral tone in order stats when no order is pending", () => {
+    const deliveredOrders = mockOrders.map((order) => ({ ...order, status: "delivered" as const }));
     const { container } = renderWithProviders(
-      <OrderMetricsCards stats={{ total: 2, pendingCount: 0, deliveredCount: 2, avgOrderValue: 500 }} />,
+      <ResourceStats
+        i18nNamespace="orders"
+        schema={orderUI.config.stats!}
+        rows={deliveredOrders}
+        total={2}
+        isLoading={false}
+      />,
     );
     expect(container.querySelector(".text-destructive")).toBeNull();
   });
 
-  it("renders OrdersTable with orders and status badges", () => {
-    const handleView = vi.fn();
-
-    renderWithProviders(<OrdersTable orders={mockOrders} total={2} onViewOrder={handleView} />);
-
-    expect(screen.getByText("ORD-2026-101")).toBeInTheDocument();
-    expect(screen.getByText("王小明")).toBeInTheDocument();
-    expect(screen.getByText("ORD-2026-102")).toBeInTheDocument();
-    expect(screen.getByText("赵小红")).toBeInTheDocument();
-  });
-
-  it("renders OrdersPage with header, KPI cards and table", async () => {
-    renderWithProviders(<OrdersPage />);
+  it("renders OrdersListView with header, KPI cards and table", async () => {
+    renderWithProviders(<OrdersListView />);
 
     expect(await screen.findByText("订单履约")).toBeInTheDocument();
+    expect(await screen.findByText("平台总订单数")).toBeInTheDocument();
   });
 
-  it("renders OrderDetailsSheet with order fulfillment and data list", async () => {
-    const handleOpenChange = vi.fn();
-    renderWithProviders(<OrderDetailsSheet orderId="ord-101" open={true} onOpenChange={handleOpenChange} />);
+  it("renders declarative order infolist inside ResourceViewHost with ActionSelectEntry, customer entries, and SummaryEntry", async () => {
+    renderWithProviders(
+      <ResourceViewHost presentation="drawer" open={true} onOpenChange={vi.fn()} title={mockOrders[0].orderNumber}>
+        {orderUI.config.infolist?.render({ entity: mockOrders[0], isLoading: false, t: ((k: string) => k) as never })}
+      </ResourceViewHost>,
+    );
 
     expect(await screen.findByText("履约进度")).toBeInTheDocument();
+    expect(screen.getByText("王小明")).toBeInTheDocument();
+    expect(screen.getByText("wang@example.com")).toBeInTheDocument();
+    expect(screen.getByText("机械键盘 Pro")).toBeInTheDocument();
+    expect(screen.getByText("$800.00")).toBeInTheDocument();
   });
 });

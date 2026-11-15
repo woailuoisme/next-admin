@@ -1,54 +1,37 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { CategoryTable } from "@/features/categories/components/CategoryTable";
-import { CategoriesPage } from "@/features/categories/pages/CategoriesPage";
-import type { Category } from "@/features/categories/types";
-import { renderWithProviders, screen } from "test/test-utils";
-
-const mockCategories: Category[] = [
-  {
-    id: "cat-1",
-    name: "智能数码",
-    slug: "smart-digital",
-    description: "智能穿戴与手机配件",
-    productCount: 42,
-    createdAt: "2026-01-01T00:00:00Z",
-  },
-  {
-    id: "cat-2",
-    name: "电脑办公",
-    slug: "computer-office",
-    description: "高效生产力工具",
-    productCount: 18,
-    createdAt: "2026-01-02T00:00:00Z",
-  },
-];
+import { CategoriesListView, categoryUI } from "@/features/categories/ui";
+import { AccessControlProvider } from "@/lib/resource";
+import { fireEvent, renderWithProviders, screen } from "test/test-utils";
 
 describe("Categories Feature Tests", () => {
-  it("renders category catalog table with rows and columns", () => {
-    const handleEdit = vi.fn();
-    const handleDelete = vi.fn();
-
-    renderWithProviders(
-      <CategoryTable
-        categories={mockCategories}
-        total={2}
-        onEditCategory={handleEdit}
-        onDeleteCategory={handleDelete}
-      />,
-    );
-
-    expect(screen.getByText("智能数码")).toBeInTheDocument();
-    expect(screen.getByText("smart-digital")).toBeInTheDocument();
-    expect(screen.getByText("电脑办公")).toBeInTheDocument();
+  it("exposes declarative categoryUI config with table columns, batch actions and form fields", () => {
+    expect(categoryUI.resource.name).toBe("categories");
+    expect(categoryUI.config.table.exportFileName).toBe("categories-catalog.csv");
+    expect(categoryUI.config.table.batchActions).toHaveLength(1);
+    expect(categoryUI.config.form?.fields).toHaveLength(3);
   });
 
-  it("renders CategoriesPage header and action buttons", async () => {
-    const handleCreate = vi.fn();
-
-    renderWithProviders(<CategoriesPage onCreateCategory={handleCreate} />);
+  it("renders CategoriesListView header, create button and MSW-backed rows", async () => {
+    renderWithProviders(<CategoriesListView />);
 
     expect(await screen.findByText("分类目录")).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: /新增分类/ })).toBeInTheDocument();
+    const createBtn = await screen.findByRole("button", { name: /新增分类/ });
+    expect(createBtn).toBeInTheDocument();
+
+    // Clicking create opens declarative ResourceFormSchemaRenderer dialog
+    fireEvent.click(createBtn);
+    expect(await screen.findByLabelText(/^分类名称/)).toBeInTheDocument();
+  });
+
+  it("hides create button when AccessControlProvider denies create permission", async () => {
+    renderWithProviders(
+      <AccessControlProvider evaluator={({ action }) => action !== "create"}>
+        <CategoriesListView />
+      </AccessControlProvider>,
+    );
+
+    expect(await screen.findByText("分类目录")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /新增分类/ })).toBeNull();
   });
 });

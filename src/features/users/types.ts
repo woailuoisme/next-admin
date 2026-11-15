@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import type { customerSearchSchema, customerStatusSchema } from "./schemas";
+import type { customerSearchSchema, customerStatusSchema } from "./resource";
 
 export type CustomerStatus = z.infer<typeof customerStatusSchema>;
 export type CustomerSearchParams = z.infer<typeof customerSearchSchema>;

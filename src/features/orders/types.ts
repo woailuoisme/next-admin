@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import type { orderPaymentStatusSchema, orderSearchSchema, orderStatusSchema } from "./schemas";
+import type { orderPaymentStatusSchema, orderSearchSchema, orderStatusSchema } from "./resource";
 
 export type OrderStatus = z.infer<typeof orderStatusSchema>;
 export type OrderPaymentStatus = z.infer<typeof orderPaymentStatusSchema>;
