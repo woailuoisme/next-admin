@@ -55,7 +55,7 @@ export function useNumberTween(
     };
   }, [enabled]);
 
-  const isDirect = !enabled || prefersReducedMotion || duration <= 0;
+  const isDirect = !enabled || prefersReducedMotion || duration <= 0 || !Number.isFinite(targetValue);
 
   useEffect(() => {
     let cancelled = false;
