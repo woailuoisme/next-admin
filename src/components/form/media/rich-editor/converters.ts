@@ -101,12 +101,12 @@ export function simpleHtmlToMarkdown(html: string): string {
 }
 
 const DANGEROUS_CONTAINER_RE = /<(script|iframe|object|embed|style|link|meta|base)\b[^>]*>[\s\S]*?<\/\1>/gi;
-const DANGEROUS_SELF_CLOSING_RE = /<(script|iframe|object|embed|style|link|meta|base)\b[^>]*\/?>/gi;
+const DANGEROUS_STRAY_TAG_RE = /<\/?(script|iframe|object|embed|style|link|meta|base)\b[^>]*\/?>/gi;
 const INLINE_EVENT_ATTR_RE = /(?:^|[\s/])on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
 const URL_ATTR_RE = /\b(href|src|formaction)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
 
 /**
- * 净化原生 HTML 富文本，多趟剔除嵌套危险容器标签、空白/斜杠分隔事件处理器及非法 href/src/formaction 协议。
+ * 净化原生 HTML 富文本，先循环剥离嵌套危险容器标签再清理残留标签、空白/斜杠分隔事件处理器及非法协议。
  */
 export function sanitizeRichHtml(html: string): string {
   if (!html) return "";
@@ -114,10 +114,11 @@ export function sanitizeRichHtml(html: string): string {
   let prev: string;
   do {
     prev = strippedTags;
-    strippedTags = strippedTags.replace(DANGEROUS_CONTAINER_RE, "").replace(DANGEROUS_SELF_CLOSING_RE, "");
+    strippedTags = strippedTags.replace(DANGEROUS_CONTAINER_RE, "");
   } while (strippedTags !== prev);
 
   return strippedTags
+    .replace(DANGEROUS_STRAY_TAG_RE, "")
     .replace(INLINE_EVENT_ATTR_RE, " ")
     .replace(URL_ATTR_RE, (_, attr: string, dq?: string, sq?: string, uq?: string) => {
       const rawUrl = dq ?? sq ?? uq ?? "";
