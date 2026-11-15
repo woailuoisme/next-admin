@@ -25,14 +25,14 @@ describe("LoginForm", () => {
 
     const emailInput = screen.getByLabelText(/邮箱/);
     expect(emailInput).toHaveValue("admin@company.com");
-    expect(screen.getByLabelText(/密码/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/密码/, { selector: "input" })).toBeInTheDocument();
   });
 
   it("successfully logs in with valid credentials and redirects to overview", async () => {
     const { user } = renderWithProviders(<LoginForm initialEmail="admin@example.com" />);
 
     const emailInput = screen.getByLabelText(/邮箱/);
-    const passwordInput = screen.getByLabelText(/密码/);
+    const passwordInput = screen.getByLabelText(/密码/, { selector: "input" });
     const submitBtn = screen.getByRole("button", { name: "登录控制台" });
 
     await user.clear(emailInput);

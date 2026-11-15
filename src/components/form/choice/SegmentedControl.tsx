@@ -1,7 +1,10 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { type KeyboardEvent, memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 
 import { type BaseInputProps, FormFieldEngine, type SegmentedOption } from "../core";
@@ -27,6 +30,7 @@ interface SegmentedControlGroupProps<T extends string | number = string> {
   disabled?: boolean;
   readOnly?: boolean;
   hasError?: boolean;
+  describedBy?: string;
 }
 
 const SIZE_STYLES = {
@@ -46,6 +50,7 @@ const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends stri
   disabled = false,
   readOnly = false,
   hasError,
+  describedBy,
 }: SegmentedControlGroupProps<T>) {
   const handleSelect = useMemoizedFn((optValue: T, optDisabled?: boolean) => {
     if (disabled || readOnly || optDisabled) return;
@@ -76,6 +81,9 @@ const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends stri
     <div
       id={id}
       role="radiogroup"
+      aria-invalid={hasError}
+      aria-describedby={describedBy}
+      aria-readonly={readOnly}
       tabIndex={disabled || readOnly ? -1 : 0}
       onKeyDown={handleKeyDown}
       onBlur={onBlur}
@@ -92,9 +100,10 @@ const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends stri
         const Icon = opt.icon;
 
         return (
-          <button
+          <Button
             key={String(opt.value)}
             type="button"
+            variant="ghost"
             role="radio"
             aria-checked={isSelected}
             disabled={isItemDisabled}
@@ -104,7 +113,7 @@ const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends stri
               sizeStyle,
               fullWidth && "flex-1",
               isSelected
-                ? "bg-background font-semibold text-foreground shadow-xs"
+                ? "bg-background font-semibold text-foreground shadow-xs hover:bg-background"
                 : "hover:bg-background/40 hover:text-foreground/80",
               isItemDisabled && "cursor-not-allowed opacity-50",
               !isItemDisabled && "cursor-pointer",
@@ -123,7 +132,7 @@ const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends stri
                 )}
               </span>
             )}
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -131,50 +140,14 @@ const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends stri
 }) as <T extends string | number = string>(props: SegmentedControlGroupProps<T>) => React.ReactElement;
 
 export function SegmentedControl<T extends string | number = string>({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
-  disabled,
-  readOnly,
-  value: controlledValue,
-  defaultValue,
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   options,
   size = "md",
   fullWidth = false,
+  ...fieldProps
 }: SegmentedControlProps<T>) {
   return (
-    <FormFieldEngine<T>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      readOnly={readOnly}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+    <FormFieldEngine<T> {...fieldProps}>
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <SegmentedControlGroup<T>
           id={id}
           value={value}
@@ -186,6 +159,7 @@ export function SegmentedControl<T extends string | number = string>({
           disabled={isDisabled}
           readOnly={isReadOnly}
           hasError={hasError}
+          describedBy={describedBy}
         />
       )}
     </FormFieldEngine>

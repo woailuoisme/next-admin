@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, type ReactNode } from "react";
 
 import { FieldLegend, FieldSet } from "@/components/ui/field";

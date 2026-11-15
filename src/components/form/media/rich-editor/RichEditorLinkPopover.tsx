@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import type { Editor } from "@tiptap/react";
 
@@ -9,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
+import { sanitizeRichEditorUrl } from "./converters";
 import { RichEditorToolbarItem } from "./RichEditorToolbarItem";
 
 export interface RichEditorLinkPopoverProps {
@@ -22,7 +25,11 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
 }: RichEditorLinkPopoverProps) {
   const t = useTranslations("form");
   const [open, setOpen] = useState(false);
-  const closePopover = useMemoizedFn(() => setOpen(false));
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const closePopover = useMemoizedFn(() => {
+    setUrlError(null);
+    setOpen(false);
+  });
   const [url, setUrl] = useState("");
 
   const isLinked = editor.isActive("link");
@@ -31,29 +38,26 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
     if (nextOpen) {
       const existingUrl = editor.getAttributes("link").href || "";
       setUrl(existingUrl);
+      setUrlError(null);
     }
     setOpen(nextOpen);
   });
 
   const handleApply = useMemoizedFn(() => {
-    let trimmed = url.trim();
+    const trimmed = url.trim();
     if (trimmed === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
       closePopover();
       return;
     }
 
-    // Prevent dangerous pseudo-protocol injections (javascript:, vbscript:, data:)
-    if (/^(javascript|vbscript|data):/i.test(trimmed)) {
+    const safeUrl = sanitizeRichEditorUrl(trimmed);
+    if (!safeUrl) {
+      setUrlError(t("editor_link_invalid_url"));
       return;
     }
 
-    // Auto-prefix https:// if missing scheme
-    if (!/^(https?:\/\/|mailto:|tel:|\/|#)/i.test(trimmed)) {
-      trimmed = `https://${trimmed}`;
-    }
-
-    editor.chain().focus().extendMarkRange("link").setLink({ href: trimmed }).run();
+    editor.chain().focus().extendMarkRange("link").setLink({ href: safeUrl }).run();
     closePopover();
   });
 
@@ -95,12 +99,22 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
 
         <Input
           value={url}
-          onChange={handleUrlChange}
+          onChange={(e) => {
+            setUrlError(null);
+            handleUrlChange(e);
+          }}
           onKeyDown={handleKeyDown}
+          aria-invalid={Boolean(urlError) || undefined}
           placeholder={t("editor_link_url_placeholder")}
           className="h-7 font-mono text-xs"
           autoFocus
         />
+
+        {urlError && (
+          <p role="alert" className="text-destructive text-[11px]">
+            {urlError}
+          </p>
+        )}
 
         <div className="flex items-center justify-end gap-1.5 pt-1">
           {isLinked && (

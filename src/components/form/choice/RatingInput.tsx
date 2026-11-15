@@ -1,7 +1,11 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { type ComponentType, type KeyboardEvent, type MouseEvent, memo, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 
 import { type BaseInputProps, FormFieldEngine } from "../core";
@@ -35,6 +39,7 @@ interface RatingControlProps {
   disabled?: boolean;
   readOnly?: boolean;
   hasError?: boolean;
+  describedBy?: string;
 }
 
 const SIZE_MAP = {
@@ -45,7 +50,7 @@ const SIZE_MAP = {
 
 const RATING_STAR_CLASSES = {
   empty: "text-muted-foreground/30 transition-colors",
-  filled: "fill-amber-500 text-amber-500 transition-colors",
+  filled: "fill-chart-4 text-chart-4 transition-colors",
 } as const;
 
 const RatingControl = memo(function RatingControl({
@@ -63,7 +68,9 @@ const RatingControl = memo(function RatingControl({
   disabled = false,
   readOnly = false,
   hasError,
+  describedBy,
 }: RatingControlProps) {
+  const t = useTranslations("form");
   const [hoverValue, setHoverValue] = useState<number | null>(null);
 
   const activeValue = hoverValue ?? value ?? 0;
@@ -126,6 +133,8 @@ const RatingControl = memo(function RatingControl({
       aria-valuenow={activeValue}
       aria-disabled={disabled}
       aria-readonly={readOnly}
+      aria-invalid={hasError}
+      aria-describedby={describedBy}
       tabIndex={disabled || readOnly ? -1 : 0}
       onKeyDown={handleKeyDown}
       onBlur={onBlur}
@@ -142,34 +151,33 @@ const RatingControl = memo(function RatingControl({
           const fillPercentage = Math.max(0, Math.min(100, (activeValue - (starIndex - 1)) * 100));
 
           return (
-            <button
+            <Button
               key={starIndex}
               type="button"
+              variant="ghost"
+              size="icon-xs"
               tabIndex={-1}
               disabled={disabled || readOnly}
               onMouseMove={(e) => handleItemMouseMove(starIndex, e)}
               onClick={() => handleClick(hoverValue ?? starIndex)}
               className={cn(
-                "relative inline-flex items-center justify-center p-0.5 transition-transform hover:scale-110 focus:outline-none",
+                "relative inline-flex size-auto items-center justify-center p-0.5 transition-transform hover:scale-110 hover:bg-transparent focus:outline-none",
                 !disabled && !readOnly && "cursor-pointer",
               )}
-              aria-label={`${starIndex} of ${count}`}
+              aria-label={t("rating_of", { value: starIndex, count })}
             >
-              {/* Background Star (Muted Empty) */}
               <CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.empty)} />
 
-              {/* Foreground Star (Filled overlay) */}
               {fillPercentage > 0 && (
                 <div className="absolute inset-0 overflow-hidden p-0.5" style={{ width: `${fillPercentage}%` }}>
                   <CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.filled)} />
                 </div>
               )}
-            </button>
+            </Button>
           );
         })}
       </div>
 
-      {/* Score or Tooltip indicator */}
       {(showScore || currentTooltip) && (
         <span className="text-muted-foreground text-xs font-medium select-none">
           {currentTooltip ? (
@@ -186,24 +194,6 @@ const RatingControl = memo(function RatingControl({
 });
 
 export function RatingInput({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
-  disabled,
-  readOnly,
-  value: controlledValue,
-  defaultValue,
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   count = 5,
   allowHalf = false,
   allowClear = true,
@@ -211,29 +201,11 @@ export function RatingInput({
   showScore = false,
   size = "md",
   icon,
+  ...fieldProps
 }: RatingInputProps) {
   return (
-    <FormFieldEngine<number | null>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      readOnly={readOnly}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+    <FormFieldEngine<number | null> {...fieldProps}>
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <RatingControl
           id={id}
           value={typeof value === "number" ? value : null}
@@ -249,6 +221,7 @@ export function RatingInput({
           disabled={isDisabled}
           readOnly={isReadOnly}
           hasError={hasError}
+          describedBy={describedBy}
         />
       )}
     </FormFieldEngine>

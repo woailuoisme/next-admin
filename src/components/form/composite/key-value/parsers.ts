@@ -16,21 +16,62 @@ export function createKvRow(key = "", value = ""): KeyValueRowItem {
   };
 }
 
-export function parseToRows(val: unknown): KeyValueRowItem[] {
+function toIncomingPairs(val: unknown): KeyValuePair[] {
   if (!val) return [];
   if (Array.isArray(val)) {
     return val.map((item) => {
       if (typeof item === "object" && item !== null && "key" in item) {
         const pair = item as KeyValuePair;
-        return createKvRow(String(pair.key ?? ""), String(pair.value ?? ""));
+        return { key: String(pair.key ?? ""), value: String(pair.value ?? "") };
       }
-      return createKvRow("", String(item ?? ""));
+      return { key: "", value: String(item ?? "") };
     });
   }
   if (typeof val === "object") {
-    return Object.entries(val).map(([k, v]) => createKvRow(k, String(v ?? "")));
+    return Object.entries(val).map(([k, v]) => ({ key: k, value: String(v ?? "") }));
   }
   return [];
+}
+
+export function parseToRows(val: unknown): KeyValueRowItem[] {
+  return toIncomingPairs(val).map((pair) => createKvRow(pair.key, pair.value));
+}
+
+/**
+ * 增量对账已有行集合与外部传入值：尽可能保留原有行的 `_id`，避免组件重建与输入框失焦。
+ */
+export function reconcileKvRows(prevRows: KeyValueRowItem[], incomingValue: unknown): KeyValueRowItem[] {
+  const nextPairs = toIncomingPairs(incomingValue);
+  if (nextPairs.length === 0) return [];
+
+  const isArrayInput = Array.isArray(incomingValue);
+  const usedPrevIndices = new Set<number>();
+
+  const reconciled = nextPairs.map((pair, idx) => {
+    // 数组模式下优先按同索引对齐，对象模式下优先按同名 key 对齐
+    if (isArrayInput && prevRows[idx] && !usedPrevIndices.has(idx)) {
+      usedPrevIndices.add(idx);
+      const prev = prevRows[idx]!;
+      return { ...prev, key: pair.key, value: pair.value };
+    }
+
+    const matchedByKey = prevRows.findIndex((prev, prevIdx) => !usedPrevIndices.has(prevIdx) && prev.key === pair.key);
+    if (matchedByKey !== -1) {
+      usedPrevIndices.add(matchedByKey);
+      const prev = prevRows[matchedByKey]!;
+      return { ...prev, key: pair.key, value: pair.value };
+    }
+
+    if (prevRows[idx] && !usedPrevIndices.has(idx)) {
+      usedPrevIndices.add(idx);
+      const prev = prevRows[idx]!;
+      return { ...prev, key: pair.key, value: pair.value };
+    }
+
+    return createKvRow(pair.key, pair.value);
+  });
+
+  return markDuplicateRows(reconciled);
 }
 
 export function rowsToRecord(rows: KeyValueRowItem[]): Record<string, string> {
@@ -107,14 +148,14 @@ export function rawToRows(rawText: string, format: KeyValueRawFormat): { rows: K
       }
       const parsed = JSON.parse(rawText);
       if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-        return { rows: [], error: "JSON 格式必须为对象字面量（{ key: value }）" };
+        return { rows: [], error: "JSON must be an object literal ({ key: value })" };
       }
       const rows = Object.entries(parsed).map(([k, v]) =>
         createKvRow(k, typeof v === "object" && v !== null ? JSON.stringify(v) : String(v ?? "")),
       );
       return { rows: markDuplicateRows(rows) };
     } catch (err) {
-      return { rows: [], error: (err as Error).message || "JSON 语法错误" };
+      return { rows: [], error: (err as Error).message || "Invalid JSON syntax" };
     }
   }
 
@@ -135,7 +176,6 @@ export function rawToRows(rawText: string, format: KeyValueRawFormat): { rows: K
       const k = line.slice(0, eqIdx).trim();
       let v = line.slice(eqIdx + 1).trim();
 
-      // Strip outer matching quotes
       if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
         v = v.slice(1, -1).replace(ESCAPED_QUOTE_REGEX, '"');
       }
@@ -144,4 +184,28 @@ export function rawToRows(rawText: string, format: KeyValueRawFormat): { rows: K
   }
 
   return { rows: markDuplicateRows(rows) };
+}
+
+export function formatJsonText(rawText: string): { formatted?: string; error?: string } {
+  try {
+    const parsed = JSON.parse(rawText);
+    return { formatted: JSON.stringify(parsed, null, 2) };
+  } catch (err) {
+    return { error: (err as Error).message || "Invalid JSON" };
+  }
+}
+
+export function convertRawFormat(
+  rawText: string,
+  fromFormat: KeyValueRawFormat,
+  toFormat: KeyValueRawFormat,
+): { text?: string; rows?: KeyValueRowItem[]; error?: string } {
+  const { rows, error } = rawToRows(rawText, fromFormat);
+  if (error) {
+    return { error };
+  }
+  return {
+    rows,
+    text: rowsToRaw(rows, toFormat),
+  };
 }

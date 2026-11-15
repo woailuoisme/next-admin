@@ -1,12 +1,13 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { closestCenter, DndContext } from "@dnd-kit/core";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { ChevronsDownUp, ChevronsUpDown, Plus } from "lucide-react";
 import { memo, type ReactNode, useMemo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "cn";
 
 import type { RepeaterProps } from "./types";
 
@@ -15,17 +16,31 @@ import { RepeaterRow } from "./RepeaterRow";
 import { RepeaterTable } from "./RepeaterTable";
 import { useRepeaterController } from "./useRepeaterController";
 
+const DynamicSortableDndContext = dynamic(() => import("../SortableDndContext").then((mod) => mod.SortableDndContext), {
+  ssr: false,
+});
+
 const DEFAULT_EMPTY_ARRAY: unknown[] = [];
 
 interface RepeaterInnerProps<T> extends RepeaterProps<T> {
+  id: string;
+  readOnly?: boolean;
   items: T[];
   onChange: (items: T[]) => void;
+  onBlur?: () => void;
+  hasError?: boolean;
+  describedBy?: string;
 }
 
 const RepeaterInner = memo(function RepeaterInner<T>({
+  id,
   items,
   onChange,
+  onBlur,
+  hasError,
+  describedBy,
   disabled,
+  readOnly,
   layout = "card",
   headers,
   createItem,
@@ -51,12 +66,16 @@ const RepeaterInner = memo(function RepeaterInner<T>({
   renderExtraActions,
 }: RepeaterInnerProps<T>) {
   const t = useTranslations("form");
+  const isLocked = Boolean(disabled || readOnly);
+  const effectiveReorderable = Boolean(reorderable && !readOnly);
+  const effectiveCanAdd = Boolean(canAdd && !readOnly);
+  const effectiveCanDelete = Boolean(canDelete && !readOnly);
+  const effectiveCanDuplicate = Boolean(canDuplicate && !readOnly);
   const addButtonText = propAddButtonText ?? t("repeater_add");
   const emptyText = propEmptyText ?? t("repeater_empty");
   const {
     keys,
     collapsedMap,
-    sensors,
     isAddAllowed,
     checkCanDelete,
     checkCanDuplicate,
@@ -69,11 +88,11 @@ const RepeaterInner = memo(function RepeaterInner<T>({
     moveItemUp,
     moveItemDown,
     updateItem,
-    handleDragEnd,
+    handleReorder,
   } = useRepeaterController<T>({
     items,
     onChange,
-    disabled,
+    disabled: isLocked,
     createItem,
     cloneItem,
     getItemKey,
@@ -81,10 +100,10 @@ const RepeaterInner = memo(function RepeaterInner<T>({
     maxItems,
     collapsible,
     defaultCollapsed,
-    reorderable,
-    canAdd,
-    canDelete,
-    canDuplicate,
+    reorderable: effectiveReorderable,
+    canAdd: effectiveCanAdd,
+    canDelete: effectiveCanDelete,
+    canDuplicate: effectiveCanDuplicate,
     itemErrors,
     autoExpandOnError,
   });
@@ -102,22 +121,37 @@ const RepeaterInner = memo(function RepeaterInner<T>({
 
   const isTable = layout === "table";
   const isCardOrSimple = layout === "card" || layout === "simple";
+  const dndActive = Boolean(effectiveReorderable && !isLocked && items.length > 0);
+
+  const wrapWithDnd = (content: ReactNode) =>
+    dndActive ? (
+      <DynamicSortableDndContext items={keys} onReorder={handleReorder}>
+        {content}
+      </DynamicSortableDndContext>
+    ) : (
+      content
+    );
 
   return (
-    <div className="w-full space-y-2.5 pt-1">
+    <div
+      id={id}
+      aria-describedby={describedBy}
+      data-invalid={hasError || undefined}
+      onBlurCapture={onBlur}
+      className={cn("w-full space-y-2.5 pt-1", hasError && "rounded-lg ring-1 ring-destructive/40 p-1.5")}
+    >
       {/* 顶部工具栏与统计徽标 */}
       <div className="flex min-h-6 items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           {items.length > 0 ? (
             <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
-              <span>{items.length} 项</span>
+              <span>{t("repeater_count", { count: items.length })}</span>
               {maxItems !== undefined ? <span className="text-muted-foreground/80">/ {maxItems}</span> : null}
             </Badge>
           ) : null}
         </div>
 
         <div className="flex items-center gap-1">
-          {/* 仅在卡片折叠流中展示全部展开/折叠 */}
           {isCardOrSimple && collapsible && items.length > 1 ? (
             <>
               <Button
@@ -126,10 +160,10 @@ const RepeaterInner = memo(function RepeaterInner<T>({
                 size="xs"
                 onClick={expandAll}
                 className="text-muted-foreground hover:text-foreground h-6 gap-1 text-[11px]"
-                title="展开全部卡片"
+                title={t("repeater_expand_all")}
               >
                 <ChevronsUpDown className="size-3" />
-                <span>全部展开</span>
+                <span>{t("repeater_expand_all")}</span>
               </Button>
               <Button
                 type="button"
@@ -137,10 +171,10 @@ const RepeaterInner = memo(function RepeaterInner<T>({
                 size="xs"
                 onClick={collapseAll}
                 className="text-muted-foreground hover:text-foreground h-6 gap-1 text-[11px]"
-                title="折叠全部卡片"
+                title={t("repeater_collapse_all")}
               >
                 <ChevronsDownUp className="size-3" />
-                <span>全部折叠</span>
+                <span>{t("repeater_collapse_all")}</span>
               </Button>
             </>
           ) : null}
@@ -151,36 +185,29 @@ const RepeaterInner = memo(function RepeaterInner<T>({
 
       {/* 内容主体 */}
       {isTable ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          modifiers={[restrictToVerticalAxis]}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext items={keys} strategy={verticalListSortingStrategy}>
-            <RepeaterTable<T>
-              items={items}
-              keys={keys}
-              headers={headers}
-              disabled={disabled}
-              reorderable={reorderable}
-              canDuplicate={canDuplicate}
-              checkCanDelete={checkCanDelete}
-              confirmDelete={confirmDelete}
-              itemErrors={itemErrors}
-              renderSummary={renderSummary}
-              onMoveUp={moveItemUp}
-              onMoveDown={moveItemDown}
-              onDuplicate={duplicateItem}
-              onRemove={removeItem}
-              onUpdate={updateItem}
-              renderItem={renderItem}
-              isAddAllowed={isAddAllowed}
-              onAdd={addItem}
-              addButtonText={addButtonText}
-            />
-          </SortableContext>
-        </DndContext>
+        wrapWithDnd(
+          <RepeaterTable<T>
+            items={items}
+            keys={keys}
+            headers={headers}
+            disabled={isLocked}
+            reorderable={effectiveReorderable}
+            canDuplicate={effectiveCanDuplicate}
+            checkCanDelete={checkCanDelete}
+            confirmDelete={confirmDelete}
+            itemErrors={itemErrors}
+            renderSummary={renderSummary}
+            onMoveUp={moveItemUp}
+            onMoveDown={moveItemDown}
+            onDuplicate={duplicateItem}
+            onRemove={removeItem}
+            onUpdate={updateItem}
+            renderItem={renderItem}
+            isAddAllowed={isAddAllowed}
+            onAdd={addItem}
+            addButtonText={addButtonText}
+          />,
+        )
       ) : items.length === 0 ? (
         <div className="border-border/80 bg-card/20 flex flex-col items-center justify-center rounded-lg border border-dashed px-4 py-8 text-center">
           <p className="text-muted-foreground/70 mb-3 text-xs">{emptyText}</p>
@@ -199,56 +226,49 @@ const RepeaterInner = memo(function RepeaterInner<T>({
         </div>
       ) : (
         <>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={keys} strategy={verticalListSortingStrategy}>
-              <div className="space-y-2">
-                {items.map((item, index) => {
-                  const itemKey = keys[index]!;
-                  const isCollapsed = Boolean(collapsedMap[itemKey]);
-                  const titleNode = itemTitle ? itemTitle(item, index) : `项 #${index + 1}`;
-                  const titleStr = typeof titleNode === "string" ? titleNode : `项 #${index + 1}`;
-                  const canDeleteThis = checkCanDelete(item, index);
-                  const canDuplicateThis = checkCanDuplicate(item, index);
-                  const error = itemErrors?.[index];
+          {wrapWithDnd(
+            <div className="space-y-2">
+              {items.map((item, index) => {
+                const itemKey = keys[index]!;
+                const isCollapsed = Boolean(collapsedMap[itemKey]);
+                const fallbackTitle = t("repeater_item_fallback", { index: index + 1 });
+                const titleNode = itemTitle ? itemTitle(item, index) : fallbackTitle;
+                const titleStr = typeof titleNode === "string" ? titleNode : fallbackTitle;
+                const canDeleteThis = checkCanDelete(item, index);
+                const canDuplicateThis = checkCanDuplicate(item, index);
+                const error = itemErrors?.[index];
 
-                  return (
-                    <RepeaterRow<T>
-                      key={itemKey}
-                      itemKey={itemKey}
-                      item={item}
-                      index={index}
-                      totalItems={items.length}
-                      layout={layout}
-                      isCollapsed={isCollapsed}
-                      titleNode={titleNode}
-                      titleStr={titleStr}
-                      disabled={disabled}
-                      collapsible={collapsible}
-                      reorderable={reorderable}
-                      canDuplicate={canDuplicateThis}
-                      canDelete={canDeleteThis}
-                      confirmDelete={confirmDelete}
-                      error={error}
-                      onToggleCollapse={toggleCollapse}
-                      onMoveUp={moveItemUp}
-                      onMoveDown={moveItemDown}
-                      onDuplicate={duplicateItem}
-                      onRemove={removeItem}
-                      onUpdate={updateItem}
-                      renderItem={renderItem}
-                    />
-                  );
-                })}
-              </div>
-            </SortableContext>
-          </DndContext>
+                return (
+                  <RepeaterRow<T>
+                    key={itemKey}
+                    itemKey={itemKey}
+                    item={item}
+                    index={index}
+                    totalItems={items.length}
+                    layout={layout}
+                    isCollapsed={isCollapsed}
+                    titleNode={titleNode}
+                    titleStr={titleStr}
+                    disabled={isLocked}
+                    collapsible={collapsible}
+                    reorderable={effectiveReorderable}
+                    canDuplicate={canDuplicateThis}
+                    canDelete={canDeleteThis}
+                    confirmDelete={confirmDelete}
+                    error={error}
+                    onToggleCollapse={toggleCollapse}
+                    onMoveUp={moveItemUp}
+                    onMoveDown={moveItemDown}
+                    onDuplicate={duplicateItem}
+                    onRemove={removeItem}
+                    onUpdate={updateItem}
+                    renderItem={renderItem}
+                  />
+                );
+              })}
+            </div>,
+          )}
 
-          {/* 卡片模式底部全宽新增按钮 */}
           {isAddAllowed ? (
             <Button
               type="button"
@@ -268,23 +288,7 @@ const RepeaterInner = memo(function RepeaterInner<T>({
 }) as <T>(props: RepeaterInnerProps<T>) => ReactNode;
 
 export const Repeater = memo(function Repeater<T = unknown>({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
-  disabled,
-  value: controlledValue,
   defaultValue = DEFAULT_EMPTY_ARRAY as T[],
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   layout = "card",
   headers,
   createItem,
@@ -308,35 +312,32 @@ export const Repeater = memo(function Repeater<T = unknown>({
   autoExpandOnError = true,
   renderSummary,
   renderExtraActions,
+  ...fieldProps
 }: RepeaterProps<T>) {
   return (
-    <FormFieldEngine<T[]>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ value = DEFAULT_EMPTY_ARRAY as T[], onChange, disabled: isDisabled }) => {
+    <FormFieldEngine<T[]> defaultValue={defaultValue} {...fieldProps}>
+      {({
+        id,
+        value = DEFAULT_EMPTY_ARRAY as T[],
+        onChange,
+        onBlur,
+        disabled: isDisabled,
+        readOnly: isReadOnly,
+        hasError,
+        describedBy,
+      }) => {
         const items = Array.isArray(value) ? value : (DEFAULT_EMPTY_ARRAY as T[]);
 
         return (
           <RepeaterInner<T>
+            id={id}
             items={items}
             onChange={onChange}
+            onBlur={onBlur}
+            hasError={hasError}
+            describedBy={describedBy}
             disabled={isDisabled}
+            readOnly={isReadOnly}
             layout={layout}
             headers={headers}
             createItem={createItem}

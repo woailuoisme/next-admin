@@ -2,10 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
+import { isEqual } from "es-toolkit";
 import { Loader2 } from "lucide-react";
 import { memo, type SubmitEvent, useEffect, useId, useMemo, useRef } from "react";
 
-import { FormContext } from "@/components/form";
+import { dispatchFormSubmit, FormContext } from "@/components/form/core/FormContext";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { SheetFooter } from "@/components/ui/sheet";
@@ -52,11 +53,23 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
 
   const prevOpenRef = useRef(false);
   const prevEntityIdRef = useRef<unknown>(undefined);
+  const prevDefaultsRef = useRef<Record<string, unknown> | undefined>(undefined);
+  const baseDefaultsRef = useRef<Record<string, unknown> | undefined>(undefined);
 
-  // Synchronize entity / defaultValues into form only when dialog opens or entity ID changes
+  // Synchronize entity / defaultValues on open, entity swap, or late async defaults while clean
   useEffect(() => {
-    if (!open || !form) {
-      prevOpenRef.current = open;
+    if (!form) return;
+
+    if (baseDefaultsRef.current === undefined) {
+      const formDefaults = form.options?.defaultValues;
+      baseDefaultsRef.current =
+        formDefaults && typeof formDefaults === "object" ? { ...(formDefaults as Record<string, unknown>) } : {};
+    }
+
+    if (!open) {
+      prevOpenRef.current = false;
+      prevEntityIdRef.current = undefined;
+      prevDefaultsRef.current = undefined;
       return;
     }
 
@@ -65,32 +78,32 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
         ? ((entity as Record<string, unknown>).id ?? (entity as Record<string, unknown>)._id ?? undefined)
         : entity;
     const justOpened = !prevOpenRef.current && open;
-    const entityChanged =
-      currentEntityId !== undefined &&
-      prevEntityIdRef.current !== undefined &&
-      prevEntityIdRef.current !== currentEntityId;
+    const entityChanged = prevEntityIdRef.current !== currentEntityId && (justOpened || currentEntityId !== undefined);
+    const defaultsArrivedClean = !form.state?.isDirty && !isEqual(prevDefaultsRef.current, defaultValues);
 
-    if (justOpened || entityChanged) {
-      form.reset();
-      const currentDefaultValues = defaultValues;
+    if (justOpened || entityChanged || defaultsArrivedClean) {
+      const mergedValues: Record<string, unknown> = {
+        ...baseDefaultsRef.current,
+        ...defaultValues,
+      };
       if (entity && typeof entity === "object") {
-        const entityRecord = entity as Record<string, unknown>;
-        const allKeys = new Set([...Object.keys(currentDefaultValues ?? {}), ...Object.keys(entityRecord)]);
-        for (const key of allKeys) {
-          const val = entityRecord[key] ?? currentDefaultValues?.[key];
+        for (const [key, val] of Object.entries(entity as Record<string, unknown>)) {
           if (val !== undefined) {
-            form.setFieldValue(key, val);
+            mergedValues[key] = val;
           }
         }
-      } else if (currentDefaultValues) {
-        for (const [key, val] of Object.entries(currentDefaultValues)) {
-          form.setFieldValue(key, val);
-        }
+      }
+
+      if (Object.keys(mergedValues).length > 0) {
+        form.reset(mergedValues);
+      } else {
+        form.reset();
       }
     }
 
     prevOpenRef.current = open;
     prevEntityIdRef.current = currentEntityId;
+    prevDefaultsRef.current = defaultValues;
   }, [open, entity, form, defaultValues]);
 
   const resolvedTitle =
@@ -120,13 +133,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   });
 
   const handleFormSubmit = useMemoizedFn((e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onSubmit) {
-      onSubmit(e);
-    } else if (form?.handleSubmit) {
-      form.handleSubmit();
-    }
+    dispatchFormSubmit(e, form, onSubmit);
   });
 
   const renderFormContent = (

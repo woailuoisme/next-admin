@@ -1,50 +1,64 @@
+"use client";
+
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-interface ImageLightboxModalProps {
-  previewUrl: string | null;
+export interface ImageLightboxModalProps {
+  /** 待预览图片地址（与 `url` 兼容，优先取 `url ?? previewUrl`） */
+  previewUrl?: string | null;
+  url?: string | null;
   images?: string[];
   initialIndex?: number;
-  alt: string;
+  alt?: string;
   onClose: () => void;
 }
 
-function ImageLightboxModalInner({ previewUrl, images = [], initialIndex = 0, alt, onClose }: ImageLightboxModalProps) {
+function ImageLightboxModalInner({
+  previewUrl,
+  url,
+  images = [],
+  initialIndex = 0,
+  alt = "Preview",
+  onClose,
+}: ImageLightboxModalProps) {
+  const t = useTranslations("common");
+  const resolvedPreviewUrl = url ?? previewUrl ?? null;
   // Active images list for gallery navigation
-  const activeImages = images.length > 0 ? images : previewUrl ? [previewUrl] : [];
+  const activeImages = images.length > 0 ? images : resolvedPreviewUrl ? [resolvedPreviewUrl] : [];
 
   const resolvedInitialIndex = useMemo(() => {
-    if (previewUrl && images.length > 0) {
-      const foundIdx = images.indexOf(previewUrl);
+    if (resolvedPreviewUrl && images.length > 0) {
+      const foundIdx = images.indexOf(resolvedPreviewUrl);
       return foundIdx >= 0 ? foundIdx : initialIndex;
     }
     return initialIndex;
-  }, [previewUrl, images, initialIndex]);
+  }, [resolvedPreviewUrl, images, initialIndex]);
 
   const [navState, setNavState] = useState<{ baseUrl: string | null; index: number } | null>(null);
-  const currentIndex = navState && navState.baseUrl === previewUrl ? navState.index : resolvedInitialIndex;
+  const currentIndex = navState && navState.baseUrl === resolvedPreviewUrl ? navState.index : resolvedInitialIndex;
 
   const stepIndex = useCallback(
     (delta: number) => {
       if (activeImages.length === 0) return;
       setNavState((prev) => {
-        const base = prev && prev.baseUrl === previewUrl ? prev.index : resolvedInitialIndex;
+        const base = prev && prev.baseUrl === resolvedPreviewUrl ? prev.index : resolvedInitialIndex;
         const next = (base + delta + activeImages.length) % activeImages.length;
-        return { baseUrl: previewUrl, index: next };
+        return { baseUrl: resolvedPreviewUrl, index: next };
       });
     },
-    [activeImages.length, previewUrl, resolvedInitialIndex],
+    [activeImages.length, resolvedPreviewUrl, resolvedInitialIndex],
   );
 
-  const currentUrl = activeImages[currentIndex] || previewUrl;
+  const currentUrl = activeImages[currentIndex] || resolvedPreviewUrl;
   const hasMultiple = activeImages.length > 1;
 
   // Keyboard arrow navigation
   useEffect(() => {
-    if (!previewUrl || !hasMultiple) return;
+    if (!resolvedPreviewUrl || !hasMultiple) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") {
@@ -58,10 +72,10 @@ function ImageLightboxModalInner({ previewUrl, images = [], initialIndex = 0, al
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [previewUrl, hasMultiple, stepIndex]);
+  }, [resolvedPreviewUrl, hasMultiple, stepIndex]);
 
   return (
-    <Dialog open={Boolean(previewUrl)} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={Boolean(resolvedPreviewUrl)} onOpenChange={(open) => !open && onClose()}>
       {/* 补 `sm:max-w-3xl`：DialogContent 基础含 `sm:max-w-sm`，裸 `max-w-3xl` 不在同一
 			    合并组内会被它击败 → ≥640px 时灯箱被压到 24rem，大图无法正常查看。 */}
       <DialogContent className="border-border bg-background/95 max-w-3xl overflow-hidden p-3 backdrop-blur-md sm:max-w-3xl">
@@ -82,7 +96,7 @@ function ImageLightboxModalInner({ previewUrl, images = [], initialIndex = 0, al
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label="上一张图片"
+                    aria-label={t("previous_image")}
                     className="bg-background/60 text-foreground hover:bg-background/90 absolute top-1/2 left-2 -translate-y-1/2 rounded-full backdrop-blur-xs"
                     onClick={() => stepIndex(-1)}
                   >
@@ -92,7 +106,7 @@ function ImageLightboxModalInner({ previewUrl, images = [], initialIndex = 0, al
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label="下一张图片"
+                    aria-label={t("next_image")}
                     className="bg-background/60 text-foreground hover:bg-background/90 absolute top-1/2 right-2 -translate-y-1/2 rounded-full backdrop-blur-xs"
                     onClick={() => stepIndex(1)}
                   >

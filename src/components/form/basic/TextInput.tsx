@@ -1,18 +1,9 @@
-import { useDebounceFn, useMemoizedFn } from "ahooks";
-import { Eye, EyeOff, X } from "lucide-react";
-import { type ChangeEvent, type ReactNode, memo, useState } from "react";
+"use client";
 
-import { Input } from "@/components/ui/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-  InputGroupText,
-} from "@/components/ui/input-group";
-import { cn } from "cn";
+import { useMemoizedFn } from "ahooks";
+import { type ChangeEvent, type ReactNode, memo } from "react";
 
-import { type BaseInputProps, FormFieldEngine } from "../core";
+import { AdornedInput, type BaseInputProps, FormFieldEngine, useDebouncedFieldValue } from "../core";
 
 export interface TextInputProps<T extends string | number = string> extends BaseInputProps {
   value?: T;
@@ -53,12 +44,13 @@ interface TextInputInnerProps {
   onChange: (value: string | number) => void;
   onBlur?: () => void;
   hasError?: boolean;
+  describedBy?: string;
   debounceMs?: number;
 }
 
-const StandardTextInputInner = memo(function StandardTextInputInner({
+const TextInputInner = memo(function TextInputInner({
   id,
-  effectiveType: baseType,
+  effectiveType,
   isPassword,
   numeric,
   min,
@@ -76,257 +68,50 @@ const StandardTextInputInner = memo(function StandardTextInputInner({
   onChange,
   onBlur,
   hasError,
+  describedBy,
+  debounceMs = 0,
 }: TextInputInnerProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  const togglePassword = useMemoizedFn(() => setShowPassword((prev) => !prev));
+  const { displayValue, handleChange, handleClear, handleBlur } = useDebouncedFieldValue<string | number | undefined>({
+    value,
+    debounceMs,
+    onChange: (nextVal) => onChange(nextVal ?? (numeric ? 0 : "")),
+    onBlur,
+  });
 
   const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     const nextVal = numeric ? (raw === "" ? "" : Number(raw)) : raw;
-    onChange(nextVal);
+    handleChange(nextVal);
   });
 
-  const handleClear = useMemoizedFn(() => {
-    onChange(numeric ? 0 : "");
+  const handleClearClick = useMemoizedFn(() => {
+    handleClear(numeric ? 0 : "");
   });
-
-  const currentEffectiveType = isPassword ? (showPassword ? "text" : "password") : baseType;
-  const hasValue = value != null && value !== "";
-  const hasAdornments =
-    Boolean(prefix) || Boolean(suffix) || (clearable && hasValue && !disabled && !readOnly) || isPassword;
-
-  if (hasAdornments) {
-    return (
-      <InputGroup
-        className={cn(
-          "w-full rounded-md",
-          hasError && "border-destructive ring-destructive/20",
-          disabled && "pointer-events-none opacity-50",
-        )}
-      >
-        {prefix && (
-          <InputGroupAddon align="inline-start">
-            {typeof prefix === "string" ? <InputGroupText>{prefix}</InputGroupText> : prefix}
-          </InputGroupAddon>
-        )}
-
-        <InputGroupInput
-          id={id}
-          type={currentEffectiveType}
-          value={value ?? ""}
-          onChange={handleInputChange}
-          onBlur={onBlur}
-          placeholder={placeholder}
-          disabled={disabled}
-          readOnly={readOnly}
-          min={min}
-          max={max}
-          step={step}
-          autoComplete={autoComplete}
-          aria-invalid={hasError}
-          className={inputClassName}
-        />
-
-        {clearable && hasValue && !disabled && !readOnly && (
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton size="icon-xs" variant="ghost" onClick={handleClear} aria-label="清除内容">
-              <X className="size-3" />
-            </InputGroupButton>
-          </InputGroupAddon>
-        )}
-
-        {isPassword && !disabled && (
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              size="icon-xs"
-              variant="ghost"
-              onClick={togglePassword}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
-            </InputGroupButton>
-          </InputGroupAddon>
-        )}
-
-        {suffix && (
-          <InputGroupAddon align="inline-end">
-            {typeof suffix === "string" ? <InputGroupText>{suffix}</InputGroupText> : suffix}
-          </InputGroupAddon>
-        )}
-      </InputGroup>
-    );
-  }
 
   return (
-    <Input
+    <AdornedInput
       id={id}
-      type={currentEffectiveType}
-      value={value ?? ""}
+      type={effectiveType}
+      isPassword={isPassword}
+      value={displayValue}
       onChange={handleInputChange}
-      onBlur={onBlur}
-      placeholder={placeholder}
-      disabled={disabled}
-      readOnly={readOnly}
-      min={min}
-      max={max}
-      step={step}
-      autoComplete={autoComplete}
-      aria-invalid={hasError}
-      className={cn("rounded-md", inputClassName)}
-    />
-  );
-});
-
-const DebouncedTextInputInner = memo(function DebouncedTextInputInner({
-  id,
-  effectiveType: baseType,
-  isPassword,
-  numeric,
-  min,
-  max,
-  step,
-  autoComplete,
-  placeholder,
-  disabled,
-  readOnly,
-  clearable,
-  prefix,
-  suffix,
-  inputClassName,
-  value,
-  onChange,
-  onBlur,
-  hasError,
-  debounceMs = 300,
-}: TextInputInnerProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  const togglePassword = useMemoizedFn(() => setShowPassword((prev) => !prev));
-  const [prevValue, setPrevValue] = useState(value);
-  const [localValue, setLocalValue] = useState(value);
-
-  if (value !== prevValue) {
-    setPrevValue(value);
-    setLocalValue(value);
-  }
-
-  const debouncedOnChange = useDebounceFn(
-    (val: string | number) => {
-      onChange(val);
-    },
-    { wait: debounceMs },
-  );
-
-  const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    const nextVal = numeric ? (raw === "" ? "" : Number(raw)) : raw;
-    setLocalValue(nextVal);
-    debouncedOnChange.run(nextVal);
-  });
-
-  const handleClear = useMemoizedFn(() => {
-    debouncedOnChange.cancel();
-    const emptyVal = numeric ? 0 : "";
-    setLocalValue(emptyVal);
-    onChange(emptyVal);
-  });
-
-  const handleBlur = useMemoizedFn(() => {
-    debouncedOnChange.flush();
-    onBlur?.();
-  });
-
-  const currentEffectiveType = isPassword ? (showPassword ? "text" : "password") : baseType;
-  const hasValue = localValue != null && localValue !== "";
-  const hasAdornments =
-    Boolean(prefix) || Boolean(suffix) || (clearable && hasValue && !disabled && !readOnly) || isPassword;
-
-  if (hasAdornments) {
-    return (
-      <InputGroup
-        className={cn(
-          "w-full rounded-md",
-          hasError && "border-destructive ring-destructive/20",
-          disabled && "pointer-events-none opacity-50",
-        )}
-      >
-        {prefix && (
-          <InputGroupAddon align="inline-start">
-            {typeof prefix === "string" ? <InputGroupText>{prefix}</InputGroupText> : prefix}
-          </InputGroupAddon>
-        )}
-
-        <InputGroupInput
-          id={id}
-          type={currentEffectiveType}
-          value={localValue ?? ""}
-          onChange={handleInputChange}
-          onBlur={handleBlur}
-          placeholder={placeholder}
-          disabled={disabled}
-          readOnly={readOnly}
-          min={min}
-          max={max}
-          step={step}
-          autoComplete={autoComplete}
-          aria-invalid={hasError}
-          className={inputClassName}
-        />
-
-        {clearable && hasValue && !disabled && !readOnly && (
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton size="icon-xs" variant="ghost" onClick={handleClear} aria-label="清除内容">
-              <X className="size-3" />
-            </InputGroupButton>
-          </InputGroupAddon>
-        )}
-
-        {isPassword && !disabled && (
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              size="icon-xs"
-              variant="ghost"
-              onClick={togglePassword}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
-            </InputGroupButton>
-          </InputGroupAddon>
-        )}
-
-        {suffix && (
-          <InputGroupAddon align="inline-end">
-            {typeof suffix === "string" ? <InputGroupText>{suffix}</InputGroupText> : suffix}
-          </InputGroupAddon>
-        )}
-      </InputGroup>
-    );
-  }
-
-  return (
-    <Input
-      id={id}
-      type={currentEffectiveType}
-      value={localValue ?? ""}
-      onChange={handleInputChange}
+      onClear={handleClearClick}
       onBlur={handleBlur}
       placeholder={placeholder}
       disabled={disabled}
       readOnly={readOnly}
+      clearable={clearable}
+      prefix={prefix}
+      suffix={suffix}
       min={min}
       max={max}
       step={step}
       autoComplete={autoComplete}
-      aria-invalid={hasError}
-      className={cn("rounded-md", inputClassName)}
+      hasError={hasError}
+      describedBy={describedBy}
+      inputClassName={inputClassName}
     />
   );
-});
-
-const TextInputInner = memo(function TextInputInner(props: TextInputInnerProps) {
-  if ((props.debounceMs ?? 0) > 0) {
-    return <DebouncedTextInputInner {...props} />;
-  }
-  return <StandardTextInputInner {...props} />;
 });
 
 export function TextInput<T extends string | number = string>({
@@ -350,7 +135,7 @@ export function TextInput<T extends string | number = string>({
 
   return (
     <FormFieldEngine<string | number> {...(fieldProps as any)}>
-      {({ id, value, onChange, onBlur, disabled, readOnly, hasError }) => (
+      {({ id, value, onChange, onBlur, disabled, readOnly, hasError, describedBy }) => (
         <TextInputInner
           id={id}
           effectiveType={effectiveType}
@@ -371,6 +156,7 @@ export function TextInput<T extends string | number = string>({
           onChange={onChange}
           onBlur={onBlur}
           hasError={hasError}
+          describedBy={describedBy}
           debounceMs={debounceMs}
         />
       )}

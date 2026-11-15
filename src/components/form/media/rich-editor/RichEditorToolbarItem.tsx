@@ -1,5 +1,8 @@
+"use client";
+
 import { forwardRef, memo, type ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 
 export interface RichEditorToolbarItemProps extends React.ComponentPropsWithoutRef<"button"> {
@@ -17,24 +20,25 @@ export const RichEditorToolbarItem = memo(
     ref,
   ) {
     return (
-      <button
+      <Button
         ref={ref}
         type="button"
+        variant={isActive ? "secondary" : "ghost"}
+        size="icon-xs"
         onClick={onClick}
         disabled={disabled}
         aria-label={label}
+        aria-pressed={Boolean(isActive)}
         title={label}
         className={cn(
-          "inline-flex size-7 items-center justify-center rounded-md text-xs transition-colors",
-          "hover:bg-muted hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
-          "disabled:pointer-events-none disabled:opacity-40",
-          isActive && "bg-primary/10 font-bold text-primary shadow-2xs",
+          "size-7 text-xs",
+          isActive && "bg-primary/10 font-bold text-primary shadow-2xs hover:bg-primary/15",
           className,
         )}
         {...props}
       >
         {children}
-      </button>
+      </Button>
     );
   }),
 );

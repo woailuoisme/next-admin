@@ -1,3 +1,5 @@
+"use client";
+
 import { AlertCircle } from "lucide-react";
 import { memo } from "react";
 
@@ -7,6 +9,22 @@ import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui
 import { cn } from "cn";
 
 import type { FieldWrapperProps } from "./types";
+
+/**
+ * Normalizes TanStack Form / Zod / Standard Schema validation errors to displayable strings.
+ */
+export function extractErrorMessage(error: unknown): string | undefined {
+  if (!error) return undefined;
+  if (typeof error === "string") return error;
+  if (Array.isArray(error) && error.length > 0) {
+    return extractErrorMessage(error[0]);
+  }
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const message = (error as { message: unknown }).message;
+    if (typeof message === "string") return message;
+  }
+  return String(error);
+}
 
 export const FieldWrapper = memo(function FieldWrapper({
   label,
@@ -26,7 +44,7 @@ export const FieldWrapper = memo(function FieldWrapper({
   if (hidden) return null;
 
   const isTouched = meta?.isTouched ?? true;
-  const metaError = isTouched && meta?.errors?.length ? String(meta.errors[0]) : undefined;
+  const metaError = isTouched && meta?.errors?.length ? extractErrorMessage(meta.errors[0]) : undefined;
   const resolvedError = error ?? metaError;
   const hasError = Boolean(resolvedError);
 

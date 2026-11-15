@@ -1,5 +1,6 @@
+"use client";
+
 import { memo } from "react";
-import { cn } from "cn";
 
 import { FormFieldEngine, type BaseInputProps } from "../core";
 import { Cascader, type CascaderFieldNames, type CascaderOption } from "./Cascader";
@@ -44,9 +45,9 @@ function CascaderInputInner({
   colSpan,
   className,
   hidden,
-  placeholder = "请选择...",
-  searchPlaceholder = "搜索选项路径...",
-  emptyText = "暂无匹配数据",
+  placeholder,
+  searchPlaceholder,
+  emptyText,
   disabled,
   allowClear = true,
   clearable = true,
@@ -85,7 +86,7 @@ function CascaderInputInner({
       defaultValue={defaultValue}
       onBlur={controlledOnBlur}
     >
-      {({ id, value, onChange, disabled: isDisabled, hasError }) => (
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <Cascader
           id={id}
           options={options}
@@ -94,6 +95,7 @@ function CascaderInputInner({
             onChange(newVals);
             controlledOnChange?.(newVals, selectedOptions);
           }}
+          onBlur={onBlur}
           expandTrigger={expandTrigger}
           changeOnSelect={changeOnSelect}
           loadData={loadData}
@@ -107,9 +109,11 @@ function CascaderInputInner({
           separator={separator}
           displayRender={displayRender}
           disabled={isDisabled}
+          readOnly={isReadOnly}
           size={size}
           aria-invalid={hasError}
-          className={cn(triggerClassName)}
+          aria-describedby={describedBy}
+          className={triggerClassName}
           popupClassName={popupClassName}
         />
       )}

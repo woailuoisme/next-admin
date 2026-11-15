@@ -4,6 +4,7 @@ import { FormLocationPicker } from "@/components/form/map";
 import type { LocationPickerValue } from "@/components/map/picker/types";
 import { Card } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
+import { DEMO_CITY_PRESETS } from "@/features/showcase/pages/forms/constants";
 
 export function PickerShowcaseTab() {
   const [formPickerVal, setFormPickerVal] = useState<LocationPickerValue>({
@@ -35,6 +36,7 @@ export function PickerShowcaseTab() {
               showReset={true}
               showAddressSearch={true}
               showCopyButton={true}
+              quickPresets={DEMO_CITY_PRESETS}
             />
           </div>
 

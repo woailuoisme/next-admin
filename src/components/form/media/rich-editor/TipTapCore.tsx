@@ -1,14 +1,19 @@
+"use client";
+
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { memo, useEffect } from "react";
+import { useMemoizedFn } from "ahooks";
+import { useTranslations } from "next-intl";
+import { memo, useEffect, useMemo } from "react";
 
 import { cn } from "cn";
 
 import type { RichEditorToolbarButton } from "./types";
 
-import { simpleHtmlToMarkdown, simpleMarkdownToHtml } from "./converters";
+import { type RichEditorCodec, resolveRichEditorCodec } from "./converters";
+import { RichEditorSkeleton } from "./RichEditorSkeleton";
 import { RichEditorToolbar } from "./RichEditorToolbar";
 
 export interface TipTapCoreProps {
@@ -17,6 +22,7 @@ export interface TipTapCoreProps {
   onChange: (value: string) => void;
   onBlur?: () => void;
   format: "html" | "markdown";
+  codec?: RichEditorCodec;
   placeholder?: string;
   toolbarButtons: RichEditorToolbarButton[];
   minHeight?: string | number;
@@ -24,6 +30,7 @@ export interface TipTapCoreProps {
   disabled?: boolean;
   readOnly?: boolean;
   hasError?: boolean;
+  describedBy?: string;
   className?: string;
 }
 
@@ -33,16 +40,29 @@ export const TipTapCore = memo(function TipTapCore({
   onChange,
   onBlur,
   format,
-  placeholder = "Write content here...",
+  codec: customCodec,
+  placeholder,
   toolbarButtons,
   minHeight = 160,
   maxHeight,
   disabled,
   readOnly,
   hasError,
+  describedBy,
   className,
 }: TipTapCoreProps) {
-  const initialContent = format === "markdown" ? simpleMarkdownToHtml(value) : value;
+  const t = useTranslations("form");
+  const resolvedPlaceholder = placeholder ?? t("editor_placeholder");
+  const activeCodec = useMemo(() => resolveRichEditorCodec(format, customCodec), [format, customCodec]);
+  const initialContent = activeCodec.decode(value);
+
+  const handleUpdate = useMemoizedFn((editorHtml: string, isEmpty: boolean) => {
+    onChange(activeCodec.encode(editorHtml, isEmpty));
+  });
+
+  const handleEditorBlur = useMemoizedFn(() => {
+    onBlur?.();
+  });
 
   const editor = useEditor({
     extensions: [
@@ -51,7 +71,7 @@ export const TipTapCore = memo(function TipTapCore({
         link: false,
       }),
       Placeholder.configure({
-        placeholder,
+        placeholder: resolvedPlaceholder,
         emptyEditorClass: "is-editor-empty",
       }),
       Link.configure({
@@ -64,35 +84,53 @@ export const TipTapCore = memo(function TipTapCore({
     ],
     content: initialContent,
     editable: !disabled && !readOnly,
+    editorProps: {
+      attributes: {
+        id,
+        role: "textbox",
+        "aria-multiline": "true",
+        ...(hasError ? { "aria-invalid": "true" } : {}),
+        ...(describedBy ? { "aria-describedby": describedBy } : {}),
+      },
+    },
     onUpdate: ({ editor: updatedEditor }) => {
-      const html = updatedEditor.getHTML();
-      if (format === "markdown") {
-        onChange(simpleHtmlToMarkdown(html));
-      } else {
-        // TipTap 空内容时默认产出 <p></p>
-        onChange(updatedEditor.isEmpty ? "" : html);
-      }
+      handleUpdate(updatedEditor.getHTML(), updatedEditor.isEmpty);
     },
     onBlur: () => {
-      onBlur?.();
+      handleEditorBlur();
     },
   });
 
-  // 同步外部受控值变化
+  // 同步外部受控值变化与 ProseMirror 可访问属性
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    editor.setOptions({
+      editorProps: {
+        attributes: {
+          id,
+          role: "textbox",
+          "aria-multiline": "true",
+          ...(hasError ? { "aria-invalid": "true" } : {}),
+          ...(describedBy ? { "aria-describedby": describedBy } : {}),
+        },
+      },
+    });
+  }, [editor, id, hasError, describedBy]);
+
   useEffect(() => {
     if (!editor || editor.isDestroyed || !editor.schema) return;
-    // 编辑器聚焦编辑中时，说明变更源于内部用户输入，跳过重设以保留光标与选区
     if (editor.isFocused) return;
-    const targetHtml = format === "markdown" ? simpleMarkdownToHtml(value || "") : value || "";
+    const targetHtml = activeCodec.decode(value || "");
     try {
       const currentHtml = editor.getHTML();
-      if (targetHtml !== currentHtml && (value !== "" || !editor.isEmpty)) {
+      const same = activeCodec.isEqual ? activeCodec.isEqual(targetHtml, currentHtml) : targetHtml === currentHtml;
+      if (!same && (value !== "" || !editor.isEmpty)) {
         editor.commands.setContent(targetHtml, { emitUpdate: false });
       }
     } catch {
       // Ignore potential DOMSerializer / schema errors during rapid mount/unmount or JSDOM
     }
-  }, [value, format, editor]);
+  }, [value, activeCodec, editor]);
 
   useEffect(() => {
     if (editor && !editor.isDestroyed) {
@@ -101,14 +139,7 @@ export const TipTapCore = memo(function TipTapCore({
   }, [disabled, readOnly, editor]);
 
   if (!editor) {
-    return (
-      <div
-        className="border-input bg-muted/20 text-muted-foreground flex items-center justify-center rounded-md border text-xs"
-        style={{ minHeight }}
-      >
-        Loading editor...
-      </div>
-    );
+    return <RichEditorSkeleton minHeight={minHeight} className={className} />;
   }
 
   const minHeightStyle = typeof minHeight === "number" ? `${minHeight}px` : minHeight;
@@ -116,7 +147,6 @@ export const TipTapCore = memo(function TipTapCore({
 
   return (
     <div
-      id={id}
       className={cn(
         "group relative flex flex-col rounded-md border border-input bg-background text-foreground shadow-xs transition-colors",
         "focus-within:border-ring focus-within:ring-1 focus-within:ring-ring",
@@ -125,10 +155,8 @@ export const TipTapCore = memo(function TipTapCore({
         className,
       )}
     >
-      {/* Toolbar (对标 Filament v5 RichEditor 工具栏) */}
       {!readOnly && <RichEditorToolbar editor={editor} toolbarButtons={toolbarButtons} disabled={disabled} />}
 
-      {/* TipTap Content Area */}
       <div
         className="relative overflow-y-auto px-3.5 py-2.5 text-sm"
         style={{

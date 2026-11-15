@@ -1,4 +1,6 @@
-import { memo } from "react";
+"use client";
+
+import { type MouseEvent, memo } from "react";
 
 import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -19,51 +21,19 @@ export interface RadioGroupInputProps<TValue extends string | number = string> e
 }
 
 function RadioGroupInputComponent<TValue extends string | number = string>({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
-  disabled,
   options = EMPTY_OPTIONS as SelectOption<TValue>[],
-  value: controlledValue,
-  defaultValue,
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   direction = "vertical",
   card = false,
+  ...fieldProps
 }: RadioGroupInputProps<TValue>) {
   return (
-    <FormFieldEngine<TValue>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value, onChange, disabled: isDisabled, onBlur }) => {
+    <FormFieldEngine<TValue> {...fieldProps}>
+      {({ id, value, onChange, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy, onBlur }) => {
         const stringValue = value !== undefined && value !== null ? String(value) : "";
+        const groupLocked = Boolean(isDisabled || isReadOnly);
 
         const handleValueChange = (val: string) => {
+          if (groupLocked) return;
           const matched = options.find((o) => String(o.value) === val);
           onChange(matched ? matched.value : (val as unknown as TValue));
         };
@@ -74,30 +44,41 @@ function RadioGroupInputComponent<TValue extends string | number = string>({
             value={stringValue}
             onValueChange={handleValueChange}
             onBlur={onBlur}
-            disabled={isDisabled}
+            disabled={groupLocked}
+            aria-invalid={hasError}
+            aria-describedby={describedBy}
             className={cn("pt-1", direction === "horizontal" ? "flex-row flex-wrap items-center gap-4" : "space-y-2")}
           >
             <FieldGroup data-slot="radio-group" className="w-full gap-2">
               {options.map((option) => {
                 const optionId = `${id}-${String(option.value)}`;
                 const isSelected = String(option.value) === stringValue;
+                const itemDisabled = groupLocked || Boolean(option.disabled);
 
                 if (card) {
+                  const handleCardClick = (e: MouseEvent<HTMLDivElement>) => {
+                    if (itemDisabled) return;
+                    const target = e.target as HTMLElement | null;
+                    if (target?.closest('[role="radio"], button, label')) return;
+                    handleValueChange(String(option.value));
+                  };
+
                   return (
                     <Field
                       key={String(option.value)}
                       orientation="horizontal"
-                      onClick={() => !isDisabled && !option.disabled && handleValueChange(String(option.value))}
+                      onClick={handleCardClick}
                       className={cn(
                         "cursor-pointer items-start gap-3 rounded-lg border border-input bg-card/30 p-3 transition-colors select-none",
                         isSelected && "border-primary/60 bg-primary/5 ring-1 ring-primary/20",
-                        (isDisabled || option.disabled) && "pointer-events-none cursor-not-allowed opacity-50",
+                        hasError && "border-destructive/60",
+                        itemDisabled && "pointer-events-none cursor-not-allowed opacity-50",
                       )}
                     >
                       <RadioGroupItem
                         id={optionId}
                         value={String(option.value)}
-                        disabled={isDisabled || option.disabled}
+                        disabled={itemDisabled}
                         className="mt-0.5"
                       />
                       <FieldContent className="min-w-0 flex-1 space-y-0.5">
@@ -122,11 +103,7 @@ function RadioGroupInputComponent<TValue extends string | number = string>({
 
                 return (
                   <Field key={String(option.value)} orientation="horizontal" className="items-center gap-2">
-                    <RadioGroupItem
-                      id={optionId}
-                      value={String(option.value)}
-                      disabled={isDisabled || option.disabled}
-                    />
+                    <RadioGroupItem id={optionId} value={String(option.value)} disabled={itemDisabled} />
                     <FieldLabel
                       htmlFor={optionId}
                       className="text-foreground flex cursor-pointer items-center gap-1.5 text-xs font-medium select-none"

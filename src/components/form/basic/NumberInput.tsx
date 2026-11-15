@@ -1,5 +1,8 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { Minus, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { type ChangeEvent, type ReactNode, memo } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +22,7 @@ export interface NumberInputProps extends BaseInputProps {
   prefix?: ReactNode;
   suffix?: ReactNode;
   steppers?: boolean;
+  inputClassName?: string;
 }
 
 interface NumberInputInnerProps {
@@ -33,8 +37,11 @@ interface NumberInputInnerProps {
   suffix?: ReactNode;
   steppers?: boolean;
   disabled?: boolean;
+  readOnly?: boolean;
   placeholder?: string;
   hasError?: boolean;
+  describedBy?: string;
+  inputClassName?: string;
 }
 
 const NumberInputInner = memo(function NumberInputInner({
@@ -49,9 +56,15 @@ const NumberInputInner = memo(function NumberInputInner({
   suffix,
   steppers = true,
   disabled,
+  readOnly,
   placeholder = "0",
   hasError,
+  describedBy,
+  inputClassName,
 }: NumberInputInnerProps) {
+  const t = useTranslations("form");
+  const isLocked = Boolean(disabled || readOnly);
+
   const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.trim();
     if (raw === "") {
@@ -65,7 +78,7 @@ const NumberInputInner = memo(function NumberInputInner({
   });
 
   const stepUp = useMemoizedFn(() => {
-    if (disabled) return;
+    if (isLocked) return;
     const current = typeof value === "number" ? value : 0;
     const next = current + step;
     if (max !== undefined && next > max) return;
@@ -73,7 +86,7 @@ const NumberInputInner = memo(function NumberInputInner({
   });
 
   const stepDown = useMemoizedFn(() => {
-    if (disabled) return;
+    if (isLocked) return;
     const current = typeof value === "number" ? value : 0;
     const next = current - step;
     if (min !== undefined && next < min) return;
@@ -97,23 +110,27 @@ const NumberInputInner = memo(function NumberInputInner({
         onChange={handleInputChange}
         onBlur={onBlur}
         disabled={disabled}
+        readOnly={readOnly}
         placeholder={placeholder}
+        aria-invalid={hasError}
+        aria-describedby={describedBy}
         className={cn(
           "h-8 [appearance:textfield] font-mono text-xs tabular-nums [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
           prefix && "pl-7",
           (suffix || steppers) && "pr-16",
           hasError && "border-destructive focus-visible:ring-destructive/20",
+          inputClassName,
         )}
       />
       <div className="absolute right-1 flex items-center gap-0.5">
         {suffix && <span className="text-muted-foreground pointer-events-none mr-1 text-xs select-none">{suffix}</span>}
-        {steppers && !disabled && (
+        {steppers && !isLocked && (
           <>
             <Button
               type="button"
               variant="ghost"
               size="icon-xs"
-              aria-label="减少数值"
+              aria-label={t("number_decrease")}
               onClick={stepDown}
               disabled={min !== undefined && (value ?? 0) <= min}
               className="text-muted-foreground hover:text-foreground size-6 cursor-pointer"
@@ -124,7 +141,7 @@ const NumberInputInner = memo(function NumberInputInner({
               type="button"
               variant="ghost"
               size="icon-xs"
-              aria-label="增加数值"
+              aria-label={t("number_increase")}
               onClick={stepUp}
               disabled={max !== undefined && (value ?? 0) >= max}
               className="text-muted-foreground hover:text-foreground size-6 cursor-pointer"
@@ -139,52 +156,20 @@ const NumberInputInner = memo(function NumberInputInner({
 });
 
 export const NumberInput = memo(function NumberInput({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
   placeholder = "0",
-  disabled,
-  value: controlledValue,
   defaultValue = null,
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   min,
   max,
   step = 1,
   prefix,
   suffix,
   steppers = true,
+  inputClassName,
+  ...fieldProps
 }: NumberInputProps) {
   return (
-    <FormFieldEngine<number | null>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value, onChange, onBlur, disabled: isDisabled, hasError }) => (
+    <FormFieldEngine<number | null> defaultValue={defaultValue} {...fieldProps}>
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <NumberInputInner
           id={id}
           value={value}
@@ -197,8 +182,11 @@ export const NumberInput = memo(function NumberInput({
           suffix={suffix}
           steppers={steppers}
           disabled={isDisabled}
+          readOnly={isReadOnly}
           placeholder={placeholder}
           hasError={hasError}
+          describedBy={describedBy}
+          inputClassName={inputClassName}
         />
       )}
     </FormFieldEngine>

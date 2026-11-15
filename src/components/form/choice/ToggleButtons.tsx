@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { memo } from "react";
 
@@ -20,80 +22,54 @@ export interface ToggleButtonsProps extends BaseInputProps {
 }
 
 export const ToggleButtons = memo(function ToggleButtons({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
-  disabled,
   options = EMPTY_OPTIONS,
-  value: controlledValue,
   defaultValue = "",
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   variant = "outline",
   size = "sm",
   fullWidth = false,
+  ...fieldProps
 }: ToggleButtonsProps) {
   const handleValueChange = useMemoizedFn((onChange: (val: string) => void, val: string) => {
     if (val) onChange(val);
   });
 
   return (
-    <FormFieldEngine<string>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value = "", onChange, onBlur, disabled: isDisabled }) => (
-        <ToggleGroup
-          id={id}
-          type="single"
-          value={value}
-          onValueChange={(val) => handleValueChange(onChange, val)}
-          onBlur={onBlur}
-          disabled={isDisabled}
-          variant={variant}
-          size={size}
-          className={cn("pt-1", fullWidth && "flex w-full *:flex-1")}
-        >
-          {options.map((opt) => {
-            const Icon = opt.icon;
-            return (
-              <ToggleGroupItem
-                key={opt.value}
-                value={opt.value}
-                disabled={isDisabled || opt.disabled}
-                className="cursor-pointer gap-1.5 text-xs"
-              >
-                {Icon && <Icon className="size-3.5 shrink-0" />}
-                <span>{opt.label}</span>
-              </ToggleGroupItem>
-            );
-          })}
-        </ToggleGroup>
-      )}
+    <FormFieldEngine<string> defaultValue={defaultValue} {...fieldProps}>
+      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => {
+        const locked = Boolean(isDisabled || isReadOnly);
+        return (
+          <ToggleGroup
+            id={id}
+            type="single"
+            value={value}
+            onValueChange={(val) => {
+              if (!isReadOnly) handleValueChange(onChange, val);
+            }}
+            onBlur={onBlur}
+            disabled={locked}
+            variant={variant}
+            size={size}
+            aria-invalid={hasError}
+            aria-describedby={describedBy}
+            className={cn("pt-1", fullWidth && "flex w-full *:flex-1")}
+          >
+            {options.map((opt) => {
+              const Icon = opt.icon;
+              return (
+                <ToggleGroupItem
+                  key={opt.value}
+                  value={opt.value}
+                  disabled={locked || opt.disabled}
+                  className="cursor-pointer gap-1.5 text-xs"
+                >
+                  {Icon && <Icon className="size-3.5 shrink-0" />}
+                  <span>{opt.label}</span>
+                </ToggleGroupItem>
+              );
+            })}
+          </ToggleGroup>
+        );
+      }}
     </FormFieldEngine>
   );
 });

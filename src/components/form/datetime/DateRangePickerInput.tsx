@@ -1,17 +1,25 @@
+"use client";
+
 import type { DateRange } from "react-day-picker";
 
 import { useMemoizedFn } from "ahooks";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, X } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { memo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "cn";
 
-import { type BaseInputProps, type DateRangeValue, FormFieldEngine } from "../core";
+import { type BaseInputProps, type DateRangeValue, FieldClearButton, FormFieldEngine } from "../core";
 import { parseDate } from "./dateUtils";
+
+const LazyCalendar = dynamic(() => import("@/components/ui/calendar").then((mod) => mod.Calendar), {
+  ssr: false,
+  loading: () => <div className="text-muted-foreground flex h-64 w-80 items-center justify-center text-xs">...</div>,
+});
 
 export interface DateRangePickerInputProps extends BaseInputProps {
   value?: DateRangeValue;
@@ -26,32 +34,46 @@ interface DateRangePickerControlProps {
   id: string;
   placeholder: string;
   disabled?: boolean;
+  readOnly?: boolean;
   dateFormat: string;
   clearable: boolean;
   value?: DateRangeValue;
   onChange: (value: DateRangeValue | undefined) => void;
   onBlur?: () => void;
   hasError?: boolean;
+  describedBy?: string;
+  clearAriaLabel: string;
 }
 
 const DateRangePickerControl = memo(function DateRangePickerControl({
   id,
   placeholder,
   disabled,
+  readOnly,
   dateFormat,
   clearable,
   value,
   onChange,
   onBlur,
   hasError,
+  describedBy,
+  clearAriaLabel,
 }: DateRangePickerControlProps) {
   const [open, setOpen] = useState(false);
+  const locked = Boolean(disabled || readOnly);
 
   const fromDate = parseDate(value?.from);
   const toDate = parseDate(value?.to);
   const rangeSelected: DateRange | undefined = fromDate || toDate ? { from: fromDate, to: toDate } : undefined;
 
+  const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
+    if (locked && nextOpen) return;
+    setOpen(nextOpen);
+    if (!nextOpen) onBlur?.();
+  });
+
   const handleSelect = useMemoizedFn((range: DateRange | undefined) => {
+    if (locked) return;
     if (!range) {
       onChange(undefined);
     } else {
@@ -64,7 +86,7 @@ const DateRangePickerControl = memo(function DateRangePickerControl({
 
   const handleClear = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange(undefined);
+    if (!locked) onChange(undefined);
   });
 
   let displayLabel = placeholder;
@@ -76,7 +98,7 @@ const DateRangePickerControl = memo(function DateRangePickerControl({
 
   return (
     <div className="relative flex w-full items-center">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
             id={id}
@@ -84,6 +106,9 @@ const DateRangePickerControl = memo(function DateRangePickerControl({
             variant="outline"
             disabled={disabled}
             onBlur={onBlur}
+            aria-readonly={readOnly}
+            aria-invalid={hasError}
+            aria-describedby={describedBy}
             className={cn(
               "h-8 w-full justify-start rounded-md bg-transparent px-2.5 pr-8 text-left text-xs font-normal",
               !fromDate && "text-muted-foreground",
@@ -98,77 +123,48 @@ const DateRangePickerControl = memo(function DateRangePickerControl({
         </PopoverTrigger>
 
         <PopoverContent className="w-auto rounded-xl p-0" align="start">
-          <Calendar mode="range" numberOfMonths={2} selected={rangeSelected} onSelect={handleSelect} />
+          {open ? (
+            <LazyCalendar mode="range" numberOfMonths={2} selected={rangeSelected} onSelect={handleSelect} />
+          ) : null}
         </PopoverContent>
       </Popover>
 
-      {clearable && (fromDate || toDate) && !disabled && (
-        <button
-          type="button"
+      {clearable && (fromDate || toDate) && !locked && (
+        <FieldClearButton
           onClick={handleClear}
-          className="text-muted-foreground/70 hover:text-destructive absolute right-2 cursor-pointer rounded-sm p-0.5 transition-colors"
-          aria-label="清除日期范围"
-        >
-          <X className="size-3" />
-        </button>
+          ariaLabel={clearAriaLabel}
+          className="hover:text-destructive absolute right-2"
+        />
       )}
     </div>
   );
 });
 
 export const DateRangePickerInput = memo(function DateRangePickerInput({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
-  placeholder = "请选择日期范围...",
-  disabled,
-  value: controlledValue,
-  defaultValue,
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
+  placeholder,
   dateFormat = "yyyy-MM-dd",
   clearable = true,
+  ...fieldProps
 }: DateRangePickerInputProps) {
+  const t = useTranslations("form");
+  const resolvedPlaceholder = placeholder ?? t("daterange_placeholder");
+
   return (
-    <FormFieldEngine<DateRangeValue | undefined>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value, onChange, onBlur, disabled: isDisabled, hasError }) => (
+    <FormFieldEngine<DateRangeValue | undefined> {...fieldProps}>
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <DateRangePickerControl
           id={id}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           disabled={isDisabled}
+          readOnly={isReadOnly}
           dateFormat={dateFormat}
           clearable={clearable}
           value={value}
           onChange={onChange}
           onBlur={onBlur}
           hasError={hasError}
+          describedBy={describedBy}
+          clearAriaLabel={t("daterange_clear")}
         />
       )}
     </FormFieldEngine>

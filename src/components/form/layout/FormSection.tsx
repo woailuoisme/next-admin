@@ -1,5 +1,8 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { ChevronDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { memo, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -46,6 +49,7 @@ export const FormSection = memo(function FormSection({
   className,
   children,
 }: FormSectionProps) {
+  const t = useTranslations("form");
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   const handleOpenChange = useMemoizedFn((open: boolean) => {
@@ -102,7 +106,7 @@ export const FormSection = memo(function FormSection({
                       variant="ghost"
                       size="icon"
                       className="text-muted-foreground hover:text-foreground size-7 rounded-md"
-                      aria-label={collapsed ? "展开区块" : "折叠区块"}
+                      aria-label={collapsed ? t("section_expand") : t("section_collapse")}
                     >
                       <ChevronDown
                         className={cn("size-4 transition-transform duration-200", collapsed && "-rotate-90")}
@@ -160,7 +164,7 @@ export const FormSection = memo(function FormSection({
                   variant="ghost"
                   size="icon"
                   className="text-muted-foreground hover:text-foreground size-7 rounded-md"
-                  aria-label={collapsed ? "展开区块" : "折叠区块"}
+                  aria-label={collapsed ? t("section_expand") : t("section_collapse")}
                 >
                   <ChevronDown className={cn("size-4 transition-transform duration-200", collapsed && "-rotate-90")} />
                 </Button>

@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { OtpInput } from "@/components/form/security";
+import { OtpInput } from "@/components/form/security/OtpInput";
 import type { MessageKeyOf } from "@/types/i18n";
 
 import { resolveResetErrorKey, useForgotPasswordMutation, useVerifyOtpMutation } from "../hooks";

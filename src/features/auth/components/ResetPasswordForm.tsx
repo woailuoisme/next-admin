@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 
 import { TextInput } from "@/components/form/basic";
 import { Form } from "@/components/form/core";
-import { DEFAULT_PASSWORD_REQUIREMENTS, PasswordStrengthMeter } from "@/components/form/security";
+import { DEFAULT_PASSWORD_REQUIREMENTS, PasswordStrengthMeter } from "@/components/form/security/PasswordStrengthMeter";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MessageKeyOf } from "@/types/i18n";
 
@@ -34,7 +34,6 @@ export function ResetPasswordForm({ resetToken, email }: ResetPasswordFormProps)
   const tForm = useTranslations("form");
   const mutation = useResetPasswordMutation();
   const [errorKey, setErrorKey] = useState<MessageKeyOf<"auth"> | null>(null);
-  const [passwordValue, setPasswordValue] = useState("");
 
   const requirements = useMemo(
     () =>
@@ -88,11 +87,14 @@ export function ResetPasswordForm({ resetToken, email }: ResetPasswordFormProps)
             placeholder="••••••••"
             prefix={<Lock className="text-muted-foreground size-4" />}
             autoComplete="new-password"
-            onChange={(value) => setPasswordValue(String(value))}
             required
           />
 
-          <PasswordStrengthMeter password={passwordValue} requirements={requirements} showScoreLabel showRequirements />
+          <form.Subscribe selector={(state) => state.values.password}>
+            {(password) => (
+              <PasswordStrengthMeter password={password} requirements={requirements} showScoreLabel showRequirements />
+            )}
+          </form.Subscribe>
 
           <TextInput
             name="confirmPassword"

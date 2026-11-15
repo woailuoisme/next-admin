@@ -30,7 +30,7 @@ export interface BaseDialogProps {
 export type FormDialogMode = "create" | "edit";
 
 export interface BaseFormInstance {
-  reset: () => void;
+  reset: (values?: Record<string, unknown>) => void;
   setFieldValue: (field: any, value: any) => void;
   handleSubmit?: () => void | Promise<void>;
   [key: string]: unknown;

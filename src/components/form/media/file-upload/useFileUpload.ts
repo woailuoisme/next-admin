@@ -1,10 +1,21 @@
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
-import { type ChangeEvent, type DragEvent, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type DragEvent, useEffect, useMemo, useRef, useState } from "react";
 
+import {
+  DEFAULT_MAX_FILES,
+  DEFAULT_MAX_SIZE,
+  type FileValueCodec,
+  type UploadTransport,
+  type UploadTransportResult,
+  createLegacyUploadTransport,
+  mergeUploadedItems,
+  normalizeUploadResult,
+  resolveFileCodec,
+  validateCandidateFiles,
+} from "./pipeline";
 import type { FileUploadItem } from "./types";
-
-import { formatBytes, normalizeToItems } from "./utils";
+import { formatBytes } from "./utils";
 
 export interface UseFileUploadOptions {
   value: unknown;
@@ -17,7 +28,9 @@ export interface UseFileUploadOptions {
   maxSize?: number;
   disabled?: boolean;
   readOnly?: boolean;
-  onUpload?: (file: File) => Promise<string | { url: string; name: string; size?: number }>;
+  onUpload?: (file: File) => Promise<UploadTransportResult>;
+  transport?: UploadTransport;
+  valueCodec?: "item" | "url" | FileValueCodec;
 }
 
 export function useFileUpload({
@@ -25,24 +38,64 @@ export function useFileUpload({
   onChange,
   onBlur,
   mode = "grid",
+  accept,
   multiple,
-  maxFiles = 10,
-  maxSize = 10 * 1024 * 1024,
+  maxFiles = DEFAULT_MAX_FILES,
+  maxSize = DEFAULT_MAX_SIZE,
   disabled,
   readOnly,
   onUpload,
+  transport,
+  valueCodec,
 }: UseFileUploadOptions) {
   const t = useTranslations("form");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const blobUrlsRef = useRef<Set<string>>(new Set());
+  const controllersRef = useRef<Map<string, AbortController>>(new Map());
+  const removedIdsRef = useRef<Set<string>>(new Set());
+  const seqRef = useRef(0);
+
   const [isDragging, setIsDragging] = useState(false);
+  const [transientItems, setTransientItems] = useState<FileUploadItem[]>([]);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const transientItemsRef = useRef<FileUploadItem[]>([]);
+
+  const codec = useMemo(() => resolveFileCodec(valueCodec), [valueCodec]);
+  const committedItems = useMemo(() => codec.decode(value), [codec, value]);
+
+  const latestCommittedRef = useRef<FileUploadItem[]>(committedItems);
+  useEffect(() => {
+    latestCommittedRef.current = committedItems;
+  }, [committedItems]);
+
+  const activeTransport = useMemo(() => transport ?? createLegacyUploadTransport(onUpload), [transport, onUpload]);
+
   const setDraggingTrue = useMemoizedFn(() => setIsDragging(true));
   const setDraggingFalse = useMemoizedFn(() => setIsDragging(false));
 
-  // Revoke created blob URLs on unmount to prevent browser memory leaks
+  const revokeBlobUrl = useMemoizedFn((url?: string) => {
+    if (url && blobUrlsRef.current.has(url)) {
+      URL.revokeObjectURL(url);
+      blobUrlsRef.current.delete(url);
+    }
+  });
+
+  const updateTransient = useMemoizedFn((updater: (prev: FileUploadItem[]) => FileUploadItem[]) => {
+    const next = updater(transientItemsRef.current);
+    transientItemsRef.current = next;
+    setTransientItems(next);
+    return next;
+  });
+
+  // Revoke blob URLs and abort in-flight requests on unmount to prevent memory leaks
   useEffect(() => {
     const blobUrls = blobUrlsRef.current;
+    const controllers = controllersRef.current;
     return () => {
+      for (const controller of controllers.values()) {
+        controller.abort();
+      }
+      controllers.clear();
       for (const url of blobUrls) {
         URL.revokeObjectURL(url);
       }
@@ -50,26 +103,74 @@ export function useFileUpload({
     };
   }, []);
 
-  const items = normalizeToItems(value);
+  const items = useMemo(() => {
+    const transientIds = new Set(transientItems.map((item) => item.id));
+    const committedWithoutTransient = committedItems.filter((item) => !transientIds.has(item.id));
+    if (mode === "avatar") {
+      return transientItems.length > 0 ? [transientItems[0]] : committedWithoutTransient.slice(0, 1);
+    }
+    return [...committedWithoutTransient, ...transientItems];
+  }, [committedItems, transientItems, mode]);
 
   const canUploadMore =
     !disabled && !readOnly && (mode === "avatar" ? items.length === 0 : !multiple || items.length < maxFiles);
 
+  const formatRejectionMessage = useMemoizedFn((reason: "type" | "size" | "limit") => {
+    if (reason === "type") return t("upload_error_type_not_allowed");
+    if (reason === "size") return t("upload_error_exceed_size", { size: formatBytes(maxSize) });
+    return t("upload_error_max_files", { count: maxFiles });
+  });
+
   const triggerUploadFiles = useMemoizedFn(async (files: File[]) => {
     if (disabled || readOnly || files.length === 0) return;
+    setValidationError(null);
 
-    let validFiles = files;
-    if (mode === "avatar") {
-      validFiles = [files[0]];
-    } else if (multiple && items.length + files.length > maxFiles) {
-      validFiles = files.slice(0, Math.max(0, maxFiles - items.length));
+    const activeCount =
+      mode === "avatar"
+        ? 0
+        : latestCommittedRef.current.length +
+          transientItemsRef.current.filter((item) => item.status === "uploading").length;
+
+    const { accepted, rejected } = validateCandidateFiles(files, {
+      accept,
+      maxSize,
+      maxFiles,
+      currentCount: activeCount,
+      mode,
+      multiple,
+    });
+
+    const failedCards: FileUploadItem[] = [];
+    for (const candidate of rejected) {
+      const msg = formatRejectionMessage(candidate.reason);
+      setValidationError(msg);
+      if (mode === "grid" && (candidate.reason === "type" || candidate.reason === "size")) {
+        seqRef.current += 1;
+        failedCards.push({
+          id: `rejected-${Date.now()}-${seqRef.current}-${candidate.file.name}`,
+          name: candidate.file.name,
+          size: candidate.file.size,
+          url: "",
+          type: candidate.file.type,
+          status: "error",
+          error: msg,
+        });
+      }
     }
 
-    const pendingItems: FileUploadItem[] = validFiles.map((file, idx) => {
+    if (accepted.length === 0) {
+      if (failedCards.length > 0) {
+        updateTransient((prev) => [...prev, ...failedCards]);
+      }
+      return;
+    }
+
+    const pendingPairs = accepted.map((file) => {
+      seqRef.current += 1;
       const blobUrl = URL.createObjectURL(file);
       blobUrlsRef.current.add(blobUrl);
-      return {
-        id: `uploading-${Date.now()}-${idx}-${file.name}`,
+      const pendingItem: FileUploadItem = {
+        id: `uploading-${Date.now()}-${seqRef.current}-${file.name}`,
         name: file.name,
         size: file.size,
         url: blobUrl,
@@ -77,63 +178,91 @@ export function useFileUpload({
         progress: 10,
         status: "uploading",
       };
+      return { file, blobUrl, pendingItem };
     });
 
-    let currentItems = mode === "avatar" ? pendingItems : [...items, ...pendingItems];
-    onChange(mode === "avatar" ? currentItems[0] : currentItems);
+    const pendingItems = pendingPairs.map((pair) => pair.pendingItem);
 
-    for (let i = 0; i < validFiles.length; i++) {
-      const file = validFiles[i];
-      const pendingId = pendingItems[i].id;
+    updateTransient((prev) =>
+      mode === "avatar" ? [...pendingItems, ...failedCards] : [...prev, ...pendingItems, ...failedCards],
+    );
 
-      try {
-        if (file.size > maxSize) {
-          throw new Error(`${t("upload_error_too_large")} (${formatBytes(maxSize)})`);
-        }
+    await Promise.all(
+      pendingPairs.map(async ({ file, blobUrl, pendingItem }) => {
+        const controller = new AbortController();
+        controllersRef.current.set(pendingItem.id, controller);
 
-        let uploadedUrl = "";
-        let uploadedName = file.name;
-        let uploadedSize = file.size;
+        try {
+          const result = await activeTransport.upload(file, {
+            signal: controller.signal,
+            onProgress: (progress) => {
+              if (removedIdsRef.current.has(pendingItem.id) || controller.signal.aborted) return;
+              updateTransient((prev) => mergeUploadedItems(prev, pendingItem.id, { progress }));
+            },
+          });
 
-        if (onUpload) {
-          const result = await onUpload(file);
-          if (typeof result === "string") {
-            uploadedUrl = result;
-          } else {
-            uploadedUrl = result.url;
-            uploadedName = result.name || file.name;
-            uploadedSize = result.size || file.size;
+          const normalized = normalizeUploadResult(result, file);
+
+          if (removedIdsRef.current.has(pendingItem.id) || controller.signal.aborted) {
+            revokeBlobUrl(blobUrl);
+            if (normalized.url.startsWith("blob:") && normalized.url !== blobUrl) {
+              URL.revokeObjectURL(normalized.url);
+            }
+            return;
           }
-        } else {
-          await new Promise((r) => setTimeout(r, 400));
-          uploadedUrl = pendingItems[i].url;
-        }
 
-        currentItems = currentItems.map((item) =>
-          item.id === pendingId
-            ? {
-                ...item,
-                url: uploadedUrl,
-                name: uploadedName,
-                size: uploadedSize,
-                progress: 100,
-                status: "done",
+          // Release preview blob immediately when a distinct remote/final URL is returned
+          if (normalized.url !== blobUrl) {
+            revokeBlobUrl(blobUrl);
+          }
+
+          const doneItem: FileUploadItem = {
+            ...pendingItem,
+            id: normalized.url || pendingItem.id,
+            url: normalized.url,
+            name: normalized.name,
+            size: normalized.size,
+            type: normalized.type,
+            progress: 100,
+            status: "done",
+            error: undefined,
+          };
+
+          updateTransient((prev) => prev.filter((item) => item.id !== pendingItem.id));
+
+          if (mode === "avatar") {
+            for (const existing of latestCommittedRef.current) {
+              if (existing.url && existing.url !== doneItem.url) {
+                revokeBlobUrl(existing.url);
               }
-            : item,
-        );
-      } catch (err: any) {
-        currentItems = currentItems.map((item) =>
-          item.id === pendingId
-            ? {
-                ...item,
-                status: "error",
-                error: err?.message || t("upload_status_failed"),
-              }
-            : item,
-        );
-      }
-      onChange(mode === "avatar" ? currentItems[0] : currentItems);
-    }
+            }
+          }
+
+          const nextCommitted =
+            mode === "avatar"
+              ? [doneItem]
+              : [...latestCommittedRef.current.filter((item) => item.id !== doneItem.id), doneItem];
+          latestCommittedRef.current = nextCommitted;
+          onChange(codec.encode(nextCommitted, mode));
+        } catch (err: unknown) {
+          revokeBlobUrl(blobUrl);
+          if (removedIdsRef.current.has(pendingItem.id) || controller.signal.aborted) {
+            updateTransient((prev) => prev.filter((item) => item.id !== pendingItem.id));
+            return;
+          }
+          const message = err instanceof Error && err.message ? err.message : t("upload_status_failed");
+          updateTransient((prev) =>
+            mergeUploadedItems(prev, pendingItem.id, {
+              url: "",
+              status: "error",
+              error: message,
+            }),
+          );
+        } finally {
+          controllersRef.current.delete(pendingItem.id);
+        }
+      }),
+    );
 
     onBlur?.();
   });
@@ -175,18 +304,40 @@ export function useFileUpload({
 
   const handleRemove = useMemoizedFn((idToRemove: string) => {
     if (disabled || readOnly) return;
-    const target = items.find((item) => item.id === idToRemove);
-    if (target?.url && target.url.startsWith("blob:")) {
-      URL.revokeObjectURL(target.url);
-      blobUrlsRef.current.delete(target.url);
+    setValidationError(null);
+    removedIdsRef.current.add(idToRemove);
+
+    const activeController = controllersRef.current.get(idToRemove);
+    if (activeController) {
+      activeController.abort();
+      controllersRef.current.delete(idToRemove);
     }
-    const next = items.filter((item) => item.id !== idToRemove);
-    onChange(mode === "avatar" ? null : next);
+
+    const transientTarget = transientItemsRef.current.find((item) => item.id === idToRemove);
+    if (transientTarget?.url) {
+      revokeBlobUrl(transientTarget.url);
+    }
+    if (transientTarget) {
+      updateTransient((prev) => prev.filter((item) => item.id !== idToRemove));
+    }
+
+    const committedTarget = latestCommittedRef.current.find((item) => item.id === idToRemove);
+    if (committedTarget?.url) {
+      revokeBlobUrl(committedTarget.url);
+    }
+
+    if (committedTarget || mode === "avatar") {
+      const nextCommitted = latestCommittedRef.current.filter((item) => item.id !== idToRemove);
+      latestCommittedRef.current = nextCommitted;
+      onChange(codec.encode(nextCommitted, mode));
+    }
+
     onBlur?.();
   });
 
   const openFileDialog = useMemoizedFn(() => {
-    if (canUploadMore) {
+    if (disabled || readOnly) return;
+    if (canUploadMore || mode === "avatar") {
       fileInputRef.current?.click();
     }
   });
@@ -195,6 +346,7 @@ export function useFileUpload({
     items,
     isDragging,
     canUploadMore,
+    validationError,
     fileInputRef,
     openFileDialog,
     handleFileSelect,

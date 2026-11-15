@@ -1,18 +1,23 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { AlertCircle, CheckCircle2, Download, Eye, Loader2, Trash2 } from "lucide-react";
 import { memo } from "react";
 import { cn } from "cn";
 
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+
 import type { FileUploadItem } from "./types";
 
 import { formatBytes, getFileIcon } from "./utils";
 
 /**
- * 文件状态 → 文案配色（成功态功能色统一收敛于此表）
+ * 文件状态 → 语义化主题文案配色
  */
 const FILE_STATUS_CLASSES = {
-  done: "text-emerald-600 dark:text-emerald-400",
+  done: "text-chart-2",
   error: "text-destructive",
 } as const;
 
@@ -37,8 +42,10 @@ export const FileItemCard = memo(function FileItemCard({
 }: FileItemCardProps) {
   const t = useTranslations("form");
   const isImage = file.type?.startsWith("image/") || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(file.name);
+  const canPreviewImage = isImage && Boolean(file.url) && file.status !== "error";
 
   const handlePreview = useMemoizedFn(() => {
+    if (!canPreviewImage) return;
     onPreview(file.url);
   });
 
@@ -55,7 +62,7 @@ export const FileItemCard = memo(function FileItemCard({
     >
       {/* Thumbnail or File Icon */}
       <div className="bg-muted/50 relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md">
-        {isImage ? (
+        {canPreviewImage ? (
           <img src={file.url} alt={file.name} className="size-full object-cover" />
         ) : (
           getFileIcon(file.type, file.name)
@@ -91,31 +98,26 @@ export const FileItemCard = memo(function FileItemCard({
         </div>
 
         {/* Progress bar */}
-        {file.status === "uploading" && (
-          <div className="bg-muted h-1 w-full overflow-hidden rounded-full">
-            <div
-              className="bg-primary h-full transition-all duration-300"
-              style={{ width: `${file.progress || 30}%` }}
-            />
-          </div>
-        )}
+        {file.status === "uploading" && <Progress value={file.progress ?? 30} className="h-1" />}
       </div>
 
       {/* Actions */}
       <div className="flex shrink-0 items-center gap-1">
-        {isImage && (
-          <button
+        {canPreviewImage && (
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             onClick={handlePreview}
             title={t("upload_preview")}
             aria-label={t("upload_preview")}
-            className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-md p-1 transition-colors"
+            className="text-muted-foreground hover:text-foreground"
           >
             <Eye className="size-3.5" />
-          </button>
+          </Button>
         )}
 
-        {showDownload && (
+        {showDownload && file.url && (
           <a
             href={file.url}
             download={file.name}
@@ -123,22 +125,27 @@ export const FileItemCard = memo(function FileItemCard({
             rel="noopener noreferrer"
             title={t("upload_download")}
             aria-label={t("upload_download")}
-            className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-md p-1 transition-colors"
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "icon-xs" }),
+              "text-muted-foreground hover:text-foreground",
+            )}
           >
             <Download className="size-3.5" />
           </a>
         )}
 
         {showRemove && !disabled && !readOnly && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             onClick={handleRemove}
             title={t("upload_remove")}
             aria-label={t("upload_remove")}
-            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive cursor-pointer rounded-md p-1 transition-colors"
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           >
             <Trash2 className="size-3.5" />
-          </button>
+          </Button>
         )}
       </div>
     </div>

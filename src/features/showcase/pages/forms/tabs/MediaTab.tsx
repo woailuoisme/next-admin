@@ -1,7 +1,9 @@
 "use client";
 
-import { FormGrid, FormSection } from "@/components/form/layout";
-import { FileUploadInput, LazyRichEditorInput } from "@/components/form/media";
+import { FormGrid } from "@/components/form/layout/FormGrid";
+import { FormSection } from "@/components/form/layout/FormSection";
+import { FileUploadInput } from "@/components/form/media/file-upload/FileUploadInput";
+import { RichEditorInput } from "@/components/form/media/rich-editor/RichEditorInput";
 
 export interface MediaTabProps {
   // biome-ignore lint/suspicious/noExplicitAny: TanStack FormApi instance
@@ -15,7 +17,7 @@ export function MediaTab({ form }: MediaTabProps) {
         title="Rich Text Editor (TipTap)"
         description="Full WYSIWYG rich content editor supporting bold, italic, headings, lists, blockquotes, links, and code blocks."
       >
-        <LazyRichEditorInput
+        <RichEditorInput
           form={form}
           name="articleContent"
           label="Publication Article Content"
@@ -34,6 +36,7 @@ export function MediaTab({ form }: MediaTabProps) {
             name="avatarUrl"
             label="Profile Avatar (mode='avatar')"
             mode="avatar"
+            valueCodec="url"
             accept="image/*"
             helperText="Single image circular uploader with hover camera overlay."
             colSpan={1}
@@ -44,6 +47,7 @@ export function MediaTab({ form }: MediaTabProps) {
               name="attachments"
               label="Project Documents & Images (mode='grid')"
               mode="grid"
+              valueCodec="url"
               multiple
               maxFiles={6}
               maxSize={5 * 1024 * 1024}

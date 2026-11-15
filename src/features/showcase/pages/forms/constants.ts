@@ -1,4 +1,7 @@
-import type { BasemapPreset, CascaderOption, CoordinateSystem, TreeSelectNode } from "@/components/form";
+import type { CascaderOption } from "@/components/form/choice/Cascader";
+import type { TreeSelectNode } from "@/components/form/choice/TreeSelect";
+import type { BasemapPreset } from "@/components/map/presets/basemaps";
+import type { CoordinateSystem } from "@/components/map/utils/coordinates";
 
 import type { ShowcaseFormValues } from "./types";
 
@@ -280,3 +283,11 @@ export const DEFAULT_VALUES: ShowcaseFormValues = {
     address: "广东省深圳市福田区市民中心",
   },
 };
+
+export const DEMO_CITY_PRESETS = [
+  { label: "Beijing", coords: { lng: 116.4074, lat: 39.9042 } },
+  { label: "Shanghai", coords: { lng: 121.4737, lat: 31.2304 } },
+  { label: "Shenzhen", coords: { lng: 114.0579, lat: 22.5431 } },
+  { label: "Hangzhou", coords: { lng: 120.1551, lat: 30.2741 } },
+  { label: "Guangzhou", coords: { lng: 113.2644, lat: 23.1291 } },
+];

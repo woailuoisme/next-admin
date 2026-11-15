@@ -1,4 +1,7 @@
+"use client";
+
 import { Check, Copy } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -43,18 +46,15 @@ export interface FormLocationPickerProps extends BaseInputProps {
 
   /** Whether to show quick one-click coordinate copy button (default: true) */
   showCopyButton?: boolean;
+
+  /** Optional quick location presets rendered above the map */
+  quickPresets?: Array<{ label: string; coords: { lng: number; lat: number } }>;
 }
 
-// Preset popular locations for quick selection
-const QUICK_PRESETS: Array<{ label: string; coords: { lng: number; lat: number } }> = [
-  { label: "北京", coords: { lng: 116.4074, lat: 39.9042 } },
-  { label: "上海", coords: { lng: 121.4737, lat: 31.2304 } },
-  { label: "深圳", coords: { lng: 114.0579, lat: 22.5431 } },
-  { label: "杭州", coords: { lng: 120.1551, lat: 30.2741 } },
-  { label: "广州", coords: { lng: 113.2644, lat: 23.1291 } },
-];
+const EMPTY_PRESETS: Array<{ label: string; coords: { lng: number; lat: number } }> = [];
 
 export const FormLocationPicker = memo(function FormLocationPicker(props: FormLocationPickerProps) {
+  const t = useTranslations("form");
   const {
     name,
     label,
@@ -70,6 +70,7 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
     hidden,
     showAddressSearch = true,
     showCopyButton = true,
+    quickPresets = EMPTY_PRESETS,
     ...restPickerProps
   } = props;
 
@@ -114,7 +115,7 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
       onChange={props.onChange}
       onBlur={props.onBlur}
     >
-      {({ value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly }) => {
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => {
         const handlePresetSelect = (presetCoords: { lng: number; lat: number }) => {
           if (isDisabled || isReadOnly) return;
           const updated: LocationPickerValue = {
@@ -127,42 +128,55 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
         };
 
         return (
-          <div className="flex flex-col gap-2">
-            {showAddressSearch && (
+          <div
+            id={id}
+            aria-describedby={describedBy}
+            data-invalid={hasError || undefined}
+            className={
+              hasError ? "ring-destructive/40 flex flex-col gap-2 rounded-lg p-1 ring-1" : "flex flex-col gap-2"
+            }
+          >
+            {(quickPresets.length > 0 || (showAddressSearch && showCopyButton && value)) && (
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-muted-foreground text-[11px] font-medium">常用预设:</span>
-                  {QUICK_PRESETS.map((preset) => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      disabled={isDisabled || isReadOnly}
-                      onClick={() => handlePresetSelect(preset.coords)}
-                      className="border-border/70 bg-muted/40 text-muted-foreground hover:border-primary/40 hover:bg-primary/10 hover:text-primary rounded-md border px-2 py-0.5 text-[11px] transition-colors disabled:pointer-events-none disabled:opacity-50"
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
+                {quickPresets.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-muted-foreground text-[11px] font-medium">{t("location_presets")}</span>
+                    {quickPresets.map((preset) => (
+                      <Button
+                        key={preset.label}
+                        type="button"
+                        variant="outline"
+                        size="xs"
+                        disabled={isDisabled || isReadOnly}
+                        onClick={() => handlePresetSelect(preset.coords)}
+                        className="border-border/70 bg-muted/40 text-muted-foreground hover:border-primary/40 hover:bg-primary/10 hover:text-primary h-6 px-2 text-[11px]"
+                      >
+                        {preset.label}
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <div />
+                )}
 
-                {showCopyButton && value && (
+                {showAddressSearch && showCopyButton && value && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="xs"
                     className="text-muted-foreground hover:text-foreground h-6 text-[11px]"
                     onClick={() => handleCopy(value)}
-                    title="复制坐标"
+                    title={t("location_copy_title")}
                   >
                     {copied ? (
                       <>
                         <Check className="text-primary size-3" />
-                        <span className="text-primary font-medium">已复制</span>
+                        <span className="text-primary font-medium">{t("location_copied")}</span>
                       </>
                     ) : (
                       <>
                         <Copy className="size-3" />
-                        <span>复制经纬度</span>
+                        <span>{t("location_copy_coords")}</span>
                       </>
                     )}
                   </Button>

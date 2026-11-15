@@ -1,16 +1,17 @@
+"use client";
+
 import { memo } from "react";
-import { cn } from "cn";
 
 import { FormFieldEngine, type BaseInputProps } from "../core";
 import {
   TreeSelect,
+  type ShowCheckedStrategy,
   type TreeSelectFieldNames,
   type TreeSelectNode,
   type TreeSelectValue,
-  type ShowCheckedStrategy,
 } from "./TreeSelect";
 
-export type { TreeSelectFieldNames, TreeSelectNode, TreeSelectValue, ShowCheckedStrategy };
+export type { ShowCheckedStrategy, TreeSelectFieldNames, TreeSelectNode, TreeSelectValue };
 
 export interface TreeSelectInputProps extends BaseInputProps {
   treeData?: TreeSelectNode[];
@@ -51,7 +52,7 @@ export interface TreeSelectInputProps extends BaseInputProps {
 }
 
 const EMPTY_TREE_DATA: TreeSelectNode[] = [];
-const EMPTY_ARRAY: [] = [];
+const EMPTY_ARRAY: TreeSelectValue[] = [];
 
 function TreeSelectInputInner({
   name,
@@ -66,9 +67,9 @@ function TreeSelectInputInner({
   colSpan,
   className,
   hidden,
-  placeholder = "请选择...",
-  searchPlaceholder = "搜索节点名称...",
-  emptyText = "暂无匹配数据",
+  placeholder,
+  searchPlaceholder,
+  emptyText,
   disabled,
   allowClear = true,
   clearable = true,
@@ -118,7 +119,7 @@ function TreeSelectInputInner({
       defaultValue={normalizedDefaultValue}
       onBlur={controlledOnBlur}
     >
-      {({ id, value, onChange, disabled: isDisabled, hasError }) => (
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <TreeSelect
           id={id}
           treeData={treeData}
@@ -127,10 +128,12 @@ function TreeSelectInputInner({
             onChange(nextVal);
             controlledOnChange?.(nextVal, nodes, extra);
           }}
+          onBlur={onBlur}
           placeholder={placeholder}
           searchPlaceholder={searchPlaceholder}
           emptyText={emptyText}
           disabled={isDisabled}
+          readOnly={isReadOnly}
           allowClear={allowClear}
           clearable={clearable}
           multiple={multiple}
@@ -149,7 +152,9 @@ function TreeSelectInputInner({
           maxTagPlaceholder={maxTagPlaceholder}
           size={size}
           filterTreeNode={filterTreeNode}
-          className={cn(hasError && "border-destructive focus-visible:ring-destructive", triggerClassName)}
+          aria-invalid={hasError}
+          aria-describedby={describedBy}
+          className={triggerClassName}
           popupClassName={popupClassName}
         />
       )}

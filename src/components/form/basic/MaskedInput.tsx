@@ -1,18 +1,11 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
-import { X } from "lucide-react";
 import { type ChangeEvent, type ReactNode, memo, useMemo } from "react";
 
-import { Input } from "@/components/ui/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-  InputGroupText,
-} from "@/components/ui/input-group";
 import { cn } from "cn";
 
-import { type BaseInputProps, FormFieldEngine } from "../core";
+import { AdornedInput, type BaseInputProps, FormFieldEngine } from "../core";
 
 export interface MaskedInputProps extends BaseInputProps {
   value?: string;
@@ -42,11 +35,11 @@ interface MaskedControlProps {
   suffix?: ReactNode;
   inputClassName?: string;
   hasError?: boolean;
+  describedBy?: string;
 }
 
 export function formatWithMask(rawInput: string, mask: string): { masked: string; unmasked: string } {
   let rawChars = "";
-  // Extract unmasked characters that could match pattern slots
   for (const ch of rawInput) {
     if (/[0-9a-zA-Z]/.test(ch)) {
       rawChars += ch;
@@ -67,7 +60,6 @@ export function formatWithMask(rawInput: string, mask: string): { masked: string
         unmasked += nextChar;
         rawIdx++;
       } else {
-        // Skip non-digit
         rawIdx++;
         i--;
       }
@@ -85,7 +77,6 @@ export function formatWithMask(rawInput: string, mask: string): { masked: string
       unmasked += nextChar;
       rawIdx++;
     } else {
-      // Literal mask character
       masked += maskChar;
       if (nextChar === maskChar) {
         rawIdx++;
@@ -111,6 +102,7 @@ const MaskedControl = memo(function MaskedControl({
   suffix,
   inputClassName,
   hasError,
+  describedBy,
 }: MaskedControlProps) {
   const displayValue = useMemo(() => formatWithMask(value ?? "", mask).masked, [value, mask]);
 
@@ -124,119 +116,41 @@ const MaskedControl = memo(function MaskedControl({
     onChange("");
   });
 
-  const hasValue = Boolean(displayValue);
-  const hasAdornments = Boolean(prefix) || Boolean(suffix) || (clearable && hasValue && !disabled && !readOnly);
-
-  if (hasAdornments) {
-    return (
-      <InputGroup
-        className={cn(
-          "w-full rounded-md",
-          hasError && "border-destructive ring-destructive/20",
-          disabled && "pointer-events-none opacity-50",
-        )}
-      >
-        {prefix && (
-          <InputGroupAddon align="inline-start">
-            {typeof prefix === "string" ? <InputGroupText>{prefix}</InputGroupText> : prefix}
-          </InputGroupAddon>
-        )}
-
-        <InputGroupInput
-          id={id}
-          type="text"
-          value={displayValue}
-          onChange={handleInputChange}
-          onBlur={onBlur}
-          placeholder={placeholder || mask}
-          disabled={disabled}
-          readOnly={readOnly}
-          aria-invalid={hasError}
-          className={cn("font-mono tracking-wide", inputClassName)}
-        />
-
-        {clearable && hasValue && !disabled && !readOnly && (
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton size="icon-xs" variant="ghost" onClick={handleClear} aria-label="Clear content">
-              <X className="size-3" />
-            </InputGroupButton>
-          </InputGroupAddon>
-        )}
-
-        {suffix && (
-          <InputGroupAddon align="inline-end">
-            {typeof suffix === "string" ? <InputGroupText>{suffix}</InputGroupText> : suffix}
-          </InputGroupAddon>
-        )}
-      </InputGroup>
-    );
-  }
-
   return (
-    <Input
+    <AdornedInput
       id={id}
       type="text"
       value={displayValue}
       onChange={handleInputChange}
+      onClear={handleClear}
       onBlur={onBlur}
       placeholder={placeholder || mask}
       disabled={disabled}
       readOnly={readOnly}
-      aria-invalid={hasError}
-      className={cn("rounded-md font-mono tracking-wide", inputClassName)}
+      clearable={clearable}
+      prefix={prefix}
+      suffix={suffix}
+      hasError={hasError}
+      describedBy={describedBy}
+      inputClassName={cn("font-mono tracking-wide", inputClassName)}
     />
   );
 });
 
 export function MaskedInput({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
   placeholder,
-  disabled,
-  readOnly,
-  value: controlledValue,
   defaultValue = "",
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   mask,
   unmask = false,
   prefix,
   suffix,
   clearable = false,
   inputClassName,
+  ...fieldProps
 }: MaskedInputProps) {
   return (
-    <FormFieldEngine<string>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      readOnly={readOnly}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+    <FormFieldEngine<string> defaultValue={defaultValue} {...fieldProps}>
+      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <MaskedControl
           id={id}
           value={typeof value === "string" ? value : ""}
@@ -252,6 +166,7 @@ export function MaskedInput({
           suffix={suffix}
           inputClassName={inputClassName}
           hasError={hasError}
+          describedBy={describedBy}
         />
       )}
     </FormFieldEngine>

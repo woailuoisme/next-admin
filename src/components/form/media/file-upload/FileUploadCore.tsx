@@ -1,15 +1,24 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import { useMemoizedFn } from "ahooks";
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 
 import { cn } from "cn";
-
-import type { FileUploadCoreProps } from "./types";
 
 import { AvatarUploader } from "./AvatarUploader";
 import { DropzoneArea } from "./DropzoneArea";
 import { FileItemCard } from "./FileItemCard";
-import { ImageLightboxModal } from "./ImageLightboxModal";
+import { DEFAULT_MAX_FILES, DEFAULT_MAX_SIZE } from "./pipeline";
+import type { FileUploadCoreProps } from "./types";
 import { useFileUpload } from "./useFileUpload";
+
+const IMAGE_EXTENSION_RE = /\.(jpg|jpeg|png|webp|svg|gif)$/i;
+
+const DynamicImageLightboxModal = dynamic(
+  () => import("@/components/shared/ImageLightboxModal").then((mod) => mod.ImageLightboxModal),
+  { ssr: false },
+);
 
 export const FileUploadCore = memo(function FileUploadCore({
   id,
@@ -19,14 +28,17 @@ export const FileUploadCore = memo(function FileUploadCore({
   mode = "grid",
   accept,
   multiple,
-  maxFiles = 10,
-  maxSize = 10 * 1024 * 1024,
+  maxFiles = DEFAULT_MAX_FILES,
+  maxSize = DEFAULT_MAX_SIZE,
   showDownload = true,
   showRemove = true,
   onUpload,
+  transport,
+  valueCodec,
   disabled,
   readOnly,
   hasError,
+  describedBy,
   className,
 }: FileUploadCoreProps) {
   const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
@@ -35,6 +47,7 @@ export const FileUploadCore = memo(function FileUploadCore({
     items,
     isDragging,
     canUploadMore,
+    validationError,
     fileInputRef,
     openFileDialog,
     handleFileSelect,
@@ -54,6 +67,8 @@ export const FileUploadCore = memo(function FileUploadCore({
     disabled,
     readOnly,
     onUpload,
+    transport,
+    valueCodec,
   });
 
   const handlePreview = useMemoizedFn((url: string) => {
@@ -64,81 +79,93 @@ export const FileUploadCore = memo(function FileUploadCore({
     setPreviewModalUrl(null);
   });
 
-  if (mode === "avatar") {
-    return (
-      <>
-        <input
-          ref={fileInputRef}
-          id={id}
-          type="file"
-          accept={accept || "image/*"}
-          onChange={handleFileSelect}
-          className="hidden"
-          disabled={disabled || readOnly}
-        />
+  const resolvedAccept = mode === "avatar" ? accept || "image/*" : accept;
+  const resolvedMultiple = mode === "avatar" ? false : multiple;
+
+  const previewImages = useMemo(
+    () =>
+      items
+        .filter((item) => item.url && (item.type?.startsWith("image/") || IMAGE_EXTENSION_RE.test(item.name)))
+        .map((item) => item.url),
+    [items],
+  );
+
+  return (
+    <div className={cn("w-full space-y-3", mode === "avatar" && className, mode !== "avatar" && className)}>
+      <input
+        ref={fileInputRef}
+        id={id}
+        type="file"
+        accept={resolvedAccept}
+        multiple={resolvedMultiple}
+        aria-invalid={hasError || undefined}
+        aria-describedby={describedBy}
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={disabled || readOnly}
+      />
+
+      {mode === "avatar" ? (
         <AvatarUploader
           currentAvatar={items[0]}
           isDragging={isDragging}
           hasError={hasError}
           disabled={disabled}
           readOnly={readOnly}
+          describedBy={describedBy}
           canUploadMore={canUploadMore}
           onChooseFile={openFileDialog}
           onRemove={handleRemove}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={className}
         />
-      </>
-    );
-  }
-
-  return (
-    <div className={cn("w-full space-y-3", className)}>
-      <input
-        ref={fileInputRef}
-        id={id}
-        type="file"
-        accept={accept}
-        multiple={multiple}
-        onChange={handleFileSelect}
-        className="hidden"
-        disabled={disabled || readOnly}
-      />
-
-      {canUploadMore && (
-        <DropzoneArea
-          isDragging={isDragging}
-          hasError={hasError}
-          disabled={disabled}
-          accept={accept}
-          maxSize={maxSize}
-          onClick={openFileDialog}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        />
-      )}
-
-      {items.length > 0 && (
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-          {items.map((file) => (
-            <FileItemCard
-              key={file.id}
-              file={file}
-              showDownload={showDownload}
-              showRemove={showRemove}
+      ) : (
+        <>
+          {canUploadMore && (
+            <DropzoneArea
+              isDragging={isDragging}
+              hasError={hasError}
               disabled={disabled}
               readOnly={readOnly}
-              onPreview={handlePreview}
-              onRemove={handleRemove}
+              describedBy={describedBy}
+              accept={accept}
+              maxSize={maxSize}
+              onClick={openFileDialog}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
             />
-          ))}
-        </div>
+          )}
+
+          {items.length > 0 && (
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {items.map((file) => (
+                <FileItemCard
+                  key={file.id}
+                  file={file}
+                  showDownload={showDownload}
+                  showRemove={showRemove}
+                  disabled={disabled}
+                  readOnly={readOnly}
+                  onPreview={handlePreview}
+                  onRemove={handleRemove}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
-      <ImageLightboxModal url={previewModalUrl} onClose={handleClosePreview} />
+      {validationError && (
+        <p role="alert" className="text-destructive text-xs">
+          {validationError}
+        </p>
+      )}
+
+      {previewModalUrl && (
+        <DynamicImageLightboxModal url={previewModalUrl} images={previewImages} onClose={handleClosePreview} />
+      )}
     </div>
   );
 });

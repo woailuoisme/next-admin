@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 
 import { FormDialog } from "@/components/dialogs/FormDialog";
 import { NumberInput, TextareaInput, TextInput } from "@/components/form/basic";
-import { SelectInput } from "@/components/form/choice";
+import { SelectInput } from "@/components/form/choice/SelectInput";
 import { FormSection } from "@/components/form/layout";
 import { categoryQueries } from "@/features/categories";
 import { slugify } from "@/lib/slug";
@@ -18,6 +18,8 @@ import type { Product, ProductInput } from "../types";
 import { useCreateProductMutation, useUpdateProductMutation } from "../hooks";
 import { productQueries } from "../queries";
 import { PRODUCT_STATUSES, productInputSchema } from "../schemas";
+
+const EMPTY_CATEGORIES: Array<{ id: string; name: string }> = [];
 
 const DEFAULT_PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60";
@@ -43,7 +45,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, productId
   const isEditing = Boolean(effectiveProduct);
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = EMPTY_CATEGORIES } = useQuery({
     ...categoryQueries.list(),
     enabled: open,
   });

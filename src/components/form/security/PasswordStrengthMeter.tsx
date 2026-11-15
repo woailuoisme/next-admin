@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Check, X } from "lucide-react";
 import { memo, useMemo } from "react";
@@ -27,7 +29,7 @@ export const DEFAULT_PASSWORD_REQUIREMENTS: PasswordRequirement[] = [
 const STRENGTH_COLOR_CLASSES = {
   empty: "bg-muted",
   weak: "bg-destructive",
-  fair: "bg-amber-500",
+  fair: "bg-chart-4",
   good: "bg-primary/80",
   strong: "bg-primary",
 } as const;

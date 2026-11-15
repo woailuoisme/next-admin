@@ -1,9 +1,13 @@
+"use client";
+
 import { createContext, useContext, useMemo, type ReactNode, type SubmitEvent } from "react";
 
 import { cn } from "cn";
 
+import type { FormInstanceLike } from "./types";
+
 export interface FormContextValue {
-  form?: any;
+  form?: FormInstanceLike;
 }
 
 export const FormContext = createContext<FormContextValue>({});
@@ -12,9 +16,30 @@ export function useFormContext() {
   return useContext(FormContext);
 }
 
+/**
+ * Shared submit dispatcher used by both `<Form>` and `<FormDialog>`.
+ */
+export function dispatchFormSubmit(
+  e: SubmitEvent<HTMLFormElement>,
+  form?: FormInstanceLike,
+  onSubmit?: (e: SubmitEvent<HTMLFormElement>) => void,
+) {
+  if (onSubmit) {
+    e.preventDefault();
+    e.stopPropagation();
+    onSubmit(e);
+    return;
+  }
+  if (form?.handleSubmit) {
+    e.preventDefault();
+    e.stopPropagation();
+    void form.handleSubmit();
+  }
+}
+
 export interface FormProps {
   /** TanStack Form useForm 实例 */
-  form?: any;
+  form?: FormInstanceLike;
   children: ReactNode;
   className?: string;
   id?: string;
@@ -27,15 +52,7 @@ export function Form({ form, children, className, id, as = "form", onSubmit }: F
   const contextValue = useMemo(() => ({ form }), [form]);
 
   const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
-    if (onSubmit) {
-      onSubmit(e);
-      return;
-    }
-    if (form?.handleSubmit) {
-      e.preventDefault();
-      e.stopPropagation();
-      form.handleSubmit();
-    }
+    dispatchFormSubmit(e, form, onSubmit);
   };
 
   return (

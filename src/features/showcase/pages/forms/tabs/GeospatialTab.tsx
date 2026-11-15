@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 
-import { FormSection } from "@/components/form/layout";
-import { type BasemapPreset, type CoordinateSystem, FormLocationPicker } from "@/components/form/map";
+import { FormSection } from "@/components/form/layout/FormSection";
+import { FormLocationPicker } from "@/components/form/map";
+import type { BasemapPreset } from "@/components/map/presets/basemaps";
+import type { CoordinateSystem } from "@/components/map/utils/coordinates";
 import { cn } from "cn";
 
-import { BASEMAP_SELECT_OPTIONS, COORDINATE_SYSTEM_OPTIONS } from "../constants";
+import { BASEMAP_SELECT_OPTIONS, COORDINATE_SYSTEM_OPTIONS, DEMO_CITY_PRESETS } from "../constants";
 
 export interface GeospatialTabProps {
   // biome-ignore lint/suspicious/noExplicitAny: TanStack FormApi instance
@@ -39,6 +41,7 @@ export function GeospatialTab({ form }: GeospatialTabProps) {
             showAddressSearch
             showCoordinatesInput
             showCopyButton
+            quickPresets={DEMO_CITY_PRESETS}
           />
         </div>
       </FormSection>

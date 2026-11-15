@@ -1,11 +1,14 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
-import { ArrowUpSquare, Eye, EyeOff, X } from "lucide-react";
+import { ArrowUpSquare } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { type ChangeEvent, type KeyboardEvent, memo, useState } from "react";
 
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
+import { InputGroupAddon } from "@/components/ui/input-group";
 import { cn } from "cn";
 
-import { type BaseInputProps, FormFieldEngine, type PasswordRequirement } from "../core";
+import { AdornedInput, type BaseInputProps, FormFieldEngine, type PasswordRequirement } from "../core";
 import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
 
 export interface PasswordInputProps extends BaseInputProps {
@@ -34,6 +37,7 @@ interface PasswordInputInnerProps {
   inputClassName?: string;
   autoComplete?: string;
   hasError?: boolean;
+  describedBy?: string;
 }
 
 const PasswordInputInner = memo(function PasswordInputInner({
@@ -41,7 +45,7 @@ const PasswordInputInner = memo(function PasswordInputInner({
   value,
   onChange,
   onBlur,
-  placeholder = "Enter password",
+  placeholder,
   disabled,
   readOnly,
   clearable = false,
@@ -50,9 +54,10 @@ const PasswordInputInner = memo(function PasswordInputInner({
   inputClassName,
   autoComplete = "current-password",
   hasError,
+  describedBy,
 }: PasswordInputInnerProps) {
-  const [visible, setVisible] = useState(false);
-  const toggleVisible = useMemoizedFn(() => setVisible((prev) => !prev));
+  const t = useTranslations("form");
+  const resolvedPlaceholder = placeholder ?? t("password_placeholder");
   const [capsLockActive, setCapsLockActive] = useState(false);
 
   const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
@@ -69,76 +74,45 @@ const PasswordInputInner = memo(function PasswordInputInner({
     }
   });
 
+  const handleBlur = useMemoizedFn(() => {
+    setCapsLockActive(false);
+    onBlur?.();
+  });
+
   const stringVal = value ?? "";
   const hasValue = stringVal.length > 0;
 
   return (
     <div className="w-full space-y-2">
-      <InputGroup
-        className={cn(
-          "w-full rounded-md",
-          hasError && "border-destructive ring-destructive/20",
-          disabled && "pointer-events-none opacity-50",
-        )}
-      >
-        <InputGroupInput
-          id={id}
-          type={visible ? "text" : "password"}
-          value={stringVal}
-          onChange={handleInputChange}
-          onKeyDown={checkCapsLock}
-          onKeyUp={checkCapsLock}
-          onBlur={() => {
-            setCapsLockActive(false);
-            onBlur?.();
-          }}
-          placeholder={placeholder}
-          disabled={disabled}
-          readOnly={readOnly}
-          autoComplete={autoComplete}
-          aria-invalid={hasError}
-          className={cn("pr-2 text-xs", inputClassName)}
-        />
+      <AdornedInput
+        id={id}
+        isPassword
+        value={stringVal}
+        onChange={handleInputChange}
+        onClear={handleClear}
+        onKeyDown={checkCapsLock}
+        onKeyUp={checkCapsLock}
+        onBlur={handleBlur}
+        placeholder={resolvedPlaceholder}
+        disabled={disabled}
+        readOnly={readOnly}
+        clearable={clearable}
+        autoComplete={autoComplete}
+        hasError={hasError}
+        describedBy={describedBy}
+        inputClassName={cn("pr-2 text-xs", inputClassName)}
+        clearAriaLabel={t("password_clear")}
+        showPasswordLabel={t("password_show")}
+        hidePasswordLabel={t("password_hide")}
+        extraEndAddon={
+          capsLockActive && !disabled ? (
+            <InputGroupAddon align="inline-end" title={t("password_caps_lock")} className="text-chart-4">
+              <ArrowUpSquare className="size-3.5 animate-pulse" />
+            </InputGroupAddon>
+          ) : null
+        }
+      />
 
-        {/* CapsLock Indicator Addon */}
-        {capsLockActive && !disabled && (
-          <InputGroupAddon align="inline-end" title="Caps Lock is ON" className="text-amber-500">
-            <ArrowUpSquare className="size-3.5 animate-pulse" />
-          </InputGroupAddon>
-        )}
-
-        {/* Clear Button Addon */}
-        {clearable && hasValue && !disabled && !readOnly && (
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              type="button"
-              size="icon-xs"
-              variant="ghost"
-              onClick={handleClear}
-              aria-label="Clear password"
-            >
-              <X className="size-3" />
-            </InputGroupButton>
-          </InputGroupAddon>
-        )}
-
-        {/* Password Visibility Toggle */}
-        {!disabled && (
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton
-              type="button"
-              size="icon-xs"
-              variant="ghost"
-              onClick={toggleVisible}
-              aria-label={visible ? "Hide password" : "Show password"}
-            >
-              {visible ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-            </InputGroupButton>
-          </InputGroupAddon>
-        )}
-      </InputGroup>
-
-      {/* Visual Strength Meter */}
       {showStrength && hasValue && (
         <div className="pt-1">
           <PasswordStrengthMeter password={stringVal} requirements={requirements} />
@@ -149,53 +123,18 @@ const PasswordInputInner = memo(function PasswordInputInner({
 });
 
 export const PasswordInput = memo(function PasswordInput({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
   placeholder,
-  disabled,
-  readOnly,
-  value: controlledValue,
   defaultValue = "",
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   clearable = false,
   showStrength = false,
   requirements,
   inputClassName,
   autoComplete,
+  ...fieldProps
 }: PasswordInputProps) {
   return (
-    <FormFieldEngine<string>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      readOnly={readOnly}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+    <FormFieldEngine<string> defaultValue={defaultValue} {...fieldProps}>
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <PasswordInputInner
           id={id}
           value={typeof value === "string" ? value : ""}
@@ -210,6 +149,7 @@ export const PasswordInput = memo(function PasswordInput({
           inputClassName={inputClassName}
           autoComplete={autoComplete}
           hasError={hasError}
+          describedBy={describedBy}
         />
       )}
     </FormFieldEngine>

@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { AlertCircle, Check, Code2, Sparkles } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
@@ -7,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import type { KeyValueRawFormat, KeyValueRowItem } from "./types";
 
-import { rawToRows, rowsToRaw } from "./parsers";
+import { convertRawFormat, formatJsonText, rawToRows, rowsToRaw } from "./parsers";
 
 interface KeyValueRawEditorProps {
   rows: KeyValueRowItem[];
@@ -24,26 +27,21 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
   onChange,
   onClose,
 }: KeyValueRawEditorProps) {
+  const t = useTranslations("form");
   const [format, setFormat] = useState<KeyValueRawFormat>(defaultFormat);
   const [text, setText] = useState<string>(() => rowsToRaw(rows, defaultFormat));
   const [error, setError] = useState<string | null>(null);
   const isInternalTextChangeRef = useRef(false);
 
-  // 统一解析辅助方法，避免多处重复解构与调用
-  const parseCurrent = useMemoizedFn((rawText: string = text, targetFormat: KeyValueRawFormat = format) => {
-    return rawToRows(rawText, targetFormat);
-  });
-
-  // 当格式切换时转换内容
   const handleFormatChange = useMemoizedFn((nextFormat: KeyValueRawFormat) => {
     if (nextFormat === format) return;
-    const { rows: currentRows, error: parseErr } = parseCurrent(text, format);
-    if (parseErr) {
-      setError(`请先修复当前 ${format.toUpperCase()} 语法错误后再切换格式`);
+    const { text: nextText, error: convertErr } = convertRawFormat(text, format, nextFormat);
+    if (convertErr || nextText === undefined) {
+      setError(t("keyvalue_raw_fix_syntax", { format: format.toUpperCase() }));
       return;
     }
     setFormat(nextFormat);
-    setText(rowsToRaw(currentRows, nextFormat));
+    setText(nextText);
     setError(null);
   });
 
@@ -59,7 +57,7 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
     const val = e.target.value;
     setText(val);
 
-    const { rows: parsedRows, error: parseErr } = parseCurrent(val, format);
+    const { rows: parsedRows, error: parseErr } = rawToRows(val, format);
     if (parseErr) {
       setError(parseErr);
     } else {
@@ -69,20 +67,19 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
     }
   });
 
-  // 格式化（仅限 JSON）
   const handleFormatJson = useMemoizedFn(() => {
     if (format !== "json") return;
-    try {
-      const obj = JSON.parse(text);
-      setText(JSON.stringify(obj, null, 2));
-      setError(null);
-    } catch (err) {
-      setError((err as Error).message || "JSON 格式非法");
+    const { formatted, error: fmtErr } = formatJsonText(text);
+    if (fmtErr || formatted === undefined) {
+      setError(fmtErr || t("keyvalue_raw_invalid_json"));
+      return;
     }
+    setText(formatted);
+    setError(null);
   });
 
   const handleApplyAndClose = useMemoizedFn(() => {
-    const { rows: parsedRows, error: parseErr } = parseCurrent(text, format);
+    const { rows: parsedRows, error: parseErr } = rawToRows(text, format);
     if (parseErr) {
       setError(parseErr);
       return;
@@ -105,7 +102,7 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
       <div className="border-border/40 flex items-center justify-between gap-2 border-b pb-2">
         <div className="flex items-center gap-1.5">
           <Code2 className="text-primary size-3.5" />
-          <span className="text-foreground text-xs font-semibold">源码批量编辑</span>
+          <span className="text-foreground text-xs font-semibold">{t("keyvalue_raw_title")}</span>
           <div className="ml-2 flex items-center gap-1">
             <Button
               type="button"
@@ -123,7 +120,7 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
               onClick={handleSelectEnv}
               className="h-6 px-2 text-[11px]"
             >
-              .env 文本
+              {t("keyvalue_raw_env_tab")}
             </Button>
           </div>
         </div>
@@ -136,10 +133,10 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
               size="xs"
               onClick={handleFormatJson}
               className="text-muted-foreground hover:text-foreground h-6 gap-1 text-[11px]"
-              title="美化 JSON"
+              title={t("keyvalue_raw_format_json")}
             >
               <Sparkles className="size-3" />
-              <span>格式化</span>
+              <span>{t("keyvalue_raw_format_action")}</span>
             </Button>
           ) : null}
           <Button
@@ -150,7 +147,7 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
             className="h-6 gap-1 text-[11px]"
           >
             <Check className="size-3" />
-            <span>完成并切回表格</span>
+            <span>{t("keyvalue_raw_done")}</span>
           </Button>
         </div>
       </div>
@@ -171,15 +168,16 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
       </div>
 
       {error ? (
-        <div className="bg-destructive/10 text-destructive flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs">
+        <div
+          role="alert"
+          className="bg-destructive/10 text-destructive flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs"
+        >
           <AlertCircle className="size-3.5 shrink-0" />
           <span className="truncate">{error}</span>
         </div>
       ) : (
         <p className="text-muted-foreground text-[11px]">
-          {format === "json"
-            ? "支持标准 JSON 键值对，实时自动解析并同步至表单"
-            : "支持 KEY=VALUE 格式，每行一个键值，# 开头为注释"}
+          {format === "json" ? t("keyvalue_raw_json_hint") : t("keyvalue_raw_env_hint")}
         </p>
       )}
     </div>

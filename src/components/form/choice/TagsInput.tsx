@@ -1,8 +1,12 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { type KeyboardEvent, memo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "cn";
 
@@ -27,7 +31,9 @@ interface TagsInputControlProps {
   onBlur?: () => void;
   placeholder?: string;
   disabled?: boolean;
+  readOnly?: boolean;
   hasError?: boolean;
+  describedBy?: string;
   maxTags?: number;
   suggestions?: string[];
 }
@@ -37,15 +43,21 @@ const TagsInputControl = memo(function TagsInputControl({
   currentTags,
   onChange,
   onBlur,
-  placeholder = "输入后按 Enter 添加标签...",
+  placeholder,
   disabled,
+  readOnly,
   hasError,
+  describedBy,
   maxTags,
   suggestions = EMPTY_SUGGESTIONS,
 }: TagsInputControlProps) {
+  const t = useTranslations("form");
+  const resolvedPlaceholder = placeholder ?? t("tags_placeholder");
   const [inputValue, setInputValue] = useState("");
+  const isLocked = Boolean(disabled || readOnly);
 
   const addTag = useMemoizedFn((rawText: string) => {
+    if (isLocked) return;
     const trimmed = rawText.trim();
     if (!trimmed) return;
     if (maxTags && currentTags.length >= maxTags) return;
@@ -56,10 +68,12 @@ const TagsInputControl = memo(function TagsInputControl({
   });
 
   const removeTag = useMemoizedFn((indexToRemove: number) => {
+    if (isLocked) return;
     onChange(currentTags.filter((_, idx) => idx !== indexToRemove));
   });
 
   const handleKeyDown = useMemoizedFn((e: KeyboardEvent<HTMLInputElement>) => {
+    if (isLocked) return;
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       addTag(inputValue);
@@ -86,18 +100,20 @@ const TagsInputControl = memo(function TagsInputControl({
             className="h-5 gap-1 rounded-md pr-1 pl-2 text-[11px] font-normal"
           >
             <span>{tag}</span>
-            {!disabled && (
-              <button
+            {!isLocked && (
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-xs"
                 onClick={(e) => {
                   e.stopPropagation();
                   removeTag(index);
                 }}
-                className="hover:text-destructive focus-visible:ring-ring inline-flex cursor-pointer items-center justify-center rounded-full p-0.5 focus-visible:ring-1 focus-visible:outline-none"
-                aria-label={`移除标签 ${tag}`}
+                className="hover:text-destructive size-3.5 cursor-pointer rounded-full p-0"
+                aria-label={t("tags_remove", { tag })}
               >
                 <X className="size-2.5" />
-              </button>
+              </Button>
             )}
           </Badge>
         ))}
@@ -111,24 +127,29 @@ const TagsInputControl = memo(function TagsInputControl({
             onKeyDown={handleKeyDown}
             onBlur={onBlur}
             disabled={disabled}
-            placeholder={currentTags.length === 0 ? placeholder : ""}
+            readOnly={readOnly}
+            aria-invalid={hasError}
+            aria-describedby={describedBy}
+            placeholder={currentTags.length === 0 ? resolvedPlaceholder : ""}
             className="placeholder:text-muted-foreground h-6 min-w-[120px] flex-1 border-0 bg-transparent px-1 py-0 text-xs shadow-none focus-visible:border-0 focus-visible:ring-0 disabled:cursor-not-allowed"
           />
         )}
       </div>
 
-      {unusedSuggestions.length > 0 && !disabled && (
+      {unusedSuggestions.length > 0 && !isLocked && (
         <div className="flex flex-wrap items-center gap-1 pt-1.5">
-          <span className="text-muted-foreground mr-0.5 text-[10px]">建议:</span>
+          <span className="text-muted-foreground mr-0.5 text-[10px]">{t("tags_suggestions")}</span>
           {unusedSuggestions.slice(0, 5).map((s) => (
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="xs"
               key={s}
               onClick={() => addTag(s)}
-              className="border-border bg-background text-muted-foreground hover:bg-muted focus-visible:ring-ring inline-flex cursor-pointer items-center rounded border px-1.5 py-0.5 text-[10px] font-normal transition-colors focus-visible:ring-1 focus-visible:outline-none"
+              className="h-5 cursor-pointer px-1.5 py-0 text-[10px] font-normal"
             >
               + {s}
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -137,48 +158,24 @@ const TagsInputControl = memo(function TagsInputControl({
 });
 
 export const TagsInput = memo(function TagsInput({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
-  placeholder = "输入后按 Enter 添加标签...",
-  disabled,
-  value: controlledValue,
+  placeholder,
   defaultValue = EMPTY_TAGS,
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   maxTags,
   suggestions = EMPTY_SUGGESTIONS,
+  ...fieldProps
 }: TagsInputProps) {
   return (
-    <FormFieldEngine<string[]>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value = EMPTY_TAGS, onChange, onBlur, disabled: isDisabled, hasError }) => (
+    <FormFieldEngine<string[]> defaultValue={defaultValue} {...fieldProps}>
+      {({
+        id,
+        value = EMPTY_TAGS,
+        onChange,
+        onBlur,
+        disabled: isDisabled,
+        readOnly: isReadOnly,
+        hasError,
+        describedBy,
+      }) => (
         <TagsInputControl
           id={id}
           currentTags={Array.isArray(value) ? value : EMPTY_TAGS}
@@ -186,7 +183,9 @@ export const TagsInput = memo(function TagsInput({
           onBlur={onBlur}
           placeholder={placeholder}
           disabled={isDisabled}
+          readOnly={isReadOnly}
           hasError={hasError}
+          describedBy={describedBy}
           maxTags={maxTags}
           suggestions={suggestions}
         />

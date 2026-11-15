@@ -1,4 +1,4 @@
-import type { LocationPickerValue } from "@/components/form";
+import type { LocationPickerValue } from "@/components/map/picker/types";
 
 export interface ShowcaseFormValues {
   // Basic

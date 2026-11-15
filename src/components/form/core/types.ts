@@ -1,5 +1,21 @@
 import type { ComponentType, ReactNode } from "react";
 
+/**
+ * Narrow structural interface for TanStack Form (useForm return value) and test doubles.
+ * Method syntax keeps parameters bivariant across generic field paths.
+ */
+export interface FormInstanceLike {
+  Field?(props: any): ReactNode | Promise<ReactNode>;
+  Subscribe?(props: any): ReactNode | Promise<ReactNode>;
+  handleSubmit?(): void | Promise<void>;
+  reset?(): void;
+  setFieldValue?(field: any, value: any): void;
+  state?: {
+    isDirty?: boolean;
+    values?: Record<string, any>;
+  };
+}
+
 export type ColSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | "full";
 
 export type ColumnsCount = 1 | 2 | 3 | 4 | 6 | 12;
@@ -54,7 +70,7 @@ export interface BaseInputProps extends Omit<FieldWrapperProps, "children"> {
   /** 是否只读 */
   readOnly?: boolean;
   /** 显式传递的受控表单实例，如未传递则从 Form 上下文中自动获取 */
-  form?: any;
+  form?: FormInstanceLike;
 }
 
 export interface SelectOption<T = string | number> {

@@ -1,63 +1,38 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import { memo } from "react";
 
 import { FormFieldEngine } from "../../core";
-import { TipTapCore } from "./TipTapCore";
+import { RichEditorSkeleton } from "./RichEditorSkeleton";
 import { DEFAULT_TOOLBAR, type RichEditorInputProps } from "./types";
 
+const DynamicTipTapCore = dynamic(() => import("./TipTapCore").then((mod) => mod.TipTapCore), {
+  ssr: false,
+  loading: () => <RichEditorSkeleton />,
+});
+
 export const RichEditorInput = memo(function RichEditorInput({
-  name,
-  form,
-  id: explicitId,
-  label,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
   placeholder,
-  disabled,
-  readOnly,
-  value: controlledValue,
   defaultValue = "",
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   format = "html",
+  codec,
   toolbarButtons = DEFAULT_TOOLBAR,
   minHeight = 160,
   maxHeight,
   editorClassName,
+  ...fieldProps
 }: RichEditorInputProps) {
   return (
-    <FormFieldEngine<string>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      readOnly={readOnly}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
-        <TipTapCore
+    <FormFieldEngine<string> defaultValue={defaultValue} {...fieldProps}>
+      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
+        <DynamicTipTapCore
           id={id}
           value={value ?? ""}
           onChange={onChange}
           onBlur={onBlur}
           format={format}
+          codec={codec}
           placeholder={placeholder}
           toolbarButtons={toolbarButtons}
           minHeight={minHeight}
@@ -65,6 +40,7 @@ export const RichEditorInput = memo(function RichEditorInput({
           disabled={isDisabled}
           readOnly={isReadOnly}
           hasError={hasError}
+          describedBy={describedBy}
           className={editorClassName}
         />
       )}

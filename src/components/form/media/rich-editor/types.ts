@@ -1,4 +1,5 @@
 import type { BaseInputProps } from "../../core";
+import type { RichEditorCodec } from "./converters";
 
 export type RichEditorToolbarButton =
   | "bold"
@@ -23,6 +24,8 @@ export interface RichEditorInputProps extends BaseInputProps {
   onBlur?: () => void;
   /** 输出格式：支持 HTML（默认，对标 Filament 原生）或 Markdown */
   format?: "html" | "markdown";
+  /** 自定义富文本编解码适配器 */
+  codec?: RichEditorCodec;
   /** 占位提示文案 */
   placeholder?: string;
   /** 可选自定义工具栏按钮集 */

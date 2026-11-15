@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { memo } from "react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,35 +20,40 @@ export interface SelectInputProps<TValue extends string | number = string> exten
 const EMPTY_OPTIONS: readonly SelectOption<any>[] = [];
 
 function SelectInputInner<TValue extends string | number = string>({
-  placeholder = "请选择...",
+  placeholder,
   options = EMPTY_OPTIONS as readonly SelectOption<TValue>[],
   triggerClassName,
   ...fieldProps
 }: SelectInputProps<TValue>) {
+  const t = useTranslations("form");
+  const resolvedPlaceholder = placeholder ?? t("select_placeholder");
+
   return (
     <FormFieldEngine<TValue> {...fieldProps}>
-      {({ id, value, onChange, disabled, hasError }) => {
+      {({ id, value, onChange, disabled, readOnly, hasError, describedBy }) => {
         const stringValue = value != null ? String(value) : "";
 
         return (
           <Select
             value={stringValue}
             onValueChange={(val) => {
+              if (readOnly) return;
               const matched = options.find((o) => String(o.value) === val);
               onChange(matched ? matched.value : (val as unknown as TValue));
             }}
-            disabled={disabled}
+            disabled={disabled || readOnly}
           >
             <SelectTrigger
               id={id}
               aria-invalid={hasError}
+              aria-describedby={describedBy}
               className={cn(
                 "w-full rounded-md",
                 hasError && "border-destructive focus-visible:ring-destructive/20",
                 triggerClassName,
               )}
             >
-              <SelectValue placeholder={placeholder} />
+              <SelectValue placeholder={resolvedPlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {options.map((option) => (

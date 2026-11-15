@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Fragment, memo, useMemo } from "react";
@@ -42,6 +44,7 @@ interface OtpControlProps {
   containerClassName?: string;
   slotClassName?: string;
   hasError?: boolean;
+  describedBy?: string;
 }
 
 const OtpControl = memo(function OtpControl({
@@ -62,6 +65,7 @@ const OtpControl = memo(function OtpControl({
   containerClassName,
   slotClassName,
   hasError,
+  describedBy,
 }: OtpControlProps) {
   const handleValueChange = useMemoizedFn((nextValue: string) => {
     onChange(nextValue);
@@ -70,7 +74,6 @@ const OtpControl = memo(function OtpControl({
     }
   });
 
-  // Split slot indices into groups
   const groups = useMemo(() => {
     if (separator === false) {
       return [Array.from({ length }, (_, i) => i)];
@@ -107,7 +110,7 @@ const OtpControl = memo(function OtpControl({
         autoFocus={autoFocus}
         disabled={disabled || readOnly}
         aria-invalid={hasError}
-        aria-describedby={hasError && id ? `${id}-error` : undefined}
+        aria-describedby={describedBy}
         containerClassName={cn(align === "center" && "justify-center", align === "right" && "justify-end")}
       >
         {groups.map((group, groupIdx) => (
@@ -134,24 +137,7 @@ const OtpControl = memo(function OtpControl({
 });
 
 export function OtpInput({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
-  disabled,
-  readOnly,
-  value: controlledValue,
   defaultValue = "",
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   length = 6,
   groupSize = 3,
   separator = true,
@@ -162,30 +148,11 @@ export function OtpInput({
   onComplete,
   containerClassName,
   slotClassName,
+  ...fieldProps
 }: OtpInputProps) {
   return (
-    <FormFieldEngine<string>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      readOnly={readOnly}
-      align={align}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => (
+    <FormFieldEngine<string> defaultValue={defaultValue} align={align} {...fieldProps}>
+      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <OtpControl
           id={id}
           value={typeof value === "string" ? value : ""}
@@ -204,6 +171,7 @@ export function OtpInput({
           containerClassName={containerClassName}
           slotClassName={slotClassName}
           hasError={hasError}
+          describedBy={describedBy}
         />
       )}
     </FormFieldEngine>

@@ -1,12 +1,24 @@
 "use client";
 
-import { NumberInput, TextInput } from "@/components/form/basic";
-import { TagsInput } from "@/components/form/choice";
-import { KeyValueInput, Repeater } from "@/components/form/composite";
-import { FormGrid, FormSection } from "@/components/form/layout";
-import { ColorPickerInput } from "@/components/form/media";
+import { NumberInput } from "@/components/form/basic/NumberInput";
+import { TextInput } from "@/components/form/basic/TextInput";
+import { TagsInput } from "@/components/form/choice/TagsInput";
+import { KeyValueInput } from "@/components/form/composite/key-value/KeyValueInput";
+import { Repeater } from "@/components/form/composite/repeater/Repeater";
+import type { RepeaterHeaderColumn } from "@/components/form/composite/repeater/types";
+import { FormGrid } from "@/components/form/layout/FormGrid";
+import { FormSection } from "@/components/form/layout/FormSection";
+import { ColorPickerInput } from "@/components/form/media/color-picker/ColorPickerInput";
 
 import { createDefaultAttribute, createDefaultInvoiceItem, getAttributeTitle, TAG_SUGGESTIONS } from "../constants";
+
+const METADATA_KEY_SUGGESTIONS = ["NODE_ENV", "API_BASE_URL", "DATABASE_URL", "REDIS_PORT", "AUTH_SECRET"];
+const INVOICE_TABLE_HEADERS: RepeaterHeaderColumn[] = [
+  { id: "sku", label: "SKU", width: "w-32", required: true },
+  { id: "description", label: "Item Description", width: "w-1/2" },
+  { id: "quantity", label: "Quantity", width: "w-24" },
+  { id: "unitPrice", label: "Unit Price ($)", width: "w-28" },
+];
 
 export interface AdvancedTabProps {
   // biome-ignore lint/suspicious/noExplicitAny: TanStack FormApi instance
@@ -41,7 +53,7 @@ export function AdvancedTab({ form }: AdvancedTabProps) {
             valuePlaceholder="Config Value"
             keyLabel="Environment Key"
             valueLabel="Configuration Value"
-            keySuggestions={["NODE_ENV", "API_BASE_URL", "DATABASE_URL", "REDIS_PORT", "AUTH_SECRET"]}
+            keySuggestions={METADATA_KEY_SUGGESTIONS}
             enableRawMode
             masked
           />
@@ -93,12 +105,7 @@ export function AdvancedTab({ form }: AdvancedTabProps) {
           name="invoiceItems"
           label="Invoice Line Items (Table Layout)"
           layout="table"
-          headers={[
-            { label: "SKU", width: "w-32", required: true },
-            { label: "Item Description", width: "w-1/2" },
-            { label: "Quantity", width: "w-24" },
-            { label: "Unit Price ($)", width: "w-28" },
-          ]}
+          headers={INVOICE_TABLE_HEADERS}
           createItem={createDefaultInvoiceItem}
           addButtonText="Add Invoice Line"
           reorderable
@@ -141,7 +148,7 @@ export function AdvancedTab({ form }: AdvancedTabProps) {
                   value={item.quantity}
                   onChange={(val) => update({ ...item, quantity: Number(val) || 0 })}
                   min={1}
-                  className="h-8 text-xs"
+                  inputClassName="h-8 text-xs"
                 />
               </td>
               <td className="px-2 py-1.5 align-middle">
@@ -149,7 +156,7 @@ export function AdvancedTab({ form }: AdvancedTabProps) {
                   value={item.unitPrice}
                   onChange={(val) => update({ ...item, unitPrice: Number(val) || 0 })}
                   min={0}
-                  className="h-8 font-mono text-xs"
+                  inputClassName="h-8 font-mono text-xs"
                 />
               </td>
             </>

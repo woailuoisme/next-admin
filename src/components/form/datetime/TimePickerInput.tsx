@@ -1,11 +1,14 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
-import { Clock, X } from "lucide-react";
+import { Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { memo } from "react";
 
 import { Input } from "@/components/ui/input";
 import { cn } from "cn";
 
-import { type BaseInputProps, FormFieldEngine } from "../core";
+import { type BaseInputProps, FieldClearButton, FormFieldEngine } from "../core";
 
 export interface TimePickerInputProps extends BaseInputProps {
   value?: string;
@@ -23,9 +26,12 @@ interface TimePickerControlProps {
   onChange: (value: string) => void;
   onBlur?: () => void;
   disabled?: boolean;
+  readOnly?: boolean;
   placeholder?: string;
   clearable?: boolean;
   hasError?: boolean;
+  describedBy?: string;
+  clearAriaLabel: string;
 }
 
 const TimePickerControl = memo(function TimePickerControl({
@@ -35,9 +41,12 @@ const TimePickerControl = memo(function TimePickerControl({
   onChange,
   onBlur,
   disabled,
+  readOnly,
   placeholder,
   clearable,
   hasError,
+  describedBy,
+  clearAriaLabel,
 }: TimePickerControlProps) {
   const handleClear = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -61,79 +70,47 @@ const TimePickerControl = memo(function TimePickerControl({
         onChange={handleInputChange}
         onBlur={onBlur}
         disabled={disabled}
+        readOnly={readOnly}
         placeholder={placeholder}
+        aria-invalid={hasError}
+        aria-describedby={describedBy}
         className={cn(
           "h-8 bg-transparent pr-7 pl-8 font-mono text-xs",
           hasError && "border-destructive focus-visible:ring-destructive/20",
         )}
       />
-      {clearable && value && !disabled && (
-        <button
-          type="button"
-          onClick={handleClear}
-          className="text-muted-foreground hover:text-foreground absolute right-2 cursor-pointer rounded p-0.5"
-          aria-label="清除时间"
-        >
-          <X className="size-3" />
-        </button>
+      {clearable && value && !disabled && !readOnly && (
+        <FieldClearButton onClick={handleClear} ariaLabel={clearAriaLabel} className="absolute right-1.5" />
       )}
     </div>
   );
 });
 
 export const TimePickerInput = memo(function TimePickerInput({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
   placeholder = "--:--",
-  disabled,
-  value: controlledValue,
   defaultValue = "",
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   step = 60,
   clearable = true,
+  ...fieldProps
 }: TimePickerInputProps) {
+  const t = useTranslations("form");
+
   return (
-    <FormFieldEngine<string>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value = "", onChange, onBlur, disabled: isDisabled, hasError }) => (
+    <FormFieldEngine<string> defaultValue={defaultValue} {...fieldProps}>
+      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <TimePickerControl
           id={id}
           step={step}
-          value={value}
+          value={typeof value === "string" ? value : ""}
           onChange={onChange}
           onBlur={onBlur}
           disabled={isDisabled}
+          readOnly={isReadOnly}
           placeholder={placeholder}
           clearable={clearable}
           hasError={hasError}
+          describedBy={describedBy}
+          clearAriaLabel={t("time_clear")}
         />
       )}
     </FormFieldEngine>

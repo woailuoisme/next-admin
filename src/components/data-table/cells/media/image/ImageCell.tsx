@@ -12,9 +12,10 @@ import type { ImageCellProps, ImagePlaceholderType } from "./types";
 import { TEXT_ALIGN_CLASSES } from "../../base";
 import { aspectClasses, ImageThumb, shapeClasses, sizeClasses } from "./ImageThumb";
 
-const ImageLightboxModal = dynamic(() => import("./ImageLightboxModal").then((mod) => mod.ImageLightboxModal), {
-  ssr: false,
-});
+const ImageLightboxModal = dynamic(
+  () => import("@/components/shared/ImageLightboxModal").then((mod) => mod.ImageLightboxModal),
+  { ssr: false },
+);
 
 const EMPTY_IMAGES: string[] = [];
 

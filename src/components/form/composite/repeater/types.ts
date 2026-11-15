@@ -5,6 +5,8 @@ import type { BaseInputProps } from "../../core";
 export type RepeaterLayout = "card" | "table" | "simple";
 
 export interface RepeaterHeaderColumn {
+  /** 可选稳定列标识 */
+  id?: string;
   /** 列标题文字或自定义节点 */
   label: ReactNode;
   /** 宽度类名或 CSS 宽度（如 "w-32", "w-1/4", "150px"） */

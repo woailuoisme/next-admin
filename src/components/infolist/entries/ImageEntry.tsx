@@ -9,7 +9,7 @@ import { EntryWrapper } from "../core/EntryWrapper";
 import { useInfolistFieldValue } from "../core/InfolistContext";
 
 const DynamicImageLightboxModal = dynamic(
-  () => import("@/components/data-table/cells/media/image/ImageLightboxModal").then((mod) => mod.ImageLightboxModal),
+  () => import("@/components/shared/ImageLightboxModal").then((mod) => mod.ImageLightboxModal),
   { ssr: false },
 );
 

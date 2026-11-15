@@ -1,9 +1,11 @@
-import { type DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { useMemo, useState } from "react";
 
 import type { RepeaterProps } from "./types";
+
+import { moveArrayItem } from "../sortableBinding";
 
 interface UseRepeaterControllerOptions<T> extends Pick<
   RepeaterProps<T>,
@@ -27,9 +29,45 @@ interface UseRepeaterControllerOptions<T> extends Pick<
 }
 
 let keySeq = 0;
-function generateUniqueKey(): string {
+export function generateUniqueRepeaterKey(): string {
   keySeq += 1;
   return `rep-${Date.now()}-${keySeq}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/**
+ * 基于 WeakMap 维护无主键对象的稳定 React key（绝不读取可编辑字段 `item.key`），
+ * 并在 `updateItem` 生成新对象引用时无缝迁移 key，杜绝击键失焦或等长替换错乱。
+ */
+const objectKeyRegistry = new WeakMap<object, string>();
+
+function getExplicitObjectId(item: unknown): string | null {
+  if (typeof item !== "object" || item === null) return null;
+  const rec = item as Record<string, unknown>;
+  if (rec.id !== undefined && rec.id !== null && rec.id !== "") return String(rec.id);
+  if (rec._id !== undefined && rec._id !== null && rec._id !== "") return String(rec._id);
+  return null;
+}
+
+function getOrAssignObjectKey(obj: object): string {
+  const existing = objectKeyRegistry.get(obj);
+  if (existing) return existing;
+  const assigned = generateUniqueRepeaterKey();
+  objectKeyRegistry.set(obj, assigned);
+  return assigned;
+}
+
+export function resolveRepeaterItemKey<T>(
+  item: T,
+  index: number,
+  getItemKey?: (item: T, index: number) => string,
+): string {
+  if (getItemKey) return getItemKey(item, index);
+  const explicitId = getExplicitObjectId(item);
+  if (explicitId) return explicitId;
+  if (typeof item === "object" && item !== null) {
+    return getOrAssignObjectKey(item);
+  }
+  return `rep-prim-${index}`;
 }
 
 export function useRepeaterController<T>({
@@ -50,48 +88,23 @@ export function useRepeaterController<T>({
   itemErrors,
   autoExpandOnError = true,
 }: UseRepeaterControllerOptions<T>) {
-  // 稳定 item 唯一键列表
-  const [itemKeys, setItemKeys] = useState<string[]>(() => items.map(() => generateUniqueKey()));
-  const [prevItemCount, setPrevItemCount] = useState(items.length);
-
-  // 保证 keys 数量与 items 一致（React 推荐的状态与 props 同步模式）
-  if (items.length !== prevItemCount) {
-    setPrevItemCount(items.length);
-    const nextKeys = [...itemKeys];
-    while (nextKeys.length < items.length) {
-      nextKeys.push(generateUniqueKey());
-    }
-    setItemKeys(nextKeys.slice(0, items.length));
-  }
-
-  // 获取条目的唯一稳定 Key
-  const resolveItemKey = useMemoizedFn((item: T, index: number): string => {
-    if (getItemKey) return getItemKey(item, index);
-    if (typeof item === "object" && item !== null) {
-      const rec = item as Record<string, unknown>;
-      if (rec.id !== undefined && rec.id !== null) return String(rec.id);
-      if (rec._id !== undefined && rec._id !== null) return String(rec._id);
-      if (rec.key !== undefined && rec.key !== null) return String(rec.key);
-    }
-    return itemKeys[index] || `item-${index}`;
-  });
+  // 当前渲染的所有稳定 keys（纯派生，无 render 期 setState）
+  const keys = useMemo(
+    () => items.map((item, index) => resolveRepeaterItemKey(item, index, getItemKey)),
+    [items, getItemKey],
+  );
 
   // 以 itemKey 为维度的折叠状态记录
   const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     items.forEach((item, index) => {
-      const key = resolveItemKey(item, index);
-      if (key) {
-        const isDefault =
-          typeof defaultCollapsed === "function" ? defaultCollapsed(item, index) : Boolean(defaultCollapsed);
-        initial[key] = isDefault;
-      }
+      const key = resolveRepeaterItemKey(item, index, getItemKey);
+      const isDefault =
+        typeof defaultCollapsed === "function" ? defaultCollapsed(item, index) : Boolean(defaultCollapsed);
+      initial[key] = isDefault;
     });
     return initial;
   });
-
-  // 当前渲染的所有稳定 keys
-  const keys = items.map((item, index) => resolveItemKey(item, index));
 
   // 错误自动展开：通过 render 期间衍生值，消除 useEffect 级联渲染
   const effectiveCollapsedMap = useMemo(() => {
@@ -102,17 +115,14 @@ export function useRepeaterController<T>({
     let hasChange = false;
     const next = { ...collapsedMap };
     for (const idx of errorIndices) {
-      const item = items[idx];
-      if (item !== undefined) {
-        const key = resolveItemKey(item, idx);
-        if (next[key]) {
-          next[key] = false;
-          hasChange = true;
-        }
+      const key = keys[idx];
+      if (key && next[key]) {
+        next[key] = false;
+        hasChange = true;
       }
     }
     return hasChange ? next : collapsedMap;
-  }, [collapsedMap, autoExpandOnError, itemErrors, items, resolveItemKey]);
+  }, [collapsedMap, autoExpandOnError, itemErrors, keys]);
 
   // 计算全局新增权限
   const isAddAllowed = Boolean(
@@ -162,16 +172,17 @@ export function useRepeaterController<T>({
   // 动作：添加新项
   const addItem = useMemoizedFn(() => {
     if (!isAddAllowed) return;
-    const newKey = generateUniqueKey();
-    setItemKeys((prev) => [...prev, newKey]);
     const newItem = createItem();
+    if (typeof newItem === "object" && newItem !== null && !getExplicitObjectId(newItem)) {
+      getOrAssignObjectKey(newItem);
+    }
     onChange([...items, newItem]);
   });
 
   // 动作：克隆现有项
   const duplicateItem = useMemoizedFn((index: number) => {
     const target = items[index];
-    if (!target || !checkCanDuplicate(target, index)) return;
+    if (target === undefined || !checkCanDuplicate(target, index)) return;
 
     let cloned: T;
     if (cloneItem) {
@@ -182,40 +193,36 @@ export function useRepeaterController<T>({
       cloned = JSON.parse(JSON.stringify(target));
     }
 
-    // 若对象内部带有 id/_id，剔除或换新，避免主键冲突
+    // 若对象内部带有 id/_id，换新主键避免冲突；无主键对象自动分配独立 WeakMap key
     if (typeof cloned === "object" && cloned !== null) {
       const rec = cloned as Record<string, unknown>;
-      if ("id" in rec) rec.id = generateUniqueKey();
-      if ("_id" in rec) rec._id = generateUniqueKey();
+      if ("id" in rec) rec.id = generateUniqueRepeaterKey();
+      if ("_id" in rec) rec._id = generateUniqueRepeaterKey();
+      if (!getExplicitObjectId(cloned)) {
+        objectKeyRegistry.set(cloned, generateUniqueRepeaterKey());
+      }
     }
 
     const nextItems = [...items];
     nextItems.splice(index + 1, 0, cloned);
-
-    setItemKeys((prev) => {
-      const next = [...prev];
-      next.splice(index + 1, 0, generateUniqueKey());
-      return next;
-    });
-
     onChange(nextItems);
   });
 
   // 动作：删除单项
   const removeItem = useMemoizedFn((index: number) => {
     const target = items[index];
-    if (!target || !checkCanDelete(target, index)) return;
+    if (target === undefined || !checkCanDelete(target, index)) return;
 
-    const targetKey = keys[index] || itemKeys[index];
+    const targetKey = keys[index];
     if (targetKey) {
       setCollapsedMap((prev) => {
+        if (!(targetKey in prev)) return prev;
         const next = { ...prev };
         delete next[targetKey];
         return next;
       });
     }
 
-    setItemKeys((prev) => prev.filter((_, i) => i !== index));
     onChange(items.filter((_, i) => i !== index));
   });
 
@@ -223,9 +230,7 @@ export function useRepeaterController<T>({
   const moveItem = useMemoizedFn((fromIndex: number, toIndex: number) => {
     if (disabled || !reorderable) return;
     if (toIndex < 0 || toIndex >= items.length || fromIndex === toIndex) return;
-
-    setItemKeys((prev) => arrayMove(prev, fromIndex, toIndex));
-    onChange(arrayMove(items, fromIndex, toIndex));
+    onChange(moveArrayItem(items, fromIndex, toIndex));
   });
 
   const moveItemUp = useMemoizedFn((index: number) => {
@@ -236,43 +241,30 @@ export function useRepeaterController<T>({
     moveItem(index, index + 1);
   });
 
-  // 动作：更新单项值
+  // 动作：更新单项值（不可变替换对象引用时自动沿用旧对象 React key，防止输入框失焦卸载）
   const updateItem = useMemoizedFn((nextVal: T, index: number) => {
     if (index < 0 || index >= items.length) return;
+    const prevKey = keys[index];
+    if (prevKey && typeof nextVal === "object" && nextVal !== null && !getExplicitObjectId(nextVal)) {
+      objectKeyRegistry.set(nextVal, prevKey);
+    }
     const next = [...items];
     next[index] = nextVal;
     onChange(next);
   });
 
-  // @dnd-kit sensors 与 拖拽结束处理
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  const handleDragEnd = useMemoizedFn((event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = keys.indexOf(String(active.id));
-    const newIndex = keys.indexOf(String(over.id));
-
-    if (oldIndex !== -1 && newIndex !== -1) {
-      setItemKeys((prev) => arrayMove(prev, oldIndex, newIndex));
-      onChange(arrayMove(items, oldIndex, newIndex));
+  const handleReorder = useMemoizedFn((activeId: string, overId: string) => {
+    if (disabled || !reorderable) return;
+    const oldIndex = keys.indexOf(activeId);
+    const newIndex = keys.indexOf(overId);
+    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+      onChange(moveArrayItem(items, oldIndex, newIndex));
     }
   });
 
   return {
     keys,
     collapsedMap: effectiveCollapsedMap,
-    sensors,
     isAddAllowed,
     checkCanDelete,
     checkCanDuplicate,
@@ -285,6 +277,6 @@ export function useRepeaterController<T>({
     moveItemUp,
     moveItemDown,
     updateItem,
-    handleDragEnd,
+    handleReorder,
   };
 }

@@ -1,15 +1,23 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, X } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { memo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "cn";
 
-import { type BaseInputProps, FormFieldEngine } from "../core";
+import { type BaseInputProps, FieldClearButton, FormFieldEngine } from "../core";
 import { parseDate } from "./dateUtils";
+
+const LazyCalendar = dynamic(() => import("@/components/ui/calendar").then((mod) => mod.Calendar), {
+  ssr: false,
+  loading: () => <div className="text-muted-foreground flex h-64 w-64 items-center justify-center text-xs">...</div>,
+});
 
 export interface DatePickerInputProps extends BaseInputProps {
   value?: Date | string;
@@ -26,30 +34,46 @@ interface DatePickerControlProps {
   id: string;
   placeholder: string;
   disabled?: boolean;
+  readOnly?: boolean;
   dateFormat: string;
   clearable: boolean;
   outputFormat: "date" | "iso" | "string";
   value: any;
   onChange: (value: any) => void;
+  onBlur?: () => void;
   hasError: boolean;
+  describedBy?: string;
+  clearAriaLabel: string;
 }
 
 const DatePickerControl = memo(function DatePickerControl({
   id,
   placeholder,
   disabled,
+  readOnly,
   dateFormat,
   clearable,
   outputFormat,
   value,
   onChange,
+  onBlur,
   hasError,
+  describedBy,
+  clearAriaLabel,
 }: DatePickerControlProps) {
   const [open, setOpen] = useState(false);
   const closePopover = useMemoizedFn(() => setOpen(false));
   const selectedDate = parseDate(value);
+  const locked = Boolean(disabled || readOnly);
+
+  const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
+    if (locked && nextOpen) return;
+    setOpen(nextOpen);
+    if (!nextOpen) onBlur?.();
+  });
 
   const handleSelect = useMemoizedFn((date: Date | undefined) => {
+    if (locked) return;
     if (!date) {
       onChange(undefined);
     } else if (outputFormat === "date") {
@@ -64,18 +88,21 @@ const DatePickerControl = memo(function DatePickerControl({
 
   const handleClear = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange(undefined);
+    if (!locked) onChange(undefined);
   });
 
   return (
     <div className="relative flex w-full items-center">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
             id={id}
             type="button"
             variant="outline"
             disabled={disabled}
+            aria-readonly={readOnly}
+            aria-invalid={hasError}
+            aria-describedby={describedBy}
             className={cn(
               "h-8 w-full justify-start rounded-md bg-transparent px-2.5 pr-8 text-left text-xs font-normal",
               !selectedDate && "text-muted-foreground",
@@ -90,19 +117,16 @@ const DatePickerControl = memo(function DatePickerControl({
         </PopoverTrigger>
 
         <PopoverContent className="w-auto rounded-xl p-0" align="start">
-          <Calendar mode="single" selected={selectedDate} onSelect={handleSelect} />
+          {open ? <LazyCalendar mode="single" selected={selectedDate} onSelect={handleSelect} /> : null}
         </PopoverContent>
       </Popover>
 
-      {clearable && selectedDate && !disabled && (
-        <button
-          type="button"
+      {clearable && selectedDate && !locked && (
+        <FieldClearButton
           onClick={handleClear}
-          className="text-muted-foreground/70 hover:text-destructive absolute right-2 cursor-pointer rounded-sm p-0.5 transition-colors"
-          aria-label="清除日期"
-        >
-          <X className="size-3" />
-        </button>
+          ariaLabel={clearAriaLabel}
+          className="hover:text-destructive absolute right-2"
+        />
       )}
     </div>
   );
@@ -112,22 +136,29 @@ export const DatePickerInput = memo(function DatePickerInput({
   dateFormat = "yyyy-MM-dd",
   clearable = true,
   outputFormat = "iso",
-  placeholder = "选择日期...",
+  placeholder,
   ...fieldProps
 }: DatePickerInputProps) {
+  const t = useTranslations("form");
+  const resolvedPlaceholder = placeholder ?? t("date_placeholder");
+
   return (
     <FormFieldEngine {...fieldProps}>
-      {({ id, value, onChange, disabled, hasError }) => (
+      {({ id, value, onChange, onBlur, disabled, readOnly, hasError, describedBy }) => (
         <DatePickerControl
           id={id}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           disabled={disabled}
+          readOnly={readOnly}
           hasError={hasError}
+          describedBy={describedBy}
           dateFormat={dateFormat}
           clearable={clearable}
           outputFormat={outputFormat}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
+          clearAriaLabel={t("date_clear")}
         />
       )}
     </FormFieldEngine>

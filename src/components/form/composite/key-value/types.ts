@@ -53,7 +53,3 @@ export interface KeyValueInputProps extends BaseInputProps {
   maxItems?: number;
   minItems?: number;
 }
-
-export interface KeyValueInputInnerProps extends KeyValueInputProps {
-  id: string;
-}

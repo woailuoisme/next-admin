@@ -1,10 +1,22 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
-import { type ChangeEvent, type KeyboardEvent, memo, useState } from "react";
+import { Palette, Pipette } from "lucide-react";
+import { type ChangeEvent, type KeyboardEvent, memo, useRef, useState, useSyncExternalStore } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "cn";
 
-import { ColorPalette } from "./ColorPalette";
-import { EyeDropperButton } from "./EyeDropperButton";
+import { getNextPaletteIndex, isValidHexColor, normalizeHexInput, toSixDigitHex } from "./colorUtils";
+import type { EyeDropperInstance } from "./types";
+
+function checkEyeDropperSupport(): boolean {
+  return typeof window !== "undefined" && "EyeDropper" in window;
+}
+
+const emptySubscribe = () => () => {};
 
 export interface ColorPickerContentProps {
   value: string;
@@ -23,36 +35,49 @@ export const ColorPickerContent = memo(function ColorPickerContent({
   disabled,
   showEyeDropper = true,
 }: ColorPickerContentProps) {
+  const t = useTranslations("form");
   // draft is only non-null when the user is actively typing an in-progress hex code
   const [draft, setDraft] = useState<string | null>(null);
+  const [hexError, setHexError] = useState<string | null>(null);
+  const paletteRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const isEyeDropperSupported = useSyncExternalStore(emptySubscribe, checkEyeDropperSupport, () => false);
+
   const currentText = draft ?? value;
 
   const handleNativeChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
-    const next = e.target.value;
     setDraft(null);
-    onChange(next);
+    setHexError(null);
+    onChange(e.target.value);
   });
 
   const handleTextInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
-    let val = e.target.value.trim();
-    if (val && !val.startsWith("#")) {
-      val = `#${val}`;
-    }
+    const val = normalizeHexInput(e.target.value);
     setDraft(val);
-    // 校验完整的 3位 / 6位 / 8位 HEX，符合规则时即时提交
-    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(val)) {
+    if (val === "" || val === "#") {
+      setHexError(null);
+      return;
+    }
+    if (isValidHexColor(val)) {
+      setHexError(null);
       onChange(val);
+    } else {
+      setHexError(t("color_invalid_hex"));
     }
   });
 
   const handleBlur = useMemoizedFn(() => {
     if (draft !== null) {
-      if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(draft)) {
+      if (isValidHexColor(draft)) {
+        setHexError(null);
         onChange(draft);
+        setDraft(null);
       } else if (draft === "" || draft === "#") {
+        setHexError(null);
         onChange("");
+        setDraft(null);
+      } else {
+        setHexError(t("color_invalid_hex"));
       }
-      setDraft(null);
     }
     onBlur?.();
   });
@@ -60,67 +85,144 @@ export const ColorPickerContent = memo(function ColorPickerContent({
   const handleKeyDown = useMemoizedFn((e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      if (draft !== null && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(draft)) {
+      if (draft !== null && isValidHexColor(draft)) {
+        setHexError(null);
         onChange(draft);
         setDraft(null);
+      } else if (draft !== null && draft !== "" && draft !== "#") {
+        setHexError(t("color_invalid_hex"));
       }
     }
   });
 
   const handleSelectPreset = useMemoizedFn((color: string) => {
     setDraft(null);
+    setHexError(null);
     onChange(color);
   });
 
-  const fallbackColor = (() => {
-    const trimmed = currentText.trim();
-    if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) {
-      return trimmed.toLowerCase();
+  const handlePaletteKeyDown = useMemoizedFn((index: number, e: KeyboardEvent<HTMLButtonElement>) => {
+    const nextIdx = getNextPaletteIndex(index, e.key, presets.length, 6);
+    if (nextIdx !== index && nextIdx >= 0 && nextIdx < presets.length) {
+      e.preventDefault();
+      paletteRefs.current[nextIdx]?.focus();
     }
-    if (/^#[0-9a-fA-F]{3}$/.test(trimmed)) {
-      const r = trimmed[1];
-      const g = trimmed[2];
-      const b = trimmed[3];
-      return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
+  });
+
+  const handlePickEyeDropper = useMemoizedFn(async () => {
+    if (!checkEyeDropperSupport() || disabled || !window.EyeDropper) return;
+    try {
+      let eyeDropper: EyeDropperInstance | undefined;
+      try {
+        eyeDropper = new window.EyeDropper();
+      } catch {
+        const EyeDropperFn = window.EyeDropper as unknown as () => EyeDropperInstance;
+        if (typeof EyeDropperFn === "function") {
+          eyeDropper = EyeDropperFn();
+        }
+      }
+      if (!eyeDropper || typeof eyeDropper.open !== "function") return;
+      const result = await eyeDropper.open();
+      if (result?.sRGBHex) {
+        handleSelectPreset(result.sRGBHex);
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
     }
-    return "#000000";
-  })();
+  });
+
+  const fallbackColor = toSixDigitHex(currentText);
+  const normalizedActive = value.toLowerCase();
 
   return (
     <div className="w-56 space-y-3 p-3">
-      <div className="flex items-center gap-2">
-        {/* Native Color Input with Visual Badge */}
-        <div className="border-border relative size-8 shrink-0 overflow-hidden rounded-md border shadow-2xs">
-          <input
-            type="color"
-            value={fallbackColor}
-            onChange={handleNativeChange}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2">
+          <div className="border-border relative size-8 shrink-0 overflow-hidden rounded-md border shadow-2xs">
+            <input
+              type="color"
+              value={fallbackColor}
+              onChange={handleNativeChange}
+              disabled={disabled}
+              aria-label={t("color_native_picker_label")}
+              className="absolute -top-2 -left-2 size-12 cursor-pointer opacity-0 disabled:cursor-not-allowed"
+            />
+            <span className="block size-full" style={{ backgroundColor: fallbackColor }} aria-hidden="true" />
+          </div>
+
+          <Input
+            value={currentText}
+            onChange={handleTextInputChange}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
-            aria-label="选择颜色色盘"
-            className="absolute -top-2 -left-2 size-12 cursor-pointer opacity-0 disabled:cursor-not-allowed"
+            placeholder="#000000"
+            maxLength={9}
+            aria-invalid={Boolean(hexError) || undefined}
+            className="h-8 font-mono text-xs uppercase"
+            aria-label={t("color_hex_input_label")}
           />
-          <span className="block size-full" style={{ backgroundColor: fallbackColor }} aria-hidden="true" />
+
+          {showEyeDropper && isEyeDropperSupported && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={disabled}
+              onClick={handlePickEyeDropper}
+              title={t("color_eyedropper")}
+              aria-label={t("color_eyedropper")}
+              className="text-muted-foreground hover:text-foreground size-8 shrink-0"
+            >
+              <Pipette className="size-3.5" />
+            </Button>
+          )}
         </div>
 
-        {/* Text Input for HEX code */}
-        <Input
-          value={currentText}
-          onChange={handleTextInputChange}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          disabled={disabled}
-          placeholder="#000000"
-          maxLength={9}
-          className="h-8 font-mono text-xs uppercase"
-          aria-label="十六进制颜色代码"
-        />
-
-        {/* Browser Native EyeDropper */}
-        {showEyeDropper && <EyeDropperButton onSelect={handleSelectPreset} disabled={disabled} />}
+        {hexError && (
+          <p role="alert" className="text-destructive text-[11px]">
+            {hexError}
+          </p>
+        )}
       </div>
 
-      {/* Presets Grid */}
-      <ColorPalette presets={presets} activeColor={value} onSelect={handleSelectPreset} disabled={disabled} />
+      {presets && presets.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="text-muted-foreground flex items-center gap-1 text-[11px] font-medium">
+            <Palette className="size-3" />
+            <span>{t("color_presets_title")}</span>
+          </div>
+          <div className="grid grid-cols-6 gap-1.5" role="listbox" aria-label={t("color_presets_aria")}>
+            {presets.map((color, index) => {
+              const isSelected = normalizedActive === color.toLowerCase();
+              return (
+                <Button
+                  key={color}
+                  ref={(el) => {
+                    paletteRefs.current[index] = el;
+                  }}
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  role="option"
+                  aria-selected={isSelected}
+                  aria-label={t("color_select_preset", { color })}
+                  disabled={disabled}
+                  onClick={() => handleSelectPreset(color)}
+                  onKeyDown={(e) => handlePaletteKeyDown(index, e)}
+                  className={cn(
+                    "size-6 cursor-pointer rounded-md border border-border/70 p-0 shadow-2xs transition-all hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+                    isSelected && "ring-2 ring-primary ring-offset-1",
+                  )}
+                  style={{ backgroundColor: color }}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 });

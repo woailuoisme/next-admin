@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { type ChangeEvent, memo, useState } from "react";
 
@@ -41,6 +43,7 @@ interface CurrencyInputInnerProps {
   readOnly?: boolean;
   inputClassName?: string;
   hasError?: boolean;
+  describedBy?: string;
 }
 
 function formatAmount(val: number | null | undefined, decimals = 2): string {
@@ -76,6 +79,7 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
   readOnly,
   inputClassName,
   hasError,
+  describedBy,
 }: CurrencyInputInnerProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [editingValue, setEditingValue] = useState<string | null>(null);
@@ -89,7 +93,6 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
     if (!allowNegative) {
       raw = raw.replaceAll("-", "");
     }
-    // Strip characters except digits, dot and minus
     const clean = raw.replaceAll(/[^0-9.-]/g, "");
     setEditingValue(clean);
 
@@ -120,7 +123,6 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
     setIsFocused(false);
     setEditingValue(null);
 
-    // Format and clamp on blur
     if (value != null) {
       if (min != null && value < min) {
         onChange(min);
@@ -141,7 +143,6 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
         disabled && "pointer-events-none opacity-50",
       )}
     >
-      {/* Currency Symbol or Selector Addon */}
       {hasMultiCurrency ? (
         <InputGroupAddon align="inline-start" className="p-0">
           <Select value={currency} onValueChange={onCurrencyChange} disabled={disabled || readOnly}>
@@ -165,7 +166,6 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
         </InputGroupAddon>
       )}
 
-      {/* Amount Input Field */}
       <InputGroupInput
         id={id}
         type="text"
@@ -178,10 +178,10 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
         disabled={disabled}
         readOnly={readOnly}
         aria-invalid={hasError}
+        aria-describedby={describedBy}
         className={cn("font-mono text-xs", inputClassName)}
       />
 
-      {/* ISO Currency code suffix when single currency */}
       {!hasMultiCurrency && currency && (
         <InputGroupAddon align="inline-end">
           <InputGroupText className="text-muted-foreground font-mono text-[11px] font-medium select-none">
@@ -194,25 +194,8 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
 });
 
 export const CurrencyInput = memo(function CurrencyInput({
-  name,
-  form,
-  label,
-  id: explicitId,
-  required,
-  hint,
-  helperText,
-  tooltip,
-  error,
-  colSpan,
-  className,
-  hidden,
   placeholder,
-  disabled,
-  readOnly,
-  value: controlledValue,
   defaultValue = null,
-  onChange: controlledOnChange,
-  onBlur: controlledOnBlur,
   currency = "USD",
   currencies,
   onCurrencyChange,
@@ -222,29 +205,11 @@ export const CurrencyInput = memo(function CurrencyInput({
   max,
   allowNegative = false,
   inputClassName,
+  ...fieldProps
 }: CurrencyInputProps) {
   return (
-    <FormFieldEngine<number | null>
-      name={name}
-      form={form}
-      label={label}
-      id={explicitId}
-      required={required}
-      hint={hint}
-      helperText={helperText}
-      tooltip={tooltip}
-      error={error}
-      colSpan={colSpan}
-      className={className}
-      hidden={hidden}
-      disabled={disabled}
-      readOnly={readOnly}
-      value={controlledValue}
-      defaultValue={defaultValue}
-      onChange={controlledOnChange}
-      onBlur={controlledOnBlur}
-    >
-      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError }) => {
+    <FormFieldEngine<number | null> defaultValue={defaultValue} {...fieldProps}>
+      {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => {
         const numValue = typeof value === "number" ? value : null;
 
         return (
@@ -266,6 +231,7 @@ export const CurrencyInput = memo(function CurrencyInput({
             readOnly={isReadOnly}
             inputClassName={inputClassName}
             hasError={hasError}
+            describedBy={describedBy}
           />
         );
       }}

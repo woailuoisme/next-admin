@@ -1,6 +1,8 @@
+"use client";
+
 import { useTranslations } from "next-intl";
-import { Camera, Loader2 } from "lucide-react";
-import { type DragEvent, memo } from "react";
+import { AlertCircle, Camera, Loader2 } from "lucide-react";
+import { type DragEvent, type KeyboardEvent, memo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "cn";
@@ -13,6 +15,7 @@ interface AvatarUploaderProps {
   hasError?: boolean;
   disabled?: boolean;
   readOnly?: boolean;
+  describedBy?: string;
   canUploadMore: boolean;
   onChooseFile: () => void;
   onRemove: (id: string) => void;
@@ -28,6 +31,7 @@ export const AvatarUploader = memo(function AvatarUploader({
   hasError,
   disabled,
   readOnly,
+  describedBy,
   canUploadMore,
   onChooseFile,
   onRemove,
@@ -37,36 +41,61 @@ export const AvatarUploader = memo(function AvatarUploader({
   className,
 }: AvatarUploaderProps) {
   const t = useTranslations("form");
+  const isInteractive = !disabled && !readOnly;
+  const isErrorAvatar = currentAvatar?.status === "error";
+  const hasPreviewImage = Boolean(currentAvatar?.url) && !isErrorAvatar;
+
+  const triggerUpload = () => {
+    if (isInteractive && (canUploadMore || currentAvatar)) {
+      onChooseFile();
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      triggerUpload();
+    }
+  };
 
   return (
     <div className={cn("flex items-center gap-4", className)}>
       <div
+        role="button"
+        tabIndex={isInteractive ? 0 : -1}
+        aria-disabled={!isInteractive || undefined}
+        aria-describedby={describedBy}
+        aria-label={currentAvatar ? t("upload_avatar_change") : t("upload_dropzone_title")}
+        onKeyDown={handleKeyDown}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
-        onClick={() => {
-          if (canUploadMore) onChooseFile();
-        }}
+        onClick={triggerUpload}
         className={cn(
-          "group relative flex size-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed transition-all",
+          "group relative flex size-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed transition-all outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
           isDragging
             ? "border-primary bg-primary/10 ring-2 ring-primary"
             : "border-border/80 bg-muted/30 hover:border-primary hover:bg-muted/50",
-          hasError && "border-destructive",
-          disabled && "cursor-not-allowed opacity-60",
+          (hasError || isErrorAvatar) && "border-destructive bg-destructive/5",
+          !isInteractive && "cursor-not-allowed opacity-60",
         )}
       >
-        {currentAvatar ? (
+        {hasPreviewImage && currentAvatar ? (
           <>
             <img src={currentAvatar.url} alt={currentAvatar.name} className="size-full object-cover" />
             {/* Hover Overlay */}
-            {!disabled && !readOnly && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
-                <Camera className="size-5 text-white" />
-                <span className="mt-1 text-[10px] font-medium text-white">{t("upload_avatar_change")}</span>
+            {isInteractive && (
+              <div className="bg-foreground/70 text-background absolute inset-0 flex flex-col items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                <Camera className="size-5" />
+                <span className="mt-1 text-[10px] font-medium">{t("upload_avatar_change")}</span>
               </div>
             )}
           </>
+        ) : isErrorAvatar ? (
+          <div className="text-destructive flex flex-col items-center justify-center px-2 text-center">
+            <AlertCircle className="size-5" />
+            <span className="mt-1 line-clamp-1 text-[10px] font-medium">{t("upload_status_failed")}</span>
+          </div>
         ) : (
           <div className="text-muted-foreground flex flex-col items-center justify-center">
             <Camera className="text-muted-foreground/80 group-hover:text-primary size-6 transition-colors" />
