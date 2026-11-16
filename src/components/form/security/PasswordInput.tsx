@@ -106,8 +106,9 @@ const PasswordInputInner = memo(function PasswordInputInner({
         hidePasswordLabel={t("password_hide")}
         extraEndAddon={
           capsLockActive && !disabled ? (
-            <InputGroupAddon align="inline-end" title={t("password_caps_lock")} className="text-chart-4">
-              <ArrowUpSquare className="size-3.5 animate-pulse" />
+            <InputGroupAddon align="inline-end" role="status" title={t("password_caps_lock")} className="text-chart-4">
+              <ArrowUpSquare className="size-3.5 animate-pulse" aria-hidden="true" />
+              <span className="sr-only">{t("password_caps_lock")}</span>
             </InputGroupAddon>
           ) : null
         }

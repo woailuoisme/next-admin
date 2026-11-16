@@ -11,7 +11,6 @@ import type { Customer } from "./types";
 const STATUS_VARIANT_MAP = {
   active: "success",
   inactive: "secondary",
-  suspended: "destructive",
 } as const;
 
 const PINNED_COLUMNS: { left?: string[]; right?: string[] } = {
@@ -32,7 +31,6 @@ export const customerUI = defineResourceUI(customerResource, {
         options: [
           { label: t("status_active"), value: "active" },
           { label: t("status_inactive"), value: "inactive" },
-          { label: t("status_suspended"), value: "suspended" },
         ],
       },
     ],
@@ -40,7 +38,6 @@ export const customerUI = defineResourceUI(customerResource, {
       const statusLabelMap = {
         active: t("status_active"),
         inactive: t("status_inactive"),
-        suspended: t("status_suspended"),
       };
 
       return [

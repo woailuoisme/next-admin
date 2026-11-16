@@ -1,7 +1,5 @@
 "use client";
 
-import { memo } from "react";
-
 import { cn } from "cn";
 
 import type { StatCardIconProps } from "./types";
@@ -10,14 +8,7 @@ import { getStatTheme } from "../shared/theme";
 import { useStatCardContext } from "./StatCardContext";
 import { DENSITY_STYLES } from "./types";
 
-export const StatCardIcon = memo(function StatCardIcon({
-  icon: Icon,
-  theme,
-  density,
-  isInteractive,
-  className,
-  ...props
-}: StatCardIconProps) {
+export function StatCardIcon({ icon: Icon, theme, density, isInteractive, className, ...props }: StatCardIconProps) {
   const context = useStatCardContext();
   const resolvedTheme = theme ?? context.theme ?? "primary";
   const resolvedDensity = density ?? context.density ?? "compact";
@@ -43,4 +34,4 @@ export const StatCardIcon = memo(function StatCardIcon({
       <Icon className={dStyles.iconSize} aria-hidden="true" />
     </div>
   );
-});
+}

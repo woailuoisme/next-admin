@@ -64,32 +64,34 @@ export function useBatchMutation<TItem, TResult = unknown>(
     total: 0,
   });
 
-  const activeQueuerRef = useRef<AsyncQueuer<TItem> | null>(null);
-  const isCancelledRef = useRef(false);
+  interface BatchRunController {
+    cancelled: boolean;
+    cancel: () => void;
+  }
+
+  const activeRunRef = useRef<BatchRunController | null>(null);
 
   useEffect(() => {
     return () => {
-      if (activeQueuerRef.current) {
-        isCancelledRef.current = true;
-        activeQueuerRef.current.clear();
-      }
+      activeRunRef.current?.cancel();
+      activeRunRef.current = null;
     };
   }, []);
 
   const cancel = useMemoizedFn(() => {
-    if (activeQueuerRef.current) {
-      isCancelledRef.current = true;
-      activeQueuerRef.current.clear();
-      setPendingFalse();
+    const activeRun = activeRunRef.current;
+    if (activeRun) {
+      activeRun.cancel();
+      activeRunRef.current = null;
     }
   });
 
   const mutateBatchAsync = useMemoizedFn(async (items: TItem[]): Promise<TResult[]> => {
     if (!items || items.length === 0) return [];
 
+    activeRunRef.current?.cancel();
     setPendingTrue();
     setProgress({ current: 0, total: items.length });
-    isCancelledRef.current = false;
 
     const results: TResult[] = [];
     const failedItems: { item: TItem; error: Error }[] = [];
@@ -98,9 +100,30 @@ export function useBatchMutation<TItem, TResult = unknown>(
     const poolSize = clamp(concurrency, 1, items.length);
 
     return new Promise<TResult[]>((resolve, reject) => {
-      const queuer = new AsyncQueuer<TItem>(
+      let queuer: AsyncQueuer<TItem> | null = null;
+      const runController: BatchRunController = {
+        cancelled: false,
+        cancel: () => {
+          if (isSettled) return;
+          isSettled = true;
+          runController.cancelled = true;
+          try {
+            queuer?.clear();
+          } finally {
+            setPendingFalse();
+            if (activeRunRef.current === runController) {
+              activeRunRef.current = null;
+            }
+          }
+          resolve(results);
+        },
+      };
+
+      activeRunRef.current = runController;
+
+      queuer = new AsyncQueuer<TItem>(
         async (item) => {
-          if (isCancelledRef.current) return undefined as TResult;
+          if (runController.cancelled) return undefined as TResult;
           return await optionsRef.current.mutationFn(item);
         },
         {
@@ -108,12 +131,12 @@ export function useBatchMutation<TItem, TResult = unknown>(
           started: true,
           throwOnError: false,
           onSuccess: (result) => {
-            if (!isCancelledRef.current) {
+            if (!runController.cancelled) {
               results.push(result as TResult);
             }
           },
           onError: (err, item) => {
-            if (!isCancelledRef.current) {
+            if (!runController.cancelled) {
               failedItems.push({
                 item,
                 error: err instanceof Error ? err : new Error(String(err)),
@@ -121,49 +144,52 @@ export function useBatchMutation<TItem, TResult = unknown>(
             }
           },
           onSettled: async () => {
+            if (runController.cancelled || isSettled) return;
             completed++;
             setProgress({ current: completed, total: items.length });
 
-            if ((completed >= items.length || isCancelledRef.current) && !isSettled) {
+            if (completed >= items.length) {
               isSettled = true;
               try {
                 const { successMessage, errorMessage, onError, onSuccess } = optionsRef.current;
 
-                if (!isCancelledRef.current) {
-                  if (failedItems.length === 0) {
-                    const msg = successMessage
-                      ? successMessage(items.length)
-                      : toastMessages.batchSuccess(items.length, entityName);
-                    toast.success(msg);
-                  } else {
-                    const msg = errorMessage
-                      ? errorMessage(failedItems.length, items.length)
-                      : toastMessages.batchPartialError(
-                          items.length - failedItems.length,
-                          items.length,
-                          failedItems.length,
-                          entityName,
-                        );
-                    toast.warning(msg);
-                    onError?.(failedItems);
-                  }
+                if (failedItems.length === 0) {
+                  const msg = successMessage
+                    ? successMessage(items.length)
+                    : toastMessages.batchSuccess(items.length, entityName);
+                  toast.success(msg);
                   await onSuccess?.(results, items);
+                } else {
+                  const msg = errorMessage
+                    ? errorMessage(failedItems.length, items.length)
+                    : toastMessages.batchPartialError(
+                        items.length - failedItems.length,
+                        items.length,
+                        failedItems.length,
+                        entityName,
+                      );
+                  toast.warning(msg);
+                  onError?.(failedItems);
+                  if (results.length > 0) {
+                    await onSuccess?.(results, items);
+                  }
                 }
                 resolve(results);
               } catch (err) {
                 reject(err);
               } finally {
                 setPendingFalse();
-                activeQueuerRef.current = null;
+                if (activeRunRef.current === runController) {
+                  activeRunRef.current = null;
+                }
               }
             }
           },
         },
       );
 
-      activeQueuerRef.current = queuer;
-
       for (const item of items) {
+        if (runController.cancelled) break;
         queuer.addItem(item);
       }
     });

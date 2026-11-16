@@ -94,35 +94,29 @@ export function useRepeaterController<T>({
     [items, getItemKey],
   );
 
-  // 以 itemKey 为维度的折叠状态记录
-  const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    items.forEach((item, index) => {
-      const key = resolveRepeaterItemKey(item, index, getItemKey);
-      const isDefault =
-        typeof defaultCollapsed === "function" ? defaultCollapsed(item, index) : Boolean(defaultCollapsed);
-      initial[key] = isDefault;
-    });
-    return initial;
-  });
+  // 以 itemKey 为维度的折叠状态记录（新增/外部加载条目动态继承 defaultCollapsed）
+  const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>({});
 
-  // 错误自动展开：通过 render 期间衍生值，消除 useEffect 级联渲染
+  // 错误自动展开 + 动态默认折叠：通过 render 期间衍生值，消除 useEffect 级联渲染
   const effectiveCollapsedMap = useMemo(() => {
-    if (!autoExpandOnError || !itemErrors) return collapsedMap;
-    const errorIndices = Object.keys(itemErrors).map(Number);
-    if (errorIndices.length === 0) return collapsedMap;
+    const errorIndices = autoExpandOnError && itemErrors ? new Set(Object.keys(itemErrors).map(Number)) : null;
+    const next: Record<string, boolean> = {};
 
-    let hasChange = false;
-    const next = { ...collapsedMap };
-    for (const idx of errorIndices) {
-      const key = keys[idx];
-      if (key && next[key]) {
+    keys.forEach((key, index) => {
+      if (errorIndices?.has(index)) {
         next[key] = false;
-        hasChange = true;
+        return;
       }
-    }
-    return hasChange ? next : collapsedMap;
-  }, [collapsedMap, autoExpandOnError, itemErrors, keys]);
+      if (key in collapsedMap) {
+        next[key] = Boolean(collapsedMap[key]);
+        return;
+      }
+      const item = items[index] as T;
+      next[key] = typeof defaultCollapsed === "function" ? defaultCollapsed(item, index) : Boolean(defaultCollapsed);
+    });
+
+    return next;
+  }, [collapsedMap, defaultCollapsed, autoExpandOnError, itemErrors, keys, items]);
 
   // 计算全局新增权限
   const isAddAllowed = Boolean(
@@ -146,7 +140,8 @@ export function useRepeaterController<T>({
   // 动作：切换单项折叠
   const toggleCollapse = useMemoizedFn((key: string) => {
     if (!collapsible) return;
-    setCollapsedMap((prev) => ({ ...prev, [key]: !prev[key] }));
+    const current = Boolean(effectiveCollapsedMap[key]);
+    setCollapsedMap((prev) => ({ ...prev, [key]: !current }));
   });
 
   // 动作：全部展开
@@ -188,18 +183,28 @@ export function useRepeaterController<T>({
     if (cloneItem) {
       cloned = cloneItem(target);
     } else if (typeof structuredClone === "function") {
-      cloned = structuredClone(target);
+      try {
+        cloned = structuredClone(target);
+      } catch {
+        cloned =
+          typeof target === "object" && target !== null ? ({ ...(target as Record<string, unknown>) } as T) : target;
+      }
     } else {
       cloned = JSON.parse(JSON.stringify(target));
     }
 
     // 若对象内部带有 id/_id，换新主键避免冲突；无主键对象自动分配独立 WeakMap key
     if (typeof cloned === "object" && cloned !== null) {
-      const rec = cloned as Record<string, unknown>;
-      if ("id" in rec) rec.id = generateUniqueRepeaterKey();
-      if ("_id" in rec) rec._id = generateUniqueRepeaterKey();
+      if (!Array.isArray(cloned)) {
+        const nextObj: Record<string, unknown> = {
+          ...(cloned as Record<string, unknown>),
+          ...("id" in cloned ? { id: generateUniqueRepeaterKey() } : {}),
+          ...("_id" in cloned ? { _id: generateUniqueRepeaterKey() } : {}),
+        };
+        cloned = nextObj as T;
+      }
       if (!getExplicitObjectId(cloned)) {
-        objectKeyRegistry.set(cloned, generateUniqueRepeaterKey());
+        objectKeyRegistry.set(cloned as object, generateUniqueRepeaterKey());
       }
     }
 

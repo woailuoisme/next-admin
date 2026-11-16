@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import {
   AlertCircle,
@@ -94,7 +95,6 @@ export function BroadcasterShowcaseTab() {
   const [messageLevel, setMessageLevel] = useState<"info" | "success" | "warning" | "error">("info");
   const [title, setTitle] = useState("新订单已支付成功");
   const [content, setContent] = useState("订单号 #ORD-2026-9921，金额 ¥3,480.00，已通过实时通道下发履约通知");
-  const [isPublishing, setIsPublishing] = useState(false);
   const [expandedPayloads, setExpandedPayloads] = useState<Record<string, boolean>>({});
 
   // Incoming publication handler for 'public:demo'
@@ -161,41 +161,60 @@ export function BroadcasterShowcaseTab() {
   useSubscription("public:demo", handlePublicDemoPub);
   useSubscription("notification", handleNotificationPub);
 
-  // Send broadcast
-  const handleSendBroadcast = async () => {
-    if (!title.trim() || !content.trim()) return;
-    setIsPublishing(true);
-
-    const payload = {
-      id: `msg-${Date.now()}`,
-      topic: targetChannel === "notification" ? "notification" : "custom",
-      level: messageLevel,
-      title: title.trim(),
-      content: content.trim(),
-      sender: "admin_console",
-      timestamp: Date.now(),
-      clientInfo: {
-        agent: "Admin Panel Showcase",
-        locale: "zh-CN",
-      },
-    };
-
-    try {
-      const res = await publishRealtime(targetChannel, payload);
-
-      if (res.ok) {
-        toast.success("广播消息已投递至 Centrifugo", {
-          description: `目标频道: ${targetChannel}`,
-        });
-      } else {
-        toast.error("广播发送失败，请检查容器状态");
+  const { mutate: publishBroadcast, isPending: isPublishing } = useMutation({
+    mutationFn: async (vars: {
+      channel: string;
+      payload: {
+        id: string;
+        topic: "notification" | "custom";
+        level: "info" | "success" | "warning" | "error";
+        title: string;
+        content: string;
+        sender: string;
+        timestamp: number;
+        clientInfo: { agent: string; locale: string };
+      };
+    }) => {
+      const res = await publishRealtime(vars.channel, vars.payload);
+      if (!res.ok) {
+        throw new Error("PUBLISH_FAILED");
       }
-    } catch (e) {
-      console.warn("Failed to publish broadcast:", e);
-      toast.error("网络异常，无法投递消息");
-    } finally {
-      setIsPublishing(false);
-    }
+      return vars.channel;
+    },
+    onSuccess: (channel) => {
+      toast.success("广播消息已投递至 Centrifugo", {
+        description: `目标频道: ${channel}`,
+      });
+    },
+    onError: (e) => {
+      if (e instanceof Error && e.message === "PUBLISH_FAILED") {
+        toast.error("广播发送失败，请检查容器状态");
+      } else {
+        console.warn("Failed to publish broadcast:", e);
+        toast.error("网络异常，无法投递消息");
+      }
+    },
+  });
+
+  // Send broadcast
+  const handleSendBroadcast = () => {
+    if (!title.trim() || !content.trim()) return;
+    publishBroadcast({
+      channel: targetChannel,
+      payload: {
+        id: `msg-${Date.now()}`,
+        topic: targetChannel === "notification" ? "notification" : "custom",
+        level: messageLevel,
+        title: title.trim(),
+        content: content.trim(),
+        sender: "admin_console",
+        timestamp: Date.now(),
+        clientInfo: {
+          agent: "Admin Panel Showcase",
+          locale: "zh-CN",
+        },
+      },
+    });
   };
 
   // Preset templates
@@ -475,10 +494,12 @@ export function BroadcasterShowcaseTab() {
 
                           {msg.rawPayload && (
                             <div className="mt-1">
-                              <button
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => toggleExpand(msg.id)}
-                                className="text-muted-foreground hover:text-foreground flex items-center gap-1 font-mono text-[10px]"
+                                className="text-muted-foreground hover:text-foreground h-auto gap-1 px-1 py-0.5 font-mono text-[10px]"
                               >
                                 {isExpanded ? (
                                   <ChevronDown className="h-3 w-3" />
@@ -486,7 +507,7 @@ export function BroadcasterShowcaseTab() {
                                   <ChevronRight className="h-3 w-3" />
                                 )}
                                 <span>原始 JSON Payload</span>
-                              </button>
+                              </Button>
                               {isExpanded && (
                                 <pre className="bg-muted text-muted-foreground mt-1.5 max-h-40 overflow-auto rounded-md p-2 font-mono text-[10px]">
                                   {JSON.stringify(msg.rawPayload, null, 2)}

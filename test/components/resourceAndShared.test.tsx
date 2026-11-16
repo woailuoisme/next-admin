@@ -8,6 +8,7 @@ import { ResourceFormHost } from "@/components/resource/ResourceFormHost";
 import { ResourceViewPage } from "@/components/resource/ResourceViewPage";
 import { ResourceViewHost } from "@/components/resource/ResourceViewHost";
 import { GlitchTipDiagnostic } from "@/components/shared/GlitchTipDiagnostic";
+import { ImageLightboxModal } from "@/components/shared/ImageLightboxModal";
 import { LabelHelpTooltip } from "@/components/shared/LabelHelpTooltip";
 import { CopyButton } from "@/components/shared/CopyButton";
 import { act } from "@testing-library/react";
@@ -144,5 +145,12 @@ describe("Shared Components", () => {
     await act(async () => {
       fireEvent.click(copyBtn);
     });
+  });
+
+  it("blocks unsafe javascript URLs in ImageLightboxModal", () => {
+    renderWithProviders(<ImageLightboxModal url="javascript:alert(1)" onClose={vi.fn()} />);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 });

@@ -22,6 +22,7 @@ export const MultiMetricStatCard = memo(function MultiMetricStatCard({
   description,
   icon: Icon,
   theme = "primary",
+  density,
   badge,
   to,
   linkLabel,
@@ -30,13 +31,20 @@ export const MultiMetricStatCard = memo(function MultiMetricStatCard({
   className,
 }: MultiMetricStatCardProps) {
   if (isLoading) {
-    return <StatCardSkeleton variant="multi-metric" className={className} />;
+    return <StatCardSkeleton variant="multi-metric" density={density} className={className} />;
   }
 
   const hasMetrics = metrics.length > 0;
 
   return (
-    <StatCardRoot theme={theme} to={to} linkLabel={linkLabel ?? title} onClick={onClick} className={className}>
+    <StatCardRoot
+      density={density}
+      theme={theme}
+      to={to}
+      linkLabel={linkLabel ?? title}
+      onClick={onClick}
+      className={className}
+    >
       <StatCardHeadline title={title} description={description} badge={badge} icon={Icon} theme={theme} />
 
       {/* Primary Focus Metric */}

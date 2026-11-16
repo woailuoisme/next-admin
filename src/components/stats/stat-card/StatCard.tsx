@@ -23,12 +23,7 @@ interface StatCardFooterMetricsProps {
   theme: NonNullable<StatCardProps["theme"]>;
 }
 
-const StatCardFooterMetrics = memo(function StatCardFooterMetrics({
-  trend,
-  sparklineData,
-  sparklineType,
-  theme,
-}: StatCardFooterMetricsProps) {
+function StatCardFooterMetrics({ trend, sparklineData, sparklineType, theme }: StatCardFooterMetricsProps) {
   const { density, sparklineLayout } = useStatCardContext();
   const dStyles = DENSITY_STYLES[density] ?? DENSITY_STYLES.compact;
   const hasTrend = Boolean(trend);
@@ -49,7 +44,7 @@ const StatCardFooterMetrics = memo(function StatCardFooterMetrics({
       {hasSparkline ? <StatCardSparkline data={sparklineData} type={sparklineType} theme={theme} /> : null}
     </div>
   );
-});
+}
 
 export const StatCard = memo(function StatCard({
   title,

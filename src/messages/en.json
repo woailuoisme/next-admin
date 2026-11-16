@@ -12,7 +12,8 @@
     "overview_description": "Executive overview of operational data and live metrics",
     "loading_page_aria": "Loading page content",
     "previous_image": "Previous image",
-    "next_image": "Next image"
+    "next_image": "Next image",
+    "image_load_error": "Failed to load image"
   },
   "menu": {
     "navigation": "Navigation",
@@ -124,6 +125,7 @@
     "actions_generic": "Action",
     "aria_select_all_page": "Select all on current page",
     "aria_select_all": "Select all",
+    "aria_select_row": "Select row {id}",
     "aria_expand_row": "Expand row",
     "aria_expand_detail": "Expand row details",
     "aria_collapse_detail": "Collapse row details",
@@ -173,7 +175,9 @@
     "view": "View notifications",
     "mark_as_read": "Mark as read",
     "delete": "Delete",
-    "open_details": "View details"
+    "open_details": "View details",
+    "trigger_unread_aria": "View notifications ({count} unread)",
+    "item_unread_aria": "{title} (Unread)"
   },
   "products": {
     "status_active": "Active",
@@ -280,7 +284,9 @@
     "unsaved_changes_title": "Discard unsaved changes?",
     "unsaved_changes_desc": "You have unsaved changes. Closing now will discard your modifications.",
     "unsaved_changes_stay": "Keep editing",
-    "unsaved_changes_discard": "Discard changes"
+    "unsaved_changes_discard": "Discard changes",
+    "default_entity": "Record",
+    "delete_quoted_name": "\"{name}\""
   },
   "form": {
     "upload_dropzone_title": "Click to upload",
@@ -436,7 +442,8 @@
     "unsaved_changes_title": "Discard unsaved changes?",
     "unsaved_changes_confirm": "You have unsaved changes. Are you sure you want to discard them?",
     "unsaved_changes_stay": "Keep editing",
-    "unsaved_changes_discard": "Discard & leave"
+    "unsaved_changes_discard": "Discard & leave",
+    "unsupported_mode_fallback": "Current view configuration is incomplete."
   },
   "map": {
     "basemap_selector": "Basemap",
@@ -611,7 +618,8 @@
     "kv_key": "Key",
     "kv_value": "Value",
     "empty_image": "No image",
-    "preview_image": "Preview image #{index}"
+    "preview_image": "Preview image #{index}",
+    "code_block": "Code block"
   },
   "shared": {
     "help_tooltip_aria": "View field help tooltip",

@@ -29,15 +29,18 @@ export const MiniSparkline = memo(function MiniSparkline({
   const t = useTranslations("chart");
   const rawId = useId();
   const generatedId = `spark-grad-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
-  const gradientId = (customGradientId || generatedId).replace(/[^a-zA-Z0-9_-]/g, "");
+  const sanitizedCustomId = customGradientId?.replace(/[^a-zA-Z0-9_-]/g, "");
+  const gradientId = sanitizedCustomId || generatedId;
 
+  const safeWidth = Number.isFinite(width) && width > 0 ? width : 100;
+  const safeHeight = Number.isFinite(height) && height > 0 ? height : 32;
   const resolvedColor = color ?? (theme ? getStatTheme(theme).strokeColor : DEFAULT_COLOR);
 
   const { isEmpty, first, last, trend, linePath, areaPath, bars } = useSparklinePath({
     data,
     type,
-    width,
-    height,
+    width: safeWidth,
+    height: safeHeight,
   });
 
   if (isEmpty) {
@@ -56,8 +59,8 @@ export const MiniSparkline = memo(function MiniSparkline({
 
   return (
     <svg
-      viewBox={`0 0 ${width} ${height}`}
-      height={height}
+      viewBox={`0 0 ${safeWidth} ${safeHeight}`}
+      height={safeHeight}
       className={cn("w-full overflow-visible", className)}
       preserveAspectRatio="none"
       role={isAccessible ? "img" : undefined}
@@ -87,6 +90,7 @@ export const MiniSparkline = memo(function MiniSparkline({
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
           />
         </>
       )}

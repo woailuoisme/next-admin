@@ -1,16 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { createSignedSessionToken } from "@/app/api/realtime/guard";
 import { POST as publishMessage } from "@/app/api/realtime/publish/route";
 import { GET as getToken } from "@/app/api/realtime/token/route";
 
 const TOKEN_URL = "http://localhost:3000/api/realtime/token";
 const PUBLISH_URL = "http://localhost:3000/api/realtime/publish";
-const SESSION_COOKIE = "auth_token=test-session-token";
+const SESSION_SECRET = "unit-test-session-secret";
 
 /** Request 会把 cookie 当作 forbidden header 丢弃，这里直接注入读取实现 */
-function request(url: string, init: RequestInit = {}): Request {
+function request(url: string, init: RequestInit = {}, cookie?: string): Request {
   const req = new Request(url, init);
-  const headers = { get: (name: string) => (name.toLowerCase() === "cookie" ? SESSION_COOKIE : null) };
+  const signedToken = createSignedSessionToken(
+    { userId: "admin_operator", name: "Administrator", role: "admin" },
+    SESSION_SECRET,
+  );
+  const cookieHeader = cookie ?? `auth_token=${signedToken}`;
+  const headers = { get: (name: string) => (name.toLowerCase() === "cookie" ? cookieHeader : null) };
 
   return { url: req.url, json: () => req.json(), headers } as unknown as Request;
 }
@@ -18,10 +24,12 @@ function request(url: string, init: RequestInit = {}): Request {
 describe("Realtime API Endpoints", () => {
   const origSecret = process.env.CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY;
   const origApiKey = process.env.CENTRIFUGO_HTTP_API_KEY;
+  const origSessionSecret = process.env.AUTH_SESSION_SECRET;
 
   beforeEach(() => {
     process.env.CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY = "unit-test-secret";
     process.env.CENTRIFUGO_HTTP_API_KEY = "unit-test-api-key";
+    process.env.AUTH_SESSION_SECRET = SESSION_SECRET;
   });
 
   afterEach(() => {
@@ -35,11 +43,21 @@ describe("Realtime API Endpoints", () => {
     } else {
       delete process.env.CENTRIFUGO_HTTP_API_KEY;
     }
+    if (origSessionSecret !== undefined) {
+      process.env.AUTH_SESSION_SECRET = origSessionSecret;
+    } else {
+      delete process.env.AUTH_SESSION_SECRET;
+    }
   });
 
   describe("GET /api/realtime/token", () => {
     it("rejects anonymous callers", async () => {
       const response = await getToken(new Request(TOKEN_URL));
+      expect(response.status).toBe(401);
+    });
+
+    it("rejects forged or unsigned session cookies", async () => {
+      const response = await getToken(request(TOKEN_URL, {}, "auth_token=unsigned-forged-token"));
       expect(response.status).toBe(401);
     });
 
@@ -61,19 +79,28 @@ describe("Realtime API Endpoints", () => {
       expect(payload.info?.name).toBe("Administrator");
     });
 
-    it("honours user / name / role query overrides", async () => {
+    it("ignores user / name / role query overrides and enforces verified session identity", async () => {
       const response = await getToken(request(`${TOKEN_URL}?user=alice&name=Alice&role=auditor`));
+      expect(response.status).toBe(200);
       const data = await response.json();
 
-      expect(data.user).toBe("alice");
+      expect(data.user).toBe("admin_operator");
       const payload = JSON.parse(Buffer.from(data.token.split(".")[1], "base64url").toString("utf-8"));
-      expect(payload.info).toMatchObject({ name: "Alice", role: "auditor" });
+      expect(payload.sub).toBe("admin_operator");
+      expect(payload.info).toMatchObject({ name: "Administrator", role: "admin" });
     });
 
     it("fails loudly when the signing secret is not configured", async () => {
       process.env.CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY = "";
       const response = await getToken(request(TOKEN_URL));
       expect(response.status).toBe(500);
+      expect(response.headers.get("Cache-Control")).toBe("no-store, private");
+    });
+
+    it("marks token responses as private no-store", async () => {
+      const response = await getToken(request(TOKEN_URL));
+      expect(response.status).toBe(200);
+      expect(response.headers.get("Cache-Control")).toBe("no-store, private");
     });
   });
 
@@ -101,6 +128,36 @@ describe("Realtime API Endpoints", () => {
       expect(response.status).toBe(400);
       const body = await response.json();
       expect(body.error).toBe("Channel and data are required");
+    });
+
+    it("rejects viewer role with 403 Forbidden", async () => {
+      const viewerToken = createSignedSessionToken(
+        { userId: "viewer_1", name: "Viewer", role: "viewer" },
+        SESSION_SECRET,
+      );
+      const response = await publishMessage(
+        request(
+          PUBLISH_URL,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ channel: "public:test", data: { a: 1 } }),
+          },
+          `auth_token=${viewerToken}`,
+        ),
+      );
+      expect(response.status).toBe(403);
+    });
+
+    it("rejects invalid channel format with HTTP 400", async () => {
+      const response = await publishMessage(
+        request(PUBLISH_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ channel: "bad channel/../../x", data: { a: 1 } }),
+        }),
+      );
+      expect(response.status).toBe(400);
     });
 
     it("returns 502 + simulated when Centrifugo is unreachable", async () => {

@@ -9,8 +9,8 @@ import type { PacingStatus } from "./types";
 import { parseNumericValue } from "../shared/utils";
 
 interface UseProgressStatOptions {
-  value: number | string;
-  targetValue?: number | string;
+  value: number | string | null;
+  targetValue?: number | string | null;
   progress?: number;
   pacingStatus?: PacingStatus;
   pacingLabel?: string;

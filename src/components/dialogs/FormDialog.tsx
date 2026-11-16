@@ -3,9 +3,9 @@
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
-import { memo, type SubmitEvent, useId, useMemo, useState } from "react";
+import { memo, type ReactNode, type SubmitEvent, useId, useMemo, useState } from "react";
 
-import { dispatchFormSubmit, FormContext } from "@/components/form/core/FormContext";
+import { dispatchFormSubmit, FormBodyRegion, useLockedAsyncCallback } from "@/components/form/core/FormContext";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { SheetFooter } from "@/components/ui/sheet";
@@ -18,7 +18,7 @@ import { ModalFrame } from "./ModalFrame";
 import { DIALOG_BODY_CLASS, DIALOG_FOOTER_CLASS } from "./sizeClasses";
 import { UnsavedChangesDialog } from "./UnsavedChangesDialog";
 
-export const FormDialog = memo(function FormDialog<TData = Record<string, unknown>>({
+function FormDialogImpl<TData = Record<string, unknown>>({
   open,
   onOpenChange,
   variant = "dialog",
@@ -27,7 +27,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   entity,
   form,
   defaultValues,
-  entityName = "Record",
+  entityName,
   title,
   createTitle,
   editTitle,
@@ -43,6 +43,7 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   onCancel,
   isDirty = false,
   enableDirtyGuard = false,
+  loading = false,
   isSubmitting = false,
   isSubmitDisabled = false,
   onSubmit,
@@ -55,7 +56,9 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   onFullscreenChange,
 }: FormDialogProps<TData>) {
   const t = useTranslations("dialog");
+  const tCommon = useTranslations("common");
   const formId = useId();
+  const resolvedEntityName = entityName ?? t("default_entity");
   const isEdit = mode ? mode === "edit" : Boolean(entity);
   const [prevOpen, setPrevOpen] = useState(open);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
@@ -80,8 +83,8 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   const baseTitle =
     title ??
     (isEdit
-      ? (editTitle ?? t("form_edit_title", { entityName }))
-      : (createTitle ?? t("form_create_title", { entityName })));
+      ? (editTitle ?? t("form_edit_title", { entityName: resolvedEntityName }))
+      : (createTitle ?? t("form_create_title", { entityName: resolvedEntityName })));
 
   const resolvedTitle = badge ? (
     <span className="inline-flex items-center gap-2.5">
@@ -95,8 +98,8 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
   const resolvedSubmitText =
     submitText ??
     (isEdit
-      ? (editSubmitText ?? t("form_edit_submit", { entityName }))
-      : (createSubmitText ?? t("form_create_submit", { entityName })));
+      ? (editSubmitText ?? t("form_edit_submit", { entityName: resolvedEntityName }))
+      : (createSubmitText ?? t("form_create_submit", { entityName: resolvedEntityName })));
 
   const resolvedCancelText = cancelText ?? t("cancel");
   const resolvedSaveAndContinueText = saveAndContinueText ?? t("save_and_continue");
@@ -140,9 +143,13 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
     onOpenChange(false);
   });
 
+  const isSubmitBlocked = isSubmitting || isSubmitDisabled || loading;
+
   const handleFormSubmit = useMemoizedFn((e: SubmitEvent<HTMLFormElement>) => {
-    dispatchFormSubmit(e, form, onSubmit);
+    dispatchFormSubmit(e, form, onSubmit, isSubmitBlocked);
   });
+
+  const handleSaveAndContinueClick = useLockedAsyncCallback(onSaveAndContinue, isSubmitBlocked);
 
   const renderFormContent = (
     FooterComponent: React.ComponentType<{
@@ -153,9 +160,15 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
     // 本组件拥有 <form> 元素（吸底提交按钮位于其内部并依赖原生提交）
     // children 只能是字段内容，严禁再渲染 form / <Form as="form">，否则会嵌套 <form> 导致 hydration 报错
     <form id={formId} onSubmit={handleFormSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className={DIALOG_BODY_CLASS}>
-        <FormContext value={formContextValue}>{children}</FormContext>
-      </div>
+      <FormBodyRegion
+        formContextValue={formContextValue}
+        loading={loading}
+        loadingLabel={tCommon("loading_page_aria")}
+        className={DIALOG_BODY_CLASS}
+        bannerClassName="mb-4"
+      >
+        {children}
+      </FormBodyRegion>
 
       <FooterComponent className={cn(DIALOG_FOOTER_CLASS, footerClassName)}>
         {extraFooterActions ? <div className="mr-auto flex items-center gap-2">{extraFooterActions}</div> : null}
@@ -172,20 +185,16 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
           <Button
             type="button"
             variant="secondary"
-            onClick={() => void onSaveAndContinue()}
-            disabled={isSubmitting || isSubmitDisabled}
+            onClick={() => void handleSaveAndContinueClick()}
+            disabled={isSubmitBlocked}
             className="h-8.5 px-4 text-xs font-medium"
           >
-            {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" /> : null}
+            {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" aria-hidden="true" /> : null}
             {resolvedSaveAndContinueText}
           </Button>
         ) : null}
-        <Button
-          type="submit"
-          disabled={isSubmitting || isSubmitDisabled}
-          className="h-8.5 px-4 text-xs font-medium shadow-xs"
-        >
-          {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" /> : null}
+        <Button type="submit" disabled={isSubmitBlocked} className="h-8.5 px-4 text-xs font-medium shadow-xs">
+          {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" aria-hidden="true" /> : null}
           {displaySubmitText}
         </Button>
       </FooterComponent>
@@ -221,4 +230,8 @@ export const FormDialog = memo(function FormDialog<TData = Record<string, unknow
       />
     </>
   );
-});
+}
+
+export const FormDialog = memo(FormDialogImpl) as <TData = Record<string, unknown>>(
+  props: FormDialogProps<TData>,
+) => ReactNode;

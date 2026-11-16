@@ -93,7 +93,13 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
 
   const handleCopy = useCallback(
     async (coords?: LocationPickerValue) => {
-      if (!coords || typeof navigator === "undefined" || !navigator.clipboard) {
+      if (
+        !coords ||
+        !Number.isFinite(coords.lng) ||
+        !Number.isFinite(coords.lat) ||
+        typeof navigator === "undefined" ||
+        !navigator.clipboard
+      ) {
         toast.error(t("location_copy_failed"));
         return;
       }
@@ -193,12 +199,12 @@ export const FormLocationPicker = memo(function FormLocationPicker(props: FormLo
                   >
                     {copied ? (
                       <>
-                        <Check className="text-primary size-3" />
+                        <Check aria-hidden="true" className="text-primary size-3" />
                         <span className="text-primary font-medium">{t("location_copied")}</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="size-3" />
+                        <Copy aria-hidden="true" className="size-3" />
                         <span>{t("location_copy_coords")}</span>
                       </>
                     )}

@@ -32,7 +32,11 @@ export function FullscreenToggle({ isFullscreen, onToggle, variant = "dialog" }:
       title={isFullscreen ? t("fullscreen_exit") : t("fullscreen_enter")}
       aria-label={isFullscreen ? t("fullscreen_exit") : t("fullscreen_enter")}
     >
-      {isFullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+      {isFullscreen ? (
+        <Minimize2 className="size-3.5" aria-hidden="true" />
+      ) : (
+        <Maximize2 className="size-3.5" aria-hidden="true" />
+      )}
     </Button>
   );
 }

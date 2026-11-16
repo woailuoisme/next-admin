@@ -24,19 +24,18 @@ function useResourceUIAdapters<
   config: ResourceUIConfig<TItem, TFilters, TListResponse, TActions>,
   t: ResourceTranslateFn,
 ): ResourceContentAdapters<TItem, TInput> {
-  const viewTitle = useMemo(
-    () => (config.infolist?.title ? (entity: TItem | null) => config.infolist!.title!(entity, t) : undefined),
-    [config.infolist, t],
-  );
-  const viewDescription = useMemo(
-    () =>
-      config.infolist?.description ? (entity: TItem | null) => config.infolist!.description!(entity, t) : undefined,
-    [config.infolist, t],
-  );
-  const viewBadge = useMemo(
-    () => (config.infolist?.badge ? (entity: TItem | null) => config.infolist!.badge!(entity, t) : undefined),
-    [config.infolist, t],
-  );
+  const viewTitle = useMemo(() => {
+    const titleFn = config.infolist?.title;
+    return titleFn ? (entity: TItem | null) => titleFn(entity, t) : undefined;
+  }, [config.infolist, t]);
+  const viewDescription = useMemo(() => {
+    const descFn = config.infolist?.description;
+    return descFn ? (entity: TItem | null) => descFn(entity, t) : undefined;
+  }, [config.infolist, t]);
+  const viewBadge = useMemo(() => {
+    const badgeFn = config.infolist?.badge;
+    return badgeFn ? (entity: TItem | null) => badgeFn(entity, t) : undefined;
+  }, [config.infolist, t]);
 
   const renderForm = useMemo<ResourceContentAdapters<TItem, TInput>["renderForm"]>(() => {
     const formConfig = config.form;

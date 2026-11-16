@@ -6,7 +6,7 @@ import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "cn";
 
-import { type BaseInputProps, FormFieldEngine, type SelectOption } from "../core";
+import { type BaseInputProps, createContainerBlurHandler, FormFieldEngine, type SelectOption } from "../core";
 
 const EMPTY_OPTIONS: SelectOption<any>[] = [];
 
@@ -43,7 +43,7 @@ function RadioGroupInputComponent<TValue extends string | number = string>({
             id={id}
             value={stringValue}
             onValueChange={handleValueChange}
-            onBlur={onBlur}
+            onBlur={createContainerBlurHandler(onBlur)}
             disabled={groupLocked}
             aria-invalid={hasError}
             aria-describedby={describedBy}

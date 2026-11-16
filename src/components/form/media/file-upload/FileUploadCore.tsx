@@ -5,6 +5,7 @@ import { useMemoizedFn } from "ahooks";
 import { memo, useMemo, useState } from "react";
 
 import { cn } from "cn";
+import { sanitizeMediaUrl } from "@/components/shared/url";
 
 import { AvatarUploader } from "./AvatarUploader";
 import { DropzoneArea } from "./DropzoneArea";
@@ -72,7 +73,10 @@ export const FileUploadCore = memo(function FileUploadCore({
   });
 
   const handlePreview = useMemoizedFn((url: string) => {
-    setPreviewModalUrl(url);
+    const safeUrl = sanitizeMediaUrl(url, { allowDataImage: true });
+    if (safeUrl) {
+      setPreviewModalUrl(safeUrl);
+    }
   });
 
   const handleClosePreview = useMemoizedFn(() => {
@@ -86,12 +90,13 @@ export const FileUploadCore = memo(function FileUploadCore({
     () =>
       items
         .filter((item) => item.url && (item.type?.startsWith("image/") || IMAGE_EXTENSION_RE.test(item.name)))
-        .map((item) => item.url),
+        .map((item) => sanitizeMediaUrl(item.url, { allowDataImage: true }))
+        .filter((url): url is string => Boolean(url)),
     [items],
   );
 
   return (
-    <div className={cn("w-full space-y-3", mode === "avatar" && className, mode !== "avatar" && className)}>
+    <div className={cn("w-full space-y-3", className)}>
       <input
         ref={fileInputRef}
         id={id}

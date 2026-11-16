@@ -1,8 +1,6 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { HelpCircle } from "lucide-react";
-import { memo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -10,18 +8,11 @@ import { cn } from "cn";
 
 import type { StatCardHelpTooltipProps } from "./types";
 
-export const StatCardHelpTooltip = memo(function StatCardHelpTooltip({
-  description,
-  className,
-}: StatCardHelpTooltipProps) {
-  const handleClick = useMemoizedFn((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-  });
-
+export function StatCardHelpTooltip({ description, className }: StatCardHelpTooltipProps) {
   if (!description) return null;
 
   return (
-    <Tooltip delayDuration={200}>
+    <Tooltip>
       <TooltipTrigger asChild>
         <Button
           type="button"
@@ -32,7 +23,6 @@ export const StatCardHelpTooltip = memo(function StatCardHelpTooltip({
             className,
           )}
           aria-label={description}
-          onClick={handleClick}
         >
           <HelpCircle className="size-3.5" aria-hidden="true" />
         </Button>
@@ -42,4 +32,4 @@ export const StatCardHelpTooltip = memo(function StatCardHelpTooltip({
       </TooltipContent>
     </Tooltip>
   );
-});
+}

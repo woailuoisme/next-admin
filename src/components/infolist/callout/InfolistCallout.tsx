@@ -1,7 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { AlertOctagon, AlertTriangle, CheckCircle2, HelpCircle, Info, Sparkles, X } from "lucide-react";
+import {
+  AlertOctagon,
+  AlertTriangle,
+  CheckCircle2,
+  HelpCircle,
+  Info,
+  Sparkles,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import * as React from "react";
 
 import { COL_SPAN_CLASSES } from "@/components/shared/grid";
@@ -69,13 +78,31 @@ const calloutColorStyles: Record<
   },
 };
 
-function renderCalloutIcon(icon: CalloutProps["icon"], color: CalloutColor, iconClass: string): React.ReactNode {
-  if (icon === false) return null;
-  if (React.isValidElement(icon)) return icon;
+function isComponentReference(
+  value: unknown,
+): value is LucideIcon | React.ComponentType<{ className?: string; "aria-hidden"?: boolean }> {
+  if (typeof value === "function") return true;
+  if (typeof value === "object" && value !== null && !React.isValidElement(value)) {
+    return "$$typeof" in value;
+  }
+  return false;
+}
 
-  const IconComp =
-    (icon as React.ComponentType<{ className?: string; "aria-hidden"?: boolean }> | undefined) ?? defaultIcons[color];
-  return <IconComp className={cn("size-4 shrink-0", iconClass)} aria-hidden />;
+function renderCalloutIcon(icon: CalloutProps["icon"], color: CalloutColor, iconClass: string): React.ReactNode {
+  if (icon === false || icon === null) return null;
+  if (icon === undefined) {
+    const DefaultIcon = defaultIcons[color];
+    return <DefaultIcon className={cn("size-4 shrink-0", iconClass)} aria-hidden />;
+  }
+  if (isComponentReference(icon)) {
+    const IconComp = icon;
+    return <IconComp className={cn("size-4 shrink-0", iconClass)} aria-hidden />;
+  }
+  return (
+    <span className={cn("inline-flex size-4 shrink-0 items-center justify-center", iconClass)} aria-hidden="true">
+      {icon}
+    </span>
+  );
 }
 
 interface CalloutActionButtonProps {
@@ -84,6 +111,7 @@ interface CalloutActionButtonProps {
   defaultSize: "default" | "sm" | "xs";
   defaultClass?: string;
   className?: string;
+  openExternalLabel: string;
 }
 
 function CalloutActionButton({
@@ -92,6 +120,7 @@ function CalloutActionButton({
   defaultSize,
   defaultClass,
   className,
+  openExternalLabel,
 }: CalloutActionButtonProps) {
   const variant = action.variant ?? defaultVariant;
   const size = action.size ?? defaultSize;
@@ -104,15 +133,16 @@ function CalloutActionButton({
         allowBareDomain: false,
       })
     : null;
+  const isBlockedLink = Boolean(action.href) && !safeHref && !action.onClick;
 
   const showIcon = action.icon !== null && action.icon !== undefined && typeof action.icon !== "boolean";
   const iconNode = showIcon ? (
     <span className="mr-1 inline-flex size-3 shrink-0 items-center justify-center" aria-hidden="true">
-      {React.isValidElement(action.icon)
-        ? action.icon
-        : React.createElement(action.icon as React.ComponentType<{ className?: string }>, {
+      {isComponentReference(action.icon)
+        ? React.createElement(action.icon, {
             className: "size-3",
-          })}
+          })
+        : action.icon}
     </span>
   ) : null;
 
@@ -120,6 +150,7 @@ function CalloutActionButton({
     <>
       {iconNode}
       {action.label}
+      {safeHref && action.external ? <span className="sr-only"> ({openExternalLabel})</span> : null}
     </>
   );
 
@@ -128,6 +159,7 @@ function CalloutActionButton({
       type={safeHref ? undefined : "button"}
       size={size}
       variant={variant}
+      disabled={isBlockedLink}
       className={cn(className, isDefaultVariant && defaultClass)}
       asChild={Boolean(safeHref)}
       onClick={action.onClick}
@@ -212,6 +244,7 @@ export const InfolistCallout = React.forwardRef<HTMLDivElement, CalloutProps>(fu
               defaultVariant="outline"
               defaultSize="xs"
               className="text-[11px]"
+              openExternalLabel={t("open_external")}
             />
           ))}
 
@@ -247,11 +280,7 @@ export const InfolistCallout = React.forwardRef<HTMLDivElement, CalloutProps>(fu
       {iconComponent && <div className="mt-0.5 shrink-0">{iconComponent}</div>}
 
       <div className="min-w-0 flex-1 space-y-1.5">
-        {showTitle && (
-          <div role="heading" aria-level={4} className={cn("leading-none font-semibold tracking-tight", styles.title)}>
-            {title}
-          </div>
-        )}
+        {showTitle && <div className={cn("leading-none font-semibold tracking-tight", styles.title)}>{title}</div>}
 
         {(showDescription || showChildren) && (
           <div className="text-muted-foreground text-xs leading-relaxed break-words">
@@ -270,6 +299,7 @@ export const InfolistCallout = React.forwardRef<HTMLDivElement, CalloutProps>(fu
                 defaultSize="sm"
                 defaultClass={styles.actionDefault}
                 className="text-xs"
+                openExternalLabel={t("open_external")}
               />
             ))}
           </div>

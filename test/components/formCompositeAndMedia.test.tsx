@@ -22,9 +22,11 @@ import { Repeater } from "@/components/form/composite/repeater/Repeater";
 import { ColorPickerContent } from "@/components/form/media/color-picker/ColorPickerContent";
 import { ColorPickerInput } from "@/components/form/media/color-picker/ColorPickerInput";
 import { AvatarUploader } from "@/components/form/media/file-upload/AvatarUploader";
+import { FileItemCard } from "@/components/form/media/file-upload/FileItemCard";
 import { useFileUpload } from "@/components/form/media/file-upload/useFileUpload";
 import { RichEditorInput } from "@/components/form/media/rich-editor/RichEditorInput";
 import { RichEditorLinkPopover } from "@/components/form/media/rich-editor/RichEditorLinkPopover";
+import { RichEditorToolbar } from "@/components/form/media/rich-editor/RichEditorToolbar";
 import { TipTapCore } from "@/components/form/media/rich-editor/TipTapCore";
 import { DICTIONARY } from "@/i18n";
 import { renderWithProviders, screen, waitFor } from "test/test-utils";
@@ -319,5 +321,232 @@ describe("useFileUpload concurrent uploads & cleanup", () => {
 
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
     expect(screen.getByText("Upload failed")).toBeInTheDocument();
+  });
+
+  it("revokes mock transport blob URLs and excludes error items from maxCount limit in useFileUpload", async () => {
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = vi.fn(() => "blob:initial-preview");
+    URL.revokeObjectURL = vi.fn();
+
+    try {
+      let attempt = 0;
+      const transport = {
+        upload: vi.fn(async () => {
+          attempt += 1;
+          if (attempt === 1) {
+            throw new Error("Transient failure");
+          }
+          return { url: "blob:mock-upload-result" };
+        }),
+      };
+
+      const wrapper = ({ children }: { children: ReactNode }) => (
+        <NextIntlClientProvider locale="en" messages={DICTIONARY.en}>
+          {children}
+        </NextIntlClientProvider>
+      );
+
+      const { result, unmount } = renderHook(
+        () => {
+          const [val, setVal] = useState<string | undefined>(undefined);
+          return useFileUpload({
+            value: val,
+            onChange: setVal,
+            transport,
+            valueCodec: "url",
+            multiple: false,
+            maxFiles: 1,
+          });
+        },
+        { wrapper },
+      );
+
+      const file1 = new File(["a"], "fail.png", { type: "image/png" });
+      await act(async () => {
+        await result.current.triggerUploadFiles([file1]);
+      });
+
+      // Failed item should not block uploading a replacement when maxCount=1
+      expect(result.current.items[0]?.status).toBe("error");
+      expect(result.current.canUploadMore).toBe(true);
+
+      const file2 = new File(["b"], "ok.png", { type: "image/png" });
+      await act(async () => {
+        await result.current.triggerUploadFiles([file2]);
+      });
+
+      expect(result.current.items.some((it) => it.url === "blob:mock-upload-result")).toBe(true);
+      unmount();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-upload-result");
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
+    }
+  });
+
+  it("updates RichEditorToolbar active and undo/redo disabled states on TipTap transactions", () => {
+    let boldActive = false;
+    let canUndo = false;
+    const listeners = new Map<string, Set<() => void>>();
+
+    const mockEditor = {
+      isActive: (name: string) => (name === "bold" ? boldActive : false),
+      can: () => ({
+        undo: () => canUndo,
+        redo: () => false,
+      }),
+      chain: () => ({
+        focus: () => ({
+          toggleBold: () => ({ run: () => true }),
+          undo: () => ({ run: () => true }),
+        }),
+      }),
+      on: (event: string, fn: () => void) => {
+        const set = listeners.get(event) ?? new Set();
+        set.add(fn);
+        listeners.set(event, set);
+      },
+      off: (event: string, fn: () => void) => {
+        listeners.get(event)?.delete(fn);
+      },
+    } as unknown as Editor;
+
+    renderWithProviders(<RichEditorToolbar editor={mockEditor} toolbarButtons={["bold", "undo"]} />, {
+      locale: "en",
+    });
+
+    const boldBtn = screen.getByRole("button", { name: "Bold" });
+    const undoBtn = screen.getByRole("button", { name: "Undo" });
+    expect(boldBtn).toHaveAttribute("aria-pressed", "false");
+    expect(undoBtn).toBeDisabled();
+
+    act(() => {
+      boldActive = true;
+      canUndo = true;
+      listeners.get("transaction")?.forEach((cb) => cb());
+    });
+
+    expect(boldBtn).toHaveAttribute("aria-pressed", "true");
+    expect(undoBtn).toBeEnabled();
+  });
+
+  it("fires Repeater and KeyValueInput onBlur only when focus leaves the container", async () => {
+    const onRepeaterBlur = vi.fn();
+    const onKvBlur = vi.fn();
+
+    renderWithProviders(
+      <>
+        <Repeater<{ name: string }>
+          name="rep"
+          value={[{ name: "a" }]}
+          onChange={vi.fn()}
+          onBlur={onRepeaterBlur}
+          createItem={() => ({ name: "" })}
+          renderItem={(item, idx, updateItem) => (
+            <input
+              aria-label={`rep-item-${idx}`}
+              value={item.name}
+              onChange={(e) => updateItem({ name: e.target.value })}
+            />
+          )}
+        />
+        <KeyValueInput
+          name="kv"
+          value={[{ key: "k", value: "v" }]}
+          valueType="array"
+          onChange={vi.fn()}
+          onBlur={onKvBlur}
+        />
+        <button type="button">Outside Target</button>
+      </>,
+      { locale: "en" },
+    );
+
+    const repInput = await screen.findByLabelText("rep-item-0");
+    const outsideBtn = screen.getByRole("button", { name: "Outside Target" });
+
+    fireEvent.focus(repInput);
+    fireEvent.blur(repInput, { relatedTarget: repInput });
+    expect(onRepeaterBlur).not.toHaveBeenCalled();
+
+    fireEvent.blur(repInput, { relatedTarget: outsideBtn });
+    expect(onRepeaterBlur).toHaveBeenCalledTimes(1);
+
+    await waitFor(() => {
+      const kvInputs = screen.getAllByRole("textbox");
+      expect(kvInputs.some((el) => (el as HTMLInputElement).value === "k")).toBe(true);
+    });
+    const kvInputs = screen.getAllByRole("textbox");
+    const kvKeyInput = kvInputs.find((el) => (el as HTMLInputElement).value === "k")!;
+    const kvValInput = kvInputs.find((el) => (el as HTMLInputElement).value === "v")!;
+
+    fireEvent.focus(kvKeyInput);
+    fireEvent.blur(kvKeyInput, { relatedTarget: kvValInput });
+    expect(onKvBlur).not.toHaveBeenCalled();
+
+    fireEvent.blur(kvValInput, { relatedTarget: outsideBtn });
+    expect(onKvBlur).toHaveBeenCalledTimes(1);
+  });
+
+  it("blocks unsafe javascript: and HTML data: URLs in FileItemCard and AvatarUploader", () => {
+    const { container } = renderWithProviders(
+      <>
+        <FileItemCard
+          file={{
+            id: "bad-1",
+            name: "evil.png",
+            size: 120,
+            type: "image/png",
+            status: "done",
+            url: "javascript:alert(1)",
+          }}
+          showDownload
+          showRemove={false}
+          onPreview={vi.fn()}
+          onRemove={vi.fn()}
+        />
+        <AvatarUploader
+          currentAvatar={{
+            id: "bad-avatar",
+            name: "avatar.png",
+            size: 120,
+            type: "image/png",
+            status: "done",
+            url: "data:text/html,<script>alert(1)</script>",
+          }}
+          isDragging={false}
+          canUploadMore={false}
+          onChooseFile={vi.fn()}
+          onRemove={vi.fn()}
+          onDragOver={vi.fn()}
+          onDragLeave={vi.fn()}
+          onDrop={vi.fn()}
+        />
+        <FileItemCard
+          file={{
+            id: "good-1",
+            name: "safe.png",
+            size: 120,
+            type: "image/png",
+            status: "done",
+            url: "blob:https://example.com/123",
+          }}
+          showDownload
+          showRemove={false}
+          onPreview={vi.fn()}
+          onRemove={vi.fn()}
+        />
+      </>,
+      { locale: "en" },
+    );
+
+    const imgs = Array.from(container.querySelectorAll("img"));
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0]).toHaveAttribute("src", "blob:https://example.com/123");
+
+    const anchors = Array.from(container.querySelectorAll("a"));
+    expect(anchors).toHaveLength(1);
+    expect(anchors[0]).toHaveAttribute("href", "blob:https://example.com/123");
   });
 });

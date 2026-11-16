@@ -27,6 +27,7 @@ export interface ResourceFormControllerProps<
   onAfterSuccess?: (stayOnForm: boolean) => void;
   size?: DialogSize;
   allowFullscreen?: boolean;
+  loading?: boolean;
   breadcrumbs?: BreadcrumbItem[];
   backTo?: string;
   resolveFormDefaults?: (entity: TItem | null) => TInput;
@@ -48,6 +49,7 @@ export function ResourceFormController<TItem extends { id: string | number }, TI
   onAfterSuccess,
   size,
   allowFullscreen,
+  loading = false,
   breadcrumbs,
   backTo,
   resolveFormDefaults,
@@ -60,6 +62,7 @@ export function ResourceFormController<TItem extends { id: string | number }, TI
 
   const isEditing = mode === "edit";
   const isEditingEntityMissing = isEditing && !entity;
+  const isDetailLoading = isEditing && loading && !entity;
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const defaultValues = useMemo<TInput>(
@@ -129,6 +132,7 @@ export function ResourceFormController<TItem extends { id: string | number }, TI
       allowFullscreen={allowFullscreen}
       breadcrumbs={breadcrumbs}
       backTo={backTo}
+      loading={isDetailLoading}
       isSubmitting={isPending}
       isSubmitDisabled={isEditingEntityMissing}
       onSaveAndContinue={handleSaveAndContinue}

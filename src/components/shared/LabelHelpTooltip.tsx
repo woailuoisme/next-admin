@@ -29,10 +29,10 @@ export const LabelHelpTooltip = memo(function LabelHelpTooltip({ content, helpTo
           type="button"
           variant="ghost"
           size="icon"
-          className="text-muted-foreground/70 hover:text-foreground inline-flex size-3.5 cursor-help p-0 transition-colors hover:bg-transparent"
+          className="text-muted-foreground/70 hover:text-foreground -m-1 inline-flex size-6 cursor-help p-0 transition-colors hover:bg-transparent"
           aria-label={resolvedAria}
         >
-          <HelpCircle className="size-3.5" />
+          <HelpCircle className="size-3.5" aria-hidden="true" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs text-xs">

@@ -2,11 +2,25 @@ import { useLatest, useMemoizedFn } from "ahooks";
 import { clamp } from "es-toolkit";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { useIsHydrated } from "@/hooks/useIsHydrated";
 import { EMPTY_RECORD } from "../core/constants";
 import type { DataTableColDef, DataTablePinnedColumns } from "../core/types";
+import { toColumnCssVarKey } from "../core/utils";
 import { computePinningOffsets, resolvePinnedFields } from "./useDataTablePinning";
 
-export interface UseDataTableResizeOptions<TData = any> {
+function readStoredColumnWidths(storageKey?: string): Record<string, number> {
+  if (!storageKey || typeof window === "undefined") {
+    return EMPTY_RECORD;
+  }
+  try {
+    const saved = window.localStorage.getItem(storageKey);
+    return saved ? (JSON.parse(saved) as Record<string, number>) : EMPTY_RECORD;
+  } catch {
+    return EMPTY_RECORD;
+  }
+}
+
+export interface UseDataTableResizeOptions<TData = unknown> {
   columns: DataTableColDef<TData>[];
   storageKey?: string;
   containerRef?: React.RefObject<HTMLDivElement | null>;
@@ -15,7 +29,7 @@ export interface UseDataTableResizeOptions<TData = any> {
   hasExpandColumn?: boolean;
 }
 
-export function useDataTableResize<TData = any>({
+export function useDataTableResize<TData = unknown>({
   columns,
   storageKey,
   containerRef,
@@ -23,17 +37,25 @@ export function useDataTableResize<TData = any>({
   checkboxSelection = false,
   hasExpandColumn = false,
 }: UseDataTableResizeOptions<TData>) {
-  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
-    if (!storageKey || typeof window === "undefined") {
-      return EMPTY_RECORD;
-    }
-    try {
-      const saved = window.localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : EMPTY_RECORD;
-    } catch {
-      return EMPTY_RECORD;
-    }
-  });
+  const isHydrated = useIsHydrated();
+  const storedWidths = useMemo(
+    () => (isHydrated ? readStoredColumnWidths(storageKey) : EMPTY_RECORD),
+    [isHydrated, storageKey],
+  );
+  const [overrideState, setOverrideState] = useState<{
+    key: string | undefined;
+    widths: Record<string, number>;
+  } | null>(null);
+  const columnWidths = overrideState && overrideState.key === storageKey ? overrideState.widths : storedWidths;
+  const setColumnWidths = useMemoizedFn(
+    (next: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => {
+      setOverrideState((prev) => {
+        const baseWidths = prev && prev.key === storageKey ? prev.widths : storedWidths;
+        const resolved = typeof next === "function" ? next(baseWidths) : next;
+        return { key: storageKey, widths: resolved };
+      });
+    },
+  );
 
   const columnByField = useMemo(() => new Map(columns.map((c) => [c.field, c])), [columns]);
 
@@ -123,7 +145,7 @@ export function useDataTableResize<TData = any>({
         rafId = null;
         const containerEl = containerRef?.current;
         if (containerEl) {
-          containerEl.style.setProperty(`--col-w-${targetField}`, `${newWidth}px`);
+          containerEl.style.setProperty(`--col-w-${toColumnCssVarKey(targetField)}`, `${newWidth}px`);
           if (leftFields.length > 0 || rightFields.length > 0) {
             const { leftOffsets, rightOffsets } = computePinningOffsets({
               pinnedLeftFields: leftFields,
@@ -134,10 +156,10 @@ export function useDataTableResize<TData = any>({
               hasExpandColumn: hasExpand,
             });
             for (const f of leftFields) {
-              containerEl.style.setProperty(`--col-left-${f}`, `${leftOffsets[f]}px`);
+              containerEl.style.setProperty(`--col-left-${toColumnCssVarKey(f)}`, `${leftOffsets[f]}px`);
             }
             for (const f of rightFields) {
-              containerEl.style.setProperty(`--col-right-${f}`, `${rightOffsets[f]}px`);
+              containerEl.style.setProperty(`--col-right-${toColumnCssVarKey(f)}`, `${rightOffsets[f]}px`);
             }
           }
         } else {

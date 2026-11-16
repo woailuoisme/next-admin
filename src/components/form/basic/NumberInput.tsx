@@ -44,6 +44,21 @@ interface NumberInputInnerProps {
   inputClassName?: string;
 }
 
+function getDecimalPrecision(num: number): number {
+  const str = String(num);
+  if (str.includes("e-")) {
+    const [coeff, exp] = str.split("e-");
+    const fracLen = coeff?.split(".")[1]?.length ?? 0;
+    return fracLen + Number(exp || 0);
+  }
+  return str.split(".")[1]?.length ?? 0;
+}
+
+function roundWithStepPrecision(next: number, current: number, step: number): number {
+  const precision = Math.min(10, Math.max(getDecimalPrecision(current), getDecimalPrecision(step)));
+  return Number(next.toFixed(precision));
+}
+
 const NumberInputInner = memo(function NumberInputInner({
   id,
   value,
@@ -72,25 +87,39 @@ const NumberInputInner = memo(function NumberInputInner({
       return;
     }
     const parsed = Number(raw);
-    if (!Number.isNaN(parsed)) {
+    if (Number.isFinite(parsed)) {
       onChange(parsed);
     }
   });
 
   const stepUp = useMemoizedFn(() => {
     if (isLocked) return;
-    const current = typeof value === "number" ? value : 0;
-    const next = current + step;
-    if (max !== undefined && next > max) return;
-    onChange(Number(next.toFixed(4)));
+    const current = typeof value === "number" && Number.isFinite(value) ? value : 0;
+    let next = roundWithStepPrecision(current + step, current, step);
+    if (min !== undefined && next < min) next = min;
+    if (max !== undefined && next > max) {
+      if (typeof value !== "number" && max >= (min ?? -Infinity)) {
+        next = max;
+      } else {
+        return;
+      }
+    }
+    onChange(next);
   });
 
   const stepDown = useMemoizedFn(() => {
     if (isLocked) return;
-    const current = typeof value === "number" ? value : 0;
-    const next = current - step;
-    if (min !== undefined && next < min) return;
-    onChange(Number(next.toFixed(4)));
+    const current = typeof value === "number" && Number.isFinite(value) ? value : 0;
+    let next = roundWithStepPrecision(current - step, current, step);
+    if (max !== undefined && next > max) next = max;
+    if (min !== undefined && next < min) {
+      if (typeof value !== "number" && min <= (max ?? Infinity)) {
+        next = min;
+      } else {
+        return;
+      }
+    }
+    onChange(next);
   });
 
   return (
@@ -135,7 +164,7 @@ const NumberInputInner = memo(function NumberInputInner({
               disabled={min !== undefined && (value ?? 0) <= min}
               className="text-muted-foreground hover:text-foreground size-6 cursor-pointer"
             >
-              <Minus className="size-3" />
+              <Minus aria-hidden="true" className="size-3" />
             </Button>
             <Button
               type="button"
@@ -146,7 +175,7 @@ const NumberInputInner = memo(function NumberInputInner({
               disabled={max !== undefined && (value ?? 0) >= max}
               className="text-muted-foreground hover:text-foreground size-6 cursor-pointer"
             >
-              <Plus className="size-3" />
+              <Plus aria-hidden="true" className="size-3" />
             </Button>
           </>
         )}

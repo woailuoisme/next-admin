@@ -7,6 +7,8 @@ import { clearQueryCache } from "@/lib/queryClient";
 import type { AuthSession, AuthState } from "./types";
 
 export interface AuthStore extends AuthState {
+  hasHydrated: boolean;
+  setHasHydrated: (hasHydrated: boolean) => void;
   setSession: (session: AuthSession) => void;
   clearSession: () => void;
   setIsLoading: (isLoading: boolean) => void;
@@ -30,21 +32,17 @@ const customStorage: StateStorage = {
     if (typeof window === "undefined") return null;
     const str = window.localStorage.getItem(name);
     if (!str) {
-      syncAuthCookie(null);
       return null;
     }
     try {
       const parsed = JSON.parse(str);
       // Already in Zustand persist format
       if (isPlainObject(parsed) && "state" in parsed) {
-        const token = (parsed.state as { session?: AuthSession })?.session?.token ?? null;
-        syncAuthCookie(token);
         return str;
       }
       // Legacy raw AuthSession format { token, admin }
       if (isPlainObject(parsed) && "token" in parsed) {
         const session = parsed as AuthSession;
-        syncAuthCookie(session.token);
         return JSON.stringify({
           state: {
             session,
@@ -77,6 +75,8 @@ export const useAuthStore = create<AuthStore>()(
       session: null,
       isAuthenticated: false,
       isLoading: false,
+      hasHydrated: false,
+      setHasHydrated: (hasHydrated: boolean) => set({ hasHydrated }),
       setSession: (session: AuthSession) => {
         syncAuthCookie(session?.token || null);
         set({
@@ -102,40 +102,53 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: AUTH_STORAGE_KEY,
       storage: createJSONStorage(() => customStorage),
+      skipHydration: true,
       partialize: (state) => ({
         session: state.session,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        syncAuthCookie(state.session?.token ?? null);
+        state.setHasHydrated(true);
+      },
     },
   ),
 );
 
-// 跨标签页（Multi-tab）原生状态联动监听
-if (typeof window !== "undefined") {
-  window.addEventListener("storage", (event) => {
-    if (event.key === AUTH_STORAGE_KEY) {
-      if (!event.newValue) {
-        // 其他标签页执行了退出登录
-        useAuthStore.getState().clearSession();
-        if (!window.location.pathname.startsWith("/login")) {
-          window.location.href = "/login";
-        }
-      } else {
-        // 其他标签页更新了登录态
-        try {
-          const parsed = JSON.parse(event.newValue);
-          const session = parsed?.state?.session ?? null;
-          useAuthStore.setState({
-            session,
-            isAuthenticated: Boolean(session?.token),
-            isLoading: false,
-          });
-        } catch (e) {
-          console.error("[Auth] Failed to parse cross-tab auth sync event", e);
-        }
+/** 订阅跨标签页（Multi-tab）auth 存储同步事件，并返回清理函数 */
+export function subscribeAuthStorageSync(): () => void {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key !== AUTH_STORAGE_KEY) return;
+    if (!event.newValue) {
+      // 其他标签页执行了退出登录
+      useAuthStore.getState().clearSession();
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
       }
+      return;
     }
-  });
+    // 其他标签页更新了登录态
+    try {
+      const parsed = JSON.parse(event.newValue);
+      const session = parsed?.state?.session ?? null;
+      syncAuthCookie(session?.token ?? null);
+      useAuthStore.setState({
+        session,
+        isAuthenticated: Boolean(session?.token),
+        isLoading: false,
+      });
+    } catch (e) {
+      console.error("[Auth] Failed to parse cross-tab auth sync event", e);
+    }
+  };
+  window.addEventListener("storage", handleStorage);
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+  };
 }
 
 // Imperative helpers for non-React callers (e.g. apiClient)

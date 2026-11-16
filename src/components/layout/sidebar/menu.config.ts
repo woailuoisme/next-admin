@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AreaChart,
   BarChart3,
@@ -13,19 +15,24 @@ import {
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 
-import { createNamespaceTranslator } from "@/i18n";
+import { createScopedTranslator } from "@/i18n/scoped";
 import { mergeWithResourceMenu } from "@/lib/resource/registry";
+import { menu as enMenu } from "@/messages/en.json";
+import { menu as zhMenu } from "@/messages/zh.json";
+import type { MessageKeyOf } from "@/types";
 
 import { useLayoutAuth } from "../LayoutAuthContext";
 import type { NavGroup } from "./types";
 
-const getMenuTranslator = () => createNamespaceTranslator("menu");
+const getMenuTranslator = createScopedTranslator("menu", { zh: zhMenu, en: enMenu });
+
+export type MenuTranslator = (key: MessageKeyOf<"menu">) => string;
 
 /**
  * Get localized sidebar navigation menu groups with concise wording.
  * 资源导航项由 RESOURCE_MANIFEST 自动驱动，并与静态非资源菜单组合。
  */
-export function getSidebarMenuGroups(tMenu?: (key: any) => string): NavGroup[] {
+export function getSidebarMenuGroups(tMenu?: MenuTranslator): NavGroup[] {
   const t = tMenu ?? getMenuTranslator();
   return mergeWithResourceMenu(
     (key) => t(key as never),
@@ -162,10 +169,17 @@ export function getRouteTitle(pathname: string, fallback?: string, items?: FlatN
     return exact.title;
   }
 
-  // Prefix match
-  const prefix = searchItems.find((item) => item.to !== "/" && cleanPath.startsWith(`${item.to}/`));
-  if (prefix) {
-    return prefix.title;
+  // Prefix match (prefer longest matching path prefix so nested routes resolve accurately)
+  let bestPrefix: FlatNavItem | undefined;
+  for (const item of searchItems) {
+    if (item.to !== "/" && cleanPath.startsWith(`${item.to}/`)) {
+      if (!bestPrefix || item.to.length > bestPrefix.to.length) {
+        bestPrefix = item;
+      }
+    }
+  }
+  if (bestPrefix) {
+    return bestPrefix.title;
   }
 
   if (fallback) {

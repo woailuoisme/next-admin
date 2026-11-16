@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { type ComponentType, type ReactNode, Suspense } from "react";
 import type { z } from "zod";
 
+import "@/lib/serverAuthHeaders";
 import DashboardLoading from "@/app/(app)/loading";
 import {
   normalizeSearchParamsWithSchema,

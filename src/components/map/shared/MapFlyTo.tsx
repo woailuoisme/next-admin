@@ -20,10 +20,10 @@ export interface MapFlyToProps {
  * 每次 `target` **引用**变化都会触发一次 flyTo，并校验坐标有限性。
  */
 export const MapFlyTo = memo(function MapFlyTo({ target, minZoom = 13, duration = 1200 }: MapFlyToProps) {
-  const { map } = useMap();
+  const { map, isLoaded } = useMap();
 
   useEffect(() => {
-    if (!map || !target || !isValidCoordinate(target)) return;
+    if (!isLoaded || !map || !target || !isValidCoordinate(target)) return;
 
     map.flyTo({
       center: target,
@@ -31,7 +31,7 @@ export const MapFlyTo = memo(function MapFlyTo({ target, minZoom = 13, duration 
       duration,
       essential: true,
     });
-  }, [map, target, minZoom, duration]);
+  }, [isLoaded, map, target, minZoom, duration]);
 
   return null;
 });

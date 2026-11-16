@@ -74,18 +74,28 @@ const TextInputInner = memo(function TextInputInner({
   const { displayValue, handleChange, handleClear, handleBlur } = useDebouncedFieldValue<string | number | undefined>({
     value,
     debounceMs,
-    onChange: (nextVal) => onChange(nextVal ?? (numeric ? 0 : "")),
+    onChange: (nextVal) => onChange(nextVal ?? ""),
     onBlur,
   });
 
   const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    const nextVal = numeric ? (raw === "" ? "" : Number(raw)) : raw;
-    handleChange(nextVal);
+    if (!numeric) {
+      handleChange(raw);
+      return;
+    }
+    if (raw === "") {
+      handleChange("");
+      return;
+    }
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed)) {
+      handleChange(parsed);
+    }
   });
 
   const handleClearClick = useMemoizedFn(() => {
-    handleClear(numeric ? 0 : "");
+    handleClear("");
   });
 
   return (
@@ -134,7 +144,7 @@ export function TextInput<T extends string | number = string>({
   const effectiveType = numeric ? "number" : type;
 
   return (
-    <FormFieldEngine<string | number> {...(fieldProps as any)}>
+    <FormFieldEngine<T> {...fieldProps}>
       {({ id, value, onChange, onBlur, disabled, readOnly, hasError, describedBy }) => (
         <TextInputInner
           id={id}
@@ -153,7 +163,7 @@ export function TextInput<T extends string | number = string>({
           suffix={suffix}
           inputClassName={inputClassName}
           value={value}
-          onChange={onChange}
+          onChange={(nextVal) => onChange(nextVal as T)}
           onBlur={onBlur}
           hasError={hasError}
           describedBy={describedBy}

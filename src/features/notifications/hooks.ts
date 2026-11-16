@@ -85,12 +85,14 @@ export function useMarkAsReadMutation() {
 
       return { previousQueries };
     },
-    onError: (_err, _id, context) => {
+    onError: async (err, _id, context) => {
       if (context?.previousQueries) {
         for (const [key, data] of context.previousQueries) {
           queryClient.setQueryData(key, data);
         }
       }
+      const msg = await getApiErrorMessage(err, toastMessages.statusError());
+      toast.error(msg);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });

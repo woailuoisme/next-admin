@@ -32,6 +32,7 @@ export const LiveStatCard = memo(function LiveStatCard({
   sparklineData,
   icon: Icon = Activity,
   theme = "primary",
+  density,
   description,
   badge,
   to,
@@ -45,7 +46,7 @@ export const LiveStatCard = memo(function LiveStatCard({
   const themeConfig = getStatTheme(theme);
 
   if (isLoading) {
-    return <StatCardSkeleton variant="live" className={className} />;
+    return <StatCardSkeleton variant="live" density={density} className={className} />;
   }
 
   const effectiveStatus: LiveStatus = errorMessage
@@ -77,7 +78,14 @@ export const LiveStatCard = memo(function LiveStatCard({
   }
 
   return (
-    <StatCardRoot theme={theme} to={to} linkLabel={linkLabel ?? title} onClick={onClick} className={className}>
+    <StatCardRoot
+      density={density}
+      theme={theme}
+      to={to}
+      linkLabel={linkLabel ?? title}
+      onClick={onClick}
+      className={className}
+    >
       <StatCardHeadline
         title={title}
         description={description}
@@ -107,18 +115,25 @@ export const LiveStatCard = memo(function LiveStatCard({
       />
 
       {/* Middle Row: Numeric Value + Icon Badge */}
-      <div
-        className="flex items-baseline justify-between gap-3"
-        aria-live={liveAnnouncement === "off" ? undefined : "polite"}
-      >
-        <StatCardValue value={value} prefix={prefix} suffix={suffix} />
+      <div className="flex items-baseline justify-between gap-3">
+        <div
+          className="min-w-0 flex-1"
+          aria-live={liveAnnouncement === "off" ? undefined : "polite"}
+          aria-atomic="true"
+        >
+          <StatCardValue value={value} prefix={prefix} suffix={suffix} />
+        </div>
         {Icon ? <StatCardIcon icon={Icon} theme={theme} /> : null}
       </div>
 
       {/* Optional Error + Retry Telemetry Slot */}
       {errorMessage || onRetry ? (
         <div className="flex items-center justify-between gap-2 text-xs">
-          <span className="text-destructive min-w-0 truncate" title={errorMessage}>
+          <span
+            role={errorMessage ? "alert" : undefined}
+            className="text-destructive min-w-0 truncate"
+            title={errorMessage}
+          >
             {errorMessage}
           </span>
           {onRetry ? (

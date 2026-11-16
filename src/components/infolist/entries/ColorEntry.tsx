@@ -48,7 +48,7 @@ export const ColorEntry = React.memo(function ColorEntry({
           title={displayText}
         />
         {showText && <span className="text-foreground font-mono text-xs">{displayText}</span>}
-        {copyable && <CopyButton text={colorStr} className="size-5 shrink-0" />}
+        {copyable && <CopyButton text={colorStr} className="-m-0.5 size-6 shrink-0" />}
       </div>
     </EntryWrapper>
   );

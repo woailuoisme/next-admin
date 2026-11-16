@@ -77,7 +77,7 @@ export const ModalFrame = memo(function ModalFrame({
               </>
             )}
           </SheetHeader>
-          {open ? children : null}
+          {children}
           {allowFullscreen ? (
             <FullscreenToggle variant="sheet" isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
           ) : null}
@@ -106,7 +106,7 @@ export const ModalFrame = memo(function ModalFrame({
           )}
         </DialogHeader>
 
-        {open ? children : null}
+        {children}
 
         {allowFullscreen ? (
           <FullscreenToggle variant="dialog" isFullscreen={isFullscreen} onToggle={toggleFullscreen} />

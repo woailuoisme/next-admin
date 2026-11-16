@@ -137,11 +137,17 @@ export const DataTablePagination = memo(function DataTablePagination({
                       e.preventDefault();
                       handlePageChange(page - 1);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === " ") {
+                        e.preventDefault();
+                        handlePageChange(page - 1);
+                      }
+                    }}
                     title={t("pagination_previous")}
                     aria-label={t("pagination_previous")}
                     className="text-muted-foreground hover:bg-muted/50 hover:text-foreground flex h-full min-w-8 items-center justify-center rounded-none border-0 px-2 shadow-none"
                   >
-                    <ChevronLeft className="size-4" />
+                    <ChevronLeft aria-hidden="true" className="size-4" />
                   </PaginationLink>
                 </PaginationItem>
               )}
@@ -168,6 +174,12 @@ export const DataTablePagination = memo(function DataTablePagination({
                         e.preventDefault();
                         handlePageChange(item);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === " ") {
+                          e.preventDefault();
+                          handlePageChange(item);
+                        }
+                      }}
                       aria-current={isActive ? "page" : undefined}
                       className={cn(
                         "flex h-full min-w-8 items-center justify-center rounded-none border-0 px-2.5 font-mono text-xs shadow-none transition-colors",
@@ -192,11 +204,17 @@ export const DataTablePagination = memo(function DataTablePagination({
                       e.preventDefault();
                       handlePageChange(page + 1);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === " ") {
+                        e.preventDefault();
+                        handlePageChange(page + 1);
+                      }
+                    }}
                     title={t("pagination_next")}
                     aria-label={t("pagination_next")}
                     className="text-muted-foreground hover:bg-muted/50 hover:text-foreground flex h-full min-w-8 items-center justify-center rounded-none border-0 px-2 shadow-none"
                   >
-                    <ChevronRight className="size-4" />
+                    <ChevronRight aria-hidden="true" className="size-4" />
                   </PaginationLink>
                 </PaginationItem>
               )}
@@ -212,9 +230,17 @@ export const DataTablePagination = memo(function DataTablePagination({
                   role="button"
                   href="#"
                   text={t("pagination_previous")}
+                  aria-disabled={page <= 1 || undefined}
+                  tabIndex={page <= 1 ? -1 : undefined}
                   onClick={(e) => {
                     e.preventDefault();
                     if (page > 1) handlePageChange(page - 1);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === " ") {
+                      e.preventDefault();
+                      if (page > 1) handlePageChange(page - 1);
+                    }
                   }}
                   className={cn("cursor-pointer text-xs", page <= 1 && "pointer-events-none opacity-40")}
                 />
@@ -240,6 +266,12 @@ export const DataTablePagination = memo(function DataTablePagination({
                         e.preventDefault();
                         handlePageChange(item);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === " ") {
+                          e.preventDefault();
+                          handlePageChange(item);
+                        }
+                      }}
                       className="cursor-pointer font-mono text-xs"
                     >
                       {item}
@@ -253,9 +285,17 @@ export const DataTablePagination = memo(function DataTablePagination({
                   role="button"
                   href="#"
                   text={t("pagination_next")}
+                  aria-disabled={page >= totalPages || undefined}
+                  tabIndex={page >= totalPages ? -1 : undefined}
                   onClick={(e) => {
                     e.preventDefault();
                     if (page < totalPages) handlePageChange(page + 1);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === " ") {
+                      e.preventDefault();
+                      if (page < totalPages) handlePageChange(page + 1);
+                    }
                   }}
                   className={cn("cursor-pointer text-xs", page >= totalPages && "pointer-events-none opacity-40")}
                 />
@@ -267,6 +307,7 @@ export const DataTablePagination = memo(function DataTablePagination({
         {variant === "simple" && (
           <div className="flex items-center gap-1">
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               className="text-muted-foreground size-7 disabled:opacity-40"
@@ -275,9 +316,10 @@ export const DataTablePagination = memo(function DataTablePagination({
               title={t("pagination_first")}
               aria-label={t("pagination_first")}
             >
-              <ChevronsLeft className="size-3.5" />
+              <ChevronsLeft aria-hidden="true" className="size-3.5" />
             </Button>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               className="text-muted-foreground size-7 disabled:opacity-40"
@@ -286,12 +328,13 @@ export const DataTablePagination = memo(function DataTablePagination({
               title={t("pagination_previous")}
               aria-label={t("pagination_previous")}
             >
-              <ChevronLeft className="size-3.5" />
+              <ChevronLeft aria-hidden="true" className="size-3.5" />
             </Button>
             <span className="px-1.5 font-mono text-xs font-medium">
               {page} / {totalPages}
             </span>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               className="text-muted-foreground size-7 disabled:opacity-40"
@@ -300,9 +343,10 @@ export const DataTablePagination = memo(function DataTablePagination({
               title={t("pagination_next")}
               aria-label={t("pagination_next")}
             >
-              <ChevronRight className="size-3.5" />
+              <ChevronRight aria-hidden="true" className="size-3.5" />
             </Button>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               className="text-muted-foreground size-7 disabled:opacity-40"
@@ -311,7 +355,7 @@ export const DataTablePagination = memo(function DataTablePagination({
               title={t("pagination_last")}
               aria-label={t("pagination_last")}
             >
-              <ChevronsRight className="size-3.5" />
+              <ChevronsRight aria-hidden="true" className="size-3.5" />
             </Button>
           </div>
         )}

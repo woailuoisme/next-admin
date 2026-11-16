@@ -15,6 +15,7 @@ export interface DashboardShellProps {
   children: ReactNode;
   auth?: LayoutAuthContextValue;
   customGroups?: NavGroup[];
+  defaultSidebarOpen?: boolean;
   headerRightSlot?: ReactNode;
 }
 
@@ -22,6 +23,7 @@ export const DashboardShell = memo(function DashboardShell({
   children,
   auth,
   customGroups,
+  defaultSidebarOpen = true,
   headerRightSlot,
 }: DashboardShellProps) {
   const t = useTranslations("layout");
@@ -30,7 +32,7 @@ export const DashboardShell = memo(function DashboardShell({
 
   return (
     <LayoutAuthProvider user={auth?.user} onLogout={auth?.onLogout} isLoggingOut={auth?.isLoggingOut}>
-      <SidebarProvider defaultOpen={true}>
+      <SidebarProvider defaultOpen={defaultSidebarOpen}>
         <a
           href="#main-content"
           className="focus:bg-primary focus:text-primary-foreground sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:px-4 focus:py-2 focus:text-xs focus:font-medium focus:shadow-md focus:outline-hidden"
@@ -39,7 +41,7 @@ export const DashboardShell = memo(function DashboardShell({
         </a>
         <AppSidebar customGroups={customGroups} />
         <SidebarInset className="flex flex-1 flex-col overflow-hidden">
-          <HeaderNav rightSlot={headerRightSlot} />
+          <HeaderNav rightSlot={headerRightSlot} customGroups={customGroups} />
           <div
             ref={mainRef}
             id="main-content"

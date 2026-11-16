@@ -10,7 +10,7 @@ import type { DataTableColDef } from "../core/types";
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
 import { EMPTY_ARRAY } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
-import { readCellValue } from "../core/utils";
+import { readCellValue, toColumnCssVarKey } from "../core/utils";
 import type { MessageKeyOf } from "@/types/i18n";
 
 export interface DataTableSummaryRowProps<TData = unknown> {
@@ -88,29 +88,63 @@ function DataTableSummaryRowInner<TData = unknown>({
   const columns = propColumns ?? ctx?.visibleColumns ?? EMPTY_ARRAY;
   const checkboxSelection = propCheckboxSelection ?? ctx?.checkboxSelection ?? false;
   const hasExpandColumn = propHasExpandColumn ?? Boolean(ctx?.renderExpandedRow);
+  const pinnedLeftSet = new Set(ctx?.pinnedLeftFields ?? EMPTY_ARRAY);
+  const pinnedRightSet = new Set(ctx?.pinnedRightFields ?? EMPTY_ARRAY);
   const resolvedSummaryLabel = summaryLabel ?? ctx?.summaryLabel ?? t("summary_label");
 
   return (
     <TableRow className="hover:bg-muted/30 border-0 bg-transparent font-semibold">
       {checkboxSelection && (
-        <TableCell className="text-muted-foreground w-10 text-center font-mono text-[10px]">Σ</TableCell>
+        <TableCell className="bg-muted text-muted-foreground sticky left-0 z-15 w-11 text-center font-mono text-[10px]">
+          Σ
+        </TableCell>
       )}
-      {hasExpandColumn && <TableCell className="w-9 p-0" />}
+      {hasExpandColumn && (
+        <TableCell
+          style={{
+            left: checkboxSelection ? "44px" : pinnedLeftSet.size > 0 ? "0px" : undefined,
+          }}
+          className={cn(
+            "w-9 p-0",
+            (checkboxSelection || pinnedLeftSet.size > 0) &&
+              "sticky z-15 border-r border-border/70 bg-muted shadow-pin-left",
+          )}
+        />
+      )}
 
       {columns.map((col, idx) => {
-        const { field, aggregation, align } = col;
+        const { field, aggregation, align, width, minWidth, maxWidth } = col;
         const colKey = col.id ?? `${field}_${idx}`;
+        const varKey = toColumnCssVarKey(field);
+        const isLeftPinned = pinnedLeftSet.has(field);
+        const isRightPinned = pinnedRightSet.has(field);
+
+        const cellStyle = {
+          width: `var(--col-w-${varKey}, ${width ? `${width}px` : "auto"})`,
+          minWidth: minWidth ? `${minWidth}px` : undefined,
+          maxWidth: maxWidth ? `${maxWidth}px` : undefined,
+          left: isLeftPinned ? `var(--col-left-${varKey}, 0px)` : undefined,
+          right: isRightPinned ? `var(--col-right-${varKey}, 0px)` : undefined,
+        };
+        const pinClass = cn(
+          isLeftPinned && "sticky z-15 border-r border-border/70 bg-muted shadow-pin-left",
+          isRightPinned && "sticky z-15 border-l border-border/70 bg-muted shadow-pin-right",
+        );
 
         if (idx === 0 && !aggregation) {
           return (
-            <TableCell key={colKey} className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
+            <TableCell
+              key={colKey}
+              style={cellStyle}
+              className={cn("text-muted-foreground text-xs font-bold tracking-wider uppercase", pinClass)}
+            >
               {resolvedSummaryLabel}
             </TableCell>
           );
         }
 
         if (!aggregation) {
-          return <TableCell key={colKey} />;
+          return <TableCell key={colKey} style={cellStyle} className={pinClass || undefined} />;
         }
 
         const values = rows.map((r) => readCellValue(r, col));
@@ -118,7 +152,11 @@ function DataTableSummaryRowInner<TData = unknown>({
         const prefix = typeof aggregation === "string" ? getAggregationPrefix(aggregation, t) : "";
 
         return (
-          <TableCell key={colKey} className={cn("font-mono text-xs", TEXT_ALIGN_CLASSES[align ?? "left"])}>
+          <TableCell
+            key={colKey}
+            style={cellStyle}
+            className={cn("font-mono text-xs", TEXT_ALIGN_CLASSES[align ?? "left"], pinClass)}
+          >
             {prefix && <span className="text-muted-foreground mr-1 text-[11px] font-normal">{prefix}</span>}
             <span className="text-foreground font-bold">{displayValue}</span>
           </TableCell>

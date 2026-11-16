@@ -140,16 +140,20 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
   const effectiveRouteColor = routeColor || tokens.primarySoft;
   const effectiveTraveledColor = traveledColor || tokens.primary;
 
-  const overlaySlot = showScrubber ? (
-    <RoutePlaybackScrubber
-      isPlaying={isPlaying}
-      progressStore={progressStore}
-      onTogglePlay={togglePlay}
-      onReset={reset}
-      onSeek={seekTo}
-      vehicle={vehicle}
-    />
-  ) : null;
+  const overlaySlot = useMemo(
+    () =>
+      showScrubber ? (
+        <RoutePlaybackScrubber
+          isPlaying={isPlaying}
+          progressStore={progressStore}
+          onTogglePlay={togglePlay}
+          onReset={reset}
+          onSeek={seekTo}
+          vehicle={vehicle}
+        />
+      ) : null,
+    [showScrubber, isPlaying, progressStore, togglePlay, reset, seekTo, vehicle],
+  );
 
   return (
     <MapFrame

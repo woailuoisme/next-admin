@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { ResourceScaffold, ResourceSubPageScaffold } from "@/components/resource";
+import { ResourceScaffold, ResourceSubPageScaffold, ResourceTable } from "@/components/resource";
+import { useClientTableStateAdapter } from "@/components/data-table/adapters";
 import { Input } from "@/components/ui/input";
 import { AccessControlProvider, defineResource } from "@/lib/resource";
 import { fireEvent, renderWithProviders, screen, waitFor } from "test/test-utils";
@@ -219,6 +220,7 @@ describe("ResourceScaffold & ResourceSubPageScaffold", () => {
     );
 
     await screen.findByLabelText("Edit Pending Name");
+    expect(screen.getByRole("status")).toBeInTheDocument();
     const submitBtn = screen.getAllByRole("button").find((btn) => btn.getAttribute("type") === "submit");
     expect(submitBtn).toBeDefined();
     expect(submitBtn).toBeDisabled();
@@ -294,5 +296,48 @@ describe("ResourceScaffold & ResourceSubPageScaffold", () => {
       expect(createSpy).toHaveBeenCalledTimes(2);
       expect(screen.queryByLabelText("Category Name")).toBeNull();
     });
+  });
+
+  it("enforces view permission on ResourceTable onRowClick='view'", () => {
+    const demoResource = createDemoResource();
+    const openView = vi.fn();
+    const row: DemoCategory = {
+      id: "cat-1",
+      name: "智能硬件",
+      slug: "smart-hardware",
+      description: "Hardware items",
+    };
+
+    function TableHarness({ allowView }: { allowView: boolean }) {
+      const tableState = useClientTableStateAdapter<DemoCategory>({
+        data: [row],
+      });
+      return (
+        <AccessControlProvider evaluator={({ action }) => (action === "view" ? allowView : true)}>
+          <ResourceTable
+            resource={demoResource}
+            schema={{
+              columns: () => [{ field: "name", headerName: "Name" }],
+              onRowClick: "view",
+            }}
+            tableState={tableState}
+            openView={openView}
+            openEdit={vi.fn()}
+            openDelete={vi.fn()}
+            handleBatchDelete={vi.fn()}
+            canDelete={false}
+          />
+        </AccessControlProvider>
+      );
+    }
+
+    const denied = renderWithProviders(<TableHarness allowView={false} />);
+    fireEvent.click(screen.getByText("智能硬件"));
+    expect(openView).not.toHaveBeenCalled();
+    denied.unmount();
+
+    renderWithProviders(<TableHarness allowView={true} />);
+    fireEvent.click(screen.getByText("智能硬件"));
+    expect(openView).toHaveBeenCalledWith("cat-1");
   });
 });

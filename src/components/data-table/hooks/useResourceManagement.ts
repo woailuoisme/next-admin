@@ -12,7 +12,7 @@ import type { TableStateAdapter } from "../core/types";
 import {
   type ModalKeyMapping,
   type ResourceModalState,
-  useResourceModalState,
+  useResourceModalStateWithPort,
 } from "@/components/dialogs/hooks/useResourceModalState";
 import { useBatchMutation } from "@/hooks/useBatchMutation";
 
@@ -157,7 +157,7 @@ export function useResourceManagement<
   });
 
   // 2. Modal & Drawer State Machine
-  const modal = useResourceModalState<TData, TSearch>({
+  const modal = useResourceModalStateWithPort<TData, TSearch>({
     search: table.search,
     router: activeRouter,
     syncWithUrl: syncModalWithUrl,
@@ -199,8 +199,10 @@ export function useResourceManagement<
       }
       return null;
     },
-    onSuccess: () => {
-      invalidateQueries();
+    onSuccess: (results) => {
+      if (results.length > 0) {
+        invalidateQueries();
+      }
     },
   });
 
@@ -219,7 +221,10 @@ export function useResourceManagement<
           for (const item of itemsToDelete) {
             onBeforeItemDelete?.(item);
           }
-          await batchDelete.mutateBatchAsync(itemsToDelete);
+          const deletedResults = await batchDelete.mutateBatchAsync(itemsToDelete);
+          if (deletedResults.length === 0) {
+            return;
+          }
           pendingBatchClearRef.current?.();
           pendingBatchClearRef.current = null;
         }

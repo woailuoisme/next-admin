@@ -9,12 +9,12 @@ import { memo, type ReactNode, useEffect, useMemo, useRef, useState } from "reac
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "cn";
 
 import type { KeyValueInputProps, KeyValueRowItem } from "./types";
 
-import { FormFieldEngine } from "../../core";
+import { createContainerBlurHandler, FormFieldEngine, type KeyValuePair } from "../../core";
 import { moveArrayItem } from "../sortableBinding";
 import { KeyValueRow } from "./KeyValueRow";
 import {
@@ -40,8 +40,8 @@ const EMPTY_RECORD: Record<string, string> = {};
 interface KeyValueControlProps extends Omit<KeyValueInputProps, "form" | "defaultValue" | "value" | "onChange"> {
   id: string;
   readOnly?: boolean;
-  value?: Record<string, string> | any[];
-  onChange: (val: Record<string, string> | any[]) => void;
+  value?: Record<string, string> | KeyValuePair[];
+  onChange: (val: Record<string, string> | KeyValuePair[]) => void;
   onBlur?: () => void;
   hasError?: boolean;
   describedBy?: string;
@@ -68,6 +68,7 @@ const KeyValueControl = memo(function KeyValueControl({
   enableRawMode = false,
   defaultRawFormat = "json",
   addButtonText: propAddButtonText,
+  emptyText,
   canAdd = true,
   canDelete = true,
   reorderable = true,
@@ -136,6 +137,7 @@ const KeyValueControl = memo(function KeyValueControl({
   const isAddAllowed = Boolean(canAdd && isEditable && (maxItems === undefined || rows.length < maxItems));
   const rowIds = useMemo(() => rows.map((r) => r._id), [rows]);
   const dndActive = Boolean(reorderable && isEditable && rows.length > 0);
+  const tableColCount = 2 + (reorderable && isEditable ? 1 : 0) + (canDelete && isEditable ? 1 : 0);
 
   const tableContent: ReactNode = (
     <div
@@ -162,25 +164,32 @@ const KeyValueControl = memo(function KeyValueControl({
           </TableRow>
         </TableHeader>
         <TableBody className="divide-border/40 divide-y">
-          {rows.map((row) => (
-            <KeyValueRow
-              key={row._id}
-              row={row}
-              keyPlaceholder={keyPlaceholder}
-              valuePlaceholder={valuePlaceholder}
-              keySuggestions={keySuggestions}
-              disabled={disabled}
-              readOnly={readOnly}
-              canEditKeys={canEditKeys}
-              canDelete={canDelete && rows.length > minItems}
-              reorderable={reorderable}
-              masked={masked}
-              onKeyChange={handleKeyChange}
-              onValueChange={handleValChange}
-              onRemove={removePair}
-              onBlur={onBlur}
-            />
-          ))}
+          {rows.length === 0 && emptyText ? (
+            <TableRow>
+              <TableCell colSpan={tableColCount} className="text-muted-foreground py-6 text-center text-xs">
+                {emptyText}
+              </TableCell>
+            </TableRow>
+          ) : (
+            rows.map((row) => (
+              <KeyValueRow
+                key={row._id}
+                row={row}
+                keyPlaceholder={keyPlaceholder}
+                valuePlaceholder={valuePlaceholder}
+                keySuggestions={keySuggestions}
+                disabled={disabled}
+                readOnly={readOnly}
+                canEditKeys={canEditKeys}
+                canDelete={canDelete && rows.length > minItems}
+                reorderable={reorderable}
+                masked={masked}
+                onKeyChange={handleKeyChange}
+                onValueChange={handleValChange}
+                onRemove={removePair}
+              />
+            ))
+          )}
         </TableBody>
       </Table>
 
@@ -191,7 +200,7 @@ const KeyValueControl = memo(function KeyValueControl({
           onClick={addPair}
           className="border-border/60 bg-card text-foreground hover:bg-muted/40 active:bg-muted/60 h-9 w-full rounded-none border-t px-3 text-xs font-medium"
         >
-          <Plus className="text-muted-foreground size-3.5" />
+          <Plus aria-hidden="true" className="text-muted-foreground size-3.5" />
           <span>{addButtonText}</span>
         </Button>
       ) : null}
@@ -199,7 +208,14 @@ const KeyValueControl = memo(function KeyValueControl({
   );
 
   return (
-    <div id={id} aria-describedby={describedBy} data-invalid={hasError || undefined} className="w-full space-y-2 pt-1">
+    <div
+      id={id}
+      role="group"
+      aria-describedby={describedBy}
+      data-invalid={hasError || undefined}
+      onBlur={createContainerBlurHandler(onBlur)}
+      className="w-full space-y-2 pt-1"
+    >
       {/* 顶栏操作区：重复键警示与 Raw 视图切换 */}
       <div className="flex min-h-6 items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
@@ -220,12 +236,12 @@ const KeyValueControl = memo(function KeyValueControl({
           >
             {isRawMode ? (
               <>
-                <Table2 className="size-3" />
+                <Table2 aria-hidden="true" className="size-3" />
                 <span>{t("keyvalue_table_mode")}</span>
               </>
             ) : (
               <>
-                <Code2 className="size-3" />
+                <Code2 aria-hidden="true" className="size-3" />
                 <span>{t("keyvalue_raw_mode")}</span>
               </>
             )}
@@ -276,7 +292,7 @@ export const KeyValueInput = memo(function KeyValueInput({
   ...fieldProps
 }: KeyValueInputProps) {
   return (
-    <FormFieldEngine<any> defaultValue={defaultValue} {...fieldProps}>
+    <FormFieldEngine<Record<string, string> | KeyValuePair[]> defaultValue={defaultValue} {...fieldProps}>
       {({ id, value, onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
         <KeyValueControl
           id={id}

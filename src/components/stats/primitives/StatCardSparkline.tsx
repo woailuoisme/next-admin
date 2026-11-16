@@ -1,7 +1,5 @@
 "use client";
 
-import { memo } from "react";
-
 import { hasFiniteSparklinePoints } from "@/components/shared/sparkline/sparklineEngine";
 import { cn } from "cn";
 
@@ -26,7 +24,7 @@ export interface StatCardSparklineProps {
   className?: string;
 }
 
-export const StatCardSparkline = memo(function StatCardSparkline({
+export function StatCardSparkline({
   data,
   type = "area",
   layout,
@@ -67,4 +65,4 @@ export const StatCardSparkline = memo(function StatCardSparkline({
   }
 
   return <div className="ml-auto w-20 shrink-0">{sparkline}</div>;
-});
+}

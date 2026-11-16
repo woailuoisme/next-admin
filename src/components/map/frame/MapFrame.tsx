@@ -215,20 +215,27 @@ export const MapFrame = memo(function MapFrame({
                 role="status"
                 className="border-destructive/30 bg-background/95 text-foreground absolute bottom-3 left-3 z-20 flex max-w-sm items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs shadow-md backdrop-blur-md"
               >
-                <AlertTriangle className="text-destructive size-3.5 shrink-0" />
+                <AlertTriangle className="text-destructive size-3.5 shrink-0" aria-hidden="true" />
                 <span className="line-clamp-1 flex-1">{t("error_tile_timeout")}</span>
-                <Button variant="ghost" size="sm" onClick={handleTileRetry} className="h-6 px-1.5 text-[11px]">
-                  <RefreshCw className="mr-1 size-3" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleTileRetry}
+                  className="h-6 px-1.5 text-[11px]"
+                >
+                  <RefreshCw className="mr-1 size-3" aria-hidden="true" />
                   {t("retry")}
                 </Button>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => setTileWarning(null)}
                   aria-label={t("dismiss_notice")}
                   className="size-5"
                 >
-                  <X className="size-3" />
+                  <X className="size-3" aria-hidden="true" />
                 </Button>
               </div>
             ) : null}

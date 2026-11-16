@@ -1,7 +1,8 @@
 import type { LucideIcon } from "lucide-react";
+import type { NumberFormatOptions } from "next-intl";
 import type { ReactNode } from "react";
 
-import type { StatCardTheme } from "../shared/types";
+import type { StatCardTheme, StatDensity } from "../shared/types";
 import type { StatCardTrendData } from "../stat-card/types";
 
 /**
@@ -16,9 +17,9 @@ export interface ProgressStatCardProps {
   /** Card metric label / title */
   title: string;
   /** Current completed value */
-  value: number | string;
+  value: number | string | null;
   /** Goal or quota target */
-  targetValue?: number | string;
+  targetValue?: number | string | null;
   /** Explicit completion percentage (0-100) overrides auto-calculated progress */
   progress?: number;
   /** Prefix string (e.g. "$", "¥") */
@@ -31,12 +32,20 @@ export interface ProgressStatCardProps {
   icon?: LucideIcon;
   /** Color accent theme */
   theme?: StatCardTheme;
+  /** Card density spacing mode */
+  density?: StatDensity;
   /** Contextual pace label (e.g. "+12% ahead of schedule") */
   pacingLabel?: string;
   /** Status indicator override for pacing badge */
   pacingStatus?: PacingStatus;
   /** Optional comparative trend indicator */
   trend?: StatCardTrendData;
+  /** Standard next-intl number format options for numeric values */
+  formatOptions?: NumberFormatOptions;
+  /** Enable click-to-copy for metric value */
+  copyable?: boolean;
+  /** Enable smooth count-up number tween animation */
+  animated?: boolean;
   /** Secondary badge or tag */
   badge?: ReactNode;
   /** Optional link destination for click-through drilldown */

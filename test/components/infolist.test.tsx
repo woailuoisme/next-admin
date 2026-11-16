@@ -1,4 +1,5 @@
 import { fireEvent } from "@testing-library/react";
+import { ShieldCheck } from "lucide-react";
 import * as React from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -358,5 +359,50 @@ describe("Infolist Subsystem", () => {
 
     expect(screen.getByText("0").closest("[data-slot='badge']")).toBeInTheDocument();
     expect(screen.getByText("First Panel")).toBeInTheDocument();
+  });
+
+  it("renders InfolistSection content when collapsible={false} even with defaultCollapsed={true}", () => {
+    renderWithProviders(
+      <InfolistSection title="Static Card" collapsible={false} defaultCollapsed={true} card>
+        <div data-testid="always-visible">Always Visible</div>
+      </InfolistSection>,
+    );
+
+    expect(screen.getByTestId("always-visible")).toBeInTheDocument();
+  });
+
+  it("handles primitive ReactNode icons and blocked links safely in InfolistCallout", () => {
+    renderWithProviders(
+      <InfolistCallout
+        title="Icon Node Test"
+        icon="!"
+        actions={[
+          { label: "Blocked", href: "javascript:alert(1)" },
+          { label: "Docs", href: "https://example.com", external: true },
+        ]}
+      />,
+      { locale: "en" },
+    );
+
+    expect(screen.getByText("!")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Blocked" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: /Docs.*Open in new tab/i })).toBeInTheDocument();
+  });
+
+  it("does not leak 'undefined' in IconEntry and supports href + focusable CodeEntry", () => {
+    renderWithProviders(
+      <Infolist record={{ code: "ORD-100", payload: { ok: true } }}>
+        <IconEntry icon={ShieldCheck} label="Badge Only" />
+        <TextEntry name="code" label="Order" href="/orders/100" openInNewTab={false} />
+        <TextEntry label="Obj Fallback" value={{ foo: "bar" }} />
+        <CodeEntry name="payload" label="JSON" language="json" />
+      </Infolist>,
+      { locale: "en" },
+    );
+
+    expect(screen.queryByText("undefined")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "ORD-100" })).toHaveAttribute("href", "/orders/100");
+    expect(screen.getByText('{"foo":"bar"}')).toBeInTheDocument();
+    expect(screen.getByLabelText("json Code block")).toHaveAttribute("tabindex", "0");
   });
 });

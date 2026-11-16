@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { memo, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { cn } from "cn";
 
@@ -31,7 +31,7 @@ export interface StatCardHeadlineProps {
 /**
  * 四类 StatCard 共用的顶栏：标题 + 帮助提示 | 徽标、操作 / 尾巴、图标
  */
-export const StatCardHeadline = memo(function StatCardHeadline({
+export function StatCardHeadline({
   title,
   description,
   badge,
@@ -56,14 +56,10 @@ export const StatCardHeadline = memo(function StatCardHeadline({
 
       <div className="flex shrink-0 items-center gap-1.5">
         {badge}
-        {actions ? (
-          <div className="relative z-10 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-            {actions}
-          </div>
-        ) : null}
+        {actions ? <div className="relative z-10 flex items-center gap-1">{actions}</div> : null}
         {trailing}
         {Icon ? <StatCardIcon icon={Icon} theme={theme} density={resolvedDensity} /> : null}
       </div>
     </div>
   );
-});
+}

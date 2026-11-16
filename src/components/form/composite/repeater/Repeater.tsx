@@ -11,7 +11,7 @@ import { cn } from "cn";
 
 import type { RepeaterProps } from "./types";
 
-import { FormFieldEngine } from "../../core";
+import { createContainerBlurHandler, FormFieldEngine } from "../../core";
 import { RepeaterRow } from "./RepeaterRow";
 import { RepeaterTable } from "./RepeaterTable";
 import { useRepeaterController } from "./useRepeaterController";
@@ -135,9 +135,10 @@ const RepeaterInner = memo(function RepeaterInner<T>({
   return (
     <div
       id={id}
+      role="group"
       aria-describedby={describedBy}
       data-invalid={hasError || undefined}
-      onBlurCapture={onBlur}
+      onBlur={createContainerBlurHandler(onBlur)}
       className={cn("w-full space-y-2.5 pt-1", hasError && "rounded-lg ring-1 ring-destructive/40 p-1.5")}
     >
       {/* 顶部工具栏与统计徽标 */}
@@ -162,7 +163,7 @@ const RepeaterInner = memo(function RepeaterInner<T>({
                 className="text-muted-foreground hover:text-foreground h-6 gap-1 text-[11px]"
                 title={t("repeater_expand_all")}
               >
-                <ChevronsUpDown className="size-3" />
+                <ChevronsUpDown aria-hidden="true" className="size-3" />
                 <span>{t("repeater_expand_all")}</span>
               </Button>
               <Button
@@ -173,7 +174,7 @@ const RepeaterInner = memo(function RepeaterInner<T>({
                 className="text-muted-foreground hover:text-foreground h-6 gap-1 text-[11px]"
                 title={t("repeater_collapse_all")}
               >
-                <ChevronsDownUp className="size-3" />
+                <ChevronsDownUp aria-hidden="true" className="size-3" />
                 <span>{t("repeater_collapse_all")}</span>
               </Button>
             </>
@@ -184,7 +185,23 @@ const RepeaterInner = memo(function RepeaterInner<T>({
       </div>
 
       {/* 内容主体 */}
-      {isTable ? (
+      {items.length === 0 ? (
+        <div className="border-border/80 bg-card/20 flex flex-col items-center justify-center rounded-lg border border-dashed px-4 py-8 text-center">
+          <p className="text-muted-foreground/70 mb-3 text-xs">{emptyText}</p>
+          {showEmptyAddButton && isAddAllowed ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addItem}
+              className="hover:bg-muted h-7.5 cursor-pointer gap-1.5 text-xs shadow-2xs"
+            >
+              <Plus aria-hidden="true" className="size-3.5" />
+              <span>{addButtonText}</span>
+            </Button>
+          ) : null}
+        </div>
+      ) : isTable ? (
         wrapWithDnd(
           <RepeaterTable<T>
             items={items}
@@ -208,22 +225,6 @@ const RepeaterInner = memo(function RepeaterInner<T>({
             addButtonText={addButtonText}
           />,
         )
-      ) : items.length === 0 ? (
-        <div className="border-border/80 bg-card/20 flex flex-col items-center justify-center rounded-lg border border-dashed px-4 py-8 text-center">
-          <p className="text-muted-foreground/70 mb-3 text-xs">{emptyText}</p>
-          {showEmptyAddButton && isAddAllowed ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addItem}
-              className="hover:bg-muted h-7.5 cursor-pointer gap-1.5 text-xs shadow-2xs"
-            >
-              <Plus className="size-3.5" />
-              <span>{addButtonText}</span>
-            </Button>
-          ) : null}
-        </div>
       ) : (
         <>
           {wrapWithDnd(
@@ -277,7 +278,7 @@ const RepeaterInner = memo(function RepeaterInner<T>({
               onClick={addItem}
               className="hover:bg-muted h-8.5 w-full cursor-pointer gap-1.5 text-xs shadow-2xs"
             >
-              <Plus className="size-3.5" />
+              <Plus aria-hidden="true" className="size-3.5" />
               <span>{addButtonText}</span>
             </Button>
           ) : null}

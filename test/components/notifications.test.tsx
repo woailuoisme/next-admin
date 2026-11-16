@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { NotificationItemRow } from "@/components/notifications/item/NotificationItemRow";
 import { NotificationPopover } from "@/components/notifications/popover/NotificationPopover";
+import { formatRelativeTime } from "@/components/notifications/shared/utils";
+import { NotificationTrigger } from "@/components/notifications/trigger/NotificationTrigger";
 import { Popover } from "@/components/ui/popover";
 import type { NotificationItem } from "@/features/notifications";
 
@@ -103,6 +105,22 @@ describe("Notification Components", () => {
       expect(screen.getByRole("tab", { name: /未读|unread/i })).toBeInTheDocument();
       expect(screen.getByRole("tab", { name: /订单|orders/i })).toBeInTheDocument();
       expect(screen.getByRole("tab", { name: /系统|system/i })).toBeInTheDocument();
+    });
+  });
+
+  describe("NotificationTrigger & formatRelativeTime", () => {
+    it("includes unread count in trigger accessible name", () => {
+      renderWithProviders(
+        <Popover>
+          <NotificationTrigger unreadCount={5} />
+        </Popover>,
+      );
+
+      expect(screen.getByRole("button", { name: "查看通知（5 条未读）" })).toBeInTheDocument();
+    });
+
+    it("returns localized invalid date text for malformed timestamps", () => {
+      expect(formatRelativeTime("not-a-valid-date")).not.toBe("Invalid Date");
     });
   });
 });

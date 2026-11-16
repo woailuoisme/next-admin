@@ -2,7 +2,6 @@
 
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "cn";
@@ -11,7 +10,7 @@ import type { StatCardTrendProps } from "./types";
 
 import { resolveTrendInfo } from "../shared/trendEngine";
 
-export const StatCardTrend = memo(function StatCardTrend({
+export function StatCardTrend({
   trend,
   value,
   direction,
@@ -99,4 +98,4 @@ export const StatCardTrend = memo(function StatCardTrend({
       ) : null}
     </div>
   );
-});
+}

@@ -122,9 +122,12 @@ export const FieldClearButton = memo(function FieldClearButton({
       size="icon-xs"
       onClick={onClick}
       aria-label={ariaLabel ?? t("clear_value")}
-      className={cn("text-muted-foreground hover:text-foreground size-5 cursor-pointer rounded-full p-0", className)}
+      className={cn(
+        "text-muted-foreground hover:text-foreground relative size-5 cursor-pointer rounded-full p-0 after:absolute after:-inset-1 after:content-['']",
+        className,
+      )}
     >
-      <X className="size-3" />
+      <X className="size-3" aria-hidden="true" />
     </Button>
   );
 });
@@ -271,7 +274,7 @@ export const AdornedInput = memo(function AdornedInput({
             onClick={onClear}
             aria-label={resolvedClearLabel}
           >
-            <X className="size-3" />
+            <X className="size-3" aria-hidden="true" />
           </InputGroupButton>
         </InputGroupAddon>
       )}
@@ -284,8 +287,13 @@ export const AdornedInput = memo(function AdornedInput({
             variant="ghost"
             onClick={togglePassword}
             aria-label={showPassword ? resolvedHidePasswordLabel : resolvedShowPasswordLabel}
+            aria-pressed={showPassword}
           >
-            {showPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+            {showPassword ? (
+              <EyeOff className="size-3.5" aria-hidden="true" />
+            ) : (
+              <Eye className="size-3.5" aria-hidden="true" />
+            )}
           </InputGroupButton>
         </InputGroupAddon>
       )}

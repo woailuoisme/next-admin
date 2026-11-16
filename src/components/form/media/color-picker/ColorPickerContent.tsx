@@ -39,8 +39,17 @@ export const ColorPickerContent = memo(function ColorPickerContent({
   // draft is only non-null when the user is actively typing an in-progress hex code
   const [draft, setDraft] = useState<string | null>(null);
   const [hexError, setHexError] = useState<string | null>(null);
+  const [prevValue, setPrevValue] = useState(value);
+  const [focusedPresetIndex, setFocusedPresetIndex] = useState<number | null>(null);
   const paletteRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const isEyeDropperSupported = useSyncExternalStore(emptySubscribe, checkEyeDropperSupport, () => false);
+
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setDraft(null);
+    setHexError(null);
+    setFocusedPresetIndex(null);
+  }
 
   const currentText = draft ?? value;
 
@@ -105,6 +114,7 @@ export const ColorPickerContent = memo(function ColorPickerContent({
     const nextIdx = getNextPaletteIndex(index, e.key, presets.length, 6);
     if (nextIdx !== index && nextIdx >= 0 && nextIdx < presets.length) {
       e.preventDefault();
+      setFocusedPresetIndex(nextIdx);
       paletteRefs.current[nextIdx]?.focus();
     }
   });
@@ -135,6 +145,13 @@ export const ColorPickerContent = memo(function ColorPickerContent({
 
   const fallbackColor = toSixDigitHex(currentText);
   const normalizedActive = value.toLowerCase();
+  const selectedPresetIndex = presets.findIndex((color) => normalizedActive === color.toLowerCase());
+  const tabStopPresetIndex =
+    focusedPresetIndex !== null && focusedPresetIndex < presets.length
+      ? focusedPresetIndex
+      : selectedPresetIndex >= 0
+        ? selectedPresetIndex
+        : 0;
 
   return (
     <div className="w-56 space-y-3 p-3">
@@ -176,7 +193,7 @@ export const ColorPickerContent = memo(function ColorPickerContent({
               aria-label={t("color_eyedropper")}
               className="text-muted-foreground hover:text-foreground size-8 shrink-0"
             >
-              <Pipette className="size-3.5" />
+              <Pipette className="size-3.5" aria-hidden="true" />
             </Button>
           )}
         </div>
@@ -191,15 +208,16 @@ export const ColorPickerContent = memo(function ColorPickerContent({
       {presets && presets.length > 0 && (
         <div className="space-y-1.5">
           <div className="text-muted-foreground flex items-center gap-1 text-[11px] font-medium">
-            <Palette className="size-3" />
+            <Palette className="size-3" aria-hidden="true" />
             <span>{t("color_presets_title")}</span>
           </div>
           <div className="grid grid-cols-6 gap-1.5" role="listbox" aria-label={t("color_presets_aria")}>
             {presets.map((color, index) => {
               const isSelected = normalizedActive === color.toLowerCase();
+              const isTabStop = !disabled && index === tabStopPresetIndex;
               return (
                 <Button
-                  key={color}
+                  key={`${color}-${index}`}
                   ref={(el) => {
                     paletteRefs.current[index] = el;
                   }}
@@ -207,9 +225,11 @@ export const ColorPickerContent = memo(function ColorPickerContent({
                   variant="ghost"
                   size="icon-xs"
                   role="option"
+                  tabIndex={isTabStop ? 0 : -1}
                   aria-selected={isSelected}
                   aria-label={t("color_select_preset", { color })}
                   disabled={disabled}
+                  onFocus={() => setFocusedPresetIndex(index)}
                   onClick={() => handleSelectPreset(color)}
                   onKeyDown={(e) => handlePaletteKeyDown(index, e)}
                   className={cn(

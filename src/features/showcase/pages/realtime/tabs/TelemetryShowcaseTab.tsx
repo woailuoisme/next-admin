@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Activity, Cpu, HardDrive, type LucideIcon, Radio, Send, Zap } from "lucide-react";
 import type { ReactNode } from "react";
@@ -7,6 +8,7 @@ import { AreaTrendChart } from "@/components/chart/area/AreaTrendChart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -64,7 +66,6 @@ export function TelemetryShowcaseTab() {
   const [metrics, setMetrics] = useState<TelemetryMetricPoint[]>(INITIAL_POINTS);
   const [isAutoStreaming, setIsAutoStreaming] = useState(false);
   const [streamInterval, setStreamInterval] = useState("2000");
-  const [isSendingPulse, setIsSendingPulse] = useState(false);
   const [lastMessageOffset, setLastMessageOffset] = useState<number | null>(null);
 
   const currentPoint = metrics[metrics.length - 1] ?? INITIAL_POINTS[0];
@@ -96,9 +97,24 @@ export function TelemetryShowcaseTab() {
 
   useSubscription<Partial<TelemetryMetricPoint>>("public:telemetry", handleTelemetryPublication);
 
+  const { mutate: publishPulse, isPending: isSendingPulse } = useMutation({
+    mutationFn: async (payload: Partial<TelemetryMetricPoint>) => {
+      const res = await publishRealtime("public:telemetry", payload);
+      if (!res.ok) return null;
+      return (await res.json()) as { result?: { offset?: number } };
+    },
+    onSuccess: (json) => {
+      if (json?.result?.offset !== undefined) {
+        setLastMessageOffset(json.result.offset);
+      }
+    },
+    onError: (e) => {
+      console.warn("Failed to publish telemetry pulse:", e);
+    },
+  });
+
   // Manual pulse publish
-  const sendTelemetryPulse = useCallback(async () => {
-    setIsSendingPulse(true);
+  const sendTelemetryPulse = useCallback(() => {
     const now = new Date();
     const payload: Partial<TelemetryMetricPoint> = {
       qps: Math.floor(2800 + Math.random() * 800),
@@ -109,21 +125,8 @@ export function TelemetryShowcaseTab() {
       time: now.toTimeString().slice(0, 8),
       timestamp: now.getTime(),
     };
-
-    try {
-      const res = await publishRealtime("public:telemetry", payload);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.result?.offset) {
-          setLastMessageOffset(json.result.offset);
-        }
-      }
-    } catch (e) {
-      console.warn("Failed to publish telemetry pulse:", e);
-    } finally {
-      setIsSendingPulse(false);
-    }
-  }, []);
+    publishPulse(payload);
+  }, [publishPulse]);
 
   // Auto-stream interval generator
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -181,9 +184,9 @@ export function TelemetryShowcaseTab() {
                 onCheckedChange={setIsAutoStreaming}
                 disabled={!isConnected}
               />
-              <label htmlFor="auto-stream" className="text-foreground cursor-pointer text-xs font-medium">
+              <Label htmlFor="auto-stream" className="text-foreground cursor-pointer text-xs font-medium">
                 自动推送数据流
-              </label>
+              </Label>
             </div>
 
             <Select value={streamInterval} onValueChange={setStreamInterval} disabled={!isAutoStreaming}>

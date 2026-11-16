@@ -1,3 +1,5 @@
+"use client";
+
 import type { MapMouseEvent } from "maplibre-gl";
 
 import { useEffect } from "react";

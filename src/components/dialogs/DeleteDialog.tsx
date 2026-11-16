@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMemoizedFn, useUnmountedRef } from "ahooks";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
-import { memo, useId, useState } from "react";
+import { memo, useId, useRef, useState } from "react";
 
 import {
   AlertDialog,
@@ -28,7 +28,7 @@ interface DeleteDialogContentPanelProps extends DeleteDialogProps {
 
 const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
   onOpenChange,
-  entityName = "Item",
+  entityName,
   entityTitle,
   itemCount = 1,
   title,
@@ -37,7 +37,7 @@ const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
   cancelText,
   requireConfirmKeyword,
   confirmKeyword,
-  autoFocusInput = true,
+  autoFocusInput = false,
   isPending = false,
   internalPending,
   onInternalPendingChange,
@@ -48,7 +48,9 @@ const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
   const keywordInputId = useId();
   const [confirmInput, setConfirmInput] = useState("");
   const unmountedRef = useUnmountedRef();
+  const confirmLockRef = useRef(false);
 
+  const resolvedEntityName = entityName ?? t("default_entity");
   const isBatch = itemCount > 1;
   const isActionPending = isPending || internalPending;
 
@@ -63,23 +65,27 @@ const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
 
   const resolvedTitle =
     title ??
-    (isBatch ? t("delete_batch_title", { count: itemCount, entityName }) : t("delete_item_title", { entityName }));
+    (isBatch
+      ? t("delete_batch_title", { count: itemCount, entityName: resolvedEntityName })
+      : t("delete_item_title", { entityName: resolvedEntityName }));
 
   const resolvedDescription =
     description ??
     (isBatch
-      ? t("delete_batch_desc", { count: itemCount, entityName })
+      ? t("delete_batch_desc", { count: itemCount, entityName: resolvedEntityName })
       : entityTitle
         ? t("delete_item_desc", {
-            entityName: typeof entityTitle === "string" ? `"${entityTitle}"` : entityName,
+            entityName:
+              typeof entityTitle === "string" ? t("delete_quoted_name", { name: entityTitle }) : resolvedEntityName,
           })
-        : t("delete_item_desc", { entityName: entityName.toLowerCase() }));
+        : t("delete_item_desc", { entityName: resolvedEntityName }));
 
   const resolvedConfirmText = confirmText ?? t("delete_confirm_action");
   const resolvedCancelText = cancelText ?? t("cancel");
 
   const handleConfirm = useMemoizedFn(async () => {
-    if (!isKeywordMatched) return;
+    if (confirmLockRef.current || isActionPending || !isKeywordMatched) return;
+    confirmLockRef.current = true;
     try {
       onInternalPendingChange(true);
       await onConfirm();
@@ -87,6 +93,7 @@ const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
         onOpenChange(false);
       }
     } finally {
+      confirmLockRef.current = false;
       if (!unmountedRef.current) {
         onInternalPendingChange(false);
       }
@@ -99,9 +106,9 @@ const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
         <div className="text-destructive flex items-center gap-2">
           <div className="bg-destructive/10 flex size-9 items-center justify-center rounded-full">
             {isBatch ? (
-              <Trash2 className="text-destructive size-4" />
+              <Trash2 className="text-destructive size-4" aria-hidden="true" />
             ) : (
-              <AlertTriangle className="text-destructive size-4" />
+              <AlertTriangle className="text-destructive size-4" aria-hidden="true" />
             )}
           </div>
           <AlertDialogTitle className="text-foreground text-lg font-semibold">{resolvedTitle}</AlertDialogTitle>
@@ -148,7 +155,11 @@ const DeleteDialogContentPanel = memo(function DeleteDialogContentPanel({
           disabled={isActionPending || !isKeywordMatched}
           className="bg-destructive text-destructive-foreground hover:bg-destructive/90 h-9 gap-1.5 text-xs disabled:opacity-50"
         >
-          {isActionPending ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+          {isActionPending ? (
+            <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+          ) : (
+            <Trash2 className="size-3.5" aria-hidden="true" />
+          )}
           <span>{resolvedConfirmText}</span>
         </AlertDialogAction>
       </AlertDialogFooter>

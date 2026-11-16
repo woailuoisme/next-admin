@@ -109,10 +109,10 @@ const TagsInputControl = memo(function TagsInputControl({
                   e.stopPropagation();
                   removeTag(index);
                 }}
-                className="hover:text-destructive size-3.5 cursor-pointer rounded-full p-0"
+                className="hover:text-destructive relative size-3.5 cursor-pointer rounded-full p-0 after:absolute after:-inset-1.5 after:content-['']"
                 aria-label={t("tags_remove", { tag })}
               >
-                <X className="size-2.5" />
+                <X className="size-2.5" aria-hidden="true" />
               </Button>
             )}
           </Badge>

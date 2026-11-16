@@ -21,6 +21,7 @@ interface RepeaterTableRowProps<T> {
   canDuplicate?: boolean;
   canDelete?: boolean;
   confirmDelete?: boolean;
+  hasActionCol?: boolean;
   error?: string | string[];
   onMoveUp: (index: number) => void;
   onMoveDown: (index: number) => void;
@@ -40,6 +41,7 @@ const RepeaterTableRow = memo(function RepeaterTableRow<T>({
   canDuplicate = true,
   canDelete = true,
   confirmDelete = false,
+  hasActionCol = true,
   error,
   onMoveUp,
   onMoveDown,
@@ -110,66 +112,68 @@ const RepeaterTableRow = memo(function RepeaterTableRow<T>({
 
           {isFragmentOrTd ? rendered : <TableCell className="px-3 py-2 align-middle">{rendered}</TableCell>}
 
-          <TableCell className="border-border/40 w-24 shrink-0 border-l px-2 py-2 text-right align-middle">
-            <div className="flex items-center justify-end gap-0.5">
-              {canDuplicate && !disabled ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={handleDuplicate}
-                  className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer"
-                  title={t("repeater_duplicate")}
-                  aria-label={`${t("repeater_duplicate")} ${rowLabel}`}
-                >
-                  <Copy className="size-3" />
-                </Button>
-              ) : null}
-
-              {reorderable && !disabled ? (
-                <>
+          {hasActionCol && (
+            <TableCell className="border-border/40 w-24 shrink-0 border-l px-2 py-2 text-right align-middle">
+              <div className="flex items-center justify-end gap-0.5">
+                {canDuplicate && !disabled ? (
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon-xs"
-                    onClick={handleMoveUp}
-                    disabled={isFirst}
-                    className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer disabled:opacity-30"
-                    title={t("repeater_move_up")}
-                    aria-label={`${t("repeater_move_up")} ${rowLabel}`}
+                    onClick={handleDuplicate}
+                    className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer"
+                    title={t("repeater_duplicate")}
+                    aria-label={`${t("repeater_duplicate")} ${rowLabel}`}
                   >
-                    <MoveUp className="size-3" />
+                    <Copy aria-hidden="true" className="size-3" />
                   </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={handleMoveDown}
-                    disabled={isLast}
-                    className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer disabled:opacity-30"
-                    title={t("repeater_move_down")}
-                    aria-label={`${t("repeater_move_down")} ${rowLabel}`}
-                  >
-                    <MoveDown className="size-3" />
-                  </Button>
-                </>
-              ) : null}
+                ) : null}
 
-              {canDelete && !disabled ? (
-                <RepeaterDeleteButton
-                  confirmDelete={confirmDelete}
-                  onConfirmDelete={handleDirectRemove}
-                  ariaLabel={`${t("repeater_delete_row")} ${rowLabel}`}
-                  title={t("repeater_delete_row")}
-                  confirmTitle={t("repeater_confirm_delete_row_title")}
-                  confirmDescription={t("repeater_confirm_delete_row_desc")}
-                  cancelLabel={t("repeater_cancel")}
-                  confirmLabel={t("repeater_confirm_delete_action")}
-                  destructiveHighlight
-                />
-              ) : null}
-            </div>
-          </TableCell>
+                {reorderable && !disabled ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={handleMoveUp}
+                      disabled={isFirst}
+                      className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer disabled:opacity-30"
+                      title={t("repeater_move_up")}
+                      aria-label={`${t("repeater_move_up")} ${rowLabel}`}
+                    >
+                      <MoveUp aria-hidden="true" className="size-3" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={handleMoveDown}
+                      disabled={isLast}
+                      className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer disabled:opacity-30"
+                      title={t("repeater_move_down")}
+                      aria-label={`${t("repeater_move_down")} ${rowLabel}`}
+                    >
+                      <MoveDown aria-hidden="true" className="size-3" />
+                    </Button>
+                  </>
+                ) : null}
+
+                {canDelete && !disabled ? (
+                  <RepeaterDeleteButton
+                    confirmDelete={confirmDelete}
+                    onConfirmDelete={handleDirectRemove}
+                    ariaLabel={`${t("repeater_delete_row")} ${rowLabel}`}
+                    title={t("repeater_delete_row")}
+                    confirmTitle={t("repeater_confirm_delete_row_title")}
+                    confirmDescription={t("repeater_confirm_delete_row_desc")}
+                    cancelLabel={t("repeater_cancel")}
+                    confirmLabel={t("repeater_confirm_delete_action")}
+                    destructiveHighlight
+                  />
+                ) : null}
+              </div>
+            </TableCell>
+          )}
         </TableRow>
       )}
     </SortableRowSlot>
@@ -222,7 +226,10 @@ export const RepeaterTable = memo(function RepeaterTable<T>({
   const t = useTranslations("form");
   const resolvedAddText = addButtonText ?? t("repeater_add");
   const hasReorderCol = Boolean(reorderable && !disabled);
-  const totalCols = (headers?.length || 1) + (hasReorderCol ? 1 : 0) + 1;
+  const hasActionCol = Boolean(
+    !disabled && (canDuplicate || reorderable || items.some((item, index) => checkCanDelete(item, index))),
+  );
+  const totalCols = (headers?.length || 1) + (hasReorderCol ? 1 : 0) + (hasActionCol ? 1 : 0);
 
   return (
     <div className="border-border/80 bg-card overflow-hidden rounded-lg border shadow-2xs">
@@ -254,9 +261,11 @@ export const RepeaterTable = memo(function RepeaterTable<T>({
                 {t("repeater_table_default_col")}
               </TableHead>
             )}
-            <TableHead className="border-border/60 text-muted-foreground w-24 border-l px-2 py-2 text-right font-medium">
-              {t("repeater_table_actions_col")}
-            </TableHead>
+            {hasActionCol && (
+              <TableHead className="border-border/60 text-muted-foreground w-24 border-l px-2 py-2 text-right font-medium">
+                {t("repeater_table_actions_col")}
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
 
@@ -277,6 +286,7 @@ export const RepeaterTable = memo(function RepeaterTable<T>({
                 reorderable={reorderable}
                 canDuplicate={canDuplicate}
                 canDelete={canDeleteThis}
+                hasActionCol={hasActionCol}
                 confirmDelete={confirmDelete}
                 error={error}
                 onMoveUp={onMoveUp}

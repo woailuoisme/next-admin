@@ -110,7 +110,7 @@ const DatePickerControl = memo(function DatePickerControl({
             )}
           >
             <div className="flex items-center gap-2 truncate">
-              <CalendarIcon className="text-muted-foreground size-3.5 shrink-0" />
+              <CalendarIcon className="text-muted-foreground size-3.5 shrink-0" aria-hidden="true" />
               <span className="truncate">{selectedDate ? format(selectedDate, dateFormat) : placeholder}</span>
             </div>
           </Button>

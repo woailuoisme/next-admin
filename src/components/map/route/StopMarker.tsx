@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Clock, MapPin } from "lucide-react";
-import { type ComponentType, type KeyboardEvent, memo } from "react";
+import { type ComponentType, memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { MapMarker, MarkerContent, MarkerPopup } from "@/components/ui/map";
@@ -47,28 +47,19 @@ export const StopMarker = memo(function StopMarker({ stop, onStopClick }: StopMa
   const status = stop.status ?? "pending";
   const { marker, Icon, iconExtra, badge } = STOP_STATUS_STYLES[status];
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      onStopClick?.(stop);
-    }
-  };
-
   return (
     <MapMarker longitude={stop.coordinates[0]} latitude={stop.coordinates[1]} onClick={() => onStopClick?.(stop)}>
       <MarkerContent>
-        <div
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
           aria-label={stop.name}
-          onKeyDown={handleKeyDown}
           className={cn(
-            "flex size-6 cursor-pointer items-center justify-center rounded-full border-2 border-background shadow-md transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+            "flex size-6 cursor-pointer items-center justify-center rounded-full border-2 border-background p-0 shadow-md transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
             marker,
           )}
         >
-          <Icon className={cn("size-3.5", iconExtra)} />
-        </div>
+          <Icon className={cn("size-3.5", iconExtra)} aria-hidden="true" />
+        </button>
       </MarkerContent>
       <MarkerPopup className="w-48 p-2.5">
         <div className="flex items-center justify-between gap-1">

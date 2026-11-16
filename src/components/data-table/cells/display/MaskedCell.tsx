@@ -101,24 +101,25 @@ export const MaskedCell = memo(function MaskedCell({
 
   const isCopyable = allowCopy ?? copyable;
 
-  // 处理自动遮蔽倒计时
+  // 处理自动遮蔽倒计时（避免在 state updater 内嵌套 setState，兼容 StrictMode）
   useEffect(() => {
     if (!revealed || !autoHideDuration || autoHideDuration <= 0) {
       return;
     }
 
-    const timer = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setRevealed(false);
-          return 0;
-        }
-        return prev - 1;
-      });
+    let current = autoHideDuration;
+    const timer = window.setInterval(() => {
+      current -= 1;
+      if (current <= 0) {
+        window.clearInterval(timer);
+        setRemainingSeconds(0);
+        setRevealed(false);
+      } else {
+        setRemainingSeconds(current);
+      }
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => window.clearInterval(timer);
   }, [revealed, autoHideDuration]);
 
   if (isNil(value) || value === "") {
@@ -129,11 +130,9 @@ export const MaskedCell = memo(function MaskedCell({
   const displayedText = revealed ? stringVal : formatMaskedValue(stringVal, maskType, customMask, maskChar);
 
   const handleToggleReveal = () => {
-    setRevealed((prev) => {
-      const next = !prev;
-      setRemainingSeconds(next && autoHideDuration && autoHideDuration > 0 ? autoHideDuration : 0);
-      return next;
-    });
+    const next = !revealed;
+    setRevealed(next);
+    setRemainingSeconds(next && autoHideDuration && autoHideDuration > 0 ? autoHideDuration : 0);
   };
 
   return (
@@ -160,7 +159,11 @@ export const MaskedCell = memo(function MaskedCell({
               aria-label={revealed ? "隐藏数据" : "查看明文"}
               title={revealed ? "隐藏数据" : "查看明文"}
             >
-              {revealed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+              {revealed ? (
+                <EyeOff aria-hidden="true" className="size-3.5" />
+              ) : (
+                <Eye aria-hidden="true" className="size-3.5" />
+              )}
             </Button>
 
             {revealed && autoHideDuration && remainingSeconds > 0 && (

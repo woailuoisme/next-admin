@@ -3,6 +3,10 @@ import crypto from "node:crypto";
 
 import { requireSession } from "../guard";
 
+export const dynamic = "force-dynamic";
+
+const NO_STORE_HEADERS = { "Cache-Control": "no-store, private" } as const;
+
 function base64url(input: string | Buffer): string {
   const buf = typeof input === "string" ? Buffer.from(input, "utf8") : input;
   return buf.toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
@@ -13,33 +17,34 @@ function base64url(input: string | Buffer): string {
  * 载荷必须带上 aud（与 server 端 client.token.audience 一致），否则握手被判定 invalid audience
  */
 export async function GET(request: Request) {
-  const unauthorized = requireSession(request);
-  if (unauthorized) return unauthorized;
+  const session = await requireSession(
+    request,
+    NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401, headers: NO_STORE_HEADERS }),
+  );
+  if (session instanceof NextResponse) return session;
 
   const secret = process.env.CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY;
   if (!secret) {
     console.error("[Realtime Token API] CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY is not configured");
-    return NextResponse.json({ success: false, error: "Token signing secret not configured" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Token signing secret not configured" },
+      { status: 500, headers: NO_STORE_HEADERS },
+    );
   }
 
   try {
-    const searchParams = new URL(request.url).searchParams;
-    const requestedUser = searchParams.get("user") || "admin_operator";
-    const requestedName = searchParams.get("name") || "Administrator";
-    const requestedRole = searchParams.get("role") || "admin";
-
     const nowSeconds = Math.floor(Date.now() / 1000);
     const expSeconds = nowSeconds + 7200; // 2 hours validity
 
     const header = base64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
     const payload = base64url(
       JSON.stringify({
-        sub: requestedUser,
+        sub: session.userId,
         aud: process.env.CENTRIFUGO_CLIENT_TOKEN_AUDIENCE || "centrifugo",
         exp: expSeconds,
         info: {
-          name: requestedName,
-          role: requestedRole,
+          name: session.name,
+          role: session.role,
           timestamp: Date.now(),
         },
       }),
@@ -49,12 +54,15 @@ export async function GET(request: Request) {
 
     const token = `${header}.${payload}.${base64url(signature)}`;
 
-    return NextResponse.json({
-      success: true,
-      token,
-      user: requestedUser,
-      expiresAt: expSeconds * 1000,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        token,
+        user: session.userId,
+        expiresAt: expSeconds * 1000,
+      },
+      { headers: NO_STORE_HEADERS },
+    );
   } catch (error) {
     console.error("[Realtime Token API] Failed to generate token:", error);
     return NextResponse.json(
@@ -62,7 +70,7 @@ export async function GET(request: Request) {
         success: false,
         error: "Failed to generate connection token",
       },
-      { status: 500 },
+      { status: 500, headers: NO_STORE_HEADERS },
     );
   }
 }

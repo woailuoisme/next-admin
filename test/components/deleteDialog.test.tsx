@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { DeleteDialog } from "@/components/dialogs/DeleteDialog";
-import { renderWithProviders, screen } from "test/test-utils";
+import { fireEvent, renderWithProviders, screen, waitFor } from "test/test-utils";
 
 function renderBatchDelete(locale: "en" | "zh") {
   return renderWithProviders(
@@ -25,5 +25,26 @@ describe("DeleteDialog batch copy", () => {
 
     expect(screen.getByRole("alertdialog")).toHaveTextContent("批量删除 3 项 Category");
     expect(screen.getByRole("alertdialog")).toHaveTextContent("确定要删除选中的 3 项 Category吗？此操作无法撤销。");
+  });
+
+  it("ignores concurrent rapid clicks on confirm while onConfirm is in flight", async () => {
+    let resolveConfirm!: () => void;
+    const onConfirm = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveConfirm = resolve;
+        }),
+    );
+    const onOpenChange = vi.fn();
+
+    renderWithProviders(<DeleteDialog open onOpenChange={onOpenChange} onConfirm={onConfirm} entityName="Category" />);
+
+    const confirmBtn = screen.getByRole("button", { name: "确认删除" });
+    fireEvent.click(confirmBtn);
+    fireEvent.click(confirmBtn);
+
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    resolveConfirm();
+    await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
   });
 });

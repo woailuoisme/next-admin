@@ -60,7 +60,7 @@ export const FieldWrapper = memo(function FieldWrapper({
         className,
       )}
     >
-      {(label || hint) && (
+      {(label || tooltip || hint) && (
         <div
           className={cn(
             "flex items-center gap-2",
@@ -104,7 +104,7 @@ export const FieldWrapper = memo(function FieldWrapper({
             align === "right" && "justify-end",
           )}
         >
-          <AlertCircle className="size-3 shrink-0" />
+          <AlertCircle aria-hidden="true" className="size-3 shrink-0" />
           <span>{resolvedError}</span>
         </FieldError>
       ) : helperText ? (

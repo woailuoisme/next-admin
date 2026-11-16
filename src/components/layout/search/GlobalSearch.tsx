@@ -1,3 +1,5 @@
+"use client";
+
 import { Suspense, lazy, memo, useCallback } from "react";
 
 import type { GlobalSearchProps } from "./types";
@@ -20,7 +22,7 @@ const GlobalSearchDialog = lazy(() =>
   })),
 );
 
-export const GlobalSearch = memo(function GlobalSearch({ className }: GlobalSearchProps) {
+export const GlobalSearch = memo(function GlobalSearch({ className, customGroups }: GlobalSearchProps) {
   const { open, handleOpen, setOpen } = useGlobalSearch({ onPrefetch: prefetchGlobalSearchDialog });
 
   const handlePrefetch = useCallback(() => {
@@ -37,7 +39,7 @@ export const GlobalSearch = memo(function GlobalSearch({ className }: GlobalSear
       />
       {open ? (
         <Suspense fallback={null}>
-          <GlobalSearchDialog open={open} onOpenChange={setOpen} />
+          <GlobalSearchDialog open={open} onOpenChange={setOpen} customGroups={customGroups} />
         </Suspense>
       ) : null}
     </>

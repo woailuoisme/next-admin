@@ -88,6 +88,8 @@ describe("Resource Engine v2 Primitives", () => {
       );
 
       expect(screen.getByText("正在更新...")).toBeInTheDocument();
+      expect(screen.getByRole("status")).toHaveTextContent("正在更新...");
+      expect(screen.getByRole("combobox", { name: "履约状态" })).toHaveAttribute("aria-busy", "true");
     });
   });
 
@@ -96,17 +98,20 @@ describe("Resource Engine v2 Primitives", () => {
       renderWithProviders(
         <SummaryEntry
           items={[
-            { label: "小计", value: 750 },
+            { label: "小计", value: 1250 },
             { label: "税费", value: 30 },
+            { label: "异常值", value: Number.NaN },
           ]}
-          total={{ label: "实付总额", value: 780 }}
+          total={{ label: "实付总额", value: 1280 }}
         />,
+        { locale: "en" },
       );
 
       expect(screen.getByText("小计")).toBeInTheDocument();
-      expect(screen.getByText("$750.00")).toBeInTheDocument();
+      expect(screen.getByText("$1,250.00")).toBeInTheDocument();
+      expect(screen.getByText("-")).toBeInTheDocument();
       expect(screen.getByText("实付总额")).toBeInTheDocument();
-      expect(screen.getByText("$780.00")).toBeInTheDocument();
+      expect(screen.getByText("$1,280.00")).toBeInTheDocument();
     });
   });
 
@@ -442,14 +447,14 @@ describe("Resource Engine v2 Primitives", () => {
       await user.click(rowCheckbox);
       expect(rowCheckbox).toBeChecked();
 
-      await user.click(screen.getByRole("button", { name: /批量删除 \(1\)/ }));
+      await user.click(await screen.findByRole("button", { name: /批量删除 \(1\)/ }));
       expect(handleBatchDelete).toHaveBeenCalledTimes(1);
       expect(handleBatchDelete.mock.calls[0]?.[0]).toEqual([baseTableState.data[0]]);
       expect(typeof handleBatchDelete.mock.calls[0]?.[1]).toBe("function");
       // 尚未点击弹窗确认前，不应提前清空已选复选框
       expect(rowCheckbox).toBeChecked();
 
-      await user.click(screen.getByRole("button", { name: /批量归档 \(1\)/ }));
+      await user.click(await screen.findByRole("button", { name: /批量归档 \(1\)/ }));
       await waitFor(() => {
         expect(actionSpy).toHaveBeenCalledWith({ id: "row-1" });
       });
@@ -504,7 +509,7 @@ describe("Resource Engine v2 Primitives", () => {
       await user.click(rowCheckbox);
       expect(rowCheckbox).toBeChecked();
 
-      await user.click(screen.getByRole("button", { name: /批量归档 \(1\)/ }));
+      await user.click(await screen.findByRole("button", { name: /批量归档 \(1\)/ }));
       await waitFor(() => {
         expect(failingAction).toHaveBeenCalledTimes(1);
       });

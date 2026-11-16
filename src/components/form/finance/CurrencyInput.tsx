@@ -47,7 +47,7 @@ interface CurrencyInputInnerProps {
 }
 
 function formatAmount(val: number | null | undefined, decimals = 2): string {
-  if (val == null || Number.isNaN(val)) return "";
+  if (val == null || !Number.isFinite(val)) return "";
   return val.toLocaleString("en-US", {
     minimumFractionDigits: 0,
     maximumFractionDigits: decimals,
@@ -58,7 +58,7 @@ function parseAmount(raw: string): number | null {
   const sanitized = raw.replaceAll(",", "").trim();
   if (sanitized === "" || sanitized === "-") return null;
   const num = Number(sanitized);
-  return Number.isNaN(num) ? null : num;
+  return Number.isFinite(num) ? num : null;
 }
 
 const CurrencyInputInner = memo(function CurrencyInputInner({
@@ -97,20 +97,6 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
     setEditingValue(clean);
 
     const parsed = parseAmount(clean);
-    if (parsed == null) {
-      onChange(null);
-      return;
-    }
-
-    if (min != null && parsed < min) {
-      onChange(min);
-      return;
-    }
-    if (max != null && parsed > max) {
-      onChange(max);
-      return;
-    }
-
     onChange(parsed);
   });
 
@@ -120,13 +106,14 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
   });
 
   const handleBlur = useMemoizedFn(() => {
+    const parsedFromDraft = editingValue != null ? parseAmount(editingValue) : value;
     setIsFocused(false);
     setEditingValue(null);
 
-    if (value != null) {
-      if (min != null && value < min) {
+    if (parsedFromDraft != null) {
+      if (min != null && parsedFromDraft < min) {
         onChange(min);
-      } else if (max != null && value > max) {
+      } else if (max != null && parsedFromDraft > max) {
         onChange(max);
       }
     }
@@ -146,7 +133,10 @@ const CurrencyInputInner = memo(function CurrencyInputInner({
       {hasMultiCurrency ? (
         <InputGroupAddon align="inline-start" className="p-0">
           <Select value={currency} onValueChange={onCurrencyChange} disabled={disabled || readOnly}>
-            <SelectTrigger className="h-full rounded-r-none border-0 bg-transparent px-2.5 font-mono text-xs font-semibold shadow-none focus:ring-0">
+            <SelectTrigger
+              aria-label={currency}
+              className="h-full rounded-r-none border-0 bg-transparent px-2.5 font-mono text-xs font-semibold shadow-none focus:ring-0"
+            >
               <SelectValue>{currency}</SelectValue>
             </SelectTrigger>
             <SelectContent>

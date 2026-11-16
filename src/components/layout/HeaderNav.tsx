@@ -7,6 +7,7 @@ import { memo, type ReactNode } from "react";
 
 import { useRouteTitle } from "@/components/layout/sidebar/menu.config";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { GlitchTipDiagnostic } from "@/components/shared/GlitchTipDiagnostic";
 import { ThemeColorPicker } from "@/components/shared/ThemeColorPicker";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import {
@@ -20,14 +21,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
+import type { NavGroup } from "./sidebar/types";
 import { GlobalSearch } from "./search/GlobalSearch";
 
 export interface HeaderNavProps {
   /** 业务层注入的头部右侧扩展插槽（例如 ConnectedNotificationBell） */
   rightSlot?: ReactNode;
+  customGroups?: NavGroup[];
 }
 
-export const HeaderNav = memo(function HeaderNav({ rightSlot }: HeaderNavProps) {
+export const HeaderNav = memo(function HeaderNav({ rightSlot, customGroups }: HeaderNavProps) {
   const t = useTranslations("layout");
   const pathname = usePathname();
   const pageTitle = useRouteTitle(pathname);
@@ -53,11 +56,11 @@ export const HeaderNav = memo(function HeaderNav({ rightSlot }: HeaderNavProps) 
       </div>
 
       <div className="flex items-center gap-2">
-        <GlobalSearch />
+        <GlobalSearch customGroups={customGroups} />
         {rightSlot}
         <Separator orientation="vertical" className="h-4" />
         <LanguageSwitcher />
-        <ThemeColorPicker />
+        <ThemeColorPicker footerSlot={<GlitchTipDiagnostic />} />
         <ThemeToggle />
       </div>
     </header>

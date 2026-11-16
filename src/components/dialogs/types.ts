@@ -131,6 +131,10 @@ export interface FormDialogProps<TData = Record<string, unknown>> extends BaseDi
    */
   enableDirtyGuard?: boolean;
   /**
+   * Whether remote record data is still loading (shows loading banner and prevents premature edits).
+   */
+  loading?: boolean;
+  /**
    * Whether the form is currently submitting an async mutation.
    * When true, disables cancel/close and displays a loading spinner on the submit button.
    */

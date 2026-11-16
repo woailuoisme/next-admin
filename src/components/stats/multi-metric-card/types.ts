@@ -1,12 +1,12 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { StatCardTheme } from "../shared/types";
+import type { StatCardTheme, StatDensity } from "../shared/types";
 import type { StatCardTrendData } from "../stat-card/types";
 
 export interface SubMetricItem {
   label: string;
-  value: string | number;
+  value: string | number | null;
   prefix?: string;
   suffix?: string;
   trend?: StatCardTrendData;
@@ -14,7 +14,7 @@ export interface SubMetricItem {
 
 export interface MultiMetricStatCardProps {
   title: string;
-  primaryValue: string | number;
+  primaryValue: string | number | null;
   primaryLabel?: string;
   prefix?: string;
   suffix?: string;
@@ -23,6 +23,7 @@ export interface MultiMetricStatCardProps {
   description?: string;
   icon?: LucideIcon;
   theme?: StatCardTheme;
+  density?: StatDensity;
   badge?: ReactNode;
   to?: string;
   linkLabel?: string;

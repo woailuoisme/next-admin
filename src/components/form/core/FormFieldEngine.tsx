@@ -44,7 +44,7 @@ export { extractErrorMessage };
 
 export function useFieldId(name?: string, explicitId?: string): string {
   const autoId = useId();
-  return explicitId || (name ? `field-${name}` : autoId);
+  return explicitId || (name ? `field-${name}-${autoId}` : autoId);
 }
 
 export function resolveFieldError(

@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Separator } from "@/components/ui/separator";
 
 import type { DataTableColDef } from "../../core/types";
+import { isColumnVisible } from "../../core/utils";
 import type { DataTableColumnsPanelProps } from "../types";
 import { isSystemColumn } from "../filters/utils";
 
@@ -45,7 +46,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
   });
 
   const handleShowAll = useMemoizedFn(() => {
-    const next: Record<string, boolean> = {};
+    const next: Record<string, boolean> = { ...columnVisibility };
     for (const col of toggleableColumns) {
       next[col.field] = true;
     }
@@ -53,7 +54,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
   });
 
   const handleHideAll = useMemoizedFn(() => {
-    const next: Record<string, boolean> = {};
+    const next: Record<string, boolean> = { ...columnVisibility };
     for (const col of toggleableColumns) {
       next[col.field] = false;
     }
@@ -61,14 +62,19 @@ function DataTableColumnsPanelInner<TData = unknown>({
   });
 
   const visibleCount = useMemo(() => {
-    return toggleableColumns.filter((col: DataTableColDef<TData>) => columnVisibility[col.field] !== false).length;
+    return toggleableColumns.filter((col: DataTableColDef<TData>) => isColumnVisible(col, columnVisibility)).length;
   }, [toggleableColumns, columnVisibility]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs">
-          <Columns3 className="size-3.5" />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs"
+        >
+          <Columns3 aria-hidden="true" className="size-3.5" />
           <span>{t("columns_button")}</span>
           <Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
             {visibleCount}/{toggleableColumns.length}
@@ -81,6 +87,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
             <span className="text-foreground text-xs font-semibold">{t("columns_title")}</span>
             <div className="flex items-center gap-1.5">
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-[11px]"
@@ -90,6 +97,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
               </Button>
               <Separator orientation="vertical" className="h-3" />
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-[11px]"
@@ -112,7 +120,7 @@ function DataTableColumnsPanelInner<TData = unknown>({
 
           <div className="max-h-60 space-y-1.5 overflow-y-auto pr-1">
             {filteredColumns.map((col: DataTableColDef<TData>, idx: number) => {
-              const isVisible = columnVisibility[col.field] !== false;
+              const isVisible = isColumnVisible(col, columnVisibility);
               return (
                 <label
                   key={col.id ?? `${col.field}_${idx}`}

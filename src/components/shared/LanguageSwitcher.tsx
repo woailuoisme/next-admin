@@ -67,14 +67,14 @@ export const LanguageSwitcher = memo(function LanguageSwitcher({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           className={cn("text-muted-foreground hover:text-foreground size-9", className)}
           aria-label={effectiveAriaLabel}
           title={effectiveTitle}
         >
-          <Languages className="size-4" />
-          <span className="sr-only">{effectiveAriaLabel}</span>
+          <Languages className="size-4" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
@@ -94,7 +94,7 @@ export const LanguageSwitcher = memo(function LanguageSwitcher({
                 <span className="text-foreground font-medium">{option.nativeName}</span>
                 <span className="text-muted-foreground text-[10px]">{option.name}</span>
               </div>
-              {isSelected && <Check className="text-primary ml-2 size-4 shrink-0" />}
+              {isSelected && <Check className="text-primary ml-2 size-4 shrink-0" aria-hidden="true" />}
             </DropdownMenuItem>
           );
         })}

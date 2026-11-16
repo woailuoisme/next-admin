@@ -154,7 +154,7 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
 
   // Effect 3: 增量更新画笔样式（支持切换深浅主题或传入色板）
   useEffect(() => {
-    if (!isLoaded || !map || !map.getLayer(lineLayerId)) return;
+    if (!isLoaded || !map || !map.getSource(sourceId) || !map.getLayer(lineLayerId)) return;
     map.setPaintProperty(lineLayerId, "line-color", [
       "case",
       ["boolean", ["feature-state", "hover"], false],
@@ -164,13 +164,30 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
     map.setPaintProperty(lineLayerId, "line-width", [
       "case",
       ["boolean", ["feature-state", "hover"], false],
-      arcWidth + 2,
+      effectiveHoverWidth,
       arcWidth,
+    ]);
+    map.setPaintProperty(lineLayerId, "line-opacity", [
+      "case",
+      ["boolean", ["feature-state", "hover"], false],
+      1,
+      arcOpacity,
     ]);
     if (map.getLayer(hitLayerId)) {
       map.setPaintProperty(hitLayerId, "line-width", Math.max(HIT_LINE_MIN_WIDTH, arcWidth + 8));
     }
-  }, [arcColor, arcHoverColor, arcWidth, hitLayerId, isLoaded, lineLayerId, map]);
+  }, [
+    arcColor,
+    arcHoverColor,
+    arcOpacity,
+    arcWidth,
+    effectiveHoverWidth,
+    hitLayerId,
+    isLoaded,
+    lineLayerId,
+    map,
+    sourceId,
+  ]);
 
   // Effect 4: 绑定悬浮与点击交互
   useEffect(() => {
@@ -222,11 +239,15 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
     map.on("click", hitLayerId, handleClick);
 
     return () => {
-      map.off("mousemove", hitLayerId, handleMouseMove);
-      map.off("mouseleave", hitLayerId, handleMouseLeave);
-      map.off("click", hitLayerId, handleClick);
-      setHover(null);
-      map.getCanvas().style.cursor = "";
+      try {
+        map.off("mousemove", hitLayerId, handleMouseMove);
+        map.off("mouseleave", hitLayerId, handleMouseLeave);
+        map.off("click", hitLayerId, handleClick);
+        setHover(null);
+        map.getCanvas().style.cursor = "";
+      } catch {
+        // 地图卸载或样式重建阶段忽略底层清理异常
+      }
     };
   }, [hitLayerId, interactive, isLoaded, map, sourceId]);
 

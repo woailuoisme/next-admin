@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 
 import type { WaterfallFinancialChartProps, WaterfallItem, WaterfallItemType, WaterfallProcessedItem } from "./types";

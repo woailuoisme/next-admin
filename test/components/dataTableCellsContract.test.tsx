@@ -1,7 +1,9 @@
+import { StrictMode } from "react";
 import { Star } from "lucide-react";
 import { describe, expect, it, vi } from "vitest";
 
 import { Table, TableBody, TableCell, TableFooter, TableRow } from "@/components/ui/table";
+import { MaskedCell } from "@/components/data-table/cells/display/MaskedCell";
 import { TextCell } from "@/components/data-table/cells/display/TextCell";
 import { ImageCell } from "@/components/data-table/cells/media/image/ImageCell";
 import { actionsCol } from "@/components/data-table/columns/actions";
@@ -10,7 +12,7 @@ import { iconCol, maskedCol, progressCol, sparklineCol } from "@/components/data
 import { currencyCol, numberCol } from "@/components/data-table/columns/number";
 import type { DataTableColDef } from "@/components/data-table/core/types";
 import { DataTableSummaryRow } from "@/components/data-table/footer/DataTableSummaryRow";
-import { fireEvent, renderWithProviders, screen, waitFor } from "test/test-utils";
+import { act, fireEvent, renderWithProviders, screen, waitFor } from "test/test-utils";
 
 interface ContractRow {
   id: string;
@@ -226,5 +228,35 @@ describe("Column <-> Cell Contracts & Cell Performance Guards", () => {
     await waitFor(() => {
       expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
+  });
+
+  it("toggles MaskedCell reveal and counts down autoHideDuration safely under StrictMode", () => {
+    vi.useFakeTimers();
+    try {
+      renderWithProviders(
+        <StrictMode>
+          <MaskedCell value="13812345678" maskType="phone" autoHideDuration={2} />
+        </StrictMode>,
+        { locale: "zh" },
+      );
+
+      expect(screen.getByTestId("masked-cell")).toHaveTextContent("138****5678");
+      fireEvent.click(screen.getByRole("button", { name: "查看明文" }));
+
+      expect(screen.getByTestId("masked-cell")).toHaveTextContent("13812345678");
+      expect(screen.getByText("2s")).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(screen.getByText("1s")).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(screen.getByTestId("masked-cell")).toHaveTextContent("138****5678");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

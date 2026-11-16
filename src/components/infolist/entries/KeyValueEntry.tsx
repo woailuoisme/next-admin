@@ -84,12 +84,17 @@ export const KeyValueEntry = React.memo(function KeyValueEntry({
 
     return (
       <div className="divide-border/60 border-border/80 bg-muted/20 divide-y rounded-lg border px-3 py-1 text-xs">
-        {entries.map(({ key, value }, idx) => (
-          <div key={`${key}-${idx}`} className="flex items-baseline justify-between gap-4 py-1.5">
-            <span className="text-muted-foreground shrink-0 font-mono font-medium">{key}</span>
-            <span className="text-foreground truncate text-right">{safeStringify(value)}</span>
-          </div>
-        ))}
+        {entries.map(({ key, value }, idx) => {
+          const serialized = safeStringify(value);
+          return (
+            <div key={`${key}-${idx}`} className="flex min-w-0 items-baseline justify-between gap-4 py-1.5">
+              <span className="text-muted-foreground shrink-0 font-mono font-medium">{key}</span>
+              <span className="text-foreground min-w-0 flex-1 truncate text-right" title={serialized}>
+                {serialized}
+              </span>
+            </div>
+          );
+        })}
       </div>
     );
   };

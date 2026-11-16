@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemoizedFn } from "ahooks";
 import { Download, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import type { ActionItem } from "@/components/data-table/cells/action/types";
@@ -57,6 +57,8 @@ function ResourceBatchActionButton<
 
   const actionDef = spec.kind === "action" ? resource.actions[spec.actionKey] : undefined;
   const hasBatchFailureRef = useRef(false);
+  const batchActionLockRef = useRef(false);
+  const [isCustomPending, setIsCustomPending] = useState(false);
 
   const batchCustom = useBatchMutation<TItem>({
     mutationFn: async (item) => {
@@ -77,59 +79,72 @@ function ResourceBatchActionButton<
     },
   });
 
+  const runBatchAction = useMemoizedFn(async () => {
+    hasBatchFailureRef.current = false;
+    await batchCustom.mutateBatchAsync(selectedRows);
+    if (!hasBatchFailureRef.current) {
+      clearSelection();
+    }
+  });
+
+  const runBatchCustom = useMemoizedFn(async () => {
+    if (spec.kind && spec.kind !== "custom") return;
+    await spec.onClick(selectedRows, clearSelection);
+  });
+
+  const runLockedBatchClick = useMemoizedFn(
+    async (task: () => Promise<void>, setPending?: (pending: boolean) => void) => {
+      if (batchActionLockRef.current) return;
+      batchActionLockRef.current = true;
+      setPending?.(true);
+      try {
+        await task();
+      } finally {
+        batchActionLockRef.current = false;
+        setPending?.(false);
+      }
+    },
+  );
+
+  const renderPillButton = (
+    variant: "outline" | "destructive" | "secondary",
+    Icon: typeof Trash2 | undefined,
+    onClick: () => void,
+    disabled?: boolean,
+  ) => (
+    <Button
+      type="button"
+      variant={variant}
+      size="sm"
+      className="h-7 gap-1 rounded-full text-xs"
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {Icon ? <Icon className="size-3.5" aria-hidden="true" /> : null}
+      <span>{spec.label({ selectedCount: selectedRows.length, t })}</span>
+    </Button>
+  );
+
   if (spec.kind === "batchDelete") {
     if (!canDelete) return null;
-    const Icon = spec.icon ?? Trash2;
-    return (
-      <Button
-        variant={spec.variant ?? "destructive"}
-        size="sm"
-        className="h-7 gap-1 rounded-full text-xs"
-        onClick={() => {
-          handleBatchDelete(selectedRows, clearSelection);
-        }}
-      >
-        <Icon className="size-3.5" />
-        <span>{spec.label({ selectedCount: selectedRows.length, t })}</span>
-      </Button>
-    );
+    return renderPillButton(spec.variant ?? "destructive", spec.icon ?? Trash2, () => {
+      handleBatchDelete(selectedRows, clearSelection);
+    });
   }
 
   if (spec.kind === "exportJson") {
-    const Icon = spec.icon ?? Download;
-    return (
-      <Button
-        variant={spec.variant ?? "outline"}
-        size="sm"
-        className="h-7 gap-1 rounded-full text-xs"
-        onClick={() => exportRowsAsJson(selectedRows, spec.exportFileName(selectedRows.length), clearSelection)}
-      >
-        <Icon className="size-3.5" />
-        <span>{spec.label({ selectedCount: selectedRows.length, t })}</span>
-      </Button>
-    );
+    return renderPillButton(spec.variant ?? "outline", spec.icon ?? Download, () => {
+      exportRowsAsJson(selectedRows, spec.exportFileName(selectedRows.length), clearSelection);
+    });
   }
 
   if (spec.kind === "action") {
     if (!canCustomPermission) return null;
-    const Icon = spec.icon;
-    return (
-      <Button
-        variant={spec.variant ?? "destructive"}
-        size="sm"
-        className="h-7 gap-1 rounded-full text-xs"
-        disabled={batchCustom.isPending}
-        onClick={async () => {
-          hasBatchFailureRef.current = false;
-          await batchCustom.mutateBatchAsync(selectedRows);
-          if (!hasBatchFailureRef.current) {
-            clearSelection();
-          }
-        }}
-      >
-        {Icon ? <Icon className="size-3.5" /> : null}
-        <span>{spec.label({ selectedCount: selectedRows.length, t })}</span>
-      </Button>
+    return renderPillButton(
+      spec.variant ?? "destructive",
+      spec.icon,
+      () => void runLockedBatchClick(runBatchAction),
+      batchCustom.isPending,
     );
   }
 
@@ -137,17 +152,11 @@ function ResourceBatchActionButton<
     return null;
   }
 
-  const Icon = spec.icon;
-  return (
-    <Button
-      variant={spec.variant ?? "outline"}
-      size="sm"
-      className="h-7 gap-1 rounded-full text-xs"
-      onClick={() => void spec.onClick(selectedRows, clearSelection)}
-    >
-      {Icon ? <Icon className="size-3.5" /> : null}
-      <span>{spec.label({ selectedCount: selectedRows.length, t })}</span>
-    </Button>
+  return renderPillButton(
+    spec.variant ?? "outline",
+    spec.icon,
+    () => void runLockedBatchClick(runBatchCustom, setIsCustomPending),
+    isCustomPending,
   );
 }
 
@@ -239,21 +248,15 @@ export function ResourceTable<
     },
   );
 
-  const actionPendingRef = useRef(false);
-  useEffect(() => {
-    actionPendingRef.current = actionMutation.isPending;
-  }, [actionMutation.isPending]);
-
   const columns = useMemo(() => {
+    const isActionPending = actionMutation.isPending;
     const baseCols = schema.columns({
       t,
       openView,
       openEdit,
       openDelete,
       runAction,
-      get isActionPending() {
-        return actionPendingRef.current;
-      },
+      isActionPending,
     });
 
     if (!schema.rowActions) return baseCols;
@@ -286,7 +289,18 @@ export function ResourceTable<
     });
 
     return [...baseCols, actionsColumn];
-  }, [can, mapCustomActionItems, openDelete, openEdit, openView, resource.name, runAction, schema, t]);
+  }, [
+    actionMutation.isPending,
+    can,
+    mapCustomActionItems,
+    openDelete,
+    openEdit,
+    openView,
+    resource.name,
+    runAction,
+    schema,
+    t,
+  ]);
 
   const filters = useMemo(() => schema.filters?.(t), [schema, t]);
 
@@ -306,11 +320,14 @@ export function ResourceTable<
   const handleRowClick = useMemo(() => {
     if (!schema.onRowClick) return undefined;
     if (schema.onRowClick === "view") {
-      return (row: TItem) => openView(String(row.id));
+      return (row: TItem) => {
+        if (!can({ resource: resource.name, action: "view", record: row })) return;
+        openView(String(row.id));
+      };
     }
     const customClick = schema.onRowClick;
     return (row: TItem) => customClick(row, { openView, openEdit });
-  }, [openEdit, openView, schema]);
+  }, [can, openEdit, openView, resource.name, schema]);
 
   const renderBatchActions = useMemo(() => {
     const specs = schema.batchActions;

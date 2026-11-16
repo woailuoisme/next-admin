@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import type { DataTableFilterLayout } from "@/components/data-table/core";
 
-import { createShowcaseColumns } from "./columns";
+import { createShowcaseDataColumns, createShowcaseSelectionColumn } from "./columns";
 import { EmptyStateShowcaseSection } from "./components/EmptyStateShowcaseSection";
 import { InteractiveTableSection } from "./components/InteractiveTableSection";
 import { MasterDetailTableSection } from "./components/MasterDetailTableSection";
@@ -35,17 +35,18 @@ export function TableShowcasePage() {
   const isAllSelected = useMemo(() => data.length > 0 && data.every((item) => item.isSelected), [data]);
   const isSomeSelected = useMemo(() => data.some((item) => item.isSelected) && !isAllSelected, [data, isAllSelected]);
 
-  const columns = useMemo(
+  const dataColumns = useMemo(() => createShowcaseDataColumns({ updateItem, removeItem }), [updateItem, removeItem]);
+  const selectionColumn = useMemo(
     () =>
-      createShowcaseColumns({
+      createShowcaseSelectionColumn({
         isAllSelected,
         isSomeSelected,
         updateItem,
-        removeItem,
         setData,
       }),
-    [isAllSelected, isSomeSelected, updateItem, removeItem],
+    [isAllSelected, isSomeSelected, updateItem],
   );
+  const columns = useMemo(() => [selectionColumn, ...dataColumns], [selectionColumn, dataColumns]);
 
   return (
     <div className="max-w-full min-w-0 space-y-6">

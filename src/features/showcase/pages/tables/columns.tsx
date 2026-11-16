@@ -78,29 +78,37 @@ export interface CreateShowcaseColumnsOptions {
   setData: Dispatch<SetStateAction<ShowcaseItem[]>>;
 }
 
-export function createShowcaseColumns({
+export function createShowcaseSelectionColumn({
   isAllSelected,
   isSomeSelected,
   updateItem,
-  removeItem,
   setData,
-}: CreateShowcaseColumnsOptions): DataTableColDef<ShowcaseItem>[] {
+}: Pick<
+  CreateShowcaseColumnsOptions,
+  "isAllSelected" | "isSomeSelected" | "updateItem" | "setData"
+>): DataTableColDef<ShowcaseItem> {
+  return checkboxCol<ShowcaseItem>("isSelected", "", {
+    width: 48,
+    pinned: "left",
+    headerCheckbox: true,
+    isAllChecked: isAllSelected,
+    isIndeterminate: isSomeSelected,
+    onHeaderCheckboxChange: (checked) => {
+      setData((prev) => prev.map((item) => ({ ...item, isSelected: checked })));
+      toast.info(checked ? "已全选当前所有条目" : "已取消全选");
+    },
+    onCellChange: (row, nextVal) => {
+      updateItem(row.id, { isSelected: nextVal });
+      toast.info(`Item ${row.id} selection: ${nextVal ? "Checked" : "Unchecked"}`);
+    },
+  });
+}
+
+export function createShowcaseDataColumns({
+  updateItem,
+  removeItem,
+}: Pick<CreateShowcaseColumnsOptions, "updateItem" | "removeItem">): DataTableColDef<ShowcaseItem>[] {
   return [
-    checkboxCol<ShowcaseItem>("isSelected", "", {
-      width: 48,
-      pinned: "left",
-      headerCheckbox: true,
-      isAllChecked: isAllSelected,
-      isIndeterminate: isSomeSelected,
-      onHeaderCheckboxChange: (checked) => {
-        setData((prev) => prev.map((item) => ({ ...item, isSelected: checked })));
-        toast.info(checked ? "已全选当前所有条目" : "已取消全选");
-      },
-      onCellChange: (row, nextVal) => {
-        updateItem(row.id, { isSelected: nextVal });
-        toast.info(`Item ${row.id} selection: ${nextVal ? "Checked" : "Unchecked"}`);
-      },
-    }),
     avatarCol<ShowcaseItem>("avatar", "Avatar", {
       width: 70,
       name: (row) => row.title,
@@ -265,4 +273,8 @@ export function createShowcaseColumns({
       ],
     }),
   ];
+}
+
+export function createShowcaseColumns(options: CreateShowcaseColumnsOptions): DataTableColDef<ShowcaseItem>[] {
+  return [createShowcaseSelectionColumn(options), ...createShowcaseDataColumns(options)];
 }

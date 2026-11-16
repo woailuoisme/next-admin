@@ -166,11 +166,11 @@ const RatingControl = memo(function RatingControl({
               )}
               aria-label={t("rating_of", { value: starIndex, count })}
             >
-              <CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.empty)} />
+              <CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.empty)} aria-hidden="true" />
 
               {fillPercentage > 0 && (
                 <div className="absolute inset-0 overflow-hidden p-0.5" style={{ width: `${fillPercentage}%` }}>
-                  <CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.filled)} />
+                  <CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.filled)} aria-hidden="true" />
                 </div>
               )}
             </Button>

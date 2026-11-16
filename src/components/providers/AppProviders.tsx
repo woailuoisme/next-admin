@@ -13,26 +13,12 @@ import { env } from "@/env";
 import { getQueryClient } from "@/lib/queryClient";
 import { useResolvedThemeMode } from "@/stores/preferences";
 
-let isConsoleErrorPatched = false;
-
-// Filter out React 19 false-positive warning for next-themes inline script tag in development
-if (typeof window !== "undefined" && process.env.NODE_ENV === "development" && !isConsoleErrorPatched) {
-  isConsoleErrorPatched = true;
-  const originalError = console.error;
-  console.error = (...args: unknown[]) => {
-    if (typeof args[0] === "string" && args[0].includes("Encountered a script tag")) {
-      return;
-    }
-    originalError.apply(console, args);
-  };
-}
-
 const TOASTER_ICONS = {
-  success: <CircleCheckIcon className="text-chart-2 size-4" />,
-  info: <InfoIcon className="text-chart-1 size-4" />,
-  warning: <TriangleAlertIcon className="text-chart-3 size-4" />,
-  error: <OctagonXIcon className="text-destructive size-4" />,
-  loading: <Loader2Icon className="text-primary size-4 animate-spin" />,
+  success: <CircleCheckIcon className="text-chart-2 size-4" aria-hidden="true" />,
+  info: <InfoIcon className="text-chart-1 size-4" aria-hidden="true" />,
+  warning: <TriangleAlertIcon className="text-chart-3 size-4" aria-hidden="true" />,
+  error: <OctagonXIcon className="text-destructive size-4" aria-hidden="true" />,
+  loading: <Loader2Icon className="text-primary size-4 animate-spin" aria-hidden="true" />,
 };
 
 /** 仅订阅解析后主题状态的叶子节点，避免主题切换触发整个 AppProviders 子树重渲染 */
@@ -58,7 +44,11 @@ export function AppProviders({ children, guardSlot }: AppProvidersProps) {
 
     void import("@/mocks/init")
       .then(({ enableMocking }) => enableMocking())
-      .catch(() => {})
+      .catch((error) => {
+        if (process.env.NODE_ENV === "development") {
+          console.warn("[AppProviders] Failed to initialize MSW mocking:", error);
+        }
+      })
       .finally(() => {
         if (!cancelled) {
           setIsMockReady(true);
@@ -76,21 +66,9 @@ export function AppProviders({ children, guardSlot }: AppProvidersProps) {
       <NuqsAdapter>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider delayDuration={0}>
-            {isMockReady ? (
-              <>
-                {guardSlot}
-                {children}
-              </>
-            ) : (
-              <div
-                role="status"
-                aria-label="Loading application"
-                className="flex h-screen w-full items-center justify-center"
-              >
-                <Loader2Icon className="text-primary size-7 animate-spin" aria-hidden="true" />
-                <span className="sr-only">Loading application...</span>
-              </div>
-            )}
+            {/* 始终渲染 children 以保留 SSR HTML 与 HydrationBoundary 水合；仅延迟挂载 guardSlot 等待 MSW 就绪 */}
+            {isMockReady ? guardSlot : null}
+            {children}
             <AppToaster />
           </TooltipProvider>
         </QueryClientProvider>

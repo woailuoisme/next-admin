@@ -10,6 +10,7 @@ import type { TableEmptyStateConfig, TableEmptyStateContext, TableEmptyStateProp
 
 import { EMPTY_ARRAY } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
+import { toColumnCssVarKey } from "../core/utils";
 import { TableEmptyState } from "../empty-state";
 
 export interface DataTableSkeletonRowsProps<TData = any> {
@@ -63,12 +64,7 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
         return (
           <TableRow key={rowKey} className={cn("hover:bg-transparent", densityRowClass)} aria-hidden="true">
             {checkboxSelection && (
-              <TableCell
-                className={cn(
-                  "w-12 px-3 py-2 text-center",
-                  pinnedLeftSet.has("__checkbox__") && "sticky left-0 z-10 bg-card",
-                )}
-              >
+              <TableCell className="bg-card sticky left-0 z-15 w-11 px-3 py-2 text-center">
                 <Skeleton className="mx-auto size-4 rounded-xs" />
               </TableCell>
             )}
@@ -93,16 +89,15 @@ export const DataTableSkeletonRows = memo(function DataTableSkeletonRows<TData =
               const isPinnedRight = pinnedRightSet.has(col.field);
               const isLastPinnedLeft = lastPinnedLeftField === col.field;
               const isFirstPinnedRight = firstPinnedRightField === col.field;
+              const varKey = toColumnCssVarKey(col.field);
 
               const actualWidth = columnWidths?.[col.field] ?? col.width;
               const style: CSSProperties = {
-                width: `var(--col-w-${col.field}, ${actualWidth ? `${actualWidth}px` : "auto"})`,
+                width: `var(--col-w-${varKey}, ${actualWidth ? `${actualWidth}px` : "auto"})`,
                 minWidth: col.minWidth ? `${col.minWidth}px` : undefined,
                 maxWidth: col.maxWidth ? `${col.maxWidth}px` : undefined,
-                ...(isPinnedLeft ? { left: `var(--col-left-${col.field}, ${leftOffsets?.[col.field] ?? 0}px)` } : {}),
-                ...(isPinnedRight
-                  ? { right: `var(--col-right-${col.field}, ${rightOffsets?.[col.field] ?? 0}px)` }
-                  : {}),
+                ...(isPinnedLeft ? { left: `var(--col-left-${varKey}, ${leftOffsets?.[col.field] ?? 0}px)` } : {}),
+                ...(isPinnedRight ? { right: `var(--col-right-${varKey}, ${rightOffsets?.[col.field] ?? 0}px)` } : {}),
               };
 
               const cellKey = `skeleton-cell-${rowIndex}-${col.field}`;
@@ -163,12 +158,13 @@ export const DataTableBackdropLoader = memo(function DataTableBackdropLoader({
 
   return (
     <div
+      role="status"
       className="bg-background/55 absolute inset-0 z-30 flex flex-col items-center justify-center backdrop-blur-[1.5px] transition-all duration-200"
       aria-live="polite"
       aria-busy="true"
     >
       <div className="border-border/60 bg-card/95 text-foreground flex items-center gap-3 rounded-xl border px-5 py-3 text-sm font-medium shadow-lg backdrop-blur-md">
-        <Loader2 className="text-primary size-5 animate-spin" />
+        <Loader2 aria-hidden="true" className="text-primary size-5 animate-spin" />
         <span>{resolvedLoadingText}</span>
       </div>
     </div>
@@ -194,8 +190,8 @@ export const DataTableLoadingOverlay = memo(function DataTableLoadingOverlay({
         {slots?.loadingOverlay ? (
           <slots.loadingOverlay />
         ) : (
-          <div className="text-muted-foreground flex flex-col items-center justify-center gap-3">
-            <Loader2 className="text-primary size-8 animate-spin" />
+          <div className="text-muted-foreground flex flex-col items-center justify-center gap-3" role="status">
+            <Loader2 aria-hidden="true" className="text-primary size-8 animate-spin" />
             <span className="text-xs font-medium tracking-wide">{resolvedLoadingText}</span>
           </div>
         )}

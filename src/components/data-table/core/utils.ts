@@ -10,3 +10,26 @@ export function readCellValue<TData>(row: TData, col: Pick<DataTableColDef<TData
   }
   return (row as Record<string, unknown>)[col.field];
 }
+
+const CSS_VAR_UNSAFE_RE = /[^a-zA-Z0-9_-]/g;
+
+/**
+ * 将列 field 规整为合法的 CSS 自定义属性后缀（保留常见字母/数字/_/-，避免嵌套路径 `.` 破坏 var(--col-*)）。
+ */
+export function toColumnCssVarKey(field: string): string {
+  return field.replace(CSS_VAR_UNSAFE_RE, "_");
+}
+
+/**
+ * 统一判断列是否可见：显式切换记录（columnVisibility）优先于列定义初始 hidden。
+ */
+export function isColumnVisible<TData>(
+  col: Pick<DataTableColDef<TData>, "field" | "hidden">,
+  columnVisibility: Record<string, boolean>,
+): boolean {
+  const explicit = columnVisibility[col.field];
+  if (explicit !== undefined) {
+    return explicit;
+  }
+  return !col.hidden;
+}

@@ -271,15 +271,21 @@ describe("Stats Subsystem Components", () => {
       expect(helpBtn.querySelector(".sr-only")).toBeNull();
     });
 
-    it("supports keyboard Enter and Space on interactive click-only StatCard", () => {
+    it("uses Stretched-Button sibling pattern without nested interactive elements and supports keyboard Enter/Space", async () => {
       const handleCardClick = vi.fn();
-      renderWithProviders(<StatCard title="可聚焦卡片" value={42} onClick={handleCardClick} />);
+      const { user } = renderWithProviders(
+        <StatCard title="可聚焦卡片" value={42} copyable onClick={handleCardClick} />,
+      );
 
-      const cardButton = screen.getByRole("button");
-      expect(cardButton).toHaveAttribute("tabindex", "0");
+      const cardButton = screen.getByRole("button", { name: "可聚焦卡片" });
+      const copyBtn = screen.getByRole("button", { name: "复制数值" });
+      expect(cardButton.tagName).toBe("BUTTON");
+      expect(cardButton.contains(copyBtn)).toBe(false);
 
-      fireEvent.keyDown(cardButton, { key: "Enter" });
-      fireEvent.keyDown(cardButton, { key: " " });
+      cardButton.focus();
+      expect(cardButton).toHaveFocus();
+      await user.keyboard("{Enter}");
+      await user.keyboard(" ");
       expect(handleCardClick).toHaveBeenCalledTimes(2);
     });
 
@@ -420,6 +426,38 @@ describe("Stats Subsystem Components", () => {
 
       rerender({ target: Number.NaN, enabled: true });
       expect(result.current).toBe(0);
+    });
+
+    it("guards empty targetValue on ProgressStatCard and syncs gradient/stroke safety on MiniSparkline", () => {
+      const { container } = renderWithProviders(
+        <>
+          <ProgressStatCard title="无目标文本" value={60} targetValue="" progress={60} />
+          <MiniSparkline data={[10, 30, 20]} type="area" gradientId="#!" />
+        </>,
+      );
+
+      expect(screen.queryByText(/目标:/)).toBeNull();
+      const progress = container.querySelector("[data-slot=progress]");
+      expect(progress).toHaveAttribute("data-value", "60");
+      expect(progress).toHaveAttribute("data-state", "loading");
+
+      const grad = container.querySelector("linearGradient");
+      expect(grad?.getAttribute("id")).toMatch(/^spark-grad-/);
+      const strokePath = container.querySelector("path[fill='none']");
+      expect(strokePath).toHaveAttribute("vector-effect", "non-scaling-stroke");
+    });
+
+    it("announces LiveStatCard errors via alert role and handles null values across card variants", () => {
+      renderWithProviders(
+        <>
+          <LiveStatCard title="空值遥测" value={null} errorMessage="连接断开" />
+          <ProgressStatCard title="空值进度" value={null} targetValue={100} />
+          <MultiMetricStatCard title="空值多指标" primaryValue={null} metrics={[{ label: "子指标", value: null }]} />
+        </>,
+      );
+
+      expect(screen.getByRole("alert")).toHaveTextContent("连接断开");
+      expect(screen.getAllByText("--").length).toBeGreaterThanOrEqual(4);
     });
   });
 });

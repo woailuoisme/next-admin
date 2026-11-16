@@ -60,7 +60,7 @@ const TimePickerControl = memo(function TimePickerControl({
   return (
     <div className="relative flex w-full items-center">
       <div className="text-muted-foreground pointer-events-none absolute left-2.5">
-        <Clock className="size-3.5" />
+        <Clock className="size-3.5" aria-hidden="true" />
       </div>
       <Input
         id={id}

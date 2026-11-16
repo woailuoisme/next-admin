@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMemoizedFn } from "ahooks";
@@ -26,6 +28,7 @@ import { useAuthorizedFlatNavItems } from "../sidebar/menu.config";
 export const GlobalSearchDialog = memo(function GlobalSearchDialog({
   open,
   onOpenChange,
+  customGroups,
   placeholder,
   emptyText,
 }: GlobalSearchDialogProps) {
@@ -34,7 +37,7 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
   const { toggleSidebar } = useSidebar();
   const setMode = usePreferencesStore((s) => s.setMode);
 
-  const navItems = useAuthorizedFlatNavItems();
+  const navItems = useAuthorizedFlatNavItems(customGroups);
 
   const handleNavigate = useMemoizedFn((to: string) => {
     onOpenChange(false);
@@ -68,6 +71,8 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
     <CommandDialog
       open={open}
       onOpenChange={onOpenChange}
+      title={t("search_aria")}
+      description={placeholder ?? t("search_placeholder")}
       className="border-border/80 bg-popover/95 top-[12%] max-w-[calc(100%-2rem)] overflow-hidden rounded-2xl! border p-0 shadow-2xl backdrop-blur-md sm:top-[15%] sm:max-w-lg md:max-w-xl lg:max-w-2xl"
     >
       <Command className="rounded-2xl border-0 bg-transparent">
@@ -83,6 +88,7 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
               return (
                 <CommandItem
                   key={item.to}
+                  value={`${item.parentTitle ?? ""} ${item.title} ${item.to}`.trim()}
                   onSelect={() => handleNavigate(item.to)}
                   onMouseEnter={() => handlePreload(item.to)}
                   onFocus={() => handlePreload(item.to)}
@@ -90,7 +96,10 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2.5 overflow-hidden">
                     {Icon && (
-                      <Icon className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors" />
+                      <Icon
+                        aria-hidden="true"
+                        className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors"
+                      />
                     )}
                     <div className="flex min-w-0 items-center gap-1.5 truncate">
                       {item.parentTitle && (
@@ -123,26 +132,37 @@ export const GlobalSearchDialog = memo(function GlobalSearchDialog({
               className="group flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
             >
               <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
-                <PanelLeft className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors" />
+                <PanelLeft
+                  aria-hidden="true"
+                  className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors"
+                />
                 <span className="truncate">{t("search_toggle_sidebar")}</span>
               </div>
               <CommandShortcut className="text-[10px]">⌘B</CommandShortcut>
             </CommandItem>
             <CommandItem
+              value={t("search_theme_light")}
               onSelect={handleSetLight}
               className="group flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
             >
               <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
-                <Sun className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors" />
+                <Sun
+                  aria-hidden="true"
+                  className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors"
+                />
                 <span className="truncate">{t("search_theme_light")}</span>
               </div>
             </CommandItem>
             <CommandItem
+              value={t("search_theme_dark")}
               onSelect={handleSetDark}
               className="group flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
             >
               <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
-                <Moon className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors" />
+                <Moon
+                  aria-hidden="true"
+                  className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors"
+                />
                 <span className="truncate">{t("search_theme_dark")}</span>
               </div>
             </CommandItem>

@@ -20,7 +20,7 @@ import { DEFAULT_PAGE_SIZE, EMPTY_ARRAY, EMPTY_RECORD } from "../core/constants"
 
 const DISABLED_QUERY_OPTIONS = {
   queryKey: ["__disabled_url_table_adapter__"],
-  queryFn: () => null as any,
+  queryFn: () => null as never,
   enabled: false,
 };
 

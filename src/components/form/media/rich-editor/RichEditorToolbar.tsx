@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { Editor } from "@tiptap/react";
+import { type Editor, useEditorState } from "@tiptap/react";
 
 import { useMemoizedFn } from "ahooks";
 import {
@@ -142,38 +142,82 @@ interface ToolbarActionItemProps {
   btn: ActionButtonDef;
   label: string;
   editor: Editor;
+  isActive?: boolean;
   disabled?: boolean;
 }
 
-const ToolbarActionItem = memo(function ToolbarActionItem({ btn, label, editor, disabled }: ToolbarActionItemProps) {
+const ToolbarActionItem = memo(function ToolbarActionItem({
+  btn,
+  label,
+  editor,
+  isActive,
+  disabled,
+}: ToolbarActionItemProps) {
   const handleClick = useMemoizedFn(() => {
     btn.action(editor);
   });
 
   return (
-    <RichEditorToolbarItem
-      label={label}
-      isActive={btn.isActive?.(editor)}
-      disabled={disabled || btn.isDisabled?.(editor)}
-      onClick={handleClick}
-    >
-      <btn.Icon className="size-3.5" />
+    <RichEditorToolbarItem label={label} isActive={isActive} disabled={disabled} onClick={handleClick}>
+      <btn.Icon aria-hidden="true" className="size-3.5" />
     </RichEditorToolbarItem>
   );
 });
+
+type ToolbarEditorState = Partial<Record<ToolbarButtonId, boolean>> & {
+  canUndo?: boolean;
+  canRedo?: boolean;
+};
+
+function selectToolbarState({ editor }: { editor: Editor }): ToolbarEditorState {
+  return {
+    bold: editor.isActive("bold"),
+    italic: editor.isActive("italic"),
+    strike: editor.isActive("strike"),
+    code: editor.isActive("code"),
+    h2: editor.isActive("heading", { level: 2 }),
+    h3: editor.isActive("heading", { level: 3 }),
+    bulletList: editor.isActive("bulletList"),
+    orderedList: editor.isActive("orderedList"),
+    blockquote: editor.isActive("blockquote"),
+    codeBlock: editor.isActive("codeBlock"),
+    link: editor.isActive("link"),
+    canUndo: editor.can().undo(),
+    canRedo: editor.can().redo(),
+  };
+}
+
+function resolveToolbarDisabled(btn: ActionButtonDef, editor: Editor, editorState: ToolbarEditorState | null): boolean {
+  if (editorState && btn.id === "undo") return !editorState.canUndo;
+  if (editorState && btn.id === "redo") return !editorState.canRedo;
+  return Boolean(btn.isDisabled?.(editor));
+}
 
 function renderGroup(
   buttons: ActionButtonDef[],
   toolbarButtons: ToolbarButtonId[],
   editor: Editor,
+  editorState: ToolbarEditorState | null,
   t: (key: MessageKeyOf<"form">) => string,
   disabled?: boolean,
 ) {
   return buttons
     .filter((btn) => toolbarButtons.includes(btn.id))
-    .map((btn) => (
-      <ToolbarActionItem key={btn.id} btn={btn} label={t(btn.labelKey)} editor={editor} disabled={disabled} />
-    ));
+    .map((btn) => {
+      const isActive = editorState ? Boolean(editorState[btn.id]) : Boolean(btn.isActive?.(editor));
+      const btnDisabled = resolveToolbarDisabled(btn, editor, editorState);
+
+      return (
+        <ToolbarActionItem
+          key={btn.id}
+          btn={btn}
+          label={t(btn.labelKey)}
+          editor={editor}
+          isActive={isActive}
+          disabled={disabled || btnDisabled}
+        />
+      );
+    });
 }
 
 const ToolbarDivider = memo(function ToolbarDivider() {
@@ -186,6 +230,10 @@ export const RichEditorToolbar = memo(function RichEditorToolbar({
   disabled,
 }: RichEditorToolbarProps) {
   const t = useTranslations("form");
+  const editorState = useEditorState({
+    editor,
+    selector: selectToolbarState,
+  });
 
   const hasInline = INLINE_BUTTONS.some((b) => toolbarButtons.includes(b.id));
   const hasHeading = HEADING_BUTTONS.some((b) => toolbarButtons.includes(b.id));
@@ -194,24 +242,30 @@ export const RichEditorToolbar = memo(function RichEditorToolbar({
   const hasHistory = HISTORY_BUTTONS.some((b) => toolbarButtons.includes(b.id));
 
   return (
-    <div className="border-border/60 bg-muted/40 text-muted-foreground flex flex-wrap items-center gap-0.5 border-b p-1.5">
+    <div
+      role="toolbar"
+      aria-label={t("editor_placeholder")}
+      className="border-border/60 bg-muted/40 text-muted-foreground flex flex-wrap items-center gap-0.5 border-b p-1.5"
+    >
       {/* Inline group */}
-      {hasInline && renderGroup(INLINE_BUTTONS, toolbarButtons, editor, t, disabled)}
+      {hasInline && renderGroup(INLINE_BUTTONS, toolbarButtons, editor, editorState, t, disabled)}
 
       {hasInline && (hasHeading || hasBlock || hasInsert) && <ToolbarDivider />}
 
       {/* Headings group */}
-      {hasHeading && renderGroup(HEADING_BUTTONS, toolbarButtons, editor, t, disabled)}
+      {hasHeading && renderGroup(HEADING_BUTTONS, toolbarButtons, editor, editorState, t, disabled)}
 
       {hasHeading && (hasBlock || hasInsert) && <ToolbarDivider />}
 
       {/* Block & list group */}
-      {hasBlock && renderGroup(BLOCK_BUTTONS, toolbarButtons, editor, t, disabled)}
+      {hasBlock && renderGroup(BLOCK_BUTTONS, toolbarButtons, editor, editorState, t, disabled)}
 
       {hasBlock && hasInsert && <ToolbarDivider />}
 
       {/* Insert group (Link Popover + Horizontal Rule) */}
-      {toolbarButtons.includes("link") && <RichEditorLinkPopover editor={editor} disabled={disabled} />}
+      {toolbarButtons.includes("link") && (
+        <RichEditorLinkPopover editor={editor} isLinked={Boolean(editorState?.link)} disabled={disabled} />
+      )}
 
       {toolbarButtons.includes("horizontalRule") && (
         <RichEditorToolbarItem
@@ -219,7 +273,7 @@ export const RichEditorToolbar = memo(function RichEditorToolbar({
           disabled={disabled}
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
         >
-          <Minus className="size-3.5" />
+          <Minus aria-hidden="true" className="size-3.5" />
         </RichEditorToolbarItem>
       )}
 
@@ -227,7 +281,7 @@ export const RichEditorToolbar = memo(function RichEditorToolbar({
       <div className="ml-auto" />
 
       {/* History group */}
-      {hasHistory && renderGroup(HISTORY_BUTTONS, toolbarButtons, editor, t, disabled)}
+      {hasHistory && renderGroup(HISTORY_BUTTONS, toolbarButtons, editor, editorState, t, disabled)}
     </div>
   );
 });

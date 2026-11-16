@@ -38,12 +38,16 @@ const LazyComboboxMenu = dynamic(
                   return (
                     <CommandItem
                       key={String(option.value)}
-                      value={option.label}
+                      value={`${option.label}-${String(option.value)}`}
+                      keywords={[option.label, String(option.value)]}
                       disabled={option.disabled}
                       onSelect={() => onSelectValue(option.value)}
                       className="cursor-pointer"
                     >
-                      <Check className={cn("mr-2 size-4 shrink-0", isSelected ? "opacity-100" : "opacity-0")} />
+                      <Check
+                        aria-hidden="true"
+                        className={cn("mr-2 size-4 shrink-0", isSelected ? "opacity-100" : "opacity-0")}
+                      />
                       {option.icon && <span className="mr-2 shrink-0">{option.icon}</span>}
                       <div className="flex min-w-0 flex-col">
                         <span className="truncate">{option.label}</span>
@@ -112,6 +116,7 @@ function ComboboxControl<TValue extends string | number = string>({
 }: ComboboxControlProps<TValue>) {
   const [open, setOpen] = useState(false);
   const locked = Boolean(disabled || readOnly);
+  const hasValue = value !== undefined && value !== null && value !== "";
 
   const selectedOption = options.find((opt) => String(opt.value) === String(value));
 
@@ -148,8 +153,8 @@ function ComboboxControl<TValue extends string | number = string>({
             disabled={disabled}
             className={cn(
               "h-9 w-full justify-between px-3 text-left font-normal",
-              clearable && value && !locked && "pr-8",
-              !value && "text-muted-foreground",
+              clearable && hasValue && !locked && "pr-8",
+              !hasValue && "text-muted-foreground",
               hasError && "border-destructive focus-visible:ring-destructive",
             )}
           >
@@ -157,10 +162,10 @@ function ComboboxControl<TValue extends string | number = string>({
               {selectedOption?.icon && <span className="shrink-0">{selectedOption.icon}</span>}
               {selectedOption ? selectedOption.label : placeholder}
             </span>
-            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+            <ChevronsUpDown aria-hidden="true" className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
           {open ? (
             <LazyComboboxMenu
               options={options}
@@ -173,7 +178,7 @@ function ComboboxControl<TValue extends string | number = string>({
         </PopoverContent>
       </Popover>
 
-      {clearable && value && !locked && (
+      {clearable && hasValue && !locked && (
         <FieldClearButton
           onClick={handleClear}
           ariaLabel={clearAriaLabel}

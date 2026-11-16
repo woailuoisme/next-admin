@@ -3,6 +3,7 @@ import { ExternalLink } from "lucide-react";
 import { memo, useMemo } from "react";
 
 import { CopyButton } from "@/components/shared/CopyButton";
+import { handleActivationKey } from "@/components/shared/activationKey";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 
@@ -75,6 +76,29 @@ function highlightString(text: string, matcher: HighlightMatcher | null): React.
   );
 }
 
+function sanitizeSafeHref(href?: string): string | undefined {
+  if (!href) return undefined;
+  const trimmed = href.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith("/") || trimmed.startsWith("#") || trimmed.startsWith("?")) {
+    return trimmed;
+  }
+  try {
+    const parsed = new URL(trimmed, "http://localhost");
+    if (
+      parsed.protocol === "http:" ||
+      parsed.protocol === "https:" ||
+      parsed.protocol === "mailto:" ||
+      parsed.protocol === "tel:"
+    ) {
+      return trimmed;
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
 export const TextCell = memo(function TextCell({
   title,
   value,
@@ -98,6 +122,8 @@ export const TextCell = memo(function TextCell({
   onClick,
   className,
 }: TextCellProps) {
+  const highlightMatcher = useMemo(() => buildHighlightMatcher(highlightText), [highlightText]);
+
   const resolvedTitle = title !== undefined ? title : value;
   if (isNil(resolvedTitle)) {
     return <span className="text-muted-foreground/40 text-xs italic">-</span>;
@@ -109,8 +135,6 @@ export const TextCell = memo(function TextCell({
       : typeof resolvedTitle === "string" || typeof resolvedTitle === "number"
         ? String(resolvedTitle)
         : "";
-
-  const highlightMatcher = useMemo(() => buildHighlightMatcher(highlightText), [highlightText]);
 
   const renderedTitle =
     typeof resolvedTitle === "string" && highlightMatcher
@@ -131,9 +155,11 @@ export const TextCell = memo(function TextCell({
     </span>
   );
 
-  const linkedTitle = url ? (
+  const safeUrl = sanitizeSafeHref(url);
+
+  const linkedTitle = safeUrl ? (
     <a
-      href={url}
+      href={safeUrl}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
       className="hover:text-primary inline-flex items-center gap-1 transition-colors hover:underline"
@@ -144,7 +170,7 @@ export const TextCell = memo(function TextCell({
       }}
     >
       {titleElement}
-      {isExternal && <ExternalLink className="h-3 w-3 shrink-0 opacity-70" />}
+      {isExternal && <ExternalLink aria-hidden="true" className="h-3 w-3 shrink-0 opacity-70" />}
     </a>
   ) : (
     titleElement
@@ -153,10 +179,15 @@ export const TextCell = memo(function TextCell({
   const renderedDescription =
     typeof description === "string" && highlightMatcher ? highlightString(description, highlightMatcher) : description;
 
+  const isInteractiveContainer = Boolean(onClick);
+
   const content = (
     <div
+      role={isInteractiveContainer ? "button" : undefined}
+      tabIndex={isInteractiveContainer ? 0 : undefined}
+      onKeyDown={isInteractiveContainer && onClick ? (e) => handleActivationKey(e, onClick) : undefined}
       className={cn(
-        "group/text-cell flex max-w-full min-w-0 flex-col",
+        "group/text-cell flex max-w-full min-w-0 flex-col focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden",
         STACK_ALIGN_CLASSES[align],
         onClick && "cursor-pointer hover:underline",
         className,

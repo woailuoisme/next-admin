@@ -12,7 +12,8 @@
     "overview_description": "企业运营数据概览与实时指标监控",
     "loading_page_aria": "正在加载页面内容",
     "previous_image": "上一张图片",
-    "next_image": "下一张图片"
+    "next_image": "下一张图片",
+    "image_load_error": "图片加载失败"
   },
   "menu": {
     "navigation": "导航",
@@ -124,6 +125,7 @@
     "actions_generic": "操作",
     "aria_select_all_page": "选择当页全部行",
     "aria_select_all": "全选",
+    "aria_select_row": "选择行 {id}",
     "aria_expand_row": "展开行",
     "aria_expand_detail": "展开行明细",
     "aria_collapse_detail": "收起行明细",
@@ -173,7 +175,9 @@
     "view": "查看通知",
     "mark_as_read": "标为已读",
     "delete": "删除",
-    "open_details": "查看详情"
+    "open_details": "查看详情",
+    "trigger_unread_aria": "查看通知（{count} 条未读）",
+    "item_unread_aria": "{title}（未读）"
   },
   "products": {
     "status_active": "上架销售",
@@ -280,7 +284,9 @@
     "unsaved_changes_title": "放弃未保存的修改？",
     "unsaved_changes_desc": "您有尚未保存的修改，关闭后这些内容将会丢失。",
     "unsaved_changes_stay": "继续编辑",
-    "unsaved_changes_discard": "放弃修改"
+    "unsaved_changes_discard": "放弃修改",
+    "default_entity": "记录",
+    "delete_quoted_name": "“{name}”"
   },
   "form": {
     "upload_dropzone_title": "点击上传",
@@ -436,7 +442,8 @@
     "unsaved_changes_title": "放弃未保存的修改？",
     "unsaved_changes_confirm": "您有尚未保存的修改，确定要离开吗？未保存的内容将会丢失。",
     "unsaved_changes_stay": "继续编辑",
-    "unsaved_changes_discard": "放弃并离开"
+    "unsaved_changes_discard": "放弃并离开",
+    "unsupported_mode_fallback": "当前视图配置不完整或缺少对应渲染器。"
   },
   "map": {
     "basemap_selector": "底图图层",
@@ -611,7 +618,8 @@
     "kv_key": "键",
     "kv_value": "值",
     "empty_image": "暂无图片",
-    "preview_image": "预览图片 #{index}"
+    "preview_image": "预览图片 #{index}",
+    "code_block": "代码块"
   },
   "shared": {
     "help_tooltip_aria": "查看字段帮助说明",

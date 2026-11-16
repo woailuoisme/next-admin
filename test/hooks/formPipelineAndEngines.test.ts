@@ -31,6 +31,7 @@ import {
   validateCandidateFiles,
 } from "@/components/form/media/file-upload/pipeline";
 import type { FileUploadItem } from "@/components/form/media/file-upload/types";
+import { formatBytes } from "@/components/form/media/file-upload/utils";
 import {
   escapeHtml,
   htmlRichEditorCodec,
@@ -292,5 +293,49 @@ describe("choice/treeEngine", () => {
       { text: "(v1.", highlighted: true },
       { text: "2)", highlighted: false },
     ]);
+  });
+
+  it("round-trips multiline double-quoted .env entries and escaped characters in parsers", () => {
+    const rows = [
+      { _id: "1", key: "PRIVATE_KEY", value: 'line1\nline2 "quoted"\r\nback\\slash' },
+      { _id: "2", key: "CONN", value: "a=b c" },
+    ];
+    const envRaw = rowsToRaw(rows, "env");
+    expect(envRaw).toContain('PRIVATE_KEY="line1\\nline2 \\"quoted\\"\\r\\nback\\\\slash"');
+    const parsed = rawToRows(envRaw, "env");
+    expect(parsed.error).toBeUndefined();
+    expect(parsed.rows.map(({ key, value }) => ({ key, value }))).toEqual([
+      { key: "PRIVATE_KEY", value: 'line1\nline2 "quoted"\r\nback\\slash' },
+      { key: "CONN", value: "a=b c" },
+    ]);
+
+    const multilineQuotedEnv = 'CERT="-----BEGIN-----\nABC=123\n-----END-----"\nSIMPLE=ok';
+    const parsedMultiline = rawToRows(multilineQuotedEnv, "env");
+    expect(parsedMultiline.error).toBeUndefined();
+    expect(parsedMultiline.rows.map(({ key, value }) => ({ key, value }))).toEqual([
+      { key: "CERT", value: "-----BEGIN-----\nABC=123\n-----END-----" },
+      { key: "SIMPLE", value: "ok" },
+    ]);
+  });
+
+  it("handles ordered lists, fenced code blocks, and safe entity decoding order in rich-editor converters", () => {
+    const html = "<ol><li><p>First</p></li><li><p>Second</p></li></ol><p>&amp;lt;tag&amp;gt;</p>";
+    const md = simpleHtmlToMarkdown(html);
+    expect(md).toContain("1. First");
+    expect(md).toContain("2. Second");
+    expect(md).toContain("&lt;tag&gt;");
+    expect(md).not.toContain("<tag>");
+
+    const convertedHtml = simpleMarkdownToHtml("1. Alpha\n2. Beta\n\n```\n<script>\n```");
+    expect(convertedHtml).toContain("<ol><li><p>Alpha</p></li><li><p>Beta</p></li></ol>");
+    expect(convertedHtml).toContain("<pre><code>&lt;script&gt;</code></pre>");
+  });
+
+  it("formats zero, negative, NaN, and TB byte counts safely in formatBytes", () => {
+    expect(formatBytes(0)).toBe("0 B");
+    expect(formatBytes(-10)).toBe("0 B");
+    expect(formatBytes(Number.NaN)).toBe("0 B");
+    expect(formatBytes(1024 ** 4)).toBe("1.0 TB");
+    expect(formatBytes(1024 ** 5)).toBe("1024.0 TB");
   });
 });

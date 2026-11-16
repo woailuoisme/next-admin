@@ -149,6 +149,19 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
   const hasEmptyData =
     isEmpty || (!combinedLoading && !combinedHasError && (!resolvedData || resolvedData.features.length === 0));
 
+  const overlaySlot = useMemo(
+    () => (
+      <GeoHoverLeaf
+        store={hoverStore}
+        unit={unit}
+        showLegend={showLegend}
+        legendTitle={effectiveLegendTitle}
+        legendSteps={legendSteps}
+      />
+    ),
+    [hoverStore, unit, showLegend, effectiveLegendTitle, legendSteps],
+  );
+
   return (
     <MapFrame
       height={height}
@@ -175,15 +188,7 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
       cardProps={cardProps}
       defaultCardTitle={t("geo_distribution_title")}
       defaultCardDescription={t("geo_distribution_desc")}
-      overlaySlot={
-        <GeoHoverLeaf
-          store={hoverStore}
-          unit={unit}
-          showLegend={showLegend}
-          legendTitle={effectiveLegendTitle}
-          legendSteps={legendSteps}
-        />
-      }
+      overlaySlot={overlaySlot}
     >
       {resolvedData ? (
         <MapGeoJSON

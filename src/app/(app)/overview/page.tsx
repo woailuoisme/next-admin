@@ -3,9 +3,11 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
+import "@/lib/serverAuthHeaders";
 import DashboardLoading from "@/app/(app)/loading";
 import { DashboardContainer } from "@/features/dashboard/pages/DashboardContainer";
 import { dashboardQueries } from "@/features/dashboard/resource";
+import { dashboardTimeRangeSchema } from "@/features/dashboard/schemas";
 import type { DashboardTimeRange } from "@/features/dashboard/types";
 import { getQueryClient, prefetchWithTimeout } from "@/lib/queryClient";
 
@@ -14,8 +16,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("overview_title"), description: t("overview_description") };
 }
 
-export default async function Page(props: { searchParams: Promise<{ range?: DashboardTimeRange }> }) {
-  const { range = "30d" } = await props.searchParams;
+export default async function Page(props: { searchParams: Promise<{ range?: string }> }) {
+  const { range: rawRange } = await props.searchParams;
+  const parsedRange = dashboardTimeRangeSchema.safeParse(rawRange);
+  const range: DashboardTimeRange = parsedRange.success ? parsedRange.data : "30d";
   const queryClient = getQueryClient();
 
   await prefetchWithTimeout(queryClient.prefetchQuery(dashboardQueries.summary(range)));

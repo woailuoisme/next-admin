@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { memo } from "react";
 
@@ -16,7 +18,7 @@ import type { NavSubItem } from "../types";
 import type { NavMainDropdownProps } from "./types";
 
 import { NavBadge } from "./NavBadge";
-import { isPathActive } from "./utils";
+import { getActiveSubItemPath } from "./utils";
 
 const EMPTY_SUB_ITEMS: NavSubItem[] = [];
 
@@ -60,6 +62,7 @@ export const NavMainDropdown = memo(function NavMainDropdown({
 }: NavMainDropdownProps) {
   const Icon = item.icon;
   const subItems = item.items ?? EMPTY_SUB_ITEMS;
+  const activeSubPath = getActiveSubItemPath(subItems, currentPath);
 
   return (
     <SidebarMenuItem>
@@ -89,11 +92,7 @@ export const NavMainDropdown = memo(function NavMainDropdown({
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-border/50 my-1" />
           {subItems.map((subItem) => (
-            <NavMainDropdownItemRow
-              key={subItem.to}
-              subItem={subItem}
-              isActive={isPathActive(subItem.to, currentPath)}
-            />
+            <NavMainDropdownItemRow key={subItem.to} subItem={subItem} isActive={subItem.to === activeSubPath} />
           ))}
         </DropdownMenuContent>
       </DropdownMenu>

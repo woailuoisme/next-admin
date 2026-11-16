@@ -1,12 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 interface UseNumberTweenOptions {
   /** Duration of the animation in milliseconds (default: 600ms) */
   duration?: number;
   /** Whether animation is enabled (default: true) */
   enabled?: boolean;
+}
+
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeNoop() {
+  return () => {};
+}
+
+function getFalseSnapshot() {
+  return false;
+}
+
+function subscribeReducedMotion(callback: () => void) {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return () => {};
+  }
+  const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function getReducedMotionSnapshot() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false;
+  }
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
 }
 
 function easeOutCubic(t: number): number {
@@ -26,51 +52,31 @@ function getDecimalPrecision(value: number): number {
 /**
  * Zero-dependency lightweight RAF number tween hook.
  * Only subscribes to `prefers-reduced-motion` when `enabled === true`,
- * and preserves target decimal precision during intermediate frames.
+ * and preserves decimal precision across start and target values during intermediate frames.
  */
 export function useNumberTween(
   targetValue: number,
   { duration = 600, enabled = true }: UseNumberTweenOptions = {},
 ): number {
   const safeTarget = Number.isFinite(targetValue) ? targetValue : 0;
+  const prefersReducedMotion = useSyncExternalStore(
+    enabled ? subscribeReducedMotion : subscribeNoop,
+    enabled ? getReducedMotionSnapshot : getFalseSnapshot,
+    getFalseSnapshot,
+  );
   const [current, setCurrent] = useState<number>(safeTarget);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(false);
   const startValRef = useRef<number>(safeTarget);
   const latestValRef = useRef<number>(safeTarget);
   const startTimeRef = useRef<number | null>(null);
   const rafIdRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (!enabled || typeof window === "undefined" || typeof window.matchMedia !== "function") {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncPreference = () => setPrefersReducedMotion(mediaQuery.matches);
-    syncPreference();
-    mediaQuery.addEventListener("change", syncPreference);
-
-    return () => {
-      mediaQuery.removeEventListener("change", syncPreference);
-    };
-  }, [enabled]);
-
   const isDirect = !enabled || prefersReducedMotion || duration <= 0 || !Number.isFinite(targetValue);
 
   useEffect(() => {
-    let cancelled = false;
-
     if (isDirect) {
       startValRef.current = safeTarget;
       latestValRef.current = safeTarget;
-      queueMicrotask(() => {
-        if (!cancelled) {
-          setCurrent((prev) => (prev === safeTarget ? prev : safeTarget));
-        }
-      });
-      return () => {
-        cancelled = true;
-      };
+      return;
     }
 
     const startVal = startValRef.current;
@@ -79,17 +85,18 @@ export function useNumberTween(
     if (!Number.isFinite(diff) || diff === 0) {
       startValRef.current = safeTarget;
       latestValRef.current = safeTarget;
-      queueMicrotask(() => {
-        if (!cancelled) {
-          setCurrent((prev) => (prev === safeTarget ? prev : safeTarget));
-        }
+      rafIdRef.current = requestAnimationFrame(() => {
+        setCurrent((prev) => (prev === safeTarget ? prev : safeTarget));
       });
       return () => {
-        cancelled = true;
+        if (rafIdRef.current !== null) {
+          cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = null;
+        }
       };
     }
 
-    const decimals = getDecimalPrecision(safeTarget);
+    const decimals = Math.max(getDecimalPrecision(startVal), getDecimalPrecision(safeTarget));
     const factor = decimals === 0 ? 1 : 10 ** decimals;
     startTimeRef.current = null;
 
@@ -110,6 +117,7 @@ export function useNumberTween(
       if (progress < 1) {
         rafIdRef.current = requestAnimationFrame(step);
       } else {
+        rafIdRef.current = null;
         latestValRef.current = safeTarget;
         setCurrent(safeTarget);
         startValRef.current = safeTarget;
@@ -119,9 +127,9 @@ export function useNumberTween(
     rafIdRef.current = requestAnimationFrame(step);
 
     return () => {
-      cancelled = true;
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
       }
       startValRef.current = latestValRef.current;
     };

@@ -50,13 +50,35 @@ export const FormSection = memo(function FormSection({
   children,
 }: FormSectionProps) {
   const t = useTranslations("form");
+  const isCollapsible = Boolean(collapsible);
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const effectiveCollapsed = isCollapsible ? collapsed : false;
 
   const handleOpenChange = useMemoizedFn((open: boolean) => {
+    if (!isCollapsible) return;
     setCollapsed(!open);
   });
 
   const hasHeader = Boolean(title || description || icon || action);
+  const showHeader = hasHeader || isCollapsible;
+
+  const collapseTrigger = isCollapsible ? (
+    <CollapsibleTrigger asChild>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-expanded={!effectiveCollapsed}
+        className="text-muted-foreground hover:text-foreground size-7 rounded-md"
+        aria-label={effectiveCollapsed ? t("section_expand") : t("section_collapse")}
+      >
+        <ChevronDown
+          aria-hidden="true"
+          className={cn("size-4 transition-transform duration-200", effectiveCollapsed && "-rotate-90")}
+        />
+      </Button>
+    </CollapsibleTrigger>
+  ) : null;
 
   const contentNode = (
     <div className="w-full">{columns ? <FormGrid columns={columns}>{children}</FormGrid> : children}</div>
@@ -64,23 +86,26 @@ export const FormSection = memo(function FormSection({
 
   if (card) {
     return (
-      <Collapsible open={!collapsed} onOpenChange={handleOpenChange} className="w-full">
+      <Collapsible open={!effectiveCollapsed} onOpenChange={handleOpenChange} className="w-full">
         <Card
           className={cn(
             "w-full border-border/70 bg-card/60 text-left shadow-2xs backdrop-blur-xs transition-all duration-200",
             className,
           )}
         >
-          {hasHeader && (
+          {showHeader && (
             <CardHeader
               className={cn(
                 "flex items-start justify-between gap-3 border-b border-border/50 pb-3.5",
-                collapsible && "select-none",
+                isCollapsible && "select-none",
               )}
             >
               <div className="flex min-w-0 flex-1 items-start gap-2.5">
                 {icon && (
-                  <div className="bg-primary/10 text-primary mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg">
+                  <div
+                    aria-hidden="true"
+                    className="bg-primary/10 text-primary mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg"
+                  >
                     {icon}
                   </div>
                 )}
@@ -100,29 +125,16 @@ export const FormSection = memo(function FormSection({
 
               <CardAction className="flex shrink-0 items-center gap-2">
                 {action}
-                {collapsible && (
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:text-foreground size-7 rounded-md"
-                      aria-label={collapsed ? t("section_expand") : t("section_collapse")}
-                    >
-                      <ChevronDown
-                        className={cn("size-4 transition-transform duration-200", collapsed && "-rotate-90")}
-                      />
-                    </Button>
-                  </CollapsibleTrigger>
-                )}
+                {collapseTrigger}
               </CardAction>
             </CardHeader>
           )}
 
           <CollapsibleContent>
-            <CardContent className={cn(hasHeader ? "pt-4" : "p-4")}>{contentNode}</CardContent>
+            <CardContent className={cn(showHeader ? "pt-4" : "p-4")}>{contentNode}</CardContent>
           </CollapsibleContent>
 
-          {footer && !collapsed && (
+          {footer && !effectiveCollapsed && (
             <CardFooter className="border-border/50 flex items-center justify-end gap-2 border-t pt-3">
               {footer}
             </CardFooter>
@@ -134,15 +146,18 @@ export const FormSection = memo(function FormSection({
 
   return (
     <Collapsible
-      open={!collapsed}
+      open={!effectiveCollapsed}
       onOpenChange={handleOpenChange}
       className={cn("w-full space-y-4 text-left", className)}
     >
-      {hasHeader && (
+      {showHeader && (
         <div className="border-border/40 flex items-start justify-between gap-3 border-b pb-2">
           <div className="flex items-start gap-2.5">
             {icon && (
-              <div className="bg-primary/10 text-primary mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg">
+              <div
+                aria-hidden="true"
+                className="bg-primary/10 text-primary mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg"
+              >
                 {icon}
               </div>
             )}
@@ -158,25 +173,14 @@ export const FormSection = memo(function FormSection({
 
           <div className="flex shrink-0 items-center gap-2">
             {action}
-            {collapsible && (
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-foreground size-7 rounded-md"
-                  aria-label={collapsed ? t("section_expand") : t("section_collapse")}
-                >
-                  <ChevronDown className={cn("size-4 transition-transform duration-200", collapsed && "-rotate-90")} />
-                </Button>
-              </CollapsibleTrigger>
-            )}
+            {collapseTrigger}
           </div>
         </div>
       )}
 
       <CollapsibleContent>{contentNode}</CollapsibleContent>
 
-      {footer && !collapsed && (
+      {footer && !effectiveCollapsed && (
         <div className="border-border/50 mt-4 flex items-center justify-end gap-2 border-t pt-3">{footer}</div>
       )}
     </Collapsible>

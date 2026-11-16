@@ -32,7 +32,7 @@ function RowAction({ label, Icon, onClick, className }: RowActionProps) {
           aria-label={label}
           className={cn("text-muted-foreground hover:bg-muted hover:text-foreground size-6 rounded", className)}
         >
-          <Icon className="size-3.5" />
+          <Icon className="size-3.5" aria-hidden="true" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="top" className="text-[11px]">
@@ -69,12 +69,14 @@ export const NotificationItemRow = memo(function NotificationItemRow({
 
   const handleExternalAction = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();
-    onItemClick(item);
+    handleClick();
   });
 
   const handleToolbarClick = useMemoizedFn((e: React.MouseEvent) => {
     e.stopPropagation();
   });
+
+  const rowAriaLabel = item.read ? item.title : t("item_unread_aria", { title: item.title });
 
   return (
     <div
@@ -90,12 +92,13 @@ export const NotificationItemRow = memo(function NotificationItemRow({
       <button
         type="button"
         onClick={handleClick}
-        aria-label={item.title}
+        aria-label={rowAriaLabel}
         className="focus-visible:ring-ring absolute inset-0 z-0 cursor-pointer rounded-xl focus-visible:ring-2 focus-visible:outline-none"
       />
 
       {/* 分类/级别精致微圆底图标 */}
       <div
+        aria-hidden="true"
         className={cn(
           "pointer-events-none relative z-10 mt-0.5 flex size-7.5 shrink-0 items-center justify-center rounded-full transition-transform duration-150 group-hover:scale-105",
           severityBgClass,
@@ -109,7 +112,11 @@ export const NotificationItemRow = memo(function NotificationItemRow({
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5">
             {!item.read && (
-              <span data-testid="notification-unread-dot" className="bg-primary size-1.5 shrink-0 rounded-full" />
+              <span
+                aria-hidden="true"
+                data-testid="notification-unread-dot"
+                className="bg-primary size-1.5 shrink-0 rounded-full"
+              />
             )}
             <h4
               className={cn(
@@ -123,7 +130,7 @@ export const NotificationItemRow = memo(function NotificationItemRow({
 
           {/* 时间戳（悬浮或键盘聚焦工具栏出现时淡出避免视觉冲突） */}
           <span className="text-muted-foreground/75 flex shrink-0 items-center gap-1 text-[10px] transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0">
-            <Clock className="size-2.5" />
+            <Clock className="size-2.5" aria-hidden="true" />
             {formatRelativeTime(item.createdAt, t, locale)}
           </span>
         </div>
@@ -138,15 +145,15 @@ export const NotificationItemRow = memo(function NotificationItemRow({
               className="bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium transition-colors"
             >
               <span>{item.actionLabel}</span>
-              <ArrowRight className="size-2.5" />
+              <ArrowRight className="size-2.5" aria-hidden="true" />
             </Badge>
           </div>
         )}
       </div>
 
-      {/* 悬停与键盘聚焦微型工具栏 (Hover & Focus-Within Actions Toolbar) */}
+      {/* 悬停与键盘聚焦微型工具栏：移动端触屏默认可见，桌面端 hover/focus-within 渐显 */}
       <div
-        className="border-border/50 bg-popover/95 pointer-events-auto absolute top-2.5 right-2.5 z-20 hidden items-center gap-0.5 rounded-md border p-0.5 shadow-xs backdrop-blur-md transition-all group-focus-within:flex group-hover:flex"
+        className="border-border/50 bg-popover/95 pointer-events-auto absolute top-2.5 right-2.5 z-20 flex items-center gap-0.5 rounded-md border p-0.5 shadow-xs backdrop-blur-md transition-opacity sm:pointer-events-none sm:opacity-0 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100"
         onClick={handleToolbarClick}
       >
         {!item.read && onMarkAsRead && <RowAction label={t("mark_as_read")} Icon={Check} onClick={handleMarkRead} />}

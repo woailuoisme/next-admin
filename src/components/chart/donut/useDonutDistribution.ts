@@ -1,3 +1,5 @@
+"use client";
+
 import { sumBy } from "es-toolkit";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";

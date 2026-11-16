@@ -3,10 +3,9 @@
 import { useLocale, useTranslations } from "next-intl";
 
 import { Check, Laptop, Moon, Palette, Sliders, Sparkles, Sun } from "lucide-react";
-import { memo, useState } from "react";
+import { memo, type ReactNode, useState } from "react";
 import { cn } from "cn";
 
-import { GlitchTipDiagnostic } from "@/components/shared/GlitchTipDiagnostic";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,6 +24,11 @@ export interface ThemeColorPickerProps {
 
   title?: string;
   ariaLabel?: string;
+  footerSlot?: ReactNode;
+}
+
+function resolveLocalizedThemeName(meta: { name: string; nameEn?: string }, locale: string): string {
+  return locale === "en" ? (meta.nameEn ?? meta.name) : meta.name;
 }
 
 const MODE_OPTIONS = [
@@ -33,7 +37,13 @@ const MODE_OPTIONS = [
   { mode: "auto" as const, labelKey: "theme_mode_system" as const, Icon: Laptop },
 ];
 
-const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({ title }: { title?: string }) {
+const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({
+  title,
+  footerSlot,
+}: {
+  title?: string;
+  footerSlot?: ReactNode;
+}) {
   const t = useTranslations("shared");
   const ctxLocale = useLocale();
   const theme = useTheme();
@@ -46,7 +56,7 @@ const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({ titl
   const setMode = usePreferencesStore((s) => s.setMode);
   const setRadius = usePreferencesStore((s) => s.setRadius);
 
-  const activeThemeName = ctxLocale === "en" ? (activeThemeMeta.nameEn ?? activeThemeMeta.name) : activeThemeMeta.name;
+  const activeThemeName = resolveLocalizedThemeName(activeThemeMeta, ctxLocale);
   const currentModeText =
     mode === "auto" ? t("theme_mode_system") : mode === "dark" ? t("theme_mode_dark") : t("theme_mode_light");
 
@@ -60,7 +70,7 @@ const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({ titl
       {/* Header */}
       <div className="border-border/50 flex items-center justify-between border-b pb-2.5">
         <div className="flex items-center gap-1.5">
-          <Sparkles className="text-primary size-4" />
+          <Sparkles className="text-primary size-4" aria-hidden="true" />
           <h4 className="text-foreground text-xs font-semibold tracking-tight">{title ?? t("theme_title")}</h4>
         </div>
       </div>
@@ -69,7 +79,7 @@ const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({ titl
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground flex items-center gap-1 text-[11px] font-medium">
-            <Sliders className="size-3" />
+            <Sliders className="size-3" aria-hidden="true" />
             {t("theme_palette_title")}
           </span>
         </div>
@@ -94,6 +104,7 @@ const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({ titl
                 <div className="flex min-w-0 items-center gap-2">
                   {/* Double-circle color swatches */}
                   <div
+                    aria-hidden="true"
                     className="border-border/60 relative flex size-4 shrink-0 items-center justify-center rounded-full border shadow-2xs transition-transform group-hover:scale-105"
                     style={{ backgroundColor: item.primaryColor }}
                   >
@@ -114,7 +125,12 @@ const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({ titl
                     <span className="text-muted-foreground truncate font-mono text-[9px]">{item.nameEn}</span>
                   </div>
                 </div>
-                {isSelected && <Check className="animate-in text-primary zoom-in-50 size-3 shrink-0 duration-150" />}
+                {isSelected && (
+                  <Check
+                    className="animate-in text-primary zoom-in-50 size-3 shrink-0 duration-150"
+                    aria-hidden="true"
+                  />
+                )}
               </Button>
             );
           })}
@@ -125,7 +141,7 @@ const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({ titl
       <div className="border-border/40 space-y-1.5 border-t pt-1">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground flex items-center gap-1 text-[11px] font-medium">
-            <Sun className="size-3" />
+            <Sun className="size-3" aria-hidden="true" />
             {t("theme_mode_title")}
           </span>
           <span className="text-muted-foreground font-mono text-[10px]">{activeModeDisplayText}</span>
@@ -148,7 +164,7 @@ const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({ titl
                     : "border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
-                <Icon className="size-3.5" />
+                <Icon className="size-3.5" aria-hidden="true" />
                 <span>{t(labelKey)}</span>
               </Button>
             );
@@ -187,8 +203,7 @@ const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({ titl
         </div>
       </div>
 
-      {/* 4. GlitchTip 异常监控诊断 */}
-      <GlitchTipDiagnostic />
+      {footerSlot}
 
       {/* Footer */}
       <div className="border-border/40 text-muted-foreground flex items-center justify-between border-t pt-2 text-[10px]">
@@ -199,14 +214,19 @@ const ThemePickerPopoverContent = memo(function ThemePickerPopoverContent({ titl
   );
 });
 
-export const ThemeColorPicker = memo(function ThemeColorPicker({ className, title, ariaLabel }: ThemeColorPickerProps) {
+export const ThemeColorPicker = memo(function ThemeColorPicker({
+  className,
+  title,
+  ariaLabel,
+  footerSlot,
+}: ThemeColorPickerProps) {
   const t = useTranslations("shared");
   const ctxLocale = useLocale();
   const activeThemeMeta = useActiveThemeMeta();
 
   const [open, setOpen] = useState(false);
 
-  const activeThemeName = ctxLocale === "en" ? (activeThemeMeta.nameEn ?? activeThemeMeta.name) : activeThemeMeta.name;
+  const activeThemeName = resolveLocalizedThemeName(activeThemeMeta, ctxLocale);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -214,6 +234,7 @@ export const ThemeColorPicker = memo(function ThemeColorPicker({ className, titl
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               className={cn(
@@ -222,9 +243,10 @@ export const ThemeColorPicker = memo(function ThemeColorPicker({ className, titl
               )}
               aria-label={ariaLabel ?? t("theme_settings_aria")}
             >
-              <Palette className="size-4" />
+              <Palette className="size-4" aria-hidden="true" />
               {/* Small colored badge dot indicating active theme */}
               <span
+                aria-hidden="true"
                 className="border-background absolute right-1 bottom-1 size-2 rounded-full border shadow-xs"
                 style={{ backgroundColor: activeThemeMeta.primaryColor }}
               />
@@ -241,7 +263,7 @@ export const ThemeColorPicker = memo(function ThemeColorPicker({ className, titl
         sideOffset={8}
         className="border-border/80 bg-background/95 w-80 rounded-xl p-4 shadow-xl backdrop-blur-md transition-all duration-200"
       >
-        {open ? <ThemePickerPopoverContent title={title} /> : null}
+        {open ? <ThemePickerPopoverContent title={title} footerSlot={footerSlot} /> : null}
       </PopoverContent>
     </Popover>
   );

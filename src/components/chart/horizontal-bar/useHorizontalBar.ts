@@ -1,3 +1,5 @@
+"use client";
+
 import { maxBy, orderBy, sumBy } from "es-toolkit";
 import { useMemo } from "react";
 

@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { StatCardTheme } from "../shared/types";
+import type { StatCardTheme, StatDensity } from "../shared/types";
 import type { SparklinePoint } from "../sparkline/types";
 
 /**
@@ -30,7 +30,7 @@ export interface LiveStatCardProps {
   /** Metric label */
   title: string;
   /** Dynamic or static telemetry value */
-  value: number | string;
+  value: number | string | null;
   /** Metric unit prefix */
   prefix?: string;
   /** Metric unit suffix (e.g. " ms", " req/s", " pods") */
@@ -57,6 +57,8 @@ export interface LiveStatCardProps {
   icon?: LucideIcon;
   /** Accent theme */
   theme?: StatCardTheme;
+  /** Card density spacing mode */
+  density?: StatDensity;
   /** Tooltip or contextual help description */
   description?: string;
   /** Custom badge element */

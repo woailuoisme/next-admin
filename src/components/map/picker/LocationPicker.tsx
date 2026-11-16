@@ -70,12 +70,11 @@ export const LocationPicker = memo(function LocationPicker({
     return transformCoordinates([sourceLng, sourceLat], sourceCRS, displayCRS);
   }, [sourceLng, sourceLat, sourceCRS, displayCRS]);
 
-  const mapCenter = useMemo<[number, number]>(() => {
-    if (displayPosition) return displayPosition;
-    if (isValidCoordinate(center)) return center;
-    return DEFAULT_BEIJING_CENTER;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [center]);
+  const fallbackMapCenter = useMemo<[number, number]>(
+    () => (isValidCoordinate(center) ? center : DEFAULT_BEIJING_CENTER),
+    [center],
+  );
+  const [mapCenter] = useState<[number, number]>(() => displayPosition ?? fallbackMapCenter);
 
   const [flyToTarget, setFlyToTarget] = useState<[number, number] | undefined>(undefined);
   const fromMapInteractionRef = useRef(false);
@@ -210,12 +209,19 @@ export const LocationPicker = memo(function LocationPicker({
   const handleReset = useMemoizedFn(() => {
     if (disabled || readOnly) return;
     hasUserInteractedRef.current = true;
+    fromMapInteractionRef.current = false;
     setLocalDisplayAddress(null);
     debouncedRegeoRef.current?.cancel();
     regeoAbortControllerRef.current?.abort();
     lastGeocodedCoordsRef.current = null;
     if (!isControlled) setInternalValue(defaultValue);
     onChange?.(defaultValue as LocationPickerValue);
+
+    const hasDefaultPos = defaultValue && isValidCoordinate([defaultValue.lng, defaultValue.lat]);
+    const resetTarget = hasDefaultPos
+      ? transformCoordinates([defaultValue.lng, defaultValue.lat], sourceCRS, displayCRS)
+      : fallbackMapCenter;
+    setFlyToTarget([...resetTarget]);
   });
 
   const handleCoordinatesConfirm = useMemoizedFn(() => {

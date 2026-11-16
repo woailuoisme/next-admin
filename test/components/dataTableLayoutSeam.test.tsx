@@ -1,3 +1,4 @@
+import { fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { DataTable } from "@/components/data-table/core/DataTable";
@@ -43,5 +44,61 @@ describe("DataTable Layout Seam (CSS Variables & Pinning)", () => {
     const aliceCell = screen.getByText("Alice").closest("td");
     expect(aliceCell?.getAttribute("style")).toContain("var(--col-w-name, 200px)");
     expect(aliceCell).toHaveStyle({ width: "200px" });
+  });
+
+  it("resets client page to 1 on search filter and clamps out-of-range page when data shrinks", async () => {
+    const fiveRows = [
+      { id: "1", name: "Alice", age: 30, status: "Active" },
+      { id: "2", name: "Bob", age: 25, status: "Pending" },
+      { id: "3", name: "Carol", age: 28, status: "Active" },
+      { id: "4", name: "Dave", age: 32, status: "Active" },
+      { id: "5", name: "Eve", age: 22, status: "Pending" },
+    ];
+
+    const { rerender } = renderWithProviders(
+      <DataTable
+        data={fiveRows}
+        columns={columns}
+        pageSize={2}
+        pageSizeOptions={[2, 5]}
+        getRowId={(row: { id: string }) => row.id}
+      />,
+      { locale: "en" },
+    );
+
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "3" }));
+    expect(screen.getByText("Eve")).toBeInTheDocument();
+
+    // Shrinking rows below page 3 clamps back into valid page 1 without rendering empty page
+    rerender(
+      <DataTable
+        data={fiveRows.slice(0, 2)}
+        columns={columns}
+        pageSize={2}
+        pageSizeOptions={[2, 5]}
+        getRowId={(row: { id: string }) => row.id}
+      />,
+    );
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+
+    // Advance to page 2 then apply quick search -> resets back to page 1 so match on first page appears
+    rerender(
+      <DataTable
+        data={fiveRows}
+        columns={columns}
+        pageSize={2}
+        pageSizeOptions={[2, 5]}
+        getRowId={(row: { id: string }) => row.id}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "2" }));
+    expect(screen.getByText("Carol")).toBeInTheDocument();
+
+    const searchInput = screen.getByPlaceholderText("Search records...");
+    fireEvent.change(searchInput, { target: { value: "Alice" } });
+    await waitFor(() => {
+      expect(screen.getByText("Alice")).toBeInTheDocument();
+    });
   });
 });

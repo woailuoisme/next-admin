@@ -10,53 +10,45 @@ export interface AvatarPaletteItem {
 }
 
 export const AVATAR_COLOR_PALETTES: AvatarPaletteItem[] = [
-  // 1. Blue (科技蓝)
   {
-    bg: "bg-blue-100 dark:bg-blue-950/70",
-    text: "text-blue-700 dark:text-blue-300",
-    border: "border-blue-200 dark:border-blue-800/60",
+    bg: "bg-primary/15",
+    text: "text-primary",
+    border: "border-primary/25",
   },
-  // 2. Emerald (自然翡翠绿)
   {
-    bg: "bg-emerald-100 dark:bg-emerald-950/70",
-    text: "text-emerald-700 dark:text-emerald-300",
-    border: "border-emerald-200 dark:border-emerald-800/60",
+    bg: "bg-chart-1/15",
+    text: "text-chart-1",
+    border: "border-chart-1/25",
   },
-  // 3. Violet (神秘紫罗兰)
   {
-    bg: "bg-violet-100 dark:bg-violet-950/70",
-    text: "text-violet-700 dark:text-violet-300",
-    border: "border-violet-200 dark:border-violet-800/60",
+    bg: "bg-chart-2/15",
+    text: "text-chart-2",
+    border: "border-chart-2/25",
   },
-  // 4. Amber (暖阳琥珀)
   {
-    bg: "bg-amber-100 dark:bg-amber-950/70",
-    text: "text-amber-800 dark:text-amber-300",
-    border: "border-amber-200 dark:border-amber-800/60",
+    bg: "bg-chart-3/15",
+    text: "text-chart-3",
+    border: "border-chart-3/25",
   },
-  // 5. Rose (活力玫瑰粉)
   {
-    bg: "bg-rose-100 dark:bg-rose-950/70",
-    text: "text-rose-700 dark:text-rose-300",
-    border: "border-rose-200 dark:border-rose-800/60",
+    bg: "bg-chart-4/15",
+    text: "text-chart-4",
+    border: "border-chart-4/25",
   },
-  // 6. Cyan (清爽青蓝)
   {
-    bg: "bg-cyan-100 dark:bg-cyan-950/70",
-    text: "text-cyan-800 dark:text-cyan-300",
-    border: "border-cyan-200 dark:border-cyan-800/60",
+    bg: "bg-chart-5/15",
+    text: "text-chart-5",
+    border: "border-chart-5/25",
   },
-  // 7. Indigo (深邃靛青)
   {
-    bg: "bg-indigo-100 dark:bg-indigo-950/70",
-    text: "text-indigo-700 dark:text-indigo-300",
-    border: "border-indigo-200 dark:border-indigo-800/60",
+    bg: "bg-secondary",
+    text: "text-secondary-foreground",
+    border: "border-border",
   },
-  // 8. Orange (热烈橙色)
   {
-    bg: "bg-orange-100 dark:bg-orange-950/70",
-    text: "text-orange-800 dark:text-orange-300",
-    border: "border-orange-200 dark:border-orange-800/60",
+    bg: "bg-accent",
+    text: "text-accent-foreground",
+    border: "border-border",
   },
 ];
 

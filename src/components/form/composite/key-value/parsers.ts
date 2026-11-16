@@ -1,9 +1,12 @@
 import type { KeyValuePair } from "../../core";
 import type { KeyValueRawFormat, KeyValueRowItem } from "./types";
 
+const BACKSLASH_REGEX = /\\/g;
+const CR_REGEX = /\r/g;
+const LF_REGEX = /\n/g;
 const DOUBLE_QUOTE_REGEX = /"/g;
-const ESCAPED_QUOTE_REGEX = /\\"/g;
-const ENV_SPECIAL_CHAR_REGEX = /[\s"'\n]/;
+const ENV_DOUBLE_QUOTE_UNESCAPE_REGEX = /\\([\\nr"])/g;
+const ENV_SPECIAL_CHAR_REGEX = /[\s"'#\r\n\\=]/;
 
 let kvRowIdCounter = 0;
 
@@ -133,11 +136,24 @@ export function rowsToRaw(rows: KeyValueRowItem[], format: KeyValueRawFormat): s
       const k = r.key.trim();
       const v = r.value;
       if (ENV_SPECIAL_CHAR_REGEX.test(v)) {
-        return `${k}="${v.replace(DOUBLE_QUOTE_REGEX, '\\"')}"`;
+        const escaped = v
+          .replace(BACKSLASH_REGEX, "\\\\")
+          .replace(CR_REGEX, "\\r")
+          .replace(LF_REGEX, "\\n")
+          .replace(DOUBLE_QUOTE_REGEX, '\\"');
+        return `${k}="${escaped}"`;
       }
       return `${k}=${v}`;
     })
     .join("\n");
+}
+
+function unescapeEnvDoubleQuoted(raw: string): string {
+  return raw.replace(ENV_DOUBLE_QUOTE_UNESCAPE_REGEX, (_, token: string) => {
+    if (token === "n") return "\n";
+    if (token === "r") return "\r";
+    return token;
+  });
 }
 
 export function rawToRows(rawText: string, format: KeyValueRawFormat): { rows: KeyValueRowItem[]; error?: string } {
@@ -159,8 +175,8 @@ export function rawToRows(rawText: string, format: KeyValueRawFormat): { rows: K
     }
   }
 
-  // .env format
-  const lines = rawText.split("\n");
+  // .env format (supports single-line & multiline double-quoted entries + escaped \n/\r/\"/\\)
+  const lines = rawText.split(/\r?\n/);
   const rows: KeyValueRowItem[] = [];
 
   for (let i = 0; i < lines.length; i++) {
@@ -172,14 +188,37 @@ export function rawToRows(rawText: string, format: KeyValueRawFormat): { rows: K
     const eqIdx = line.indexOf("=");
     if (eqIdx === -1) {
       rows.push(createKvRow(line, ""));
-    } else {
-      const k = line.slice(0, eqIdx).trim();
-      let v = line.slice(eqIdx + 1).trim();
+      continue;
+    }
 
-      if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
-        v = v.slice(1, -1).replace(ESCAPED_QUOTE_REGEX, '"');
+    const k = line.slice(0, eqIdx).trim();
+    const afterEq = line.slice(eqIdx + 1).trim();
+
+    if (afterEq.startsWith('"')) {
+      let body = afterEq.slice(1);
+      const hasClosingQuote = (segment: string) => {
+        let trailingBackslashes = 0;
+        for (let idx = segment.length - 1; idx >= 0 && segment[idx] === "\\"; idx--) {
+          trailingBackslashes += 1;
+        }
+        return segment.endsWith('"') && trailingBackslashes % 2 === 0;
+      };
+
+      while (!hasClosingQuote(body) && i + 1 < lines.length) {
+        i += 1;
+        body += `\n${lines[i] ?? ""}`;
       }
-      rows.push(createKvRow(k, v));
+
+      const trimmedBody = body.trimEnd();
+      if (hasClosingQuote(trimmedBody)) {
+        rows.push(createKvRow(k, unescapeEnvDoubleQuoted(trimmedBody.slice(0, -1))));
+      } else {
+        rows.push(createKvRow(k, unescapeEnvDoubleQuoted(body)));
+      }
+    } else if (afterEq.startsWith("'") && afterEq.endsWith("'") && afterEq.length >= 2) {
+      rows.push(createKvRow(k, afterEq.slice(1, -1)));
+    } else {
+      rows.push(createKvRow(k, afterEq));
     }
   }
 

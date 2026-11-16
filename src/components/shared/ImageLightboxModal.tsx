@@ -7,6 +7,8 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
+import { sanitizeUrl } from "./url";
+
 export interface ImageLightboxModalProps {
   /** 待预览图片地址（与 `url` 兼容，优先取 `url ?? previewUrl`） */
   previewUrl?: string | null;
@@ -15,6 +17,10 @@ export interface ImageLightboxModalProps {
   initialIndex?: number;
   alt?: string;
   onClose: () => void;
+}
+
+function clampIndex(idx: number, length: number): number {
+  return length === 0 ? 0 : Math.min(Math.max(0, idx), length - 1);
 }
 
 function ImageLightboxModalInner({
@@ -39,22 +45,31 @@ function ImageLightboxModalInner({
     return initialIndex;
   }, [resolvedPreviewUrl, images, initialIndex]);
 
-  const [navState, setNavState] = useState<{ baseUrl: string | null; index: number } | null>(null);
-  const currentIndex = navState && navState.baseUrl === resolvedPreviewUrl ? navState.index : resolvedInitialIndex;
+  const resetKey = `${resolvedPreviewUrl ?? ""}::${images.length}::${initialIndex}`;
+  const [navState, setNavState] = useState<{ resetKey: string; index: number } | null>(null);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+
+  const rawIndex = navState && navState.resetKey === resetKey ? navState.index : resolvedInitialIndex;
+  const currentIndex = clampIndex(rawIndex, activeImages.length);
 
   const stepIndex = useCallback(
     (delta: number) => {
       if (activeImages.length === 0) return;
       setNavState((prev) => {
-        const base = prev && prev.baseUrl === resolvedPreviewUrl ? prev.index : resolvedInitialIndex;
+        const base = clampIndex(
+          prev && prev.resetKey === resetKey ? prev.index : resolvedInitialIndex,
+          activeImages.length,
+        );
         const next = (base + delta + activeImages.length) % activeImages.length;
-        return { baseUrl: resolvedPreviewUrl, index: next };
+        return { resetKey, index: next };
       });
     },
-    [activeImages.length, resolvedPreviewUrl, resolvedInitialIndex],
+    [activeImages.length, resetKey, resolvedInitialIndex],
   );
 
-  const currentUrl = activeImages[currentIndex] || resolvedPreviewUrl;
+  const rawCurrentUrl = activeImages[currentIndex] || resolvedPreviewUrl;
+  const currentUrl = rawCurrentUrl ? (sanitizeUrl(rawCurrentUrl) ?? undefined) : undefined;
+  const hasLoadError = Boolean(currentUrl && failedUrl === currentUrl);
   const hasMultiple = activeImages.length > 1;
 
   // Keyboard arrow navigation
@@ -81,14 +96,24 @@ function ImageLightboxModalInner({
 			    合并组内会被它击败 → ≥640px 时灯箱被压到 24rem，大图无法正常查看。 */}
       <DialogContent className="border-border bg-background/95 max-w-3xl overflow-hidden p-3 backdrop-blur-md sm:max-w-3xl">
         <DialogTitle className="sr-only">{resolvedAlt}</DialogTitle>
-        {currentUrl && (
+        {currentUrl ? (
           <div className="relative flex max-h-[82vh] flex-col items-center justify-center overflow-hidden rounded-lg">
             <div className="relative flex max-h-[75vh] w-full items-center justify-center">
-              <img
-                src={currentUrl}
-                alt={`${resolvedAlt} (${currentIndex + 1}/${activeImages.length})`}
-                className="max-h-[72vh] w-auto max-w-full rounded object-contain shadow-md"
-              />
+              {hasLoadError ? (
+                <div
+                  role="status"
+                  className="border-border/60 bg-muted/40 text-muted-foreground flex h-48 w-full items-center justify-center rounded border text-xs"
+                >
+                  {t("image_load_error")}
+                </div>
+              ) : (
+                <img
+                  src={currentUrl}
+                  alt={`${resolvedAlt} (${currentIndex + 1}/${activeImages.length})`}
+                  onError={() => setFailedUrl(currentUrl)}
+                  className="max-h-[72vh] w-auto max-w-full rounded object-contain shadow-md"
+                />
+              )}
 
               {/* Gallery Navigation Controls */}
               {hasMultiple && (
@@ -101,7 +126,7 @@ function ImageLightboxModalInner({
                     className="bg-background/60 text-foreground hover:bg-background/90 absolute top-1/2 left-2 -translate-y-1/2 rounded-full backdrop-blur-xs"
                     onClick={() => stepIndex(-1)}
                   >
-                    <ChevronLeft className="size-5" />
+                    <ChevronLeft className="size-5" aria-hidden="true" />
                   </Button>
                   <Button
                     type="button"
@@ -111,7 +136,7 @@ function ImageLightboxModalInner({
                     className="bg-background/60 text-foreground hover:bg-background/90 absolute top-1/2 right-2 -translate-y-1/2 rounded-full backdrop-blur-xs"
                     onClick={() => stepIndex(1)}
                   >
-                    <ChevronRight className="size-5" />
+                    <ChevronRight className="size-5" aria-hidden="true" />
                   </Button>
                 </>
               )}
@@ -127,7 +152,7 @@ function ImageLightboxModalInner({
               )}
             </div>
           </div>
-        )}
+        ) : null}
       </DialogContent>
     </Dialog>
   );

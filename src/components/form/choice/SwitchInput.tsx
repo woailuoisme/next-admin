@@ -49,6 +49,9 @@ export const SwitchInput = memo(function SwitchInput({
         const locked = Boolean(isDisabled || isReadOnly);
 
         if (inline) {
+          const inlineDescId = helperText ? `${id}-desc` : undefined;
+          const inlineDescribedBy = [describedBy, inlineDescId].filter(Boolean).join(" ") || undefined;
+
           return (
             <Field
               orientation="horizontal"
@@ -73,7 +76,7 @@ export const SwitchInput = memo(function SwitchInput({
                   {hint && <span className="text-muted-foreground ml-1 text-[11px] font-normal">{hint}</span>}
                 </div>
                 {helperText && (
-                  <FieldDescription className="text-muted-foreground text-[11px] leading-relaxed">
+                  <FieldDescription id={inlineDescId} className="text-muted-foreground text-[11px] leading-relaxed">
                     {helperText}
                   </FieldDescription>
                 )}
@@ -90,7 +93,7 @@ export const SwitchInput = memo(function SwitchInput({
                   onBlur={onBlur}
                   disabled={locked}
                   aria-invalid={hasError}
-                  aria-describedby={describedBy}
+                  aria-describedby={inlineDescribedBy}
                 />
               </div>
             </Field>

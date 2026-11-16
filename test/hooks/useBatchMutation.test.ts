@@ -95,4 +95,31 @@ describe("useBatchMutation hook (TanStack Pacer AsyncQueuer)", () => {
 
     expect(result.current.isPending).toBe(false);
   });
+
+  it("skips onSuccess when all batch items fail and preserves zero results", async () => {
+    const onSuccess = vi.fn();
+    const onError = vi.fn();
+    const mutationFn = vi.fn(async () => {
+      throw new Error("boom");
+    });
+
+    const { result } = renderHook(() =>
+      useBatchMutation({
+        concurrency: 2,
+        entityName: "Item",
+        mutationFn,
+        onSuccess,
+        onError,
+      }),
+    );
+
+    let results: unknown[] = [];
+    await act(async () => {
+      results = await result.current.mutateBatchAsync([1, 2]);
+    });
+
+    expect(results).toEqual([]);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
 });

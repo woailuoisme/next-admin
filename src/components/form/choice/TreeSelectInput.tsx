@@ -71,6 +71,7 @@ function TreeSelectInputInner({
   searchPlaceholder,
   emptyText,
   disabled,
+  readOnly,
   allowClear = true,
   clearable = true,
   treeData = EMPTY_TREE_DATA,
@@ -115,6 +116,7 @@ function TreeSelectInputInner({
       className={className}
       hidden={hidden}
       disabled={disabled}
+      readOnly={readOnly}
       value={controlledValue}
       defaultValue={normalizedDefaultValue}
       onBlur={controlledOnBlur}

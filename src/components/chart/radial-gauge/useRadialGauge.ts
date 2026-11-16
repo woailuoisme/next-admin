@@ -1,3 +1,5 @@
+"use client";
+
 import { clamp, orderBy } from "es-toolkit";
 import { useMemo } from "react";
 

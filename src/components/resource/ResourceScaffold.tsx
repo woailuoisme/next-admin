@@ -195,8 +195,12 @@ export function ResourceScaffold<
         <div className="flex items-center gap-2">
           {headerExtra}
           {renderForm && canCreate && resolvedCreateLabel ? (
-            <Button onClick={openCreate} className="h-9 cursor-pointer gap-1.5 text-xs font-semibold shadow-xs">
-              <Plus className="size-4" /> {resolvedCreateLabel}
+            <Button
+              type="button"
+              onClick={openCreate}
+              className="h-9 cursor-pointer gap-1.5 text-xs font-semibold shadow-xs"
+            >
+              <Plus className="size-4" aria-hidden="true" /> {resolvedCreateLabel}
             </Button>
           ) : null}
         </div>

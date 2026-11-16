@@ -105,7 +105,6 @@ const DateRangePickerControl = memo(function DateRangePickerControl({
             type="button"
             variant="outline"
             disabled={disabled}
-            onBlur={onBlur}
             aria-readonly={readOnly}
             aria-invalid={hasError}
             aria-describedby={describedBy}
@@ -116,7 +115,7 @@ const DateRangePickerControl = memo(function DateRangePickerControl({
             )}
           >
             <div className="flex items-center gap-2 truncate">
-              <CalendarIcon className="text-muted-foreground size-3.5 shrink-0" />
+              <CalendarIcon aria-hidden="true" className="text-muted-foreground size-3.5 shrink-0" />
               <span className="truncate">{displayLabel}</span>
             </div>
           </Button>

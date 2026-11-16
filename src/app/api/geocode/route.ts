@@ -1,11 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { env } from "@/env";
+import { requireSession } from "../realtime/guard";
+
+export const dynamic = "force-dynamic";
 
 const AMAP_REST_BASE = "https://restapi.amap.com/v3";
 const REQUEST_TIMEOUT_MS = 8000;
 const COORD_PAIR_RE = /^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/;
-const AUTH_COOKIE_NAME = "auth_token";
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 60;
@@ -37,9 +39,11 @@ function resolveClientKey(request: NextRequest): string {
 }
 
 export async function GET(request: NextRequest) {
-  if (!request.cookies.get(AUTH_COOKIE_NAME)?.value) {
-    return NextResponse.json({ status: "0", info: "UNAUTHORIZED" }, { status: 401 });
-  }
+  const session = await requireSession(
+    request,
+    NextResponse.json({ status: "0", info: "UNAUTHORIZED" }, { status: 401 }),
+  );
+  if (session instanceof NextResponse) return session;
 
   if (isRateLimited(resolveClientKey(request))) {
     return NextResponse.json(
@@ -52,8 +56,12 @@ export async function GET(request: NextRequest) {
   const action = searchParams.get("action");
   const serverKey = process.env.AMAP_KEY || env.AMAP_KEY;
 
+  if (!process.env.AMAP_KEY && env.AMAP_KEY && process.env.NODE_ENV !== "test") {
+    console.warn("[Geocode API] Falling back to NEXT_PUBLIC_AMAP_KEY; configure server-only AMAP_KEY instead.");
+  }
+
   if (action === "status") {
-    return NextResponse.json({ enabled: Boolean(serverKey) });
+    return NextResponse.json({ enabled: Boolean(serverKey) }, { headers: { "Cache-Control": "no-store" } });
   }
 
   if (!serverKey) {

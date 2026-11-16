@@ -40,7 +40,7 @@ export const ResourceViewPage = memo(function ResourceViewPage({
       {extraActions}
       {onEdit ? (
         <Button type="button" variant="outline" size="sm" onClick={onEdit} className="h-8 gap-1.5 text-xs shadow-xs">
-          <Edit className="size-3.5" />
+          <Edit className="size-3.5" aria-hidden="true" />
           <span>{resolvedEditText}</span>
         </Button>
       ) : null}

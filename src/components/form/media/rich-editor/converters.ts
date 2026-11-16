@@ -40,6 +40,13 @@ export function simpleHtmlToMarkdown(html: string): string {
     .replace(/<blockquote>([\s\S]*?)<\/blockquote>/gi, "> $1\n\n")
     .replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/gi, "```\n$1\n```\n\n")
     .replace(/<hr\s*\/?>/gi, "---\n\n")
+    .replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (_, inner: string) => {
+      let idx = 1;
+      const items = inner
+        .replace(/<li><p>([\s\S]*?)<\/p><\/li>/gi, (_m, item: string) => `${idx++}. ${item}\n`)
+        .replace(/<li>([\s\S]*?)<\/li>/gi, (_m, item: string) => `${idx++}. ${item}\n`);
+      return `\n${items}\n`;
+    })
     .replace(/<li><p>([\s\S]*?)<\/p><\/li>/gi, "- $1\n")
     .replace(/<li>([\s\S]*?)<\/li>/gi, "- $1\n")
     .replace(/<\/?(ul|ol)>/gi, "\n")
@@ -55,9 +62,9 @@ export function simpleHtmlToMarkdown(html: string): string {
     .replace(/&nbsp;/gi, " ")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'")
-    .replace(/&amp;/gi, "&")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
+    .replace(/&amp;/gi, "&")
     .trim();
 }
 
@@ -121,66 +128,84 @@ export function simpleMarkdownToHtml(markdown: string): string {
   if (!markdown) return "";
   const lines = markdown.split("\n");
   const htmlParts: string[] = [];
-  let inList = false;
+  let listType: "ul" | "ol" | null = null;
+  let inCodeBlock = false;
+  let codeLines: string[] = [];
+
+  const closeList = () => {
+    if (listType) {
+      htmlParts.push(`</${listType}>`);
+      listType = null;
+    }
+  };
 
   for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line) {
-      if (inList) {
-        htmlParts.push("</ul>");
-        inList = false;
+    const trimmed = rawLine.trim();
+
+    if (trimmed.startsWith("```")) {
+      closeList();
+      if (!inCodeBlock) {
+        inCodeBlock = true;
+        codeLines = [];
+      } else {
+        htmlParts.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        inCodeBlock = false;
+        codeLines = [];
       }
       continue;
     }
 
-    if (line.startsWith("### ")) {
-      if (inList) {
-        htmlParts.push("</ul>");
-        inList = false;
-      }
-      htmlParts.push(`<h3>${formatInlineMarkdownSafe(line.slice(4))}</h3>`);
-    } else if (line.startsWith("## ")) {
-      if (inList) {
-        htmlParts.push("</ul>");
-        inList = false;
-      }
-      htmlParts.push(`<h2>${formatInlineMarkdownSafe(line.slice(3))}</h2>`);
-    } else if (line.startsWith("# ")) {
-      if (inList) {
-        htmlParts.push("</ul>");
-        inList = false;
-      }
-      htmlParts.push(`<h1>${formatInlineMarkdownSafe(line.slice(2))}</h1>`);
-    } else if (line.startsWith("> ")) {
-      if (inList) {
-        htmlParts.push("</ul>");
-        inList = false;
-      }
-      htmlParts.push(`<blockquote><p>${formatInlineMarkdownSafe(line.slice(2))}</p></blockquote>`);
-    } else if (line.startsWith("- ") || line.startsWith("* ")) {
-      if (!inList) {
+    if (inCodeBlock) {
+      codeLines.push(rawLine);
+      continue;
+    }
+
+    if (!trimmed) {
+      closeList();
+      continue;
+    }
+
+    const orderedMatch = /^\d+\.\s+(.*)$/.exec(trimmed);
+
+    if (trimmed.startsWith("### ")) {
+      closeList();
+      htmlParts.push(`<h3>${formatInlineMarkdownSafe(trimmed.slice(4))}</h3>`);
+    } else if (trimmed.startsWith("## ")) {
+      closeList();
+      htmlParts.push(`<h2>${formatInlineMarkdownSafe(trimmed.slice(3))}</h2>`);
+    } else if (trimmed.startsWith("# ")) {
+      closeList();
+      htmlParts.push(`<h1>${formatInlineMarkdownSafe(trimmed.slice(2))}</h1>`);
+    } else if (trimmed.startsWith("> ")) {
+      closeList();
+      htmlParts.push(`<blockquote><p>${formatInlineMarkdownSafe(trimmed.slice(2))}</p></blockquote>`);
+    } else if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+      if (listType !== "ul") {
+        closeList();
         htmlParts.push("<ul>");
-        inList = true;
+        listType = "ul";
       }
-      htmlParts.push(`<li><p>${formatInlineMarkdownSafe(line.slice(2))}</p></li>`);
-    } else if (line === "---") {
-      if (inList) {
-        htmlParts.push("</ul>");
-        inList = false;
+      htmlParts.push(`<li><p>${formatInlineMarkdownSafe(trimmed.slice(2))}</p></li>`);
+    } else if (orderedMatch) {
+      if (listType !== "ol") {
+        closeList();
+        htmlParts.push("<ol>");
+        listType = "ol";
       }
+      htmlParts.push(`<li><p>${formatInlineMarkdownSafe(orderedMatch[1])}</p></li>`);
+    } else if (trimmed === "---") {
+      closeList();
       htmlParts.push("<hr />");
     } else {
-      if (inList) {
-        htmlParts.push("</ul>");
-        inList = false;
-      }
-      htmlParts.push(`<p>${formatInlineMarkdownSafe(line)}</p>`);
+      closeList();
+      htmlParts.push(`<p>${formatInlineMarkdownSafe(trimmed)}</p>`);
     }
   }
 
-  if (inList) {
-    htmlParts.push("</ul>");
+  if (inCodeBlock) {
+    htmlParts.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
   }
+  closeList();
 
   return htmlParts.join("");
 }

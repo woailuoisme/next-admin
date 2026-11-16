@@ -53,17 +53,20 @@ export function defineResource<
     staleTime = DEFAULT_STALE_TIME,
   } = config;
 
+  const normalizeFilters = (filters: TFilters = EMPTY_FILTERS as TFilters): TFilters =>
+    (transformFilters ? transformFilters(filters) : filters) as TFilters;
+
   const keys: ResourceKeys<TFilters> = {
     all: [name] as const,
     lists: () => [name, "list"] as const,
-    list: (filters: TFilters = EMPTY_FILTERS as TFilters) => [name, "list", filters] as const,
+    list: (filters: TFilters = EMPTY_FILTERS as TFilters) => [name, "list", normalizeFilters(filters)] as const,
     details: () => [name, "detail"] as const,
     detail: (id: string) => [name, "detail", id] as const,
   };
 
   const defaultApi: ResourceApi<TItem, TInput, TFilters, TListResponse> = {
     list: async (filters: TFilters) => {
-      const normalized = transformFilters ? transformFilters(filters) : filters;
+      const normalized = normalizeFilters(filters);
       const query = toSearchParams(normalized);
       if (listUnwrap === "data") {
         const res = await apiClient

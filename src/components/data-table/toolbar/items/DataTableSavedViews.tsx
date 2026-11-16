@@ -49,6 +49,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           size="sm"
           className={cn(
@@ -57,7 +58,7 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
             className,
           )}
         >
-          <Bookmark className="size-3.5" />
+          <Bookmark aria-hidden="true" className="size-3.5" />
           <span>{activeView ? activeView.name : t("views_title")}</span>
           {views.length > 0 ? (
             <Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
@@ -72,12 +73,13 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
             <span className="text-foreground text-xs font-semibold">{t("views_saved_title")}</span>
             {!isCreating && (
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground h-6 gap-1 px-1.5 text-[11px]"
                 onClick={() => setIsCreating(true)}
               >
-                <Plus className="size-3" />
+                <Plus aria-hidden="true" className="size-3" />
                 <span>{t("views_save_current")}</span>
               </Button>
             )}
@@ -124,41 +126,41 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
                 return (
                   <div
                     key={v.id}
-                    onClick={() => {
-                      onApplyView(v.id);
-                      setOpen(false);
-                    }}
                     className={cn(
-                      "group/view flex cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-xs transition-colors",
+                      "group/view flex items-center justify-between gap-1 rounded-md px-1.5 py-1 text-xs transition-colors",
                       isActive ? "bg-primary/10 font-medium text-primary" : "text-foreground hover:bg-muted/50",
                     )}
                   >
-                    <div className="flex min-w-0 items-center gap-2">
-                      <Bookmark className="size-3.5 shrink-0 opacity-60" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onApplyView(v.id);
+                        setOpen(false);
+                      }}
+                      className="focus-visible:ring-ring flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-xs px-0.5 py-0.5 text-left focus-visible:ring-1 focus-visible:outline-hidden"
+                    >
+                      <Bookmark aria-hidden="true" className="size-3.5 shrink-0 opacity-60" />
                       <span className="truncate">{v.name}</span>
                       {v.isSystem ? (
                         <Badge variant="secondary" className="px-1 py-0 text-[9px] uppercase">
                           {t("views_default")}
                         </Badge>
                       ) : null}
-                    </div>
+                    </button>
 
                     <div className="flex shrink-0 items-center gap-1">
-                      {isActive ? <Check className="text-primary size-3.5" /> : null}
+                      {isActive ? <Check aria-hidden="true" className="text-primary size-3.5" /> : null}
                       {!v.isSystem && onDeleteView ? (
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteView(v.id);
-                          }}
-                          className="text-muted-foreground/50 hover:text-destructive size-5 rounded p-0.5 opacity-0 transition-opacity group-hover/view:opacity-100"
+                          onClick={() => onDeleteView(v.id)}
+                          className="text-muted-foreground/50 hover:text-destructive size-5 rounded p-0.5 opacity-0 transition-opacity group-hover/view:opacity-100 focus-visible:opacity-100"
                           title="Delete view"
                           aria-label={`Delete ${v.name}`}
                         >
-                          <Trash2 className="size-3" />
+                          <Trash2 aria-hidden="true" className="size-3" />
                         </Button>
                       ) : null}
                     </div>

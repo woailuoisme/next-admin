@@ -15,9 +15,10 @@ const ProductForm = dynamic(() => import("./components/ProductForm").then((m) =>
   ssr: false,
 });
 
-const STATUS_VARIANT_MAP: Record<string, "success" | "secondary"> = {
+const STATUS_VARIANT_MAP: Record<string, "success" | "secondary" | "warning"> = {
   active: "success",
   draft: "secondary",
+  out_of_stock: "warning",
 };
 
 const PINNED_COLUMNS = {
@@ -94,23 +95,28 @@ export const productUI = defineResourceUI(productResource, {
         options: [
           { label: t("status_active"), value: "active" },
           { label: t("status_draft"), value: "draft" },
+          { label: t("status_out_of_stock"), value: "out_of_stock" },
         ],
       },
       {
         type: "select",
-        field: "categoryName",
+        field: "categoryId",
         label: t("col_category"),
         placeholder: t("filter_category_placeholder"),
         options: [
-          { label: t("category_electronics"), value: "Electronics" },
-          { label: t("category_clothing"), value: "Clothing" },
-          { label: t("category_home"), value: "Home" },
-          { label: t("category_accessories"), value: "Accessories" },
+          { label: t("category_electronics"), value: "cat-1" },
+          { label: t("category_accessories"), value: "cat-2" },
+          { label: t("category_clothing"), value: "cat-3" },
+          { label: t("category_home"), value: "cat-4" },
         ],
       },
     ],
     columns: ({ t }) => {
-      const statusLabelMap = { active: t("status_active"), draft: t("status_draft") };
+      const statusLabelMap = {
+        active: t("status_active"),
+        draft: t("status_draft"),
+        out_of_stock: t("status_out_of_stock"),
+      };
       return [
         col.avatar<Product>("imageUrl", t("col_item"), {
           width: 70,

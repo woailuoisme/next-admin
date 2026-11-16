@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemoizedFn } from "ahooks";
-import { type KeyboardEvent, memo } from "react";
+import { type KeyboardEvent, memo, useRef } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 
-import { type BaseInputProps, FormFieldEngine, type SegmentedOption } from "../core";
+import { type BaseInputProps, createContainerBlurHandler, FormFieldEngine, type SegmentedOption } from "../core";
 
 export interface SegmentedControlProps<T extends string | number = string> extends BaseInputProps {
   value?: T;
@@ -52,6 +52,8 @@ const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends stri
   hasError,
   describedBy,
 }: SegmentedControlGroupProps<T>) {
+  const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
   const handleSelect = useMemoizedFn((optValue: T, optDisabled?: boolean) => {
     if (disabled || readOnly || optDisabled) return;
     onChange(optValue);
@@ -59,23 +61,34 @@ const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends stri
 
   const handleKeyDown = useMemoizedFn((e: KeyboardEvent<HTMLDivElement>) => {
     if (disabled || readOnly) return;
-    const enabledOptions = options.filter((o) => !o.disabled);
-    if (enabledOptions.length === 0) return;
+    const enabledEntries = options.map((opt, index) => ({ opt, index })).filter(({ opt }) => !opt.disabled);
+    if (enabledEntries.length === 0) return;
 
-    const currentIndex = enabledOptions.findIndex((o) => o.value === value);
+    const currentIndex = enabledEntries.findIndex(
+      ({ opt }) => value !== undefined && String(opt.value) === String(value),
+    );
 
     if (e.key === "ArrowRight" || e.key === "ArrowDown") {
       e.preventDefault();
-      const nextIdx = (currentIndex + 1) % enabledOptions.length;
-      onChange(enabledOptions[nextIdx].value);
+      const nextEntry = enabledEntries[(currentIndex + 1) % enabledEntries.length];
+      onChange(nextEntry.opt.value);
+      itemRefs.current[nextEntry.index]?.focus();
     } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
       e.preventDefault();
-      const prevIdx = (currentIndex - 1 + enabledOptions.length) % enabledOptions.length;
-      onChange(enabledOptions[prevIdx].value);
+      const prevEntry = enabledEntries[(currentIndex - 1 + enabledEntries.length) % enabledEntries.length];
+      onChange(prevEntry.opt.value);
+      itemRefs.current[prevEntry.index]?.focus();
     }
   });
 
+  const handleBlur = createContainerBlurHandler(onBlur);
+
   const sizeStyle = SIZE_STYLES[size];
+  const selectedIndex = options.findIndex(
+    (opt) => !opt.disabled && value !== undefined && String(opt.value) === String(value),
+  );
+  const firstEnabledIndex = options.findIndex((opt) => !opt.disabled);
+  const tabStopIndex = selectedIndex >= 0 ? selectedIndex : firstEnabledIndex;
 
   return (
     <div
@@ -84,32 +97,35 @@ const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends stri
       aria-invalid={hasError}
       aria-describedby={describedBy}
       aria-readonly={readOnly}
-      tabIndex={disabled || readOnly ? -1 : 0}
       onKeyDown={handleKeyDown}
-      onBlur={onBlur}
+      onBlur={handleBlur}
       className={cn(
-        "inline-flex items-center rounded-lg bg-muted p-1 text-muted-foreground transition-colors outline-none select-none focus-visible:ring-1 focus-visible:ring-ring",
+        "inline-flex items-center rounded-lg bg-muted p-1 text-muted-foreground transition-colors outline-none select-none",
         fullWidth && "flex w-full",
         disabled && "pointer-events-none cursor-not-allowed opacity-50",
         hasError && "ring-1 ring-destructive",
       )}
     >
-      {options.map((opt) => {
-        const isSelected = opt.value === value;
+      {options.map((opt, index) => {
+        const isSelected = value !== undefined && String(opt.value) === String(value);
         const isItemDisabled = disabled || readOnly || opt.disabled;
         const Icon = opt.icon;
 
         return (
           <Button
             key={String(opt.value)}
+            ref={(el) => {
+              itemRefs.current[index] = el;
+            }}
             type="button"
             variant="ghost"
             role="radio"
             aria-checked={isSelected}
+            tabIndex={disabled || readOnly || opt.disabled ? -1 : index === tabStopIndex ? 0 : -1}
             disabled={isItemDisabled}
             onClick={() => handleSelect(opt.value, opt.disabled)}
             className={cn(
-              "relative inline-flex items-center justify-center rounded-md font-medium transition-all focus:outline-none",
+              "relative inline-flex items-center justify-center rounded-md font-medium transition-all focus-visible:ring-1 focus-visible:ring-ring focus:outline-none",
               sizeStyle,
               fullWidth && "flex-1",
               isSelected
@@ -119,7 +135,7 @@ const SegmentedControlGroup = memo(function SegmentedControlGroup<T extends stri
               !isItemDisabled && "cursor-pointer",
             )}
           >
-            {Icon && <Icon className="size-3.5 shrink-0" />}
+            {Icon && <Icon className="size-3.5 shrink-0" aria-hidden="true" />}
             <span>{opt.label}</span>
             {opt.badge != null && (
               <span className="ml-1 shrink-0">

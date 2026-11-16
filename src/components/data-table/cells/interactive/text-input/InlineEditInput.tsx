@@ -64,7 +64,11 @@ export function InlineEditInput({
           inputMode={inputMode}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onBlur={onCommit}
+          onBlur={() => {
+            if (!error) {
+              onCommit();
+            }
+          }}
           onKeyDown={handleKeyDown}
           className={cn(
             "h-7 px-2 py-0 text-xs",
@@ -101,7 +105,7 @@ export function InlineEditInput({
         title="确认 (Enter)"
         aria-label="确认修改"
       >
-        <Check className="size-3" />
+        <Check aria-hidden="true" className="size-3" />
       </Button>
       <Button
         type="button"
@@ -115,7 +119,7 @@ export function InlineEditInput({
         title="取消 (Esc)"
         aria-label="取消修改"
       >
-        <X className="size-3" />
+        <X aria-hidden="true" className="size-3" />
       </Button>
     </div>
   );

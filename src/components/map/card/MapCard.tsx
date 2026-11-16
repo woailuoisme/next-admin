@@ -112,6 +112,7 @@ export const MapCard = memo(function MapCard({
 
             {canFullscreen ? (
               <Button
+                type="button"
                 variant="outline"
                 size="icon"
                 onClick={openFullscreen}
@@ -120,7 +121,7 @@ export const MapCard = memo(function MapCard({
                 title={t("fullscreen_title")}
                 aria-label={t("fullscreen_title")}
               >
-                <Maximize2 className="size-3.5" />
+                <Maximize2 className="size-3.5" aria-hidden="true" />
               </Button>
             ) : null}
           </div>

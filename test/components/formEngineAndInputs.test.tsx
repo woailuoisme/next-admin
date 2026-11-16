@@ -5,12 +5,18 @@ import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { FormDialog } from "@/components/dialogs/FormDialog";
+import { NumberInput } from "@/components/form/basic/NumberInput";
 import { TextInput } from "@/components/form/basic/TextInput";
 import { TextareaInput } from "@/components/form/basic/TextareaInput";
+import { type CascaderOption } from "@/components/form/choice/Cascader";
 import { CascaderInput } from "@/components/form/choice/CascaderInput";
-import { CheckboxGroup } from "@/components/form/choice/CheckboxGroup";
+import { CheckboxGroup, CheckboxInput } from "@/components/form/choice/CheckboxGroup";
+import { ComboboxInput } from "@/components/form/choice/ComboboxInput";
 import { RadioGroupInput } from "@/components/form/choice/RadioGroupInput";
+import { SwitchInput } from "@/components/form/choice/SwitchInput";
 import { TreeSelectInput } from "@/components/form/choice/TreeSelectInput";
+import { CurrencyInput } from "@/components/form/finance/CurrencyInput";
+import { FormSection } from "@/components/form/layout/FormSection";
 import { renderWithProviders, screen, waitFor } from "test/test-utils";
 
 const schema = z.object({
@@ -285,5 +291,219 @@ describe("TreeSelect & Cascader A11y & Keyboard Clear", () => {
 
     await user.click(removeFrontendBtn);
     expect(onMultiChange).toHaveBeenCalledWith(["be"]);
+  });
+
+  it("FormSection renders type='button' toggle, supports title-less collapsible, and ignores defaultCollapsed when collapsible={false}", async () => {
+    const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+    const { user } = renderWithProviders(
+      <form onSubmit={onSubmit}>
+        <FormSection collapsible defaultCollapsed={false}>
+          <p>Collapsed-capable body</p>
+        </FormSection>
+        <FormSection title="Static Section" collapsible={false} defaultCollapsed>
+          <p>Always visible body</p>
+        </FormSection>
+      </form>,
+    );
+
+    const toggleBtn = screen.getByRole("button");
+    expect(toggleBtn).toHaveAttribute("type", "button");
+    expect(toggleBtn).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("Always visible body")).toBeVisible();
+
+    await user.click(toggleBtn);
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(toggleBtn).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("CascaderInput and TreeSelectInput respect readOnly without opening dropdown or clearing", async () => {
+    const onTreeChange = vi.fn();
+    const onCascaderChange = vi.fn();
+
+    const { user } = renderWithProviders(
+      <>
+        <TreeSelectInput
+          name="ro-tree"
+          label="Readonly Dept"
+          readOnly
+          allowClear
+          value="fe"
+          onChange={onTreeChange}
+          treeData={[
+            {
+              value: "eng",
+              label: "Engineering",
+              children: [{ value: "fe", label: "Frontend" }],
+            },
+          ]}
+        />
+        <CascaderInput
+          name="ro-cascader"
+          label="Readonly Region"
+          readOnly
+          allowClear
+          value={["cn"]}
+          onChange={onCascaderChange}
+          options={[{ value: "cn", label: "China" }]}
+        />
+      </>,
+      { locale: "en" },
+    );
+
+    expect(screen.queryByRole("button", { name: "Clear selection" })).not.toBeInTheDocument();
+    const [treeTrigger, cascaderTrigger] = screen.getAllByRole("combobox");
+    await user.click(treeTrigger!);
+    await user.click(cascaderTrigger!);
+    expect(screen.queryByRole("tree")).not.toBeInTheDocument();
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  });
+
+  it("SwitchInput and CheckboxInput wire aria-describedby to inline description", () => {
+    renderWithProviders(
+      <>
+        <SwitchInput name="notifications" label="Notifications" inline helperText="Receive email alerts" />
+        <CheckboxInput name="agree" label="Terms" description="Accept service agreement" />
+      </>,
+    );
+
+    const sw = screen.getByRole("switch");
+    const swDescId = sw.getAttribute("aria-describedby");
+    expect(swDescId).toBeTruthy();
+    expect(document.getElementById(swDescId!)?.textContent).toContain("Receive email alerts");
+
+    const cb = screen.getByRole("checkbox");
+    const cbDescId = cb.getAttribute("aria-describedby");
+    expect(cbDescId).toBeTruthy();
+    expect(document.getElementById(cbDescId!)?.textContent).toContain("Accept service agreement");
+  });
+
+  it("NumberInput preserves step decimal precision and clamps initial null step to min", async () => {
+    const onPrecisionChange = vi.fn();
+    const onNullStepChange = vi.fn();
+
+    const { user } = renderWithProviders(
+      <>
+        <NumberInput name="ratio" label="Ratio" value={0.1} step={0.1} onChange={onPrecisionChange} />
+        <NumberInput name="qty" label="Quantity" value={null} min={10} step={1} onChange={onNullStepChange} />
+      </>,
+      { locale: "en" },
+    );
+
+    const plusButtons = screen.getAllByRole("button", { name: /increase/i });
+    await user.click(plusButtons[0]!);
+    expect(onPrecisionChange).toHaveBeenCalledWith(0.2);
+
+    await user.click(plusButtons[1]!);
+    expect(onNullStepChange).toHaveBeenCalledWith(10);
+  });
+
+  it("CurrencyInput allows partial typing when min > 9 and clamps on blur", async () => {
+    function CurrencyHarness() {
+      const [val, setVal] = useState<number | null>(null);
+      return <CurrencyInput name="price" label="Price" min={100} value={val} onChange={setVal} />;
+    }
+
+    const { user } = renderWithProviders(<CurrencyHarness />);
+    const input = screen.getByRole("textbox", { name: "Price" });
+
+    await user.type(input, "5");
+    expect(input).toHaveValue("5");
+
+    fireEvent.blur(input);
+    expect(input).toHaveValue("100");
+  });
+
+  it("ComboboxInput supports falsy numeric value 0 and disambiguates duplicate labels", async () => {
+    const onChange = vi.fn();
+    const { user } = renderWithProviders(
+      <ComboboxInput
+        name="tier"
+        label="Tier"
+        value={0}
+        onChange={onChange}
+        options={[
+          { label: "Free Tier", value: 0 },
+          { label: "Standard", value: "s1" },
+          { label: "Standard", value: "s2" },
+        ]}
+      />,
+      { locale: "en" },
+    );
+
+    const trigger = screen.getByRole("combobox");
+    expect(trigger).toHaveTextContent("Free Tier");
+
+    await user.click(trigger);
+    const items = await screen.findAllByRole("option");
+    expect(items.length).toBeGreaterThanOrEqual(3);
+    await user.click(items[2]!);
+    expect(onChange).toHaveBeenCalledWith("s2");
+  });
+
+  it("CascaderInput reflects immutable options updates after async loadData while open", async () => {
+    function AsyncCascaderHarness() {
+      const [opts, setOpts] = useState<CascaderOption[]>([{ value: "zhejiang", label: "Zhejiang", isLeaf: false }]);
+
+      return (
+        <CascaderInput
+          name="regionAsync"
+          label="Region Async"
+          options={opts}
+          loadData={async (selectedOptions) => {
+            const target = selectedOptions[selectedOptions.length - 1];
+            if (!target) return;
+            await Promise.resolve();
+            setOpts((prev) =>
+              prev.map((item) =>
+                item.value === target.value ? { ...item, children: [{ value: "hangzhou", label: "Hangzhou" }] } : item,
+              ),
+            );
+          }}
+        />
+      );
+    }
+
+    const { user } = renderWithProviders(<AsyncCascaderHarness />, { locale: "en" });
+    await user.click(screen.getByRole("combobox"));
+    await user.click(await screen.findByText("Zhejiang"));
+    expect(await screen.findByText("Hangzhou")).toBeInTheDocument();
+  });
+
+  it("blocks FormDialog Enter/form submit when loading or isSubmitDisabled is true", () => {
+    const onSubmit = vi.fn();
+
+    const { rerender } = renderWithProviders(
+      <FormDialog open={true} onOpenChange={vi.fn()} title="Locked Dialog" loading={true} onSubmit={onSubmit}>
+        <input aria-label="Field A" defaultValue="abc" />
+      </FormDialog>,
+      { locale: "en" },
+    );
+
+    const form = screen.getByLabelText("Field A").closest("form")!;
+    fireEvent.submit(form);
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    rerender(
+      <FormDialog
+        open={true}
+        onOpenChange={vi.fn()}
+        title="Locked Dialog"
+        loading={false}
+        isSubmitDisabled={true}
+        onSubmit={onSubmit}
+      >
+        <input aria-label="Field A" defaultValue="abc" />
+      </FormDialog>,
+    );
+    fireEvent.submit(screen.getByLabelText("Field A").closest("form")!);
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    rerender(
+      <FormDialog open={true} onOpenChange={vi.fn()} title="Unlocked Dialog" loading={false} onSubmit={onSubmit}>
+        <input aria-label="Field A" defaultValue="abc" />
+      </FormDialog>,
+    );
+    fireEvent.submit(screen.getByLabelText("Field A").closest("form")!);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 });

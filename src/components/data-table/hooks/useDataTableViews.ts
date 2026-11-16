@@ -1,6 +1,25 @@
 import { useMemoizedFn } from "ahooks";
 import { useMemo, useState } from "react";
 
+import { useIsHydrated } from "@/hooks/useIsHydrated";
+
+function readStoredViews(
+  storageKeyViews: string | null,
+  defaultSavedViews: DataTableSavedView[],
+): DataTableSavedView[] {
+  if (typeof window === "undefined" || !storageKeyViews) {
+    return defaultSavedViews;
+  }
+  try {
+    const raw = window.localStorage.getItem(storageKeyViews);
+    if (!raw) return defaultSavedViews;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : defaultSavedViews;
+  } catch {
+    return defaultSavedViews;
+  }
+}
+
 import { EMPTY_ARRAY } from "../core/constants";
 import type {
   DataTableDensity,
@@ -10,7 +29,7 @@ import type {
   DataTableTabItem,
 } from "../core/types";
 
-export interface UseDataTableViewsOptions<TData = any> {
+export interface UseDataTableViewsOptions<TData = unknown> {
   // Status Tabs
   tabs?: DataTableTabItem<TData>[];
   activeTab?: string;
@@ -37,7 +56,7 @@ export interface UseDataTableViewsOptions<TData = any> {
   onApplyDensity?: (density: DataTableDensity) => void;
 }
 
-export function useDataTableViews<TData = any>({
+export function useDataTableViews<TData = unknown>({
   tabs,
   activeTab: controlledActiveTab,
   defaultActiveTab,
@@ -84,29 +103,25 @@ export function useDataTableViews<TData = any>({
   // 2. Saved Views State
   const storageKeyViews = storageKey ? `${storageKey}_saved_views` : null;
 
-  const loadStoredViews = (): DataTableSavedView[] => {
-    if (typeof window === "undefined" || !storageKeyViews) {
-      return defaultSavedViews;
-    }
-    try {
-      const raw = window.localStorage.getItem(storageKeyViews);
-      if (!raw) return defaultSavedViews;
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : defaultSavedViews;
-    } catch {
-      return defaultSavedViews;
-    }
-  };
-
-  const [uncontrolledViews, setUncontrolledViews] = useState<DataTableSavedView[]>(loadStoredViews);
+  const isHydrated = useIsHydrated();
+  const storedViews = useMemo(
+    () => (isHydrated ? readStoredViews(storageKeyViews, defaultSavedViews) : defaultSavedViews),
+    [isHydrated, defaultSavedViews, storageKeyViews],
+  );
+  const [overrideViewsState, setOverrideViewsState] = useState<{
+    key: string | null;
+    views: DataTableSavedView[];
+  } | null>(null);
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
 
   const isViewsControlled = controlledSavedViews !== undefined;
+  const uncontrolledViews =
+    overrideViewsState && overrideViewsState.key === storageKeyViews ? overrideViewsState.views : storedViews;
   const allViews = isViewsControlled ? controlledSavedViews : uncontrolledViews;
 
   const updateViews = useMemoizedFn((nextViews: DataTableSavedView[]) => {
     if (!isViewsControlled) {
-      setUncontrolledViews(nextViews);
+      setOverrideViewsState({ key: storageKeyViews, views: nextViews });
       if (storageKeyViews && typeof window !== "undefined") {
         try {
           window.localStorage.setItem(storageKeyViews, JSON.stringify(nextViews));

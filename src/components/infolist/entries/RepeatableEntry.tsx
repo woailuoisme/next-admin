@@ -137,7 +137,8 @@ function RepeatableEntryInner<T = any>({
     if (variant === "table") {
       const resolvedTitleWidth = itemTitleWidth ?? "w-64 sm:w-80";
       const remainingHeaders = tableHeaders ? tableHeaders.slice(itemTitle ? 1 : 0) : [];
-      const headerColsClass = resolveFixedColsClassName(remainingHeaders.length || gridCols);
+      const hasRemainingHeaders = remainingHeaders.length > 0;
+      const headerColsClass = hasRemainingHeaders ? resolveFixedColsClassName(remainingHeaders.length) : undefined;
 
       return (
         <div className="border-border bg-card overflow-hidden rounded-xl border">
@@ -146,16 +147,21 @@ function RepeatableEntryInner<T = any>({
               <TableHeader className="bg-muted/50">
                 <TableRow className="hover:bg-transparent">
                   {itemTitle && (
-                    <TableHead className={cn("h-9 px-3 text-xs font-semibold select-none", resolvedTitleWidth)}>
+                    <TableHead
+                      scope="col"
+                      className={cn("h-9 px-3 text-xs font-semibold select-none", resolvedTitleWidth)}
+                    >
                       {tableHeaders[0]}
                     </TableHead>
                   )}
-                  <TableHead className="h-9 px-3 text-xs font-semibold select-none">
-                    <div className={cn("grid gap-2", headerColsClass)}>
-                      {remainingHeaders.map((header, hIdx) => (
-                        <div key={hIdx}>{header}</div>
-                      ))}
-                    </div>
+                  <TableHead scope="col" className="h-9 px-3 text-xs font-semibold select-none">
+                    {hasRemainingHeaders ? (
+                      <div className={cn("grid gap-2", headerColsClass)}>
+                        {remainingHeaders.map((header, hIdx) => (
+                          <div key={hIdx}>{header}</div>
+                        ))}
+                      </div>
+                    ) : null}
                   </TableHead>
                 </TableRow>
               </TableHeader>

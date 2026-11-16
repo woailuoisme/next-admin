@@ -36,6 +36,7 @@ export interface InfolistTabItem {
   icon?: React.ReactNode;
   badge?: React.ReactNode;
   columns?: GridColumns;
+  disabled?: boolean;
   children: React.ReactNode;
 }
 

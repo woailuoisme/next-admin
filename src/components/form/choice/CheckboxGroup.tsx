@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { cn } from "cn";
 
-import { type BaseInputProps, FormFieldEngine, type SelectOption } from "../core";
+import { type BaseInputProps, createContainerBlurHandler, FormFieldEngine, type SelectOption } from "../core";
 
 const EMPTY_OPTIONS: SelectOption[] = [];
 const EMPTY_VALUES: (string | number)[] = [];
@@ -51,7 +51,7 @@ export const CheckboxGroup = memo(function CheckboxGroup({
             data-slot="checkbox-group"
             role="group"
             aria-describedby={describedBy}
-            onBlur={onBlur}
+            onBlur={createContainerBlurHandler(onBlur)}
             className={cn(
               "gap-2 pt-1",
               direction === "horizontal" ? "flex-row flex-wrap items-center gap-4" : "space-y-2",
@@ -150,43 +150,48 @@ export const CheckboxInput = memo(function CheckboxInput({
 }: CheckboxInputProps) {
   return (
     <FormFieldEngine<boolean> defaultValue={defaultValue} {...fieldProps}>
-      {({ id, value, onChange, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy, onBlur }) => (
-        <Field orientation="horizontal" className="items-start gap-2.5 pt-1">
-          <Checkbox
-            id={id}
-            checked={Boolean(value)}
-            onCheckedChange={(checked) => {
-              if (!isReadOnly) onChange(Boolean(checked));
-            }}
-            onBlur={onBlur}
-            disabled={isDisabled || isReadOnly}
-            aria-invalid={hasError}
-            aria-describedby={describedBy}
-            className="mt-0.5 rounded-sm"
-          />
-          <FieldContent className="space-y-0.5">
-            <div className="flex items-center gap-1.5">
-              <FieldLabel
-                htmlFor={id}
-                className={cn(
-                  "cursor-pointer text-xs leading-none font-semibold tracking-tight select-none",
-                  hasError ? "text-destructive" : "text-foreground",
-                )}
-              >
-                {label}
-                {required && <span className="text-destructive ml-0.5 font-bold">*</span>}
-              </FieldLabel>
-              {tooltip && <LabelHelpTooltip content={tooltip} />}
-              {hint && <span className="text-muted-foreground ml-1 text-[11px] font-normal">{hint}</span>}
-            </div>
-            {(description || helperText) && (
-              <FieldDescription className="text-muted-foreground text-[11px] leading-relaxed">
-                {description || helperText}
-              </FieldDescription>
-            )}
-          </FieldContent>
-        </Field>
-      )}
+      {({ id, value, onChange, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy, onBlur }) => {
+        const inlineDescText = description || helperText;
+        const inlineDescId = inlineDescText ? `${id}-desc` : undefined;
+
+        return (
+          <Field orientation="horizontal" className="items-start gap-2.5 pt-1">
+            <Checkbox
+              id={id}
+              checked={Boolean(value)}
+              onCheckedChange={(checked) => {
+                if (!isReadOnly) onChange(Boolean(checked));
+              }}
+              onBlur={onBlur}
+              disabled={isDisabled || isReadOnly}
+              aria-invalid={hasError}
+              aria-describedby={[describedBy, inlineDescId].filter(Boolean).join(" ") || undefined}
+              className="mt-0.5 rounded-sm"
+            />
+            <FieldContent className="space-y-0.5">
+              <div className="flex items-center gap-1.5">
+                <FieldLabel
+                  htmlFor={id}
+                  className={cn(
+                    "cursor-pointer text-xs leading-none font-semibold tracking-tight select-none",
+                    hasError ? "text-destructive" : "text-foreground",
+                  )}
+                >
+                  {label}
+                  {required && <span className="text-destructive ml-0.5 font-bold">*</span>}
+                </FieldLabel>
+                {tooltip && <LabelHelpTooltip content={tooltip} />}
+                {hint && <span className="text-muted-foreground ml-1 text-[11px] font-normal">{hint}</span>}
+              </div>
+              {inlineDescText && (
+                <FieldDescription id={inlineDescId} className="text-muted-foreground text-[11px] leading-relaxed">
+                  {inlineDescText}
+                </FieldDescription>
+              )}
+            </FieldContent>
+          </Field>
+        );
+      }}
     </FormFieldEngine>
   );
 });

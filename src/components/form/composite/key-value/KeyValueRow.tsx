@@ -98,7 +98,7 @@ export const KeyValueRow = memo(function KeyValueRow({
                 aria-label={t("keyvalue_drag_handle")}
                 className="text-muted-foreground/50 hover:bg-muted/80 hover:text-foreground size-6 cursor-grab active:cursor-grabbing"
               >
-                <GripVertical className="size-3.5" />
+                <GripVertical aria-hidden="true" className="size-3.5" />
               </Button>
             </TableCell>
           ) : null}
@@ -138,9 +138,9 @@ export const KeyValueRow = memo(function KeyValueRow({
                         variant="ghost"
                         size="icon-xs"
                         aria-label={t("keyvalue_duplicate_tooltip")}
-                        className="text-destructive focus-visible:ring-ring flex size-4 items-center justify-center rounded-sm p-0 hover:bg-transparent focus-visible:ring-2"
+                        className="text-destructive focus-visible:ring-ring relative flex size-4 items-center justify-center rounded-sm p-0 after:absolute after:-inset-1.5 hover:bg-transparent focus-visible:ring-2"
                       >
-                        <AlertCircle className="size-3.5" />
+                        <AlertCircle aria-hidden="true" className="size-3.5" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="top">{t("keyvalue_duplicate_tooltip")}</TooltipContent>
@@ -173,10 +173,15 @@ export const KeyValueRow = memo(function KeyValueRow({
                   variant="ghost"
                   size="icon-xs"
                   onClick={toggleReveal}
+                  aria-pressed={revealed}
                   aria-label={revealed ? t("keyvalue_hide_value") : t("keyvalue_show_value")}
                   className="text-muted-foreground/60 hover:text-foreground mr-1 size-6 cursor-pointer"
                 >
-                  {revealed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  {revealed ? (
+                    <EyeOff aria-hidden="true" className="size-3.5" />
+                  ) : (
+                    <Eye aria-hidden="true" className="size-3.5" />
+                  )}
                 </Button>
               ) : null}
 
@@ -190,7 +195,7 @@ export const KeyValueRow = memo(function KeyValueRow({
                   title={t("keyvalue_delete_row")}
                   aria-label={t("keyvalue_delete_row")}
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 aria-hidden="true" className="size-3.5" />
                 </Button>
               ) : null}
             </div>

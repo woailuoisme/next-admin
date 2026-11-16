@@ -28,6 +28,7 @@ import { isSystemColumn } from "../toolbar/filters/utils";
 import { DataTableToolbar } from "../toolbar/DataTableToolbar";
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, defaultGetRowId, EMPTY_ARRAY, EMPTY_RECORD } from "./constants";
 import { type DataTableConfigContextValue, DataTableProvider } from "./DataTableContext";
+import { isColumnVisible, toColumnCssVarKey } from "./utils";
 
 const LazyBatchActionBar = dynamic(() =>
   import("../footer/DataTableBatchActionBar").then((mod) => mod.DataTableBatchActionBar),
@@ -188,8 +189,8 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   }, [columns]);
 
   const visibleColumns = useMemo(() => {
-    // colDef.hidden 与 columnVisibility 两种隐藏机制统一在此收敛，保证表头/表体/表尾一致
-    return normalizedColumns.filter((col) => !col.hidden && columnVisibility[col.field] !== false);
+    // colDef.hidden 与 columnVisibility 两种隐藏机制统一在此收敛（用户显式切换优先于初始 hidden）
+    return normalizedColumns.filter((col) => isColumnVisible(col, columnVisibility));
   }, [normalizedColumns, columnVisibility]);
 
   // ==================== Table Container Ref & Column Resizing ====================
@@ -204,11 +205,23 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     hasExpandColumn: Boolean(renderExpandedRow),
   });
 
+  // ==================== Pagination State ====================
+  const [internalPagination, setInternalPagination] = useState<DataTablePaginationModel>({
+    page: state?.page ?? 1,
+    pageSize: state?.pageSize ?? propPageSize ?? DEFAULT_PAGE_SIZE,
+  });
+
+  const resetClientUncontrolledPage = useMemoizedFn(() => {
+    if (paginationMode === "client" && state?.page === undefined && controlledPaginationModel === undefined) {
+      setInternalPagination((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+    }
+  });
+
   // ==================== Sorting (useDataTableSorting) ====================
   const {
     sortModel,
     handleSortClick: baseHandleSortClick,
-    handleSortModelChange,
+    handleSortModelChange: baseHandleSortModelChange,
     sortRows,
   } = useDataTableSorting({
     columns: normalizedColumns,
@@ -218,9 +231,22 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   });
 
   const handleSortClick = useMemoizedFn((field: string) => {
+    const targetCol = normalizedColumns.find((c) => c.field === field);
+    if (targetCol?.sortable === false) {
+      return;
+    }
     baseHandleSortClick(field);
-    const nextDir = resolveNextSortDirection(sortModel, field);
-    state?.onSortChange?.(field, nextDir);
+    // Avoid double notification when adapter already receives onSortModelChange from baseHandleSortClick
+    if (!state?.onSortModelChange && state?.onSortChange) {
+      const nextDir = resolveNextSortDirection(sortModel, field);
+      state.onSortChange(field, nextDir);
+    }
+    resetClientUncontrolledPage();
+  });
+
+  const handleSortModelChange = useMemoizedFn((model: typeof sortModel) => {
+    baseHandleSortModelChange(model);
+    resetClientUncontrolledPage();
   });
 
   // ==================== Filtering (useDataTableFiltering) ====================
@@ -228,7 +254,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     filterModel,
     quickFilterText,
     filteredRows,
-    handleFilterModelChange,
+    handleFilterModelChange: baseHandleFilterModelChange,
     handleQuickFilterChange: baseHandleQuickFilterChange,
     handleResetFilters: baseHandleResetFilters,
   } = useDataTableFiltering({
@@ -240,6 +266,11 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     onFilterModelChange,
   });
 
+  const handleFilterModelChange = useMemoizedFn((model: typeof filterModel) => {
+    baseHandleFilterModelChange(model);
+    resetClientUncontrolledPage();
+  });
+
   const handleQuickFilterChange = useMemoizedFn((val: string) => {
     if (state?.onSearchChange && controlledFilterModel !== undefined) {
       state.onSearchChange(val);
@@ -247,6 +278,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     }
     baseHandleQuickFilterChange(val);
     state?.onSearchChange?.(val);
+    resetClientUncontrolledPage();
   });
 
   const isFiltered = Boolean(
@@ -260,6 +292,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     if (state?.onSearchChange && !state?.onFilterModelChange) {
       state.onSearchChange("");
     }
+    resetClientUncontrolledPage();
   });
 
   // ==================== Row Expansion (useDataTableExpansion) ====================
@@ -304,14 +337,14 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     return sortRows(filteredRows);
   }, [sortRows, filteredRows]);
 
-  // ==================== Pagination State ====================
-  const [internalPagination, setInternalPagination] = useState<DataTablePaginationModel>({
-    page: state?.page ?? 1,
-    pageSize: state?.pageSize ?? propPageSize ?? DEFAULT_PAGE_SIZE,
-  });
-
-  const effectivePage = state?.page ?? controlledPaginationModel?.page ?? internalPagination.page;
-  const effectivePageSize = state?.pageSize ?? controlledPaginationModel?.pageSize ?? internalPagination.pageSize;
+  const rawPage = state?.page ?? controlledPaginationModel?.page ?? internalPagination.page;
+  const effectivePageSize = Math.max(
+    1,
+    state?.pageSize ?? controlledPaginationModel?.pageSize ?? internalPagination.pageSize,
+  );
+  const totalRowCount = paginationMode === "server" ? (state?.total ?? rows.length) : processedRows.length;
+  const totalPages = Math.max(1, Math.ceil(totalRowCount / effectivePageSize));
+  const effectivePage = paginationMode === "client" ? Math.min(Math.max(1, rawPage), totalPages) : Math.max(1, rawPage);
 
   const paginationModel = useMemo(
     () => ({ page: effectivePage, pageSize: effectivePageSize }),
@@ -328,8 +361,6 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
     }
     onPaginationModelChange?.(model);
   });
-
-  const totalRowCount = paginationMode === "server" ? (state?.total ?? rows.length) : processedRows.length;
 
   const pagedRows = useMemo(() => {
     if (paginationMode === "server") {
@@ -412,15 +443,16 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   const containerColumnStyles = useMemo<Record<string, string>>(() => {
     const styles: Record<string, string> = {};
     for (const col of visibleColumns) {
+      const varKey = toColumnCssVarKey(col.field);
       const w = columnWidths[col.field] ?? col.width;
       if (w !== undefined) {
-        styles[`--col-w-${col.field}`] = `${w}px`;
+        styles[`--col-w-${varKey}`] = `${w}px`;
       }
       if (leftOffsets[col.field] !== undefined) {
-        styles[`--col-left-${col.field}`] = `${leftOffsets[col.field]}px`;
+        styles[`--col-left-${varKey}`] = `${leftOffsets[col.field]}px`;
       }
       if (rightOffsets[col.field] !== undefined) {
-        styles[`--col-right-${col.field}`] = `${rightOffsets[col.field]}px`;
+        styles[`--col-right-${varKey}`] = `${rightOffsets[col.field]}px`;
       }
     }
     return styles;

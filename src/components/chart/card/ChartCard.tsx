@@ -108,6 +108,7 @@ export const ChartCard = memo(function ChartCard({
 
             {showFullscreen && (
               <Button
+                type="button"
                 variant="outline"
                 size="icon"
                 onClick={() => setIsFullscreen(true)}
@@ -116,7 +117,7 @@ export const ChartCard = memo(function ChartCard({
                 title={t("fullscreen_title")}
                 aria-label={t("fullscreen_title")}
               >
-                <Maximize2 className="size-3.5" />
+                <Maximize2 className="size-3.5" aria-hidden="true" />
               </Button>
             )}
           </div>
@@ -131,12 +132,12 @@ export const ChartCard = memo(function ChartCard({
               style={{ height }}
             >
               <div className="bg-destructive/10 text-destructive rounded-full p-2.5">
-                <AlertCircle className="size-5" />
+                <AlertCircle className="size-5" aria-hidden="true" />
               </div>
               <p className="text-destructive text-sm font-medium">{errorMessage}</p>
               {onRetry && (
-                <Button variant="outline" size="sm" onClick={onRetry} className="h-8 gap-1.5 text-xs">
-                  <RefreshCw className="size-3.5" />
+                <Button type="button" variant="outline" size="sm" onClick={onRetry} className="h-8 gap-1.5 text-xs">
+                  <RefreshCw className="size-3.5" aria-hidden="true" />
                   {t("retry")}
                 </Button>
               )}

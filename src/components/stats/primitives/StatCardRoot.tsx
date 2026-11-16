@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useCallback, useMemo, type KeyboardEvent } from "react";
+import { useMemo } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "cn";
@@ -12,7 +12,10 @@ import { useStatsGridContext } from "../grid/StatsGridContext";
 import { StatCardContext } from "./StatCardContext";
 import { DENSITY_STYLES } from "./types";
 
-export const StatCardRoot = memo(function StatCardRoot({
+const STRETCHED_OVERLAY_CLASS =
+  "focus-visible:ring-ring rounded-xl after:absolute after:inset-0 after:z-0 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset";
+
+export function StatCardRoot({
   density,
   sparklineLayout,
   theme = "primary",
@@ -28,7 +31,6 @@ export const StatCardRoot = memo(function StatCardRoot({
   const resolvedDensity = density ?? gridContext.density ?? "compact";
   const resolvedSparklineLayout = sparklineLayout ?? gridContext.sparklineLayout ?? "inline";
   const isInteractive = Boolean(to || onClick);
-  const isClickButton = !to && Boolean(onClick);
   const dStyles = DENSITY_STYLES[resolvedDensity] ?? DENSITY_STYLES.compact;
 
   const contextValue = useMemo(
@@ -41,30 +43,13 @@ export const StatCardRoot = memo(function StatCardRoot({
     [resolvedDensity, resolvedSparklineLayout, theme, isInteractive],
   );
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLDivElement>) => {
-      onKeyDown?.(e);
-      if (e.defaultPrevented || !isClickButton) return;
-      // Ignore keyboard activations bubbling from nested interactive controls
-      if (e.target !== e.currentTarget) return;
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onClick?.();
-      }
-    },
-    [isClickButton, onClick, onKeyDown],
-  );
-
   return (
     <StatCardContext value={contextValue}>
       <Card
         size={resolvedDensity === "compact" ? "sm" : "default"}
         data-density={resolvedDensity}
         data-sparkline-layout={resolvedSparklineLayout}
-        role={isClickButton ? "button" : undefined}
-        tabIndex={isClickButton ? 0 : undefined}
-        onClick={isClickButton ? onClick : undefined}
-        onKeyDown={isClickButton ? handleKeyDown : onKeyDown}
+        onKeyDown={onKeyDown}
         className={cn(
           "@container relative gap-0 overflow-hidden border-border/60 py-0 transition-all duration-200",
           isInteractive &&
@@ -74,11 +59,13 @@ export const StatCardRoot = memo(function StatCardRoot({
         {...props}
       >
         {to ? (
-          <Link
-            href={to}
+          <Link href={to} aria-label={linkLabel || undefined} onClick={onClick} className={STRETCHED_OVERLAY_CLASS} />
+        ) : onClick ? (
+          <button
+            type="button"
             aria-label={linkLabel || undefined}
             onClick={onClick}
-            className="focus-visible:ring-ring rounded-xl after:absolute after:inset-0 after:z-0 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+            className={cn("appearance-none border-0 bg-transparent p-0 text-left", STRETCHED_OVERLAY_CLASS)}
           />
         ) : null}
         <CardContent className={cn("flex h-full flex-col justify-between", dStyles.cardPadding, dStyles.headerGap)}>
@@ -87,4 +74,4 @@ export const StatCardRoot = memo(function StatCardRoot({
       </Card>
     </StatCardContext>
   );
-});
+}

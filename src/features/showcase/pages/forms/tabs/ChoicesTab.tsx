@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemoizedFn } from "ahooks";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   CascaderInput,
@@ -34,7 +34,44 @@ export interface ChoicesTabProps {
   form: any;
 }
 
+function attachChildrenByValue<T extends { value?: string | number; children?: T[] }>(
+  nodes: T[],
+  targetValue: string | number | undefined,
+  children: T[],
+): T[] {
+  if (targetValue === undefined) return nodes;
+  return nodes.map((node) => {
+    if (node.value === targetValue) {
+      return { ...node, children };
+    }
+    if (node.children?.length) {
+      return { ...node, children: attachChildrenByValue(node.children, targetValue, children) };
+    }
+    return node;
+  });
+}
+
 export function ChoicesTab({ form }: ChoicesTabProps) {
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    return () => {
+      for (const timer of timersRef.current) {
+        clearTimeout(timer);
+      }
+      timersRef.current = [];
+    };
+  }, []);
+
+  const waitSafely = (ms: number) =>
+    new Promise<boolean>((resolve) => {
+      const timer = setTimeout(() => {
+        timersRef.current = timersRef.current.filter((t) => t !== timer);
+        resolve(true);
+      }, ms);
+      timersRef.current.push(timer);
+    });
+
   // 异步品类级联数据源状态
   const [asyncCategoryOptions, setAsyncCategoryOptions] = useState<CascaderOption[]>([
     {
@@ -59,10 +96,11 @@ export function ChoicesTab({ form }: ChoicesTabProps) {
     if (!targetOption) return;
 
     // 模拟网络请求延迟
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await waitSafely(800);
 
+    let children: CascaderOption[] = [];
     if (targetOption.value === "digital") {
-      targetOption.children = [
+      children = [
         {
           value: "phones",
           label: "智能手机",
@@ -81,7 +119,7 @@ export function ChoicesTab({ form }: ChoicesTabProps) {
         },
       ];
     } else if (targetOption.value === "clothing") {
-      targetOption.children = [
+      children = [
         {
           value: "mens",
           label: "男装精品",
@@ -100,7 +138,7 @@ export function ChoicesTab({ form }: ChoicesTabProps) {
         },
       ];
     } else if (targetOption.value === "home") {
-      targetOption.children = [
+      children = [
         {
           value: "furniture",
           label: "实木家具",
@@ -120,7 +158,7 @@ export function ChoicesTab({ form }: ChoicesTabProps) {
       ];
     }
 
-    setAsyncCategoryOptions([...asyncCategoryOptions]);
+    setAsyncCategoryOptions((prev) => attachChildrenByValue(prev, targetOption.value, children));
   });
 
   // 异步组织/工程树形数据状态
@@ -144,26 +182,27 @@ export function ChoicesTab({ form }: ChoicesTabProps) {
 
   const handleLoadProjectNodeData = useMemoizedFn(async (node: TreeSelectNode) => {
     // 模拟网络请求延迟
-    await new Promise((resolve) => setTimeout(resolve, 750));
+    await waitSafely(750);
 
+    let children: TreeSelectNode[] = [];
     if (node.value === "cloud_infra") {
-      node.children = [
+      children = [
         { value: "k8s_prod", label: "Kubernetes 核心生产集群 (us-west-1)", isLeaf: true },
         { value: "serverless_gateway", label: "Serverless 边缘流量网关", isLeaf: true },
       ];
     } else if (node.value === "data_engine") {
-      node.children = [
+      children = [
         { value: "flink_stream", label: "Flink 毫秒级实时流计算引擎", isLeaf: true },
         { value: "vector_db", label: "PgVector 混合语义知识库", isLeaf: true },
       ];
     } else if (node.value === "security_mesh") {
-      node.children = [
+      children = [
         { value: "waf_guard", label: "WAF 智能实时威胁阻断系统", isLeaf: true },
         { value: "mtls_cert", label: "mTLS 双向零信任证书管理链", isLeaf: true },
       ];
     }
 
-    setAsyncProjectTreeData([...asyncProjectTreeData]);
+    setAsyncProjectTreeData((prev) => attachChildrenByValue(prev, node.value, children));
   });
 
   return (

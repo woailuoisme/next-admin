@@ -84,6 +84,35 @@ export function sanitizeRichEditorUrl(rawUrl: string): string | null {
 }
 
 /**
+ * 媒体与附件 URL 安全净化：兼容 FileReader / ObjectURL (`blob:` 与安全光栅 `data:image/*;base64,...`)，
+ * 同时复用 `sanitizeUrl` 阻断 `javascript:`、`vbscript:`、`data:text/html` 与 `SVG` 脚本注入。
+ */
+export function sanitizeMediaUrl(rawUrl?: string, options: { allowDataImage?: boolean } = {}): string | undefined {
+  if (!rawUrl) return undefined;
+  const safeStandard = sanitizeUrl(rawUrl, {
+    allowRelative: true,
+    allowBareDomain: false,
+  });
+  if (safeStandard) {
+    return safeStandard;
+  }
+
+  const decoded = stripControlChars(decodeNamedSchemeEntities(rawUrl)).trim();
+  const stripped = stripControlAndWhitespace(decoded);
+  if (!stripped) return undefined;
+
+  if (/^blob:/i.test(stripped)) {
+    return decoded;
+  }
+
+  if (options.allowDataImage && /^data:image\/(png|jpeg|jpg|webp|gif);base64,[a-z0-9+/=]+$/i.test(stripped)) {
+    return decoded;
+  }
+
+  return undefined;
+}
+
+/**
  * 净化邮箱/电话纯值，阻断控制字符或内联伪协议注入
  */
 export function sanitizeContactToken(rawValue: unknown): string | null {

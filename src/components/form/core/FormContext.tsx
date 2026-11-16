@@ -1,6 +1,16 @@
 "use client";
 
-import { createContext, useContext, useMemo, type ReactNode, type SubmitEvent } from "react";
+import { Loader2 } from "lucide-react";
+import {
+  createContext,
+  type FocusEvent,
+  type ReactNode,
+  type SubmitEvent,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+} from "react";
 
 import { cn } from "cn";
 
@@ -17,13 +27,20 @@ export function useFormContext() {
 }
 
 /**
- * Shared submit dispatcher used by both `<Form>` and `<FormDialog>`.
+ * Shared submit dispatcher used by `<Form>`, `<FormDialog>`, and `<ResourceFormPage>`.
+ * When `isBlocked` is true (e.g. submitting, disabled, or async loading), prevents accidental Enter-key submission.
  */
 export function dispatchFormSubmit(
   e: SubmitEvent<HTMLFormElement>,
   form?: FormInstanceLike,
   onSubmit?: (e: SubmitEvent<HTMLFormElement>) => void,
+  isBlocked = false,
 ) {
+  if (isBlocked) {
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
   if (onSubmit) {
     e.preventDefault();
     e.stopPropagation();
@@ -35,6 +52,84 @@ export function dispatchFormSubmit(
     e.stopPropagation();
     void form.handleSubmit();
   }
+}
+
+/**
+ * 复合表单控件容器统一的失焦处理器：仅当焦点真正离开当前容器（而非在子控件间切换）时触发 onBlur。
+ */
+export function createContainerBlurHandler<T extends HTMLElement = HTMLElement>(onBlur?: () => void) {
+  return (e: FocusEvent<T>) => {
+    if (onBlur && !e.currentTarget.contains(e.relatedTarget)) {
+      onBlur();
+    }
+  };
+}
+
+/**
+ * 防止快速双击重复触发异步提交动作的互斥锁 Hook（如 FormDialog 与 ResourceFormPage 的“保存并继续”）。
+ */
+export function useLockedAsyncCallback(action?: () => void | Promise<void>, isBlocked = false): () => Promise<void> {
+  const lockRef = useRef(false);
+  return useCallback(async () => {
+    if (!action || lockRef.current || isBlocked) {
+      return;
+    }
+    lockRef.current = true;
+    try {
+      await action();
+    } finally {
+      lockRef.current = false;
+    }
+  }, [action, isBlocked]);
+}
+
+/**
+ * FormDialog 与 ResourceFormPage 共用的表单主体容器：封装 aria-busy、加载横幅、提交禁用遮罩与 FormContext 注入。
+ */
+export function FormBodyRegion({
+  formContextValue,
+  loading,
+  loadingLabel,
+  className,
+  contentClassName,
+  bannerClassName,
+  children,
+}: {
+  formContextValue: FormContextValue;
+  loading: boolean;
+  loadingLabel: string;
+  className?: string;
+  contentClassName?: string;
+  bannerClassName?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={className} aria-busy={loading || undefined}>
+      {loading ? <FormLoadingBanner label={loadingLabel} className={bannerClassName} /> : null}
+      <div className={cn(contentClassName, loading && "pointer-events-none opacity-60")}>
+        <FormContext value={formContextValue}>{children}</FormContext>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * FormDialog 与 ResourceFormPage 共用的表单异步加载状态横幅。
+ */
+export function FormLoadingBanner({ label, className }: { label: string; className?: string }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={cn(
+        "border-border/60 bg-muted/40 text-muted-foreground flex items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+        className,
+      )}
+    >
+      <Loader2 className="text-primary size-3.5 animate-spin" aria-hidden="true" />
+      <span>{label}</span>
+    </div>
+  );
 }
 
 export interface FormProps {

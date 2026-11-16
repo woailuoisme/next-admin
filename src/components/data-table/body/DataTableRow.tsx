@@ -2,6 +2,7 @@ import { useMemoizedFn } from "ahooks";
 import { useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
 import { memo, useMemo, type HTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
+import { handleActivationKey, ROW_ACTIVATION_IGNORE_SELECTOR } from "@/components/shared/activationKey";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,7 +14,7 @@ import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableRowId 
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
 import { EMPTY_ARRAY, NOOP } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
-import { readCellValue } from "../core/utils";
+import { readCellValue, toColumnCssVarKey } from "../core/utils";
 
 export interface DataTableRowProps<
   TData extends Record<string, any> = Record<string, any>,
@@ -95,11 +96,29 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
   const canExpand = Boolean(renderExpandedRow && (isRowExpandable ? isRowExpandable(row) : true));
   const totalColSpan = visibleColumns.length + (checkboxSelection ? 1 : 0) + (renderExpandedRow ? 1 : 0);
 
+  const { onKeyDown: propOnKeyDown, tabIndex: propTabIndex, ...divRest } = rest;
+  const isRowInteractive = Boolean(onRowClick || (expandOnRowClick && canExpand));
+
   const handleRowClick = (e: MouseEvent) => {
     if (expandOnRowClick && canExpand) {
       onToggleExpand?.(rowId);
     }
     onRowClick?.(row, e);
+  };
+
+  const handleRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>) => {
+    propOnKeyDown?.(e);
+    if (e.defaultPrevented || !isRowInteractive) return;
+    handleActivationKey(
+      e,
+      () => {
+        if (expandOnRowClick && canExpand) {
+          onToggleExpand?.(rowId);
+        }
+        onRowClick?.(row, e as unknown as MouseEvent);
+      },
+      ROW_ACTIVATION_IGNORE_SELECTOR,
+    );
   };
 
   const handleCollapse = useMemoizedFn(() => {
@@ -112,23 +131,25 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
         ref={ref}
         data-state={isSelected ? "selected" : undefined}
         aria-selected={isSelected}
+        tabIndex={propTabIndex ?? (isRowInteractive ? 0 : undefined)}
+        onKeyDown={isRowInteractive || propOnKeyDown ? handleRowKeyDown : undefined}
         onClick={handleRowClick}
         style={style}
         className={cn(
-          "transition-colors hover:bg-muted/30",
+          "transition-colors hover:bg-muted/30 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring",
           isSelected && "bg-primary/5 hover:bg-primary/10",
-          (onRowClick || (expandOnRowClick && canExpand)) && "cursor-pointer",
+          isRowInteractive && "cursor-pointer",
           className,
         )}
-        {...rest}
+        {...divRest}
       >
         {checkboxSelection && (
-          <TableCell className="bg-card/95 sticky left-0 z-15 w-11 px-3 text-center">
+          <TableCell onClick={(e) => e.stopPropagation()} className="bg-card sticky left-0 z-15 w-11 px-3 text-center">
             <Checkbox
               checked={isSelected}
               disabled={isRowSelectable && !isRowSelectable(row)}
               onCheckedChange={(checked) => onSelectRow(rowId, Boolean(checked), row)}
-              aria-label={`Select row ${rowId}`}
+              aria-label={t("aria_select_row", { id: String(rowId) })}
             />
           </TableCell>
         )}
@@ -141,7 +162,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
             className={cn(
               "w-9 px-1 text-center align-middle",
               (checkboxSelection || pinnedLeftFields.length > 0) &&
-                "sticky z-15 border-r border-border/70 bg-card/95 shadow-pin-left",
+                "sticky z-15 border-r border-border/70 bg-card shadow-pin-left",
             )}
           >
             {canExpand ? (
@@ -158,6 +179,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
                 aria-label={isExpanded ? t("aria_collapse_detail") : t("aria_expand_detail")}
               >
                 <ChevronRight
+                  aria-hidden="true"
                   className={cn("size-3.5 transition-transform duration-200", isExpanded && "rotate-90 text-primary")}
                 />
               </Button>
@@ -173,6 +195,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
           const currentWidth = columnWidths?.[field] ?? width;
           const isLeftPinned = pinnedLeftSet.has(field);
           const isRightPinned = pinnedRightSet.has(field);
+          const varKey = toColumnCssVarKey(field);
 
           const rawValue = readCellValue(row, col);
           const formattedValue = valueFormatter ? valueFormatter(rawValue, row) : rawValue;
@@ -181,16 +204,16 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
             <TableCell
               key={col.id ?? `${field}_${idx}`}
               style={{
-                width: `var(--col-w-${field}, ${currentWidth ? `${currentWidth}px` : "auto"})`,
+                width: `var(--col-w-${varKey}, ${currentWidth ? `${currentWidth}px` : "auto"})`,
                 minWidth: minWidth ? `${minWidth}px` : undefined,
                 maxWidth: maxWidth ? `${maxWidth}px` : undefined,
-                left: isLeftPinned ? `var(--col-left-${field}, ${leftOffsets?.[field] ?? 0}px)` : undefined,
-                right: isRightPinned ? `var(--col-right-${field}, ${rightOffsets?.[field] ?? 0}px)` : undefined,
+                left: isLeftPinned ? `var(--col-left-${varKey}, ${leftOffsets?.[field] ?? 0}px)` : undefined,
+                right: isRightPinned ? `var(--col-right-${varKey}, ${rightOffsets?.[field] ?? 0}px)` : undefined,
               }}
               className={cn(
                 densityRowClass,
-                isLeftPinned && "sticky z-15 border-r border-border/70 bg-card/95 shadow-pin-left",
-                isRightPinned && "sticky z-15 border-l border-border/70 bg-card/95 shadow-pin-right",
+                isLeftPinned && "sticky z-15 border-r border-border/70 bg-card shadow-pin-left",
+                isRightPinned && "sticky z-15 border-l border-border/70 bg-card shadow-pin-right",
                 TEXT_ALIGN_CLASSES[align ?? "left"],
                 typeof cellClassName === "function"
                   ? cellClassName({

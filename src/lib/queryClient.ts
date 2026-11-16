@@ -1,4 +1,5 @@
 import { defaultShouldDehydrateQuery, isServer, QueryClient } from "@tanstack/react-query";
+import { cache } from "react";
 
 export function makeQueryClient(): QueryClient {
   return new QueryClient({
@@ -9,18 +10,19 @@ export function makeQueryClient(): QueryClient {
         refetchOnWindowFocus: false,
       },
       dehydrate: {
-        shouldDehydrateQuery: (query) => defaultShouldDehydrateQuery(query) || query.state.status === "pending",
+        shouldDehydrateQuery: (query) => defaultShouldDehydrateQuery(query),
       },
     },
   });
 }
 
+const getServerQueryClient = cache(makeQueryClient);
 let browserQueryClient: QueryClient | undefined = undefined;
 
 export function getQueryClient(): QueryClient {
   if (isServer) {
-    // Server: always create a fresh query client per request to avoid cross-request cache leaks
-    return makeQueryClient();
+    // Server: reuse a single QueryClient per request via React cache to prevent both cross-request leaks and double-creation
+    return getServerQueryClient();
   }
   // Browser: initialize singleton once and reuse
   if (!browserQueryClient) {

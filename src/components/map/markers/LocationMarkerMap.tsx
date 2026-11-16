@@ -83,7 +83,7 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
             variant="secondary"
             className="border-primary/20 bg-background/90 text-foreground absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-xs backdrop-blur-md"
           >
-            <Cpu className="text-primary size-3 animate-pulse" />
+            <Cpu className="text-primary size-3 animate-pulse" aria-hidden="true" />
             <span>{t("markers_gpu_badge", { count: filteredData.length })}</span>
           </Badge>
         ) : null}
@@ -130,13 +130,17 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
     ],
   );
 
-  const afterMapSlot = showSidebarList ? (
-    <LocationMarkerSidebar
-      filteredData={filteredData}
-      selectedMarker={selectedMarker}
-      onSelectMarker={handleSelectMarker}
-    />
-  ) : null;
+  const afterMapSlot = useMemo(
+    () =>
+      showSidebarList ? (
+        <LocationMarkerSidebar
+          filteredData={filteredData}
+          selectedMarker={selectedMarker}
+          onSelectMarker={handleSelectMarker}
+        />
+      ) : null,
+    [showSidebarList, filteredData, selectedMarker, handleSelectMarker],
+  );
 
   return (
     <MapFrame

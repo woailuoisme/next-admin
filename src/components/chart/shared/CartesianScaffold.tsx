@@ -58,6 +58,7 @@ export interface CartesianScaffoldProps {
   tooltipCursor?: boolean | Record<string, unknown>;
   referenceLines?: ChartReferenceLine[];
   showBrush?: boolean | ChartBrushConfig;
+  ariaLabel?: string;
   className?: string;
   children: ReactNode;
 }
@@ -90,6 +91,7 @@ export const CartesianScaffold = memo(function CartesianScaffold({
   tooltipCursor,
   referenceLines,
   showBrush,
+  ariaLabel,
   className,
   children,
 }: CartesianScaffoldProps) {
@@ -199,7 +201,7 @@ export const CartesianScaffold = memo(function CartesianScaffold({
   }
 
   return (
-    <ChartFrame height={resolvedHeight} className={className}>
+    <ChartFrame height={resolvedHeight} className={className} ariaLabel={ariaLabel}>
       {chartElement}
     </ChartFrame>
   );

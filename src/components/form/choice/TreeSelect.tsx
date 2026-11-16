@@ -186,6 +186,11 @@ const TreeNodeRow = memo(function TreeNodeRow({
       )}
 
       <div
+        role="treeitem"
+        aria-level={item.level + 1}
+        aria-expanded={hasChildren ? isExpanded : undefined}
+        aria-selected={isMultiple ? isChecked || isHalfChecked : isSingleSelected}
+        aria-disabled={item.disabled || undefined}
         className={cn(
           "group relative flex min-h-8 items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors select-none",
           item.disabled ? "text-muted-foreground/50 cursor-not-allowed" : "hover:bg-accent/60",
@@ -195,6 +200,7 @@ const TreeNodeRow = memo(function TreeNodeRow({
       >
         {treeLine && item.level > 0 && (
           <div
+            aria-hidden="true"
             className="border-border/60 pointer-events-none absolute h-px border-b border-dashed"
             style={{
               left: `${(item.level - 1) * 20 + 10}px`,
@@ -215,7 +221,7 @@ const TreeNodeRow = memo(function TreeNodeRow({
           onClick={(e) => {
             e.stopPropagation();
             if (hasChildren && !isLoading) {
-              onToggleExpand(item, e);
+              void onToggleExpand(item, e);
             }
           }}
           className={cn(
@@ -224,11 +230,11 @@ const TreeNodeRow = memo(function TreeNodeRow({
           )}
         >
           {isLoading ? (
-            <Loader2 className="text-primary size-3.5 animate-spin" />
+            <Loader2 aria-hidden="true" className="text-primary size-3.5 animate-spin" />
           ) : isExpanded ? (
-            <ChevronDown className="text-muted-foreground size-3.5" />
+            <ChevronDown aria-hidden="true" className="text-muted-foreground size-3.5" />
           ) : (
-            <ChevronRight className="text-muted-foreground size-3.5" />
+            <ChevronRight aria-hidden="true" className="text-muted-foreground size-3.5" />
           )}
         </Button>
 
@@ -261,12 +267,12 @@ const TreeNodeRow = memo(function TreeNodeRow({
               item.labelNode
             )}
           </span>
-          {isSingleSelected && <Check className="text-primary size-3.5 shrink-0" />}
+          {isSingleSelected && <Check aria-hidden="true" className="text-primary size-3.5 shrink-0" />}
         </Button>
       </div>
 
       {hasChildren && isExpanded && (
-        <div className="flex flex-col">
+        <div role="group" className="flex flex-col">
           {item.childrenKeys.map((childKey) => (
             <TreeNodeRow
               key={String(childKey)}
@@ -438,6 +444,8 @@ function TreeSelectComponent({
       setLoadingKeys((prev) => new Set(prev).add(key));
       try {
         await loadData(node.raw);
+      } catch {
+        return;
       } finally {
         if (isMountedRef.current) {
           setLoadingKeys((prev) => {
@@ -619,9 +627,9 @@ function TreeSelectComponent({
                       size="icon-xs"
                       onClick={(e) => handleRemoveTag(key, e)}
                       aria-label={t("treeselect_remove_tag", { label: tagLabel })}
-                      className="text-muted-foreground hover:text-foreground inline-flex size-3.5 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 hover:bg-transparent"
+                      className="text-muted-foreground hover:text-foreground relative inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 after:absolute after:-inset-1.5 hover:bg-transparent"
                     >
-                      <X className="size-2.5" />
+                      <X aria-hidden="true" className="size-2.5" />
                     </Button>
                   )}
                 </Badge>
@@ -683,6 +691,7 @@ function TreeSelectComponent({
                   <span className="sr-only">{placeholder}</span>
                 )}
                 <ChevronDown
+                  aria-hidden="true"
                   className={cn(
                     "text-muted-foreground size-4 shrink-0 transition-transform duration-200",
                     open && "rotate-180",
@@ -718,6 +727,7 @@ function TreeSelectComponent({
             >
               {renderSingleTriggerContent()}
               <ChevronDown
+                aria-hidden="true"
                 className={cn(
                   "text-muted-foreground size-4 shrink-0 transition-transform duration-200",
                   open && "rotate-180",
@@ -746,11 +756,12 @@ function TreeSelectComponent({
       >
         {showSearch && (
           <div className="border-border/60 relative flex items-center border-b px-2.5 py-2">
-            <Search className="text-muted-foreground pointer-events-none mr-1.5 size-3.5 shrink-0" />
+            <Search aria-hidden="true" className="text-muted-foreground pointer-events-none mr-1.5 size-3.5 shrink-0" />
             <Input
               type="text"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
+              aria-label={searchPlaceholder}
               placeholder={searchPlaceholder}
               className="h-7 flex-1 border-0 bg-transparent px-1 pr-6 text-xs shadow-none focus-visible:ring-0"
             />

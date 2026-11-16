@@ -17,10 +17,10 @@ const FILE_ICON_CLASSES = {
 } as const;
 
 export function formatBytes(bytes?: number): string {
-  if (!bytes || bytes === 0) return "0 B";
+  if (bytes === undefined || !Number.isFinite(bytes) || bytes <= 0) return "0 B";
   const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
   return `${(bytes / k ** i).toFixed(1)} ${sizes[i]}`;
 }
 
@@ -29,16 +29,16 @@ export function getFileIcon(type?: string, name?: string) {
   const mime = (type || "").toLowerCase();
 
   if (mime.startsWith("image/") || /\.(jpg|jpeg|png|webp|svg|gif)$/.test(filename)) {
-    return <ImageIcon className={FILE_ICON_CLASSES.image} />;
+    return <ImageIcon className={FILE_ICON_CLASSES.image} aria-hidden="true" />;
   }
   if (mime.includes("pdf") || filename.endsWith(".pdf")) {
-    return <FileText className={FILE_ICON_CLASSES.pdf} />;
+    return <FileText className={FILE_ICON_CLASSES.pdf} aria-hidden="true" />;
   }
   if (mime.includes("sheet") || mime.includes("excel") || /\.(xlsx|xls|csv)$/.test(filename)) {
-    return <FileSpreadsheet className={FILE_ICON_CLASSES.spreadsheet} />;
+    return <FileSpreadsheet className={FILE_ICON_CLASSES.spreadsheet} aria-hidden="true" />;
   }
   if (mime.includes("zip") || mime.includes("archive") || /\.(zip|tar|gz|rar|7z)$/.test(filename)) {
-    return <FileArchive className={FILE_ICON_CLASSES.archive} />;
+    return <FileArchive className={FILE_ICON_CLASSES.archive} aria-hidden="true" />;
   }
   if (
     mime.includes("json") ||
@@ -46,7 +46,7 @@ export function getFileIcon(type?: string, name?: string) {
     mime.includes("typescript") ||
     /\.(js|ts|tsx|json|html|css)$/.test(filename)
   ) {
-    return <FileCode className={FILE_ICON_CLASSES.code} />;
+    return <FileCode className={FILE_ICON_CLASSES.code} aria-hidden="true" />;
   }
-  return <File className={FILE_ICON_CLASSES.fallback} />;
+  return <File className={FILE_ICON_CLASSES.fallback} aria-hidden="true" />;
 }

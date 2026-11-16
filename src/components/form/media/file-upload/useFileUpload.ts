@@ -112,8 +112,10 @@ export function useFileUpload({
     return [...committedWithoutTransient, ...transientItems];
   }, [committedItems, transientItems, mode]);
 
+  const activeItemCount = useMemo(() => items.filter((item) => item.status !== "error").length, [items]);
+
   const canUploadMore =
-    !disabled && !readOnly && (mode === "avatar" ? items.length === 0 : !multiple || items.length < maxFiles);
+    !disabled && !readOnly && (mode === "avatar" ? activeItemCount === 0 : !multiple || activeItemCount < maxFiles);
 
   const formatRejectionMessage = useMemoizedFn((reason: "type" | "size" | "limit") => {
     if (reason === "type") return t("upload_error_type_not_allowed");
@@ -141,9 +143,10 @@ export function useFileUpload({
     });
 
     const failedCards: FileUploadItem[] = [];
+    const rejectionMessages = new Set<string>();
     for (const candidate of rejected) {
       const msg = formatRejectionMessage(candidate.reason);
-      setValidationError(msg);
+      rejectionMessages.add(msg);
       if (mode === "grid" && (candidate.reason === "type" || candidate.reason === "size")) {
         seqRef.current += 1;
         failedCards.push({
@@ -156,6 +159,9 @@ export function useFileUpload({
           error: msg,
         });
       }
+    }
+    if (rejectionMessages.size > 0) {
+      setValidationError(Array.from(rejectionMessages).join("; "));
     }
 
     if (accepted.length === 0) {
@@ -211,9 +217,13 @@ export function useFileUpload({
             return;
           }
 
-          // Release preview blob immediately when a distinct remote/final URL is returned
+          // Release preview blob immediately when a distinct remote/final URL is returned;
+          // register any new blob: result (e.g. local mock adapter) for later cleanup.
           if (normalized.url !== blobUrl) {
             revokeBlobUrl(blobUrl);
+            if (normalized.url.startsWith("blob:")) {
+              blobUrlsRef.current.add(normalized.url);
+            }
           }
 
           const doneItem: FileUploadItem = {

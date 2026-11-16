@@ -32,6 +32,7 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
   const [text, setText] = useState<string>(() => rowsToRaw(rows, defaultFormat));
   const [error, setError] = useState<string | null>(null);
   const isInternalTextChangeRef = useRef(false);
+  const prevRowsRef = useRef(rows);
 
   const handleFormatChange = useMemoizedFn((nextFormat: KeyValueRawFormat) => {
     if (nextFormat === format) return;
@@ -88,8 +89,10 @@ export const KeyValueRawEditor = memo(function KeyValueRawEditor({
     onClose();
   });
 
-  // 仅当外部真正产生变更时同步文本，避免本地输入时光标被打断重置
+  // 仅当外部真正产生变更时同步文本，避免本地输入或切换格式时覆盖编辑器文本
   useEffect(() => {
+    if (prevRowsRef.current === rows) return;
+    prevRowsRef.current = rows;
     if (isInternalTextChangeRef.current) {
       isInternalTextChangeRef.current = false;
       return;

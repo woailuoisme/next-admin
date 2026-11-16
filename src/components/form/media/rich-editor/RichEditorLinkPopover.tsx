@@ -17,11 +17,13 @@ import { RichEditorToolbarItem } from "./RichEditorToolbarItem";
 export interface RichEditorLinkPopoverProps {
   editor: Editor;
   disabled?: boolean;
+  isLinked?: boolean;
 }
 
 export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
   editor,
   disabled,
+  isLinked: isLinkedProp,
 }: RichEditorLinkPopoverProps) {
   const t = useTranslations("form");
   const [open, setOpen] = useState(false);
@@ -32,7 +34,7 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
   });
   const [url, setUrl] = useState("");
 
-  const isLinked = editor.isActive("link");
+  const isLinked = isLinkedProp ?? editor.isActive("link");
 
   const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
     if (nextOpen) {
@@ -83,7 +85,7 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <RichEditorToolbarItem label={t("editor_link")} isActive={isLinked} disabled={disabled}>
-          <LinkIcon className="size-3.5" />
+          <LinkIcon aria-hidden="true" className="size-3.5" />
         </RichEditorToolbarItem>
       </PopoverTrigger>
 
@@ -105,6 +107,7 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
           }}
           onKeyDown={handleKeyDown}
           aria-invalid={Boolean(urlError) || undefined}
+          aria-label={t("editor_link_url_placeholder")}
           placeholder={t("editor_link_url_placeholder")}
           className="h-7 font-mono text-xs"
           autoFocus
@@ -125,12 +128,12 @@ export const RichEditorLinkPopover = memo(function RichEditorLinkPopover({
               onClick={handleUnlink}
               className="text-destructive hover:bg-destructive/10 h-6 px-2 text-[11px]"
             >
-              <Unlink className="mr-1 size-3" />
+              <Unlink aria-hidden="true" className="mr-1 size-3" />
               {t("editor_link_remove")}
             </Button>
           )}
           <Button type="button" size="xs" onClick={handleApply} className="h-6 px-2 text-[11px]">
-            <Check className="mr-1 size-3" />
+            <Check aria-hidden="true" className="mr-1 size-3" />
             {t("editor_link_apply")}
           </Button>
         </div>

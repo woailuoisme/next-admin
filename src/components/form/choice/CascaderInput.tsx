@@ -49,6 +49,7 @@ function CascaderInputInner({
   searchPlaceholder,
   emptyText,
   disabled,
+  readOnly,
   allowClear = true,
   clearable = true,
   options = EMPTY_OPTIONS,
@@ -82,6 +83,7 @@ function CascaderInputInner({
       className={className}
       hidden={hidden}
       disabled={disabled}
+      readOnly={readOnly}
       value={controlledValue}
       defaultValue={defaultValue}
       onBlur={controlledOnBlur}

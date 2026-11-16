@@ -1,24 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
+import { useIsHydrated } from "@/hooks/useIsHydrated";
 import { VerifyOtpForm } from "../components/VerifyOtpForm";
 import { hasStoredResetFlow, readResetFlow } from "../resetFlow";
 
 export function VerifyOtpPage() {
   const router = useRouter();
-  const [state] = useState(() => {
-    const hadStoredFlow = hasStoredResetFlow();
-    return { flow: readResetFlow(), expired: hadStoredFlow };
-  });
+  const isMounted = useIsHydrated();
+  const expired = isMounted ? hasStoredResetFlow() : false;
+  const flow = isMounted ? readResetFlow() : null;
 
   useEffect(() => {
-    if (state.flow) return;
-    router.replace(state.expired ? "/forgot-password?expired=1" : "/forgot-password");
-  }, [state, router]);
+    if (!isMounted || flow) return;
+    router.replace(expired ? "/forgot-password?expired=1" : "/forgot-password");
+  }, [isMounted, flow, expired, router]);
 
-  if (!state.flow) return null;
+  if (!flow) return null;
 
-  return <VerifyOtpForm flow={state.flow} />;
+  return <VerifyOtpForm flow={flow} />;
 }

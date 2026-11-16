@@ -1,7 +1,6 @@
 "use client";
 
-import { useFormatter } from "next-intl";
-import { memo } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 
 import type { SubMetricItem } from "./types";
 
@@ -11,11 +10,18 @@ interface MetricRowProps {
   item: SubMetricItem;
 }
 
-export const MetricRow = memo(function MetricRow({ item }: MetricRowProps) {
+export function MetricRow({ item }: MetricRowProps) {
   const format = useFormatter();
+  const t = useTranslations("stats");
 
   const formattedValue =
-    typeof item.value === "number" ? (Number.isFinite(item.value) ? format.number(item.value) : "--") : item.value;
+    item.value === null || item.value === undefined
+      ? t("no_data")
+      : typeof item.value === "number"
+        ? Number.isFinite(item.value)
+          ? format.number(item.value)
+          : t("no_data")
+        : item.value;
 
   return (
     <div className="border-border/30 bg-muted/40 flex flex-col justify-between space-y-1 rounded-lg border p-2">
@@ -30,4 +36,4 @@ export const MetricRow = memo(function MetricRow({ item }: MetricRowProps) {
       </div>
     </div>
   );
-});
+}

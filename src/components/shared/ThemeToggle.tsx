@@ -46,6 +46,7 @@ export const ThemeToggle = memo(function ThemeToggle({ className, tooltip, ariaL
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           onClick={handleToggle}
@@ -56,18 +57,19 @@ export const ThemeToggle = memo(function ThemeToggle({ className, tooltip, ariaL
           aria-label={effectiveAriaLabel}
         >
           <Sun
+            aria-hidden="true"
             className={cn(
               "h-4 w-4 transition-all duration-300",
               isDark ? "scale-0 -rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100",
             )}
           />
           <Moon
+            aria-hidden="true"
             className={cn(
               "absolute h-4 w-4 transition-all duration-300",
               isDark ? "scale-100 rotate-0 opacity-100" : "scale-0 rotate-90 opacity-0",
             )}
           />
-          <span className="sr-only">{effectiveAriaLabel}</span>
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="text-xs">

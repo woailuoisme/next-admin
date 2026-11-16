@@ -15,6 +15,7 @@ import {
   getSidebarMenuGroups,
 } from "@/components/layout/sidebar/menu.config";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { waitFor } from "@testing-library/react";
 import { renderWithProviders, screen } from "test/test-utils";
 
 afterEach(() => {
@@ -176,5 +177,35 @@ describe("Global Search Subsystem", () => {
 
     // The dialog should NOT be mounted eagerly before being triggered (code splitting)
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("toggles GlobalSearch open and closed via Meta+K even when focused inside search input", async () => {
+    renderWithProviders(
+      <SidebarProvider>
+        <input aria-label="Outside Field" />
+        <GlobalSearch />
+      </SidebarProvider>,
+      { locale: "zh" },
+    );
+
+    // Pressing "/" inside an external input must NOT hijack typing
+    const outsideInput = screen.getByLabelText("Outside Field");
+    outsideInput.focus();
+    fireEvent.keyDown(outsideInput, { key: "/", keyCode: 191 });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    // Pressing Meta+K opens GlobalSearch
+    fireEvent.keyDown(window, { key: "k", keyCode: 75, metaKey: true });
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+
+    // Pressing Meta+K while focused inside the search input closes GlobalSearch
+    const searchInput = dialog.querySelector("input");
+    expect(searchInput).toBeTruthy();
+    searchInput!.focus();
+    fireEvent.keyDown(searchInput!, { key: "k", keyCode: 75, metaKey: true });
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
   });
 });

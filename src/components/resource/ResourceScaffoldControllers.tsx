@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemoizedFn } from "ahooks";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
@@ -45,12 +46,13 @@ export function ScaffoldModalForm<TItem extends { id: string | number }, TInput 
   resolveFormDefaults,
   renderForm,
 }: ScaffoldModalFormProps<TItem, TInput>) {
-  const { data: fetchedEntity } = useResourceDetail(resource, editId ?? "", {
+  const { data: fetchedEntity, isLoading } = useResourceDetail(resource, editId ?? "", {
     enabled: Boolean(open && editId && !activeEditItem),
   });
 
   const effectiveEntity = activeEditItem ?? fetchedEntity ?? null;
   const mode: "create" | "edit" = editId ? "edit" : "create";
+  const isDetailLoading = Boolean(open && editId && !activeEditItem && isLoading && !fetchedEntity);
 
   return (
     <ResourceFormController
@@ -62,6 +64,7 @@ export function ScaffoldModalForm<TItem extends { id: string | number }, TInput 
       onOpenChange={onOpenChange}
       size={size}
       allowFullscreen={allowFullscreen}
+      loading={isDetailLoading}
       resolveFormDefaults={resolveFormDefaults}
       renderForm={renderForm}
     />
@@ -114,6 +117,11 @@ export function InternalViewController<TItem extends { id: string | number }>({
     ? viewDescription(effectiveEntity)
     : safeResourceTranslate(t, "detail_sheet_desc");
   const resolvedBadge = viewBadge ? viewBadge(effectiveEntity) : undefined;
+  const handleEdit = useMemoizedFn(() => {
+    if (!onEdit || !effectiveEntity) return;
+    onOpenChange(false);
+    onEdit(String(effectiveEntity.id));
+  });
 
   return (
     <ResourceViewHost
@@ -126,14 +134,7 @@ export function InternalViewController<TItem extends { id: string | number }>({
       size={size}
       allowFullscreen={allowFullscreen}
       loading={isLoading && !effectiveEntity}
-      onEdit={
-        onEdit && effectiveEntity
-          ? () => {
-              onOpenChange(false);
-              onEdit(String(effectiveEntity.id));
-            }
-          : undefined
-      }
+      onEdit={onEdit && effectiveEntity ? handleEdit : undefined}
     >
       {renderView({ entity: effectiveEntity, isLoading: isLoading && !effectiveEntity })}
     </ResourceViewHost>

@@ -67,7 +67,7 @@ export const DropzoneArea = memo(function DropzoneArea({
       )}
     >
       <div className="bg-background ring-border/60 flex size-10 items-center justify-center rounded-full shadow-xs ring-1">
-        <UploadCloud className="text-primary size-5" />
+        <UploadCloud className="text-primary size-5" aria-hidden="true" />
       </div>
       <div className="mt-3 space-y-1">
         <p className="text-foreground text-xs font-medium">

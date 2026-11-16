@@ -52,6 +52,21 @@ export function resolveApiPrefix(baseUrl?: string): string {
 }
 
 export type UnauthorizedHandler = () => void;
+export type ServerHeadersResolver = () =>
+  | Promise<Record<string, string> | undefined>
+  | Record<string, string>
+  | undefined;
+
+let serverHeadersResolver: ServerHeadersResolver | null = null;
+
+/** 由服务端入口注入请求级凭证解析器，避免在共享客户端模块中直接导入 `next/headers` */
+export function setServerHeadersResolver(resolver: ServerHeadersResolver | null) {
+  serverHeadersResolver = resolver;
+}
+
+function isTestRuntime(): boolean {
+  return typeof process !== "undefined" && (process.env.NODE_ENV === "test" || process.env.VITEST === "true");
+}
 
 function createRequestId(): string {
   return `req_${Math.random().toString(36).slice(2, 11)}_${Date.now().toString(36)}`;
@@ -89,9 +104,25 @@ export const apiClient = ky.create({
   credentials: "include", // 关键支持：前后端 HttpOnly Cookie 自动携带与凭证安全传输
   hooks: {
     beforeRequest: [
-      ({ request }) => {
+      async ({ request }) => {
+        if (typeof window !== "undefined") {
+          // 浏览器端开启 Mock 时等待 MSW Service Worker 就绪（单例 Promise 仅首次异步等待）
+          if (env.ENABLE_MOCK && !isTestRuntime()) {
+            await import("@/mocks/init").then(({ enableMocking }) => enableMocking()).catch(() => undefined);
+          }
+        } else if (serverHeadersResolver) {
+          const serverHeaders = await serverHeadersResolver();
+          if (serverHeaders) {
+            for (const [key, value] of Object.entries(serverHeaders)) {
+              if (value && !request.headers.has(key)) {
+                request.headers.set(key, value);
+              }
+            }
+          }
+        }
+
         const token = getAuthToken();
-        if (token) {
+        if (token && !request.headers.has("Authorization")) {
           request.headers.set("Authorization", `Bearer ${token}`);
         }
         if (!request.headers.has("x-request-id")) {

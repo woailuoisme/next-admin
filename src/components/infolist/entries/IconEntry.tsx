@@ -10,6 +10,7 @@ import type { EntrySemanticColor, IconEntryProps } from "./types";
 
 import { EntryPlaceholder, EntryWrapper } from "../core/EntryWrapper";
 import { useInfolistFieldValue } from "../core/InfolistContext";
+import { hasRenderableNode } from "../core/utils";
 
 const iconColorClasses: Record<EntrySemanticColor, string> = {
   primary: "text-primary",
@@ -24,12 +25,16 @@ const iconColorClasses: Record<EntrySemanticColor, string> = {
 function getIconEntryLabel(
   text: React.ReactNode | undefined,
   rawValue: unknown,
+  hasRawValue: boolean,
   valStr: string,
   booleanYesLabel: string,
   booleanNoLabel: string,
 ): React.ReactNode {
-  if (text !== undefined) {
+  if (hasRenderableNode(text)) {
     return <span className="text-sm font-medium">{text}</span>;
+  }
+  if (!hasRawValue) {
+    return null;
   }
   if (typeof rawValue === "boolean") {
     return <span className="text-muted-foreground text-sm">{rawValue ? booleanYesLabel : booleanNoLabel}</span>;
@@ -50,8 +55,9 @@ export const IconEntry = React.memo(function IconEntry({
 }: IconEntryProps) {
   const t = useTranslations("infolist");
   const rawValue = useInfolistFieldValue(name, explicitValue);
+  const hasRawValue = rawValue !== null && rawValue !== undefined && rawValue !== "";
 
-  if ((rawValue === null || rawValue === undefined || rawValue === "") && !explicitIcon) {
+  if (!hasRawValue && !explicitIcon) {
     return (
       <EntryWrapper {...wrapperProps}>
         <EntryPlaceholder>{placeholder}</EntryPlaceholder>
@@ -59,12 +65,12 @@ export const IconEntry = React.memo(function IconEntry({
     );
   }
 
-  const valStr = String(rawValue);
+  const valStr = hasRawValue ? String(rawValue) : "";
 
   let ResolvedIcon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }> | null = null;
   let resolvedColor: EntrySemanticColor = color ?? "neutral";
 
-  if (iconMap && valStr in iconMap) {
+  if (hasRawValue && iconMap && valStr in iconMap) {
     ResolvedIcon = iconMap[valStr];
   } else if (explicitIcon) {
     ResolvedIcon = explicitIcon;
@@ -75,9 +81,11 @@ export const IconEntry = React.memo(function IconEntry({
     }
   }
 
-  if (colorMap && valStr in colorMap) {
+  if (hasRawValue && colorMap && valStr in colorMap) {
     resolvedColor = colorMap[valStr];
   }
+
+  const labelNode = getIconEntryLabel(text, rawValue, hasRawValue, valStr, t("boolean_yes"), t("boolean_no"));
 
   return (
     <EntryWrapper {...wrapperProps}>
@@ -85,7 +93,7 @@ export const IconEntry = React.memo(function IconEntry({
         {ResolvedIcon && (
           <ResolvedIcon className={cn("size-4 shrink-0", iconColorClasses[resolvedColor])} aria-hidden />
         )}
-        {getIconEntryLabel(text, rawValue, valStr, t("boolean_yes"), t("boolean_no"))}
+        {labelNode}
       </div>
     </EntryWrapper>
   );

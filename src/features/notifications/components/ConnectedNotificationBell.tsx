@@ -12,9 +12,8 @@ import {
   resolveNotificationTabFilters,
 } from "@/components/notifications";
 
-import { fetchNotifications } from "../resource";
 import {
-  notificationKeys,
+  notificationQueries,
   useDeleteNotificationMutation,
   useMarkAllAsReadMutation,
   useMarkAsReadMutation,
@@ -55,15 +54,14 @@ export const ConnectedNotificationBell = memo(function ConnectedNotificationBell
   const markAllAsReadMutation = useMarkAllAsReadMutation();
   const deleteMutation = useDeleteNotificationMutation();
 
-  const unreadCount = open ? (listData?.unreadCount ?? countData ?? 0) : (countData ?? listData?.unreadCount ?? 0);
+  const unreadCount = countData ?? listData?.unreadCount ?? 0;
   const items = listData?.items ?? EMPTY_ITEMS;
   const totalCount = listData?.total ?? 0;
 
   const handlePrefetch = useMemoizedFn(() => {
     void queryClient
       .prefetchQuery({
-        queryKey: notificationKeys.list(filters),
-        queryFn: () => fetchNotifications(filters),
+        ...notificationQueries.list(filters),
         staleTime: 10000,
       })
       .catch(() => {});

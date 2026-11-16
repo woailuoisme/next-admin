@@ -1,6 +1,8 @@
-import { createNamespaceTranslator } from "@/i18n";
+import { createScopedTranslator } from "@/i18n/scoped";
+import { toast as enToast } from "@/messages/en.json";
+import { toast as zhToast } from "@/messages/zh.json";
 
-const getToastTranslator = () => createNamespaceTranslator("toast");
+const getToastTranslator = createScopedTranslator("toast", { zh: zhToast, en: enToast });
 
 type ToastTranslator = ReturnType<typeof getToastTranslator>;
 type ToastKey = Parameters<ToastTranslator>[0];

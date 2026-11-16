@@ -58,7 +58,9 @@ export const CopyButton = memo(function CopyButton({
         setCopied(false);
       }, 1500);
     } catch (err) {
-      console.error("Failed to copy text", err);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to copy text", err);
+      }
       toast.error(resolvedErrorMessage);
     }
   });
@@ -78,11 +80,10 @@ export const CopyButton = memo(function CopyButton({
           aria-label={resolvedTitle}
         >
           {copied ? (
-            <Check className="animate-in text-primary zoom-in size-3 duration-200" />
+            <Check className="animate-in text-primary zoom-in size-3 duration-200" aria-hidden="true" />
           ) : (
-            <Copy className="size-3 transition-transform duration-150 hover:scale-110" />
+            <Copy className="size-3 transition-transform duration-150 hover:scale-110" aria-hidden="true" />
           )}
-          <span className="sr-only">{resolvedTitle}</span>
         </Button>
       </TooltipTrigger>
       <TooltipContent side="top" className="px-2 py-1 text-[11px]">

@@ -3,11 +3,11 @@
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
-import { memo, type SubmitEvent, useEffect, useMemo, useState } from "react";
+import { memo, type ReactNode, type SubmitEvent, useEffect, useMemo, useState } from "react";
 
 import { useFormHostSync } from "@/components/dialogs/hooks/useFormHostSync";
 import { UnsavedChangesDialog } from "@/components/dialogs/UnsavedChangesDialog";
-import { dispatchFormSubmit, FormContext } from "@/components/form/core/FormContext";
+import { dispatchFormSubmit, FormBodyRegion, useLockedAsyncCallback } from "@/components/form/core/FormContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 
@@ -16,7 +16,7 @@ import type { ResourceFormHostProps } from "./types";
 import { ResourcePageHeader } from "./ResourcePageHeader";
 import { useResourceBackNavigation } from "./useResourceBackNavigation";
 
-export const ResourceFormPage = memo(function ResourceFormPage<TData = Record<string, unknown>>({
+function ResourceFormPageImpl<TData = Record<string, unknown>>({
   form,
   defaultValues,
   mode,
@@ -36,6 +36,7 @@ export const ResourceFormPage = memo(function ResourceFormPage<TData = Record<st
   cancelText,
   saveAndContinueText,
   onSaveAndContinue,
+  loading = false,
   isSubmitting = false,
   isSubmitDisabled = false,
   isDirty = false,
@@ -49,6 +50,7 @@ export const ResourceFormPage = memo(function ResourceFormPage<TData = Record<st
 }: Omit<ResourceFormHostProps<TData>, "presentation" | "open" | "onOpenChange" | "size">) {
   const t = useTranslations("resource");
   const tDialog = useTranslations("dialog");
+  const tCommon = useTranslations("common");
   const goBack = useResourceBackNavigation(backTo);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
@@ -113,9 +115,13 @@ export const ResourceFormPage = memo(function ResourceFormPage<TData = Record<st
     executeCancel();
   });
 
+  const isSubmitBlocked = isSubmitting || isSubmitDisabled || loading;
+
   const handleFormSubmit = useMemoizedFn((e: SubmitEvent<HTMLFormElement>) => {
-    dispatchFormSubmit(e, form, onSubmit);
+    dispatchFormSubmit(e, form, onSubmit, isSubmitBlocked);
   });
+
+  const handleSaveAndContinueClick = useLockedAsyncCallback(onSaveAndContinue, isSubmitBlocked);
 
   return (
     <div className={cn("mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8", className)}>
@@ -131,9 +137,15 @@ export const ResourceFormPage = memo(function ResourceFormPage<TData = Record<st
 
       {/* 本组件拥有 <form> 元素：children 只能是字段内容，严禁再嵌套 form / <Form as="form"> */}
       <form onSubmit={handleFormSubmit} className="space-y-6">
-        <div className="min-h-75 space-y-6">
-          <FormContext value={formContextValue}>{children}</FormContext>
-        </div>
+        <FormBodyRegion
+          formContextValue={formContextValue}
+          loading={loading}
+          loadingLabel={tCommon("loading_page_aria")}
+          className="min-h-75 space-y-6"
+          contentClassName="space-y-6"
+        >
+          {children}
+        </FormBodyRegion>
 
         {/* 工业级吸底固定操作栏 (Sticky Bottom Bar) */}
         <div
@@ -157,21 +169,17 @@ export const ResourceFormPage = memo(function ResourceFormPage<TData = Record<st
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => void onSaveAndContinue()}
-                disabled={isSubmitting || isSubmitDisabled}
+                onClick={() => void handleSaveAndContinueClick()}
+                disabled={isSubmitBlocked}
                 className="h-8.5 px-4 text-xs font-medium"
               >
-                {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" /> : null}
+                {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" aria-hidden="true" /> : null}
                 {resolvedSaveAndContinueText}
               </Button>
             ) : null}
 
-            <Button
-              type="submit"
-              disabled={isSubmitting || isSubmitDisabled}
-              className="h-8.5 px-4 text-xs font-medium shadow-xs"
-            >
-              {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" /> : null}
+            <Button type="submit" disabled={isSubmitBlocked} className="h-8.5 px-4 text-xs font-medium shadow-xs">
+              {isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" aria-hidden="true" /> : null}
               {resolvedSubmitText}
             </Button>
           </div>
@@ -189,4 +197,8 @@ export const ResourceFormPage = memo(function ResourceFormPage<TData = Record<st
       />
     </div>
   );
-});
+}
+
+export const ResourceFormPage = memo(ResourceFormPageImpl) as <TData = Record<string, unknown>>(
+  props: Omit<ResourceFormHostProps<TData>, "presentation" | "open" | "onOpenChange" | "size">,
+) => ReactNode;

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { memo } from "react";
@@ -16,7 +18,7 @@ import type { NavSubItem } from "../types";
 import type { NavMainCollapsibleProps } from "./types";
 
 import { NavBadge } from "./NavBadge";
-import { isPathActive } from "./utils";
+import { getActiveSubItemPath } from "./utils";
 
 const EMPTY_SUB_ITEMS: NavSubItem[] = [];
 
@@ -61,6 +63,7 @@ export const NavMainCollapsible = memo(function NavMainCollapsible({
 }: NavMainCollapsibleProps) {
   const Icon = item.icon;
   const subItems = item.items ?? EMPTY_SUB_ITEMS;
+  const activeSubPath = getActiveSubItemPath(subItems, currentPath);
 
   return (
     <Collapsible asChild defaultOpen={isChildActive || item.defaultOpen} className="group/collapsible">
@@ -75,7 +78,7 @@ export const NavMainCollapsible = memo(function NavMainCollapsible({
         <CollapsibleContent>
           <SidebarMenuSub>
             {subItems.map((subItem) => (
-              <NavMainSubItemRow key={subItem.to} subItem={subItem} isActive={isPathActive(subItem.to, currentPath)} />
+              <NavMainSubItemRow key={subItem.to} subItem={subItem} isActive={subItem.to === activeSubPath} />
             ))}
           </SidebarMenuSub>
         </CollapsibleContent>

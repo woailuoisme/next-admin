@@ -1,9 +1,9 @@
 "use client";
 
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useTranslations, type NumberFormatOptions } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Check, Copy } from "lucide-react";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, type ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,58 @@ import type { StatCardValueProps } from "./types";
 import { useStatCardContext } from "./StatCardContext";
 import { DENSITY_STYLES } from "./types";
 import { useNumberTween } from "./useNumberTween";
+
+function TweenedValueDisplay({
+  value,
+  animated,
+  formatter,
+  formatOptions,
+  noDataText,
+  valueClassName,
+}: {
+  value?: number | string | null;
+  animated: boolean;
+  formatter?: (value: number | string) => ReactNode;
+  formatOptions?: NumberFormatOptions;
+  noDataText: string;
+  valueClassName: string;
+}) {
+  const format = useFormatter();
+  const isNumeric = typeof value === "number" && Number.isFinite(value);
+  const animatedValue = useNumberTween(isNumeric ? value : 0, {
+    enabled: animated && isNumeric,
+  });
+
+  const activeValue = animated && isNumeric ? animatedValue : value;
+
+  let formattedContent: ReactNode;
+  if (
+    activeValue === null ||
+    activeValue === undefined ||
+    (typeof activeValue === "number" && !Number.isFinite(activeValue))
+  ) {
+    formattedContent = noDataText;
+  } else if (formatter) {
+    formattedContent = formatter(activeValue);
+  } else if (typeof activeValue === "number") {
+    formattedContent = format.number(activeValue, formatOptions);
+  } else {
+    formattedContent = activeValue;
+  }
+
+  return (
+    <span
+      className={cn("min-w-0 truncate font-mono font-bold tracking-tight text-foreground tabular-nums", valueClassName)}
+      title={
+        typeof formattedContent === "string" || typeof formattedContent === "number"
+          ? String(formattedContent)
+          : undefined
+      }
+    >
+      {formattedContent}
+    </span>
+  );
+}
 
 export const StatCardValue = memo(function StatCardValue({
   value,
@@ -32,7 +84,6 @@ export const StatCardValue = memo(function StatCardValue({
 }: StatCardValueProps) {
   const context = useStatCardContext();
   const t = useTranslations("stats");
-  const format = useFormatter();
   const resolvedDensity = density ?? context.density ?? "compact";
   const dStyles = DENSITY_STYLES[resolvedDensity] ?? DENSITY_STYLES.compact;
   const [copied, setCopied] = useState(false);
@@ -44,31 +95,6 @@ export const StatCardValue = memo(function StatCardValue({
     },
     [],
   );
-
-  const isNumeric = typeof value === "number" && Number.isFinite(value);
-  const animatedValue = useNumberTween(isNumeric ? value : 0, {
-    enabled: animated && isNumeric,
-  });
-
-  // Value to format
-  const activeValue = animated && isNumeric ? animatedValue : value;
-
-  let formattedContent: React.ReactNode;
-  if (children !== undefined) {
-    formattedContent = children;
-  } else if (
-    activeValue === null ||
-    activeValue === undefined ||
-    (typeof activeValue === "number" && !Number.isFinite(activeValue))
-  ) {
-    formattedContent = t("no_data");
-  } else if (formatter) {
-    formattedContent = formatter(activeValue);
-  } else if (typeof activeValue === "number") {
-    formattedContent = format.number(activeValue, formatOptions);
-  } else {
-    formattedContent = activeValue;
-  }
 
   const resolvedCopyText =
     copyText ??
@@ -103,19 +129,25 @@ export const StatCardValue = memo(function StatCardValue({
         <span className={cn("shrink-0 font-semibold text-muted-foreground", dStyles.prefixText)}>{prefix}</span>
       ) : null}
 
-      <span
-        className={cn(
-          "min-w-0 truncate font-mono font-bold tracking-tight text-foreground tabular-nums",
-          dStyles.valueText,
-        )}
-        title={
-          typeof formattedContent === "string" || typeof formattedContent === "number"
-            ? String(formattedContent)
-            : undefined
-        }
-      >
-        {formattedContent}
-      </span>
+      {children !== undefined ? (
+        <span
+          className={cn(
+            "min-w-0 truncate font-mono font-bold tracking-tight text-foreground tabular-nums",
+            dStyles.valueText,
+          )}
+        >
+          {children}
+        </span>
+      ) : (
+        <TweenedValueDisplay
+          value={value}
+          animated={animated}
+          formatter={formatter}
+          formatOptions={formatOptions}
+          noDataText={t("no_data")}
+          valueClassName={dStyles.valueText}
+        />
+      )}
 
       {suffix ? (
         <span className={cn("ml-0.5 shrink-0 font-medium text-muted-foreground", dStyles.suffixText)}>{suffix}</span>
@@ -123,13 +155,13 @@ export const StatCardValue = memo(function StatCardValue({
 
       {canCopy ? (
         <>
-          <Tooltip delayDuration={150}>
+          <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground/60 hover:bg-muted hover:text-foreground relative z-10 ml-1 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-70 transition-all focus-visible:opacity-100 md:opacity-0 md:group-hover/val:opacity-100"
+                className="text-muted-foreground/60 hover:bg-muted hover:text-foreground relative z-10 ml-1 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-70 transition-all focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/val:opacity-100"
                 onClick={handleCopy}
                 aria-label={t("copy_value")}
               >

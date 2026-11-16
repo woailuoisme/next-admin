@@ -194,6 +194,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
                   stroke={isHovered ? "var(--foreground)" : "transparent"}
                   strokeWidth={isHovered ? 1.5 : 0}
                   tabIndex={0}
+                  role="img"
                   aria-label={`${cell.y} ${String(cell.x)}: ${valueFormatter(cell.value)}`}
                   className="focus-visible:stroke-foreground cursor-pointer transition-all duration-150 outline-none hover:brightness-110"
                   onMouseEnter={(e) => handleCellActivate(cell, e.currentTarget)}

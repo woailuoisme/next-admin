@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 
 import { FormDialog } from "@/components/dialogs";
 
@@ -20,7 +20,7 @@ import { ResourceFormPage } from "./ResourceFormPage";
  */
 const NOOP = () => {};
 
-export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<string, unknown>>({
+function ResourceFormHostImpl<TData = Record<string, unknown>>({
   presentation = "dialog",
   open = false,
   onOpenChange = NOOP,
@@ -28,7 +28,7 @@ export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<st
   defaultValues,
   mode,
   entity,
-  entityName = "Record",
+  entityName,
   title,
   createTitle,
   editTitle,
@@ -50,10 +50,11 @@ export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<st
   cancelText,
   saveAndContinueText,
   onSaveAndContinue,
+  loading = false,
   isSubmitting = false,
   isSubmitDisabled = false,
   isDirty = false,
-  enableDirtyGuard,
+  enableDirtyGuard = true,
   onSubmit,
   onCancel,
   extraActions,
@@ -81,10 +82,11 @@ export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<st
         cancelText={cancelText}
         saveAndContinueText={saveAndContinueText}
         onSaveAndContinue={onSaveAndContinue}
+        loading={loading}
         isSubmitting={isSubmitting}
         isSubmitDisabled={isSubmitDisabled}
         isDirty={isDirty}
-        enableDirtyGuard={enableDirtyGuard ?? true}
+        enableDirtyGuard={enableDirtyGuard}
         onSubmit={onSubmit}
         onCancel={onCancel}
         extraActions={extraActions}
@@ -121,7 +123,8 @@ export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<st
       onSaveAndContinue={onSaveAndContinue}
       onCancel={onCancel}
       isDirty={isDirty}
-      enableDirtyGuard={enableDirtyGuard ?? false}
+      enableDirtyGuard={enableDirtyGuard}
+      loading={loading}
       isSubmitting={isSubmitting}
       isSubmitDisabled={isSubmitDisabled}
       onSubmit={onSubmit}
@@ -135,4 +138,8 @@ export const ResourceFormHost = memo(function ResourceFormHost<TData = Record<st
       {children}
     </FormDialog>
   );
-});
+}
+
+export const ResourceFormHost = memo(ResourceFormHostImpl) as <TData = Record<string, unknown>>(
+  props: ResourceFormHostProps<TData>,
+) => ReactNode;

@@ -252,87 +252,108 @@ export function useResourceModalStateWithPort<TData = unknown, TSearch = unknown
   const deleteIds = deleteId ? [deleteId] : localBatchDeleteIds;
   const deleteCount = deleteId ? 1 : localBatchDeleteIds.length;
 
-  const openCreate = useMemoizedFn(() => {
+  const clearConflictingModalParams = (params: URLSearchParams, keepKeys: string[]) => {
+    for (const key of [createKey, editKey, viewKey, deleteKey, batchDeleteKey]) {
+      if (!keepKeys.includes(key)) {
+        params.delete(key);
+      }
+    }
+  };
+
+  type ModalTarget =
+    | { kind: "create" }
+    | { kind: "edit"; id: string }
+    | { kind: "view"; id: string }
+    | { kind: "delete"; id: string }
+    | { kind: "batchDelete"; ids: string[]; items?: TData[] };
+
+  const activateModal = useMemoizedFn((next: ModalTarget) => {
+    let targetKey: string;
+    let paramValue: string;
+    switch (next.kind) {
+      case "create":
+        targetKey = createKey;
+        paramValue = "true";
+        break;
+      case "edit":
+        targetKey = editKey;
+        paramValue = next.id;
+        break;
+      case "view":
+        targetKey = viewKey;
+        paramValue = next.id;
+        break;
+      case "delete":
+        targetKey = deleteKey;
+        paramValue = next.id;
+        break;
+      case "batchDelete":
+        targetKey = batchDeleteKey;
+        paramValue = "true";
+        break;
+    }
+
     updateUrlParams((params) => {
-      params.set(createKey, "true");
+      clearConflictingModalParams(params, [targetKey]);
+      params.set(targetKey, paramValue);
     });
-    setLocalCreateOpen(true);
+    setLocalCreateOpen(next.kind === "create");
+    setLocalEditId(next.kind === "edit" ? next.id : null);
+    setLocalViewId(next.kind === "view" ? next.id : null);
+    setLocalDeleteId(next.kind === "delete" ? next.id : null);
+    setLocalBatchDeleteIds(next.kind === "batchDelete" ? next.ids : []);
+    setLocalBatchDeleteItems(next.kind === "batchDelete" ? (next.items ?? []) : []);
+  });
+
+  const clearModalKeys = useMemoizedFn((keysToClear: string[], resetLocal: () => void) => {
+    updateUrlParams((params) => {
+      for (const key of keysToClear) {
+        params.delete(key);
+      }
+    }, keysToClear);
+    resetLocal();
+  });
+
+  const openCreate = useMemoizedFn(() => {
+    activateModal({ kind: "create" });
     onOpenCreate?.();
   });
 
   const closeCreate = useMemoizedFn(() => {
-    updateUrlParams(
-      (params) => {
-        params.delete(createKey);
-      },
-      [createKey],
-    );
-    setLocalCreateOpen(false);
+    clearModalKeys([createKey], () => setLocalCreateOpen(false));
   });
 
   const openEdit = useMemoizedFn((id: string) => {
-    updateUrlParams((params) => {
-      params.set(editKey, id);
-    });
-    setLocalEditId(id);
+    activateModal({ kind: "edit", id });
     onOpenEdit?.(id);
   });
 
   const closeEdit = useMemoizedFn(() => {
-    updateUrlParams(
-      (params) => {
-        params.delete(editKey);
-      },
-      [editKey],
-    );
-    setLocalEditId(null);
+    clearModalKeys([editKey], () => setLocalEditId(null));
   });
 
   const closeFormDialog = useMemoizedFn(() => {
-    updateUrlParams(
-      (params) => {
-        params.delete(createKey);
-        params.delete(editKey);
-      },
-      [createKey, editKey],
-    );
-    setLocalCreateOpen(false);
-    setLocalEditId(null);
+    clearModalKeys([createKey, editKey], () => {
+      setLocalCreateOpen(false);
+      setLocalEditId(null);
+    });
   });
 
   const openView = useMemoizedFn((id: string) => {
-    updateUrlParams((params) => {
-      params.set(viewKey, id);
-    });
-    setLocalViewId(id);
+    activateModal({ kind: "view", id });
     onOpenView?.(id);
   });
 
   const closeView = useMemoizedFn(() => {
-    updateUrlParams(
-      (params) => {
-        params.delete(viewKey);
-      },
-      [viewKey],
-    );
-    setLocalViewId(null);
+    clearModalKeys([viewKey], () => setLocalViewId(null));
   });
 
   const openDelete = useMemoizedFn((target: string | string[], items?: TData[]) => {
     if (Array.isArray(target)) {
-      setLocalBatchDeleteIds(target);
-      setLocalBatchDeleteItems(items ?? []);
-      updateUrlParams((params) => {
-        params.set(batchDeleteKey, "true");
-      });
+      activateModal({ kind: "batchDelete", ids: target, items });
       onOpenBatchDelete?.(target, items);
     } else {
-      setLocalBatchDeleteIds([]);
-      setLocalBatchDeleteItems([]);
-      updateUrlParams((params) => {
-        params.set(deleteKey, target);
-      });
-      setLocalDeleteId(target);
+      activateModal({ kind: "delete", id: target });
       onOpenDelete?.(target);
     }
   });
@@ -342,16 +363,11 @@ export function useResourceModalStateWithPort<TData = unknown, TSearch = unknown
   });
 
   const closeDelete = useMemoizedFn(() => {
-    setLocalBatchDeleteIds([]);
-    setLocalBatchDeleteItems([]);
-    updateUrlParams(
-      (params) => {
-        params.delete(deleteKey);
-        params.delete(batchDeleteKey);
-      },
-      [deleteKey, batchDeleteKey],
-    );
-    setLocalDeleteId(null);
+    clearModalKeys([deleteKey, batchDeleteKey], () => {
+      setLocalBatchDeleteIds([]);
+      setLocalBatchDeleteItems([]);
+      setLocalDeleteId(null);
+    });
   });
 
   return {
@@ -415,19 +431,18 @@ function useNextNavigationModalPort(): TableRouterPort {
 
 /**
  * useResourceModalState:
- * 工业级 CRUD 弹窗控制器 Hook。
- * 1. 默认整合 Next.js App Router（useRouter / useSearchParams / usePathname），亦支持通过 `router` 传入自定义 `TableRouterPort`；
- * 2. 当传入自定义 `router` 时，完全与 Next.js URL 隔离，避免跨路由状态泄漏；
- * 3. 统一单行删除与批量删除状态机，避免页面重复编写多份 DeleteDialog；
- * 4. 采用 ahooks useMemoizedFn 提供稳定的回调引用。
+ * Next.js App Router 集成版 CRUD 弹窗控制器 Hook：
+ * 1. 无条件整合 `useRouter / useSearchParams / usePathname`；若在非 App Router 环境或需自定义 `TableRouterPort` 完全隔离，请直接使用 `useResourceModalStateWithPort`；
+ * 2. 切换模态模式时自动互斥清理其余冲突参数，避免 `?create=true&editId=...` 并存；
+ * 3. 统一单行删除与批量删除状态机，采用 ahooks useMemoizedFn 提供稳定回调引用。
  */
 export function useResourceModalState<TData = unknown, TSearch = unknown>(
-  options: UseResourceModalStateOptions<TData, TSearch> = {},
+  options: Omit<UseResourceModalStateOptions<TData, TSearch>, "router"> = {},
 ): ResourceModalState<TData> {
   const nextRouterPort = useNextNavigationModalPort();
 
   return useResourceModalStateWithPort({
     ...options,
-    router: options.router ?? nextRouterPort,
+    router: nextRouterPort,
   });
 }

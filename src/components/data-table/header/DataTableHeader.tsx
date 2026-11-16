@@ -11,6 +11,7 @@ import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableSortMo
 import { JUSTIFY_ALIGN_CLASSES } from "../cells/base";
 import { EMPTY_ARRAY, NOOP } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
+import { toColumnCssVarKey } from "../core/utils";
 
 export interface DataTableHeaderProps<TData = unknown> {
   visibleColumns?: DataTableColDef<TData>[];
@@ -58,7 +59,7 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
       <TableRow className="border-border/60 border-b hover:bg-transparent">
         {/* Checkbox Header */}
         {checkboxSelection && (
-          <TableHead className="bg-muted/90 sticky left-0 z-30 w-11 px-3 text-center">
+          <TableHead className="bg-muted sticky left-0 z-30 w-11 px-3 text-center">
             <Checkbox
               checked={isAllPageSelected ? true : isSomePageSelected ? "indeterminate" : false}
               onCheckedChange={(checked) => onSelectAll(Boolean(checked))}
@@ -76,7 +77,7 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
             className={cn(
               "w-9 px-1 text-center select-none",
               (checkboxSelection || pinnedLeftFields.length > 0) &&
-                "sticky z-25 border-r border-border/70 bg-muted/95 shadow-pin-left",
+                "sticky z-25 border-r border-border/70 bg-muted shadow-pin-left",
             )}
             aria-label={t("aria_expand_row")}
           />
@@ -102,6 +103,7 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
           const isLeftPinned = pinnedLeftSet.has(field);
           const isRightPinned = pinnedRightSet.has(field);
           const sortDirection = sortDirectionByField.get(field);
+          const varKey = toColumnCssVarKey(field);
 
           return (
             <TableHead
@@ -116,16 +118,16 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
                       : undefined
               }
               style={{
-                width: `var(--col-w-${field}, ${currentWidth ? `${currentWidth}px` : "auto"})`,
+                width: `var(--col-w-${varKey}, ${currentWidth ? `${currentWidth}px` : "auto"})`,
                 minWidth: `${minWidth}px`,
                 maxWidth: maxWidth ? `${maxWidth}px` : undefined,
-                left: isLeftPinned ? `var(--col-left-${field}, ${leftOffsets?.[field] ?? 0}px)` : undefined,
-                right: isRightPinned ? `var(--col-right-${field}, ${rightOffsets?.[field] ?? 0}px)` : undefined,
+                left: isLeftPinned ? `var(--col-left-${varKey}, ${leftOffsets?.[field] ?? 0}px)` : undefined,
+                right: isRightPinned ? `var(--col-right-${varKey}, ${rightOffsets?.[field] ?? 0}px)` : undefined,
               }}
               className={cn(
                 "group/header relative text-xs font-semibold whitespace-nowrap text-foreground transition-colors select-none",
-                isLeftPinned && "sticky z-25 border-r border-border/70 bg-muted/95 shadow-pin-left",
-                isRightPinned && "sticky z-25 border-l border-border/70 bg-muted/95 shadow-pin-right",
+                isLeftPinned && "sticky z-25 border-r border-border/70 bg-muted shadow-pin-left",
+                isRightPinned && "sticky z-25 border-l border-border/70 bg-muted shadow-pin-right",
                 headerClassName,
               )}
             >
@@ -149,7 +151,10 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
 
                 {/* Sort Indicator */}
                 {sortable && (
-                  <span className="text-muted-foreground group-hover/header:text-foreground transition-colors">
+                  <span
+                    aria-hidden="true"
+                    className="text-muted-foreground group-hover/header:text-foreground transition-colors"
+                  >
                     {sortDirection === "asc" ? (
                       <ArrowUp className="text-primary size-3" />
                     ) : sortDirection === "desc" ? (
@@ -167,7 +172,11 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
                   role="separator"
                   aria-orientation="vertical"
                   aria-label={t("aria_resize_column", { name: headerName || field })}
-                  onMouseDown={(e) => onResizeStart(field, currentWidth ?? 120, e)}
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    onResizeStart(field, currentWidth ?? 120, e);
+                  }}
                   className="hover:bg-primary/50 absolute top-0 right-0 z-30 h-full w-2 cursor-col-resize opacity-0 transition-opacity group-hover/header:opacity-100"
                 >
                   <div className="bg-border group-hover/header:bg-primary mx-auto h-full w-0.5" />

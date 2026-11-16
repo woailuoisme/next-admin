@@ -1,5 +1,8 @@
+import type { NavGroup } from "../sidebar/types";
+
 export interface GlobalSearchProps {
   className?: string;
+  customGroups?: NavGroup[];
 }
 
 export interface GlobalSearchTriggerProps {
@@ -15,6 +18,7 @@ export interface GlobalSearchTriggerProps {
 export interface GlobalSearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  customGroups?: NavGroup[];
 
   placeholder?: string;
   emptyText?: string;

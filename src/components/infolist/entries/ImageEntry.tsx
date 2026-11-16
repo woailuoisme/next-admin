@@ -43,7 +43,7 @@ export const ImageEntry = React.memo(function ImageEntry({
 }: ImageEntryProps) {
   const t = useTranslations("infolist");
   const rawValue = useInfolistFieldValue(name, explicitValue);
-  const [activeLightboxUrl, setActiveLightboxUrl] = React.useState<string | null>(null);
+  const [activeLightboxIndex, setActiveLightboxIndex] = React.useState<number | null>(null);
   const [failedUrls, setFailedUrls] = React.useState<Record<string, true>>({});
 
   const images: string[] = React.useMemo(() => {
@@ -59,6 +59,8 @@ export const ImageEntry = React.memo(function ImageEntry({
     }
     return safeList;
   }, [rawValue]);
+
+  const healthyImages = React.useMemo(() => images.filter((url) => !failedUrls[url]), [images, failedUrls]);
 
   const handleImageError = React.useCallback((url: string) => {
     setFailedUrls((prev) => (prev[url] ? prev : { ...prev, [url]: true }));
@@ -82,11 +84,21 @@ export const ImageEntry = React.memo(function ImageEntry({
     );
   }
 
+  let healthyIdx = -1;
+  const activePreviewUrl =
+    activeLightboxIndex !== null && activeLightboxIndex >= 0 && activeLightboxIndex < healthyImages.length
+      ? healthyImages[activeLightboxIndex]
+      : null;
+
   return (
     <EntryWrapper {...wrapperProps}>
       <div className="flex flex-wrap items-center gap-2">
         {images.map((url, idx) => {
           const isFailed = Boolean(failedUrls[url]);
+          if (!isFailed) {
+            healthyIdx += 1;
+          }
+          const currentHealthyIdx = healthyIdx;
           const mediaNode = isFailed ? (
             <div className="bg-muted/60 text-muted-foreground/70 flex h-full w-full items-center justify-center px-1 text-center text-[10px] select-none">
               {t("empty_image")}
@@ -116,13 +128,16 @@ export const ImageEntry = React.memo(function ImageEntry({
             );
           }
 
+          const previewLabel = t("preview_image", { index: String(idx + 1) });
+          const buttonAriaLabel = alt && alt !== "Image" ? `${previewLabel} - ${alt}` : previewLabel;
+
           return (
             <Button
               key={`${url}-${idx}`}
               type="button"
               variant="ghost"
-              aria-label={t("preview_image", { index: String(idx + 1) })}
-              onClick={() => setActiveLightboxUrl(url)}
+              aria-label={buttonAriaLabel}
+              onClick={() => setActiveLightboxIndex(currentHealthyIdx)}
               className={cn(
                 "group relative shrink-0 cursor-zoom-in overflow-hidden border border-border bg-muted/20 p-0 transition-all hover:ring-2 hover:ring-primary/40",
                 sizeClasses[size],
@@ -135,12 +150,13 @@ export const ImageEntry = React.memo(function ImageEntry({
         })}
       </div>
 
-      {lightbox && Boolean(activeLightboxUrl) && (
+      {lightbox && activeLightboxIndex !== null && activePreviewUrl && (
         <DynamicImageLightboxModal
-          previewUrl={activeLightboxUrl}
-          images={images.filter((url) => !failedUrls[url])}
+          previewUrl={activePreviewUrl}
+          images={healthyImages}
+          initialIndex={activeLightboxIndex}
           alt={alt}
-          onClose={() => setActiveLightboxUrl(null)}
+          onClose={() => setActiveLightboxIndex(null)}
         />
       )}
     </EntryWrapper>

@@ -1,10 +1,25 @@
-import { createNamespaceTranslator } from "@/i18n";
+import { createScopedTranslator } from "@/i18n/scoped";
+import { common as enCommon, notification as enNotification } from "@/messages/en.json";
+import { common as zhCommon, notification as zhNotification } from "@/messages/zh.json";
 
-export function formatRelativeTime(dateStr: string, t?: (key: any, values?: any) => string, locale?: string): string {
-  const translator = t ?? createNamespaceTranslator("notification");
+const getNotificationTranslator = createScopedTranslator("notification", {
+  zh: zhNotification,
+  en: enNotification,
+});
+const getCommonTranslator = createScopedTranslator("common", { zh: zhCommon, en: enCommon });
+
+export type NotificationTimeTranslator = (key: string, values?: Record<string, string | number | Date>) => string;
+
+export function formatRelativeTime(dateStr: string, t?: NotificationTimeTranslator, locale?: string): string {
+  const translator: NotificationTimeTranslator = t ?? (getNotificationTranslator() as NotificationTimeTranslator);
+
+  const parsedDate = new Date(dateStr);
+  const timestamp = parsedDate.getTime();
+  if (Number.isNaN(timestamp)) {
+    return getCommonTranslator()("invalid_date");
+  }
 
   const now = Date.now();
-  const timestamp = new Date(dateStr).getTime();
   const diffSeconds = Math.floor((now - timestamp) / 1000);
 
   if (diffSeconds < 60) return translator("time_just_now");
@@ -14,7 +29,7 @@ export function formatRelativeTime(dateStr: string, t?: (key: any, values?: any)
   if (diffHours < 24) return translator("time_hours_ago", { hours: diffHours });
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return translator("time_days_ago", { days: diffDays });
-  return new Date(dateStr).toLocaleDateString(locale, {
+  return parsedDate.toLocaleDateString(locale, {
     month: "numeric",
     day: "numeric",
   });

@@ -1,5 +1,3 @@
-"use client";
-
 import { useTranslations } from "next-intl";
 
 import { Skeleton } from "@/components/ui/skeleton";

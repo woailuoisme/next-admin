@@ -132,6 +132,7 @@ export function useRouteTracking({
       updateProgress(nextProgress);
 
       if (nextProgress >= 1) {
+        lastTimeRef.current = null;
         setIsPlaying(false);
       } else {
         animFrameRef.current = requestAnimationFrame(step);
@@ -149,15 +150,15 @@ export function useRouteTracking({
   }, [enabled, isPlaying, coordinates.length, playbackDuration, updateProgress]);
 
   const togglePlay = useCallback(() => {
-    setIsPlaying((prev) => {
-      if (!prev && progressRef.current >= 1) {
-        updateProgress(0);
-      }
-      return !prev;
-    });
-  }, [updateProgress]);
+    if (!isPlaying && progressRef.current >= 1) {
+      lastTimeRef.current = null;
+      updateProgress(0);
+    }
+    setIsPlaying((prev) => !prev);
+  }, [isPlaying, updateProgress]);
 
   const reset = useCallback(() => {
+    lastTimeRef.current = null;
     setIsPlaying(false);
     updateProgress(0);
   }, [updateProgress]);

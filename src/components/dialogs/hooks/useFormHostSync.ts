@@ -32,6 +32,22 @@ function readEntityId(entity: unknown): unknown {
   return entity;
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+function mergeDefinedValues(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
+  const next = { ...target };
+  for (const [key, val] of Object.entries(source)) {
+    if (val === undefined) continue;
+    const existing = next[key];
+    next[key] = isPlainRecord(existing) && isPlainRecord(val) ? mergeDefinedValues(existing, val) : val;
+  }
+  return next;
+}
+
 /**
  * Shared synchronization & reactive dirty-state hook used by both FormDialog and ResourceFormPage.
  * Keeps `entity`, `defaultValues` (with `defaultValues` precedence), and `form.reset` in sync
@@ -78,7 +94,7 @@ export function useFormHostSync<TData = Record<string, unknown>>({
       return;
     }
 
-    const isClean = !(storeIsDirty || form.state?.isDirty);
+    const isClean = !(form.store?.get()?.isDirty || form.state?.isDirty);
     const currentEntityId = readEntityId(entity);
     const justActivated = !prevOpenRef.current && open;
     const entityChanged =
@@ -89,22 +105,14 @@ export function useFormHostSync<TData = Record<string, unknown>>({
 
     const didSync = justActivated || entityChanged || defaultsArrivedClean;
     if (didSync) {
-      const mergedValues: Record<string, unknown> = {
+      let mergedValues: Record<string, unknown> = {
         ...baseDefaultsRef.current,
       };
-      if (entity && typeof entity === "object") {
-        for (const [key, val] of Object.entries(entity as Record<string, unknown>)) {
-          if (val !== undefined) {
-            mergedValues[key] = val;
-          }
-        }
+      if (isPlainRecord(entity)) {
+        mergedValues = mergeDefinedValues(mergedValues, entity);
       }
-      if (defaultValues && typeof defaultValues === "object") {
-        for (const [key, val] of Object.entries(defaultValues)) {
-          if (val !== undefined) {
-            mergedValues[key] = val;
-          }
-        }
+      if (isPlainRecord(defaultValues)) {
+        mergedValues = mergeDefinedValues(mergedValues, defaultValues);
       }
 
       if (Object.keys(mergedValues).length > 0) {
@@ -120,7 +128,7 @@ export function useFormHostSync<TData = Record<string, unknown>>({
       prevEntityIdRef.current = currentEntityId;
       prevDefaultsRef.current = defaultValues;
     }
-  }, [open, entity, form, defaultValues, storeIsDirty]);
+  }, [open, entity, form, defaultValues]);
 
   return { isFormDirty };
 }

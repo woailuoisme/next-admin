@@ -1,8 +1,9 @@
 import { isNil } from "es-toolkit";
 import { BadgeCheck, User } from "lucide-react";
-import { memo } from "react";
+import { type KeyboardEvent, memo } from "react";
 
 import { CopyButton } from "@/components/shared/CopyButton";
+import { handleActivationKey } from "@/components/shared/activationKey";
 import { cn } from "cn";
 
 import type { UserCellProps } from "./types";
@@ -35,12 +36,21 @@ export const UserCell = memo(function UserCell({
 
   const hasNoInfo = isNil(name) && isNil(subtitle);
 
+  const interactiveProps = onClick
+    ? {
+        role: "button" as const,
+        tabIndex: 0,
+        onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => handleActivationKey(e, onClick),
+      }
+    : undefined;
+
   // 1. Unassigned State
   if (isExplicitUnassigned || (allowUnassigned && hasNoInfo)) {
     return (
       <div
+        {...interactiveProps}
         className={cn(
-          "group/user-cell flex max-w-full min-w-0 items-center gap-2.5 select-none",
+          "group/user-cell flex max-w-full min-w-0 items-center gap-2.5 select-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden",
           TEXT_ALIGN_CLASSES[align],
           onClick && "cursor-pointer hover:opacity-85",
           className,
@@ -55,7 +65,7 @@ export const UserCell = memo(function UserCell({
             avatarShapeClasses[shape],
           )}
         >
-          <User className="size-3.5 opacity-60" />
+          <User aria-hidden="true" className="size-3.5 opacity-60" />
         </div>
         <div className="flex min-w-0 flex-col leading-tight">
           <span className="text-muted-foreground/60 truncate text-xs italic">{unassignedText}</span>
@@ -74,8 +84,9 @@ export const UserCell = memo(function UserCell({
 
   return (
     <div
+      {...interactiveProps}
       className={cn(
-        "group/user-cell flex max-w-full min-w-0 items-center gap-2.5",
+        "group/user-cell flex max-w-full min-w-0 items-center gap-2.5 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden",
         TEXT_ALIGN_CLASSES[align],
         onClick && "cursor-pointer hover:opacity-85",
         className,

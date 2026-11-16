@@ -40,12 +40,3 @@ export const MAP_ATTRIBUTION_PROPS = {
 
 /** @deprecated 兼容保留，内部建议改用 MAP_ATTRIBUTION_PROPS */
 export const MAP_NO_ATTRIBUTION = MAP_ATTRIBUTION_PROPS;
-
-/**
- * 默认（非 DOM / 测试环境下）静态回退色值。
- * 运行时 WebGL 图层应优先使用 `useMapThemeTokens()`（tokenBridge.ts）解析当前主题变量。
- */
-export const MAP_PRIMARY = "#bb4d00";
-export const MAP_PRIMARY_SOFT = "#f8a87d";
-export const MAP_REGION_BORDER = "#e5e5e5";
-export const MAP_PRIMARY_RAMP: readonly string[] = ["#ffecde", "#ffd1b6", "#f8a87d", "#de793e", "#bb4d00"];

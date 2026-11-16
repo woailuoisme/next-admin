@@ -5,6 +5,7 @@ import { useMemoizedFn } from "ahooks";
 import { AlertCircle, CheckCircle2, Download, Eye, Loader2, Trash2 } from "lucide-react";
 import { memo } from "react";
 import { cn } from "cn";
+import { sanitizeMediaUrl } from "@/components/shared/url";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -42,11 +43,12 @@ export const FileItemCard = memo(function FileItemCard({
 }: FileItemCardProps) {
   const t = useTranslations("form");
   const isImage = file.type?.startsWith("image/") || /\.(jpg|jpeg|png|webp|svg|gif)$/i.test(file.name);
-  const canPreviewImage = isImage && Boolean(file.url) && file.status !== "error";
+  const safeUrl = sanitizeMediaUrl(file.url, { allowDataImage: true });
+  const canPreviewImage = isImage && Boolean(safeUrl) && file.status !== "error";
 
   const handlePreview = useMemoizedFn(() => {
-    if (!canPreviewImage) return;
-    onPreview(file.url);
+    if (!canPreviewImage || !safeUrl) return;
+    onPreview(safeUrl);
   });
 
   const handleRemove = useMemoizedFn(() => {
@@ -62,8 +64,8 @@ export const FileItemCard = memo(function FileItemCard({
     >
       {/* Thumbnail or File Icon */}
       <div className="bg-muted/50 relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md">
-        {canPreviewImage ? (
-          <img src={file.url} alt={file.name} className="size-full object-cover" />
+        {canPreviewImage && safeUrl ? (
+          <img src={safeUrl} alt={file.name} className="size-full object-cover" />
         ) : (
           getFileIcon(file.type, file.name)
         )}
@@ -71,7 +73,7 @@ export const FileItemCard = memo(function FileItemCard({
         {/* Uploading Spinner */}
         {file.status === "uploading" && (
           <div className="bg-background/80 absolute inset-0 flex items-center justify-center backdrop-blur-xs">
-            <Loader2 className="text-primary size-4 animate-spin" />
+            <Loader2 className="text-primary size-4 animate-spin" aria-hidden="true" />
           </div>
         )}
       </div>
@@ -85,13 +87,13 @@ export const FileItemCard = memo(function FileItemCard({
           <span>{formatBytes(file.size)}</span>
           {file.status === "done" && (
             <span className={cn("flex items-center", FILE_STATUS_CLASSES.done)}>
-              <CheckCircle2 className="mr-0.5 size-3" />
+              <CheckCircle2 className="mr-0.5 size-3" aria-hidden="true" />
               {t("upload_status_success")}
             </span>
           )}
           {file.status === "error" && (
             <span className={cn("flex items-center", FILE_STATUS_CLASSES.error)}>
-              <AlertCircle className="mr-0.5 size-3" />
+              <AlertCircle className="mr-0.5 size-3" aria-hidden="true" />
               {file.error || t("upload_status_failed")}
             </span>
           )}
@@ -113,13 +115,13 @@ export const FileItemCard = memo(function FileItemCard({
             aria-label={t("upload_preview")}
             className="text-muted-foreground hover:text-foreground"
           >
-            <Eye className="size-3.5" />
+            <Eye className="size-3.5" aria-hidden="true" />
           </Button>
         )}
 
-        {showDownload && file.url && (
+        {showDownload && safeUrl && (
           <a
-            href={file.url}
+            href={safeUrl}
             download={file.name}
             target="_blank"
             rel="noopener noreferrer"
@@ -130,7 +132,7 @@ export const FileItemCard = memo(function FileItemCard({
               "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Download className="size-3.5" />
+            <Download className="size-3.5" aria-hidden="true" />
           </a>
         )}
 
@@ -144,7 +146,7 @@ export const FileItemCard = memo(function FileItemCard({
             aria-label={t("upload_remove")}
             className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           >
-            <Trash2 className="size-3.5" />
+            <Trash2 className="size-3.5" aria-hidden="true" />
           </Button>
         )}
       </div>

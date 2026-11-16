@@ -14,6 +14,7 @@ import type { EntrySemanticColor, TextEntryProps } from "./types";
 import { EntryPlaceholder, EntryWrapper } from "../core/EntryWrapper";
 import { useInfolistFieldValue } from "../core/InfolistContext";
 import { hasRenderableNode } from "../core/utils";
+import { safeStringify } from "./utils";
 
 export const badgeColorClasses: Record<EntrySemanticColor, string> = {
   primary: "border-primary/20 bg-primary/10 text-primary",
@@ -112,6 +113,30 @@ interface FormatContentOptions {
   openExternalLabel: string;
 }
 
+function renderAnchorLink(
+  safeUrl: string,
+  node: React.ReactNode,
+  openInNewTab: boolean,
+  openExternalLabel: string,
+): React.ReactNode {
+  return (
+    <a
+      href={safeUrl}
+      target={openInNewTab ? "_blank" : undefined}
+      rel={openInNewTab ? "noreferrer noopener" : undefined}
+      className="text-primary inline-flex max-w-full min-w-0 items-center gap-1 underline-offset-4 transition-colors hover:underline"
+    >
+      <span className="min-w-0 truncate">{node}</span>
+      {openInNewTab && (
+        <>
+          <ExternalLink className="size-3 shrink-0 opacity-70" aria-hidden="true" />
+          <span className="sr-only"> ({openExternalLabel})</span>
+        </>
+      )}
+    </a>
+  );
+}
+
 function renderFormattedContent({
   format,
   rawValue,
@@ -126,11 +151,27 @@ function renderFormattedContent({
   booleanNoLabel,
   openExternalLabel,
 }: FormatContentOptions): React.ReactNode {
+  const wrapHrefIfNeeded = (node: React.ReactNode): React.ReactNode => {
+    if (!href) return node;
+    const safeUrl = sanitizeUrl(href, {
+      allowMailtoTel: true,
+      allowRelative: true,
+      allowBareDomain: false,
+    });
+    return safeUrl ? renderAnchorLink(safeUrl, node, openInNewTab, openExternalLabel) : node;
+  };
+
   switch (format) {
     case "badge": {
       const displayNode =
-        typeof rawValue === "boolean" ? (rawValue ? booleanYesLabel : booleanNoLabel) : (rawValue as React.ReactNode);
-      return (
+        typeof rawValue === "boolean"
+          ? rawValue
+            ? booleanYesLabel
+            : booleanNoLabel
+          : typeof rawValue === "object" && !React.isValidElement(rawValue)
+            ? safeStringify(rawValue)
+            : (rawValue as React.ReactNode);
+      return wrapHrefIfNeeded(
         <Badge
           variant="outline"
           className={cn(
@@ -139,29 +180,29 @@ function renderFormattedContent({
           )}
         >
           {displayNode}
-        </Badge>
+        </Badge>,
       );
     }
 
     case "currency": {
       const num = parseNumericValue(rawValue);
-      if (num === null) return String(rawValue);
+      if (num === null) return wrapHrefIfNeeded(String(rawValue));
       const formatter = getNumberFormatter(locale, currency, decimals, true);
-      return formatter ? formatter.format(num) : `${currency} ${num}`;
+      return wrapHrefIfNeeded(formatter ? formatter.format(num) : `${currency} ${num}`);
     }
 
     case "number": {
       const num = parseNumericValue(rawValue);
-      if (num === null) return String(rawValue);
+      if (num === null) return wrapHrefIfNeeded(String(rawValue));
       const formatter = getNumberFormatter(locale, undefined, decimals, false);
-      return formatter ? formatter.format(num) : num.toString();
+      return wrapHrefIfNeeded(formatter ? formatter.format(num) : num.toString());
     }
 
     case "date": {
       const date = rawValue instanceof Date ? rawValue : new Date(rawValue as string | number);
-      if (Number.isNaN(date.getTime())) return String(rawValue);
+      if (Number.isNaN(date.getTime())) return wrapHrefIfNeeded(String(rawValue));
       const formatter = getDateFormatter(locale, dateOptions);
-      return formatter ? formatter.format(date) : date.toISOString();
+      return wrapHrefIfNeeded(formatter ? formatter.format(date) : date.toISOString());
     }
 
     case "url": {
@@ -173,22 +214,7 @@ function renderFormattedContent({
       if (!safeUrl) {
         return <span>{String(rawValue)}</span>;
       }
-      return (
-        <a
-          href={safeUrl}
-          target={openInNewTab ? "_blank" : undefined}
-          rel={openInNewTab ? "noreferrer noopener" : undefined}
-          className="text-primary inline-flex items-center gap-1 underline-offset-4 transition-colors hover:underline"
-        >
-          <span>{String(rawValue)}</span>
-          {openInNewTab && (
-            <>
-              <ExternalLink className="size-3 opacity-70" aria-hidden="true" />
-              <span className="sr-only"> ({openExternalLabel})</span>
-            </>
-          )}
-        </a>
-      );
+      return renderAnchorLink(safeUrl, String(rawValue), openInNewTab, openExternalLabel);
     }
 
     case "email": {
@@ -211,12 +237,17 @@ function renderFormattedContent({
       );
     }
 
-    default:
-      return typeof rawValue === "boolean"
-        ? rawValue
-          ? booleanYesLabel
-          : booleanNoLabel
-        : (rawValue as React.ReactNode);
+    default: {
+      const baseNode =
+        typeof rawValue === "boolean"
+          ? rawValue
+            ? booleanYesLabel
+            : booleanNoLabel
+          : typeof rawValue === "object" && !React.isValidElement(rawValue)
+            ? safeStringify(rawValue)
+            : (rawValue as React.ReactNode);
+      return wrapHrefIfNeeded(baseNode);
+    }
   }
 }
 
@@ -269,9 +300,9 @@ export const TextEntry = React.memo(function TextEntry({
     <EntryWrapper {...wrapperProps}>
       <div className="inline-flex max-w-full items-center gap-1.5">
         {hasRenderableNode(prefix) && <span className="text-muted-foreground shrink-0">{prefix}</span>}
-        <div className="truncate">{formattedContent}</div>
+        <div className="min-w-0 truncate">{formattedContent}</div>
         {hasRenderableNode(suffix) && <span className="text-muted-foreground shrink-0">{suffix}</span>}
-        {copyable && <CopyButton text={copyText} className="size-5 shrink-0" />}
+        {copyable && <CopyButton text={copyText} className="-m-0.5 size-6 shrink-0" />}
       </div>
     </EntryWrapper>
   );

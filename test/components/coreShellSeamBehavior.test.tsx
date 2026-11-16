@@ -266,6 +266,8 @@ describe("Core UI Shell & Dialogs Seams", () => {
       act(() => result.current.modal.openEdit("e-42"));
       expect(result.current.modal.isEditOpen).toBe(true);
       expect(result.current.modal.editId).toBe("e-42");
+      expect(result.current.modal.isCreateOpen).toBe(false);
+      expect(result.current.searchParams.create).toBeUndefined();
 
       act(() => result.current.modal.closeFormDialog());
       expect(result.current.modal.isCreateOpen).toBe(false);

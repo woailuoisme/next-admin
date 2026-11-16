@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEventListener, useMemoizedFn } from "ahooks";
 import { clamp } from "es-toolkit";
 import { ArrowUp } from "lucide-react";
-import { type CSSProperties, type MouseEvent, type ReactNode, memo, useEffect, useState } from "react";
+import { type CSSProperties, type MouseEvent, type ReactNode, memo, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
@@ -164,14 +164,37 @@ export const BackToTop = memo(function BackToTop({
 }: BackToTopProps) {
   const t = useTranslations("shared");
   const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [progress, setProgress] = useState(0);
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearExitTimer = useMemoizedFn(() => {
+    if (exitTimerRef.current) {
+      clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = null;
+    }
+  });
+
+  useEffect(() => clearExitTimer, [clearExitTimer]);
 
   const updateScroll = useMemoizedFn(() => {
     const targetEl = resolveTargetEl(target);
     const { scrollTop, scrollHeight, clientHeight } = getScrollMetrics(targetEl);
 
     const isNowVisible = scrollTop >= threshold;
-    setVisible(isNowVisible);
+    if (isNowVisible) {
+      clearExitTimer();
+      setVisible(true);
+      setMounted(true);
+    } else {
+      setVisible(false);
+      if (mounted && !exitTimerRef.current) {
+        exitTimerRef.current = setTimeout(() => {
+          exitTimerRef.current = null;
+          setMounted(false);
+        }, 300);
+      }
+    }
 
     if (!isNowVisible || !showProgress) return;
 
@@ -188,12 +211,13 @@ export const BackToTop = memo(function BackToTop({
   }, [updateScroll, showProgress]);
 
   const handleClick = useMemoizedFn((e: MouseEvent<HTMLButtonElement>) => {
+    if (!visible) return;
     onClick?.(e);
     if (e.defaultPrevented) return;
     scrollToTop(resolveTargetEl(target), top, smooth);
   });
 
-  if (!visible) {
+  if (!mounted && !visible) {
     return null;
   }
 
@@ -208,7 +232,15 @@ export const BackToTop = memo(function BackToTop({
       variant="outline"
       size="icon"
       onClick={handleClick}
+      onTransitionEnd={(e) => {
+        if (!visible && e.target === e.currentTarget) {
+          clearExitTimer();
+          setMounted(false);
+        }
+      }}
       aria-label={buttonAriaLabel}
+      aria-hidden={!visible || undefined}
+      tabIndex={visible ? undefined : -1}
       style={style}
       className={cn(
         "group fixed right-5 bottom-5 z-50 md:right-8 md:bottom-8",
@@ -216,7 +248,9 @@ export const BackToTop = memo(function BackToTop({
         "border-border/60 bg-background/85 text-foreground shadow-md backdrop-blur-md",
         "transition-all duration-300 ease-out",
         "hover:scale-105 hover:border-primary/50 hover:bg-accent/90 hover:shadow-lg active:scale-95",
-        "animate-in duration-200 fade-in-0 zoom-in-90",
+        visible
+          ? "animate-in duration-200 fade-in-0 zoom-in-90 opacity-100 scale-100"
+          : "pointer-events-none scale-90 opacity-0",
         className,
       )}
     >
@@ -267,7 +301,7 @@ export const BackToTop = memo(function BackToTop({
     return (
       <Tooltip>
         <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
-        <TooltipContent side="left" sideOffset={8}>
+        <TooltipContent side="left" sideOffset={8} aria-hidden={resolvedTooltip === buttonAriaLabel ? true : undefined}>
           {resolvedTooltip}
         </TooltipContent>
       </Tooltip>

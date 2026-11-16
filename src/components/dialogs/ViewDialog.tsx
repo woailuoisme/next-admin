@@ -53,7 +53,7 @@ const ViewHeader = memo(function ViewHeader({
               onClick={onEdit}
               className="h-8 gap-1.5 text-xs shadow-xs"
             >
-              <Edit className="size-3.5" />
+              <Edit className="size-3.5" aria-hidden="true" />
               <span>{editText}</span>
             </Button>
           ) : null}
@@ -90,8 +90,9 @@ export const ViewDialog = memo(function ViewDialog({
   onFullscreenChange,
 }: ViewDialogProps) {
   const t = useTranslations("dialog");
+  const tCommon = useTranslations("common");
 
-  const resolvedTitle = title ?? t("view_title", { entityName: "Record" });
+  const resolvedTitle = title ?? t("view_title", { entityName: t("default_entity") });
   const resolvedEditText = editText ?? t("edit");
   const resolvedCloseText = closeText ?? t("close");
 
@@ -100,8 +101,9 @@ export const ViewDialog = memo(function ViewDialog({
   });
 
   const contentBody = loading ? (
-    <div className="flex h-64 items-center justify-center">
-      <Loader2 className="text-primary size-6 animate-spin" />
+    <div role="status" aria-label={tCommon("loading_page_aria")} className="flex h-64 items-center justify-center">
+      <Loader2 className="text-primary size-6 animate-spin" aria-hidden="true" />
+      <span className="sr-only">{tCommon("loading_page_aria")}</span>
     </div>
   ) : (
     children

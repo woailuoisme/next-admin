@@ -42,6 +42,7 @@ export function ResourceSubPageScaffold<
 }: ResourceSubPageScaffoldProps<TItem, TInput>) {
   const router = useRouter();
   const t = useTranslations(resource.i18nNamespace as never);
+  const tResource = useTranslations("resource");
   const canEdit = useCan(resource.name, "edit");
 
   const { data: entity = null, isLoading } = useResourceDetail(resource, id ?? "", {
@@ -52,6 +53,11 @@ export function ResourceSubPageScaffold<
     if (!stayOnForm) {
       router.push(resource.basePath);
     }
+  });
+
+  const handleEditNavigate = useMemoizedFn(() => {
+    if (!id) return;
+    router.push(`${resource.basePath}/${id}/edit`);
   });
 
   const listTitle = safeResourceTranslate(t, resource.i18nKeys.heading) ?? resource.entityName;
@@ -84,13 +90,7 @@ export function ResourceSubPageScaffold<
         breadcrumbs={breadcrumbs}
         backTo={resource.basePath}
         loading={isLoading && !entity}
-        onEdit={
-          canEdit && renderForm && id
-            ? () => {
-                router.push(`${resource.basePath}/${id}/edit`);
-              }
-            : undefined
-        }
+        onEdit={canEdit && renderForm && id ? handleEditNavigate : undefined}
       >
         {renderView({ entity, isLoading: isLoading && !entity })}
       </ResourceViewHost>
@@ -104,6 +104,7 @@ export function ResourceSubPageScaffold<
         presentation="page"
         mode={mode}
         entity={entity}
+        loading={mode === "edit" && isLoading && !entity}
         breadcrumbs={breadcrumbs}
         backTo={resource.basePath}
         onAfterSuccess={handleAfterSuccess}
@@ -113,5 +114,9 @@ export function ResourceSubPageScaffold<
     );
   }
 
-  return null;
+  return (
+    <div role="status" className="text-muted-foreground flex min-h-48 items-center justify-center p-6 text-sm">
+      {tResource("unsupported_mode_fallback")}
+    </div>
+  );
 }

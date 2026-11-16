@@ -18,9 +18,13 @@ export const ProgressStatCard = memo(function ProgressStatCard({
   description,
   icon: Icon,
   theme = "primary",
+  density,
   pacingLabel,
   pacingStatus,
   trend,
+  formatOptions,
+  copyable,
+  animated,
   badge,
   to,
   linkLabel,
@@ -38,16 +42,30 @@ export const ProgressStatCard = memo(function ProgressStatCard({
   });
 
   if (isLoading) {
-    return <StatCardSkeleton variant="progress" className={className} />;
+    return <StatCardSkeleton variant="progress" density={density} className={className} />;
   }
 
   return (
-    <StatCardRoot theme={theme} to={to} linkLabel={linkLabel ?? title} onClick={onClick} className={className}>
+    <StatCardRoot
+      density={density}
+      theme={theme}
+      to={to}
+      linkLabel={linkLabel ?? title}
+      onClick={onClick}
+      className={className}
+    >
       <StatCardHeadline title={title} description={description} badge={badge} icon={Icon} theme={theme} />
 
       {/* Middle row: Metric Value + Progress Percentage */}
       <div className="flex items-baseline justify-between gap-2">
-        <StatCardValue value={value} prefix={prefix} suffix={suffix} />
+        <StatCardValue
+          value={value}
+          prefix={prefix}
+          suffix={suffix}
+          formatOptions={formatOptions}
+          copyable={copyable}
+          animated={animated}
+        />
 
         <div className="text-right">
           <span className="text-foreground font-mono text-sm font-bold tabular-nums">

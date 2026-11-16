@@ -58,13 +58,14 @@ export const NotificationHeader = memo(function NotificationHeader({
       </div>
 
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={onMarkAllAsRead}
         disabled={unreadCount === 0 || isMarkingAllAsRead}
         className="text-muted-foreground hover:text-foreground hover:bg-muted/60 h-7 gap-1 px-2 text-xs font-normal transition-colors"
       >
-        <CheckCheck className="size-3.5" />
+        <CheckCheck className="size-3.5" aria-hidden="true" />
         <span>{t("mark_all_read")}</span>
       </Button>
     </div>
@@ -122,13 +123,17 @@ export const NotificationFooter = memo(function NotificationFooter({
     >
       <span className="text-[11px]">{t("total_records", { count: total })}</span>
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={onGotoOverview}
         className="group text-muted-foreground hover:text-foreground h-auto gap-1 p-0 text-xs font-normal hover:bg-transparent"
       >
         <span>{t("goto_overview")}</span>
-        <ArrowRight className="size-3 transition-transform duration-150 group-hover:translate-x-0.5" />
+        <ArrowRight
+          className="size-3 transition-transform duration-150 group-hover:translate-x-0.5"
+          aria-hidden="true"
+        />
       </Button>
     </div>
   );

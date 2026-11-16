@@ -1,7 +1,6 @@
 "use client";
 
 import { useFormatter, useTranslations } from "next-intl";
-import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -24,8 +23,8 @@ const PACING_LABEL_KEYS: Record<PacingStatus, "pacing_ahead" | "pacing_on_track"
 };
 
 export interface StatCardProgressProps {
-  value?: number | string;
-  targetValue?: number | string;
+  value?: number | string | null;
+  targetValue?: number | string | null;
   progress?: number;
   pacingStatus?: PacingStatus;
   pacingLabel?: string;
@@ -39,7 +38,7 @@ export interface StatCardProgressProps {
   className?: string;
 }
 
-export const StatCardProgress = memo(function StatCardProgress({
+export function StatCardProgress({
   value = 0,
   targetValue,
   progress,
@@ -62,13 +61,14 @@ export const StatCardProgress = memo(function StatCardProgress({
   const { calculatedProgress, pacingInfo } =
     progressResult ??
     computeProgressStat({
-      value,
+      value: value ?? 0,
       targetValue,
       progress,
       pacingStatus,
       pacingLabel,
     });
 
+  const hasTarget = targetValue !== undefined && targetValue !== null && String(targetValue).trim() !== "";
   const targetDisplay =
     typeof targetValue === "number" ? (Number.isFinite(targetValue) ? format.number(targetValue) : "0") : targetValue;
 
@@ -77,6 +77,8 @@ export const StatCardProgress = memo(function StatCardProgress({
       {/* Track & Filled Bar via Shadcn Progress primitive */}
       <Progress
         value={calculatedProgress}
+        data-value={calculatedProgress}
+        data-state={calculatedProgress >= 100 ? "complete" : "loading"}
         aria-label={ariaLabel || t("target_label").replace(/:\s*$/, "")}
         aria-valuenow={calculatedProgress}
         aria-valuemin={0}
@@ -88,7 +90,7 @@ export const StatCardProgress = memo(function StatCardProgress({
       {/* Status row: Target Value + Pacing / Trend Info */}
       <div className="text-muted-foreground flex items-center justify-between gap-2 text-xs">
         <div className="tabular-nums">
-          {targetValue !== undefined ? (
+          {hasTarget ? (
             <span>
               {t("target_label")}
               {prefix || ""}
@@ -115,4 +117,4 @@ export const StatCardProgress = memo(function StatCardProgress({
       </div>
     </div>
   );
-});
+}

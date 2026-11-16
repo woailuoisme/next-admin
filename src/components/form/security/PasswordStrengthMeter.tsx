@@ -100,7 +100,14 @@ export const PasswordStrengthMeter = memo(function PasswordStrengthMeter({
   return (
     <div className={cn("space-y-2 pt-1 text-xs", className)}>
       {/* Segmented meter bars */}
-      <div className="flex items-center gap-1.5">
+      <div
+        role="progressbar"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={4}
+        aria-valuenow={score}
+        className="flex items-center gap-1.5"
+      >
         {[1, 2, 3, 4].map((step) => (
           <div
             key={step}
@@ -118,20 +125,20 @@ export const PasswordStrengthMeter = memo(function PasswordStrengthMeter({
       {/* Requirements list */}
       {showRequirements && requirements.length > 0 && (
         <ul className="grid grid-cols-1 gap-1 pt-0.5 sm:grid-cols-2">
-          {requirements.map((req) => {
+          {requirements.map((req, idx) => {
             const isPassed = req.validator(password);
             return (
               <li
-                key={req.label}
+                key={`${req.label}-${idx}`}
                 className={cn(
                   "flex items-center gap-1.5 transition-colors",
                   isPassed ? "font-medium text-primary" : "text-muted-foreground",
                 )}
               >
                 {isPassed ? (
-                  <Check className="text-primary size-3.5 shrink-0" />
+                  <Check className="text-primary size-3.5 shrink-0" aria-hidden="true" />
                 ) : (
-                  <X className="text-muted-foreground/60 size-3.5 shrink-0" />
+                  <X className="text-muted-foreground/60 size-3.5 shrink-0" aria-hidden="true" />
                 )}
                 <span>{req.label}</span>
               </li>

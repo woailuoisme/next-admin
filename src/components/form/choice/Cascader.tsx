@@ -129,11 +129,11 @@ const CascaderColumnOptionRow = memo(function CascaderColumnOptionRow({
 
       <div className="flex shrink-0 items-center gap-1">
         {isLoading ? (
-          <Loader2 className="text-muted-foreground size-3.5 animate-spin" />
+          <Loader2 aria-hidden="true" className="text-muted-foreground size-3.5 animate-spin" />
         ) : hasSubMenu ? (
-          <ChevronRight className="text-muted-foreground size-3.5 opacity-60" />
+          <ChevronRight aria-hidden="true" className="text-muted-foreground size-3.5 opacity-60" />
         ) : isFinalLeaf ? (
-          <Check className="text-primary size-3.5" />
+          <Check aria-hidden="true" className="text-primary size-3.5" />
         ) : null}
       </div>
     </Button>
@@ -193,8 +193,16 @@ function CascaderComponent({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
-  const [activePath, setActivePath] = useState<CascaderOption[]>(() =>
-    resolveCascaderOptionsByValue(options, currentValue, fieldNames),
+  const [activeValuePath, setActiveValuePath] = useState<(string | number)[]>(() =>
+    resolveCascaderOptionsByValue(options, currentValue, fieldNames).map((item) =>
+      getCascaderOptionValue(item, fieldNames),
+    ),
+  );
+
+  // 基于当前最新 options 解析路径节点，确保异步 loadData 不可变更新 options 后子级列即时刷新
+  const activePath = useMemo(
+    () => resolveCascaderOptionsByValue(options, activeValuePath, fieldNames),
+    [options, activeValuePath, fieldNames],
   );
 
   const isMountedRef = useRef(true);
@@ -214,7 +222,11 @@ function CascaderComponent({
     if (nextOpen && (disabled || readOnly)) return;
     setOpen(nextOpen);
     if (nextOpen) {
-      setActivePath(resolveCascaderOptionsByValue(options, currentValue, fieldNames));
+      setActiveValuePath(
+        resolveCascaderOptionsByValue(options, currentValue, fieldNames).map((item) =>
+          getCascaderOptionValue(item, fieldNames),
+        ),
+      );
       setSearchQuery("");
     } else {
       if (hoverTimerRef.current) {
@@ -254,7 +266,7 @@ function CascaderComponent({
     if (!isControlled) {
       setUncontrolledValue([]);
     }
-    setActivePath([]);
+    setActiveValuePath([]);
     onChange?.([], []);
   });
 
@@ -273,9 +285,11 @@ function CascaderComponent({
     async (option: CascaderOption, columnIndex: number, isHover = false) => {
       if (option.disabled) return;
 
-      const optValue = String(getCascaderOptionValue(option, fieldNames));
+      const rawOptValue = getCascaderOptionValue(option, fieldNames);
+      const optValue = String(rawOptValue);
+      const newValuePath = [...activeValuePath.slice(0, columnIndex), rawOptValue];
       const newPath = [...activePath.slice(0, columnIndex), option];
-      setActivePath(newPath);
+      setActiveValuePath(newValuePath);
 
       const children = getCascaderOptionChildren(option, fieldNames);
       const hasChildren = Boolean(children && children.length > 0);
@@ -286,6 +300,8 @@ function CascaderComponent({
         setLoadingMap((prev) => ({ ...prev, [optValue]: true }));
         try {
           await loadData(newPath);
+        } catch {
+          return;
         } finally {
           if (isMountedRef.current) {
             setLoadingMap((prev) => ({ ...prev, [optValue]: false }));
@@ -367,6 +383,7 @@ function CascaderComponent({
             </span>
 
             <ChevronDown
+              aria-hidden="true"
               className={cn("ml-2 size-4 shrink-0 opacity-50 transition-transform duration-200", open && "rotate-180")}
             />
           </Button>
@@ -390,11 +407,15 @@ function CascaderComponent({
         {showSearch && (
           <div className="border-border border-b p-2">
             <div className="relative flex items-center">
-              <Search className="text-muted-foreground pointer-events-none absolute left-2.5 size-3.5" />
+              <Search
+                aria-hidden="true"
+                className="text-muted-foreground pointer-events-none absolute left-2.5 size-3.5"
+              />
               <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label={searchPlaceholder}
                 placeholder={searchPlaceholder}
                 className="bg-muted/50 h-8 w-full pr-7 pl-8 text-xs shadow-none"
               />
@@ -437,7 +458,7 @@ function CascaderComponent({
                     <span className="truncate">
                       <HighlightedText text={item.labels.join(separator)} keyword={searchQuery} variant="inline" />
                     </span>
-                    {isSelected && <Check className="text-primary size-3.5 shrink-0" />}
+                    {isSelected && <Check aria-hidden="true" className="text-primary size-3.5 shrink-0" />}
                   </Button>
                 );
               })

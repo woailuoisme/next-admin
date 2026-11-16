@@ -152,6 +152,10 @@ export interface ResourceFormHostProps<TData = Record<string, unknown>> {
    */
   onSaveAndContinue?: () => void | Promise<void>;
   /**
+   * Whether remote record data is still loading (shows loading banner and prevents premature edits).
+   */
+  loading?: boolean;
+  /**
    * Whether the form is currently submitting an async mutation.
    */
   isSubmitting?: boolean;

@@ -116,10 +116,10 @@ const ColorPickerControl = memo(function ColorPickerControl({
           variant="ghost"
           size="icon-xs"
           onClick={handleClear}
-          className="text-muted-foreground/70 hover:bg-muted hover:text-destructive absolute right-1.5 size-5 cursor-pointer"
+          className="text-muted-foreground/70 hover:bg-muted hover:text-destructive absolute right-1.5 size-5 cursor-pointer after:absolute after:-inset-1 after:content-['']"
           aria-label={t("color_clear")}
         >
-          <X className="size-3" />
+          <X className="size-3" aria-hidden="true" />
         </Button>
       )}
     </div>

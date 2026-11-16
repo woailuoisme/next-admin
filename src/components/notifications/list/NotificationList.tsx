@@ -14,10 +14,19 @@ export const NotificationSkeleton = memo(function NotificationSkeleton({
   count = 4,
   className,
 }: NotificationSkeletonProps) {
+  const tCommon = useTranslations("common");
+
   return (
-    <div className={cn("space-y-2.5 p-2", className)} data-testid="notification-skeletons">
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label={tCommon("loading_page_aria")}
+      className={cn("space-y-2.5 p-2", className)}
+      data-testid="notification-skeletons"
+    >
+      <span className="sr-only">{tCommon("loading_page_aria")}</span>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="mx-1 flex items-start gap-3 rounded-xl p-3">
+        <div key={i} aria-hidden="true" className="mx-1 flex items-start gap-3 rounded-xl p-3">
           <Skeleton className="size-7.5 shrink-0 rounded-full" />
           <div className="flex-1 space-y-1.5">
             <Skeleton className="h-3.5 w-3/4" />
@@ -44,7 +53,10 @@ export const NotificationEmptyState = memo(function NotificationEmptyState({
         className,
       )}
     >
-      <div className="bg-muted/60 text-muted-foreground/60 mb-1 flex size-12 items-center justify-center rounded-full">
+      <div
+        aria-hidden="true"
+        className="bg-muted/60 text-muted-foreground/60 mb-1 flex size-12 items-center justify-center rounded-full"
+      >
         <Sparkles className="size-6" />
       </div>
       <p className="text-foreground text-xs font-medium">{t("empty_title")}</p>

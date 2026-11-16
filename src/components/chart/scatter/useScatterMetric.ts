@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";

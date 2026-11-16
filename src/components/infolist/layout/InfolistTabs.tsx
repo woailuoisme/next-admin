@@ -40,10 +40,14 @@ export const InfolistTabs = React.memo(function InfolistTabs({
             <TabsTrigger
               key={tab.value}
               value={tab.value}
+              disabled={tab.disabled}
               className="data-active:bg-background data-[state=active]:bg-background cursor-pointer gap-1.5 text-xs"
             >
               {hasIcon && (
-                <span className="size-3.5 shrink-0" aria-hidden="true">
+                <span
+                  className="inline-flex size-3.5 shrink-0 items-center justify-center [&>svg]:size-3.5"
+                  aria-hidden="true"
+                >
                   {tab.icon}
                 </span>
               )}
