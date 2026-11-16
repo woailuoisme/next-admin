@@ -7,9 +7,11 @@ import { Scatter, ZAxis } from "recharts";
 
 import type { ScatterMetricChartProps } from "./types";
 
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import { CartesianScaffold } from "../shared/CartesianScaffold";
 import { type ChartTooltipEntry, type ChartTooltipRow, useChartDetailTooltip } from "../shared/ChartTooltip";
 import { DEFAULT_CHART_MARGIN } from "../shared/constants";
+import { toFiniteNumber } from "../shared/formatters";
 import { useScatterMetric } from "./useScatterMetric";
 
 /** 气泡尺寸范围与光标默认值（模块级常量，避免每次渲染新建引用） */
@@ -42,8 +44,10 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
     isAnimationActive = true,
     zRange = DEFAULT_Z_RANGE,
     referenceLines: propReferenceLines,
+    ariaLabel,
     className,
   } = props;
+  const effectiveAnimationActive = useChartAnimation(isAnimationActive);
 
   const xAxisName = rawXName || xAxisLabel || "X";
   const yAxisName = rawYName || yAxisLabel || "Y";
@@ -63,6 +67,7 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
   );
 
   const { resolvedSeries, xFormatter, yFormatter, zFormatter } = useScatterMetric(props);
+  const xAxisTickFormatter = useCallback((val: string | number) => xFormatter(toFiniteNumber(val)), [xFormatter]);
 
   const resolveTooltipDetail = useCallback(
     (payload: ReadonlyArray<ChartTooltipEntry>) => {
@@ -97,7 +102,7 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
       xAxisKey="x"
       xAxisType="number"
       xAxisName={xAxisName}
-      xAxisFormatter={xFormatter}
+      xAxisFormatter={xAxisTickFormatter}
       yAxisKey="y"
       yAxisType="number"
       yAxisName={yAxisName}
@@ -108,6 +113,7 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
       referenceLines={referenceLines}
       tooltipContent={renderTooltip}
       tooltipCursor={SCATTER_TOOLTIP_CURSOR}
+      ariaLabel={ariaLabel}
       className={className}
     >
       <ZAxis type="number" dataKey="z" range={zRange} name={zAxisName} />
@@ -119,7 +125,7 @@ export const ScatterMetricChart = memo(function ScatterMetricChart(props: Scatte
           data={series.data}
           fill={series.fill}
           fillOpacity={0.85}
-          isAnimationActive={isAnimationActive}
+          isAnimationActive={effectiveAnimationActive}
         />
       ))}
     </CartesianScaffold>

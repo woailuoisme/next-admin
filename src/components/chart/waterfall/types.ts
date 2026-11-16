@@ -31,4 +31,5 @@ export interface WaterfallFinancialChartProps {
   showLabels?: boolean;
   isAnimationActive?: boolean;
   className?: string;
+  ariaLabel?: string;
 }

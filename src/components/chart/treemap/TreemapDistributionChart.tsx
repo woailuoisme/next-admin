@@ -10,6 +10,7 @@ import { cn } from "cn";
 import type { ValueFormatter } from "../shared/formatters";
 import type { TreemapDistributionChartProps } from "./types";
 
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import { useChartFormatters } from "../hooks/useChartFormatters";
 import { useChartHeight } from "../shared/ChartContext";
 import { ChartFrame } from "../shared/ChartFrame";
@@ -59,7 +60,7 @@ const CustomTreemapNode = memo(function CustomTreemapNode(props: CustomContentPr
         fillOpacity={0.85}
         stroke="var(--background)"
         strokeWidth={2}
-        className="cursor-pointer transition-all hover:opacity-100 hover:brightness-110"
+        className="transition-all hover:opacity-100 hover:brightness-110"
       />
       {canShowTitle && (
         <text
@@ -104,8 +105,10 @@ export const TreemapDistributionChart = memo(function TreemapDistributionChart({
   aspectRatio = 1.618,
   showTooltip = true,
   isAnimationActive = false,
+  ariaLabel,
   className,
 }: TreemapDistributionChartProps) {
+  const effectiveAnimationActive = useChartAnimation(isAnimationActive);
   const t = useTranslations("chart");
   const resolvedHeight = useChartHeight(height, 300);
   const { valueFormatter } = useChartFormatters({ valueFormatter: customValueFormatter });
@@ -149,13 +152,17 @@ export const TreemapDistributionChart = memo(function TreemapDistributionChart({
   );
 
   return (
-    <ChartFrame height={resolvedHeight} className={cn("w-full overflow-hidden select-none", className)}>
+    <ChartFrame
+      height={resolvedHeight}
+      ariaLabel={ariaLabel}
+      className={cn("w-full overflow-hidden select-none", className)}
+    >
       <Treemap
         data={enrichedData}
         dataKey="value"
         nameKey="name"
         aspectRatio={aspectRatio}
-        isAnimationActive={isAnimationActive}
+        isAnimationActive={effectiveAnimationActive}
         content={renderTreemapNode}
       >
         {showTooltip && <Tooltip content={renderTooltip} />}

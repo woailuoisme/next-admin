@@ -1,5 +1,6 @@
 import type React from "react";
 
+import type { RowActivationEvent } from "../../core/types";
 import type { BaseCellProps } from "../base";
 import type { UserOnlineStatus } from "../media/avatar/types";
 
@@ -84,7 +85,7 @@ export interface BadgeCellProps extends BaseCellProps {
   /** 悬停浮层提示 */
   tooltip?: React.ReactNode;
   /** 点击徽章交互/过滤回调，传入时徽章具备 hover 状态并支持点击 */
-  onBadgeClick?: (value: any, event: React.MouseEvent) => void;
+  onBadgeClick?: (value: any, event: RowActivationEvent) => void;
 }
 
 // ==========================================

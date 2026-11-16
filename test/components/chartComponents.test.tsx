@@ -28,6 +28,20 @@ describe("Chart Components", () => {
     expect(screen.getAllByRole("progressbar")).toHaveLength(3);
   });
 
+  it("renders zero-width track indicator when HorizontalBarChart item value is 0", () => {
+    const data = [
+      { label: "Active", value: 100 },
+      { label: "Inactive", value: 0 },
+    ];
+
+    renderWithProviders(<HorizontalBarChart data={data} />);
+
+    const bars = screen.getAllByRole("progressbar");
+    expect(bars).toHaveLength(2);
+    expect(bars[1]).toHaveAttribute("aria-valuenow", "0");
+    expect(bars[1].firstElementChild).toHaveStyle({ width: "0%" });
+  });
+
   it("renders RadialGaugeChart with meter role and guards non-finite values", () => {
     const { rerender } = renderWithProviders(<RadialGaugeChart value={75} min={0} max={100} unit="%" />);
 
@@ -43,6 +57,10 @@ describe("Chart Components", () => {
     expect(updatedMeter).toHaveAttribute("aria-valuemin", "0");
     expect(updatedMeter.style.height).toBe("20rem");
     expect(screen.queryByText("NaN%")).not.toBeInTheDocument();
+
+    rerender(<RadialGaugeChart value={64} min={0} max={100} unit="%" subtext="CPU" height={80} />);
+    expect(screen.queryByText("CPU")).not.toBeInTheDocument();
+    expect(screen.queryByText("100%")).not.toBeInTheDocument();
   });
 
   it("renders MetricSparkline with valid SVG paths, sanitized gradId, single-point resilience, and chart-2 positive color", () => {
@@ -86,19 +104,27 @@ describe("Chart Components", () => {
     );
 
     expect(
-      screen.getByRole("img", { name: /(展示 访问频次 的热力矩阵|Heatmap matrix showing 访问频次)/i }),
+      screen.getByRole("grid", { name: /(展示 访问频次 的热力矩阵|Heatmap matrix showing 访问频次)/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("Hour")).toBeInTheDocument();
     expect(screen.getByText("Day")).toBeInTheDocument();
 
-    const firstCell = screen.getByLabelText("Mon 09:00: 12");
+    const firstCell = screen.getByRole("gridcell", { name: "Mon 09:00: 12" });
+    const secondCell = screen.getByRole("gridcell", { name: "Tue 09:00: 25" });
+    expect(firstCell).toHaveAttribute("tabindex", "0");
+    expect(secondCell).toHaveAttribute("tabindex", "-1");
+
     fireEvent.focus(firstCell);
     const tooltipHeading = screen.getByText("Mon · 09:00");
     expect(tooltipHeading).toBeInTheDocument();
     const tooltipSurface = tooltipHeading.closest("div.absolute");
     expect(tooltipSurface).not.toBeNull();
 
-    fireEvent.keyDown(firstCell, { key: "Escape" });
+    fireEvent.keyDown(firstCell, { key: "ArrowDown" });
+    expect(firstCell).toHaveAttribute("tabindex", "-1");
+    expect(secondCell).toHaveAttribute("tabindex", "0");
+
+    fireEvent.keyDown(secondCell, { key: "Escape" });
     expect(screen.queryByText("Mon · 09:00")).not.toBeInTheDocument();
   });
 

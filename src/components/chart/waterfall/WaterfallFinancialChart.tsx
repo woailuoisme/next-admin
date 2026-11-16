@@ -7,6 +7,7 @@ import { Bar, Cell, LabelList } from "recharts";
 
 import type { WaterfallFinancialChartProps, WaterfallItemType } from "./types";
 
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import { CartesianScaffold } from "../shared/CartesianScaffold";
 import { type ChartTooltipEntry, useChartDetailTooltip } from "../shared/ChartTooltip";
 import { DEFAULT_ANIMATION_DURATION, DEFAULT_CHART_MARGIN } from "../shared/constants";
@@ -32,8 +33,10 @@ export const WaterfallFinancialChart = memo(function WaterfallFinancialChart(pro
     showTooltip = true,
     showLabels = false,
     isAnimationActive = true,
+    ariaLabel,
     className,
   } = props;
+  const effectiveAnimationActive = useChartAnimation(isAnimationActive);
 
   const t = useTranslations("chart");
   const { processedData, valueFormatter } = useWaterfallFinancial(props);
@@ -88,6 +91,7 @@ export const WaterfallFinancialChart = memo(function WaterfallFinancialChart(pro
       showTooltip={showTooltip}
       tooltipContent={renderTooltip}
       tooltipCursor={WATERFALL_TOOLTIP_CURSOR}
+      ariaLabel={ariaLabel}
       className={className}
     >
       {/* Native Recharts range tuple bar [min, max] safely handles cross-zero steps */}
@@ -95,7 +99,7 @@ export const WaterfallFinancialChart = memo(function WaterfallFinancialChart(pro
         dataKey="range"
         radius={WATERFALL_BAR_RADIUS}
         maxBarSize={48}
-        isAnimationActive={isAnimationActive}
+        isAnimationActive={effectiveAnimationActive}
         animationDuration={DEFAULT_ANIMATION_DURATION}
       >
         {processedData.map((entry, index) => (

@@ -243,4 +243,48 @@ describe("GeocodeAdapter, Circuit Breaker & LocationPicker", () => {
       address: undefined,
     });
   });
+
+  it("clears stale places when a subsequent search throws an error in LocationAddressSearch", async () => {
+    setGeocodeAdapter(
+      new InMemoryGeocodeAdapter({
+        placesByKeyword: {
+          station: [{ id: "1", name: "Beijing South", address: "Fengtai", lngLat: [116.379, 39.865] }],
+        },
+      }),
+    );
+
+    renderIntl(<LocationAddressSearch onSelect={vi.fn()} />);
+    const input = screen.getByRole("combobox", { name: zhMessages.map.picker_search_aria });
+
+    fireEvent.change(input, { target: { value: "station" } });
+    await waitFor(() => {
+      expect(screen.getAllByRole("option")).toHaveLength(1);
+    });
+
+    setGeocodeAdapter({
+      searchText: vi.fn().mockRejectedValue(new Error("Network down")),
+      regeo: vi.fn(),
+    });
+
+    fireEvent.change(input, { target: { value: "airport" } });
+    await waitFor(() => {
+      expect(screen.getByText(zhMessages.map.picker_search_error)).toBeInTheDocument();
+    });
+    expect(screen.queryAllByRole("option")).toHaveLength(0);
+  });
+
+  it("uses accessible button marker and never emits undefined on reset without defaultValue", () => {
+    setGeocodeAdapter(new InMemoryGeocodeAdapter());
+    const onChange = vi.fn();
+
+    renderIntl(<LocationPicker value={{ lng: 116.4074, lat: 39.9042, address: "Tiananmen" }} onChange={onChange} />);
+
+    const markerButton = screen.getByRole("button", {
+      name: `${zhMessages.map.picker_selected_location}: Tiananmen`,
+    });
+    expect(markerButton).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: zhMessages.map.picker_reset }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });

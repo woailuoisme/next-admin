@@ -30,7 +30,10 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
         const rank = idx + 1;
 
         return (
-          <div key={item.id ?? item.label} className="hover:bg-muted/30 space-y-1.5 rounded-lg p-1.5 transition-colors">
+          <div
+            key={`${item.id ?? item.label}-${idx}`}
+            className="hover:bg-muted/30 space-y-1.5 rounded-lg p-1.5 transition-colors"
+          >
             {/* Top text line: Rank, Label, Value, Percentage */}
             <div className="flex items-center justify-between text-xs">
               <div className="flex min-w-0 items-center gap-2">
@@ -80,7 +83,7 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
-                  width: `${Math.min(100, Math.max(2, item.barPct))}%`,
+                  width: `${item.barPct <= 0 ? 0 : Math.min(100, Math.max(2, item.barPct))}%`,
                   backgroundColor: item.color,
                 }}
               />

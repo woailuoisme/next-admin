@@ -1,10 +1,30 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import type { RouteStop, RouteStopStatus, RouteTrackingMapProps } from "./types";
 
 import { EMPTY_STOPS } from "../shared/constants";
+
+function subscribeReducedMotion(listener: () => void): () => void {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return () => {};
+  }
+  const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+  media.addEventListener("change", listener);
+  return () => media.removeEventListener("change", listener);
+}
+
+function getReducedMotionSnapshot(): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false;
+  }
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function getReducedMotionServerSnapshot(): boolean {
+  return false;
+}
 
 function deriveStopStatuses(stops: readonly RouteStop[], progress: number): RouteStopStatus[] {
   if (stops.length === 0) return [];
@@ -47,10 +67,24 @@ export function useRouteTracking({
   RouteTrackingMapProps,
   "coordinates" | "stops" | "progress" | "defaultProgress" | "onProgressChange" | "autoPlay" | "playbackDuration"
 > & { enabled?: boolean }) {
-  const [isPlaying, setIsPlaying] = useState(autoPlay);
+  const prefersReducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot,
+  );
+  const [prevAutoPlay, setPrevAutoPlay] = useState(autoPlay);
+  const [userPlayingOverride, setUserPlayingOverride] = useState<boolean | null>(null);
+
+  if (autoPlay !== prevAutoPlay) {
+    setPrevAutoPlay(autoPlay);
+    setUserPlayingOverride(null);
+  }
+
+  const isPlaying = userPlayingOverride ?? (autoPlay && !prefersReducedMotion);
   const isControlled = controlledProgress !== undefined;
 
   const initialProgress = Math.max(0, Math.min(1, controlledProgress ?? defaultProgress));
+  const serverSnapshotRef = useRef(initialProgress);
   const progressRef = useRef<number>(initialProgress);
   const listenersRef = useRef(new Set<() => void>());
   const onProgressChangeRef = useRef(onProgressChange);
@@ -101,9 +135,9 @@ export function useRouteTracking({
         };
       },
       getSnapshot: () => progressRef.current,
-      getServerSnapshot: () => defaultProgress,
+      getServerSnapshot: () => serverSnapshotRef.current,
     }),
-    [defaultProgress],
+    [],
   );
 
   const animFrameRef = useRef<number | null>(null);
@@ -133,7 +167,7 @@ export function useRouteTracking({
 
       if (nextProgress >= 1) {
         lastTimeRef.current = null;
-        setIsPlaying(false);
+        setUserPlayingOverride(false);
       } else {
         animFrameRef.current = requestAnimationFrame(step);
       }
@@ -154,12 +188,12 @@ export function useRouteTracking({
       lastTimeRef.current = null;
       updateProgress(0);
     }
-    setIsPlaying((prev) => !prev);
+    setUserPlayingOverride(!isPlaying);
   }, [isPlaying, updateProgress]);
 
   const reset = useCallback(() => {
     lastTimeRef.current = null;
-    setIsPlaying(false);
+    setUserPlayingOverride(false);
     updateProgress(0);
   }, [updateProgress]);
 

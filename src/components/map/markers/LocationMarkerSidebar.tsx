@@ -134,7 +134,7 @@ export const LocationMarkerMobileDrawer = memo(function LocationMarkerMobileDraw
         onClick={() => setOpen(true)}
         className="border-border/70 bg-background/95 absolute bottom-3 left-3 z-10 h-8 gap-1.5 border text-xs shadow-md backdrop-blur-md md:hidden"
       >
-        <List className="size-3.5" />
+        <List aria-hidden="true" className="size-3.5" />
         <span>{t("markers_list_title", { count: filteredData.length })}</span>
       </Button>
 

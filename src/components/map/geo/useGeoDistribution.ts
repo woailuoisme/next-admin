@@ -9,18 +9,20 @@ import type { BasemapPreset } from "../presets/basemaps";
 import type { ChoroplethColorScheme, GeoDistributionMapProps } from "./types";
 import type { CoordinateSystem } from "../utils/coordinates";
 
+import { LruCache } from "../shared/lruCache";
 import { buildAdaptiveSchemeRamp, useMapThemeTokens } from "../shared/tokenBridge";
 import { resolveCoordinateSystems } from "../utils/coordinates";
 import {
   buildChoroplethSteps,
   type ChoroplethLegendStep,
   extractGeoJSONPoints,
+  parseFiniteMetricValue,
   transformGeoJSON,
 } from "../utils/geoEngine";
 
 export type LegendStep = ChoroplethLegendStep;
 
-const geojsonUrlCache = new Map<string, GeoJSON.FeatureCollection>();
+const geojsonUrlCache = new LruCache<string, GeoJSON.FeatureCollection>(20);
 
 function normalizeToFeatureCollection(
   raw: GeoJSON.FeatureCollection | GeoJSON.Feature | GeoJSON.GeoJSON | null | undefined,
@@ -70,7 +72,7 @@ export function useGeoDistribution({
     if (!urlString) return;
 
     const cached = geojsonUrlCache.get(urlString);
-    if (cached && fetchNonce === 0) return;
+    if (cached) return;
 
     const controller = new AbortController();
 
@@ -135,7 +137,11 @@ export function useGeoDistribution({
   );
 
   const { min, max, thresholds, legendSteps, fillColorExpression } = useMemo(() => {
-    const rawValues = resolvedData ? resolvedData.features.map((f) => Number(f.properties?.[valueKey])) : [];
+    const rawValues = resolvedData
+      ? resolvedData.features
+          .map((f) => parseFiniteMetricValue(f.properties?.[valueKey]))
+          .filter((v): v is number => v !== undefined)
+      : [];
 
     return buildChoroplethSteps(rawValues, colors, valueKey, unit, (v) =>
       formatter.number(v, { maximumFractionDigits: 3 }),

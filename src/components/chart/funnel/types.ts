@@ -25,4 +25,5 @@ export interface FunnelConversionChartProps {
   showRates?: boolean;
   isAnimationActive?: boolean;
   className?: string;
+  ariaLabel?: string;
 }

@@ -6,6 +6,7 @@ import { Bar, Line } from "recharts";
 
 import type { ComposedTrendChartProps } from "./types";
 
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import { CartesianScaffold } from "../shared/CartesianScaffold";
 import {
   DEFAULT_ANIMATION_DURATION,
@@ -28,8 +29,10 @@ export const ComposedTrendChart = memo(function ComposedTrendChart(props: Compos
     showGrid = true,
     showTooltip = true,
     isAnimationActive = true,
+    ariaLabel,
     className,
   } = props;
+  const effectiveAnimationActive = useChartAnimation(isAnimationActive);
 
   const { hasRightAxis, normalizedBars, normalizedLines, leftAxisFormatter, rightAxisFormatter, valueFormatter } =
     useComposedTrend(props);
@@ -53,6 +56,7 @@ export const ComposedTrendChart = memo(function ComposedTrendChart(props: Compos
       showTooltip={showTooltip}
       referenceLines={referenceLines}
       showBrush={showBrush}
+      ariaLabel={ariaLabel}
       className={className}
     >
       {normalizedBars.map((bar) => (
@@ -64,7 +68,7 @@ export const ComposedTrendChart = memo(function ComposedTrendChart(props: Compos
           fill={bar.color}
           radius={COMPOSED_BAR_RADIUS}
           maxBarSize={36}
-          isAnimationActive={isAnimationActive}
+          isAnimationActive={effectiveAnimationActive}
           animationDuration={DEFAULT_ANIMATION_DURATION}
         />
       ))}
@@ -79,7 +83,7 @@ export const ComposedTrendChart = memo(function ComposedTrendChart(props: Compos
           stroke={line.color}
           strokeWidth={line.strokeWidth}
           strokeDasharray={line.strokeDasharray}
-          isAnimationActive={isAnimationActive}
+          isAnimationActive={effectiveAnimationActive}
           animationDuration={DEFAULT_ANIMATION_DURATION}
           dot={DEFAULT_LINE_DOT}
           activeDot={line.activeDot}

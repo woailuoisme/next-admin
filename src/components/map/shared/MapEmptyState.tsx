@@ -52,7 +52,11 @@ export const MapEmptyState = memo(function MapEmptyState({
           isError ? "bg-destructive/10 text-destructive" : "bg-muted/50 text-muted-foreground",
         )}
       >
-        {isError ? <AlertCircle className="size-6 stroke-[1.5]" /> : <MapPinOff className="size-6 stroke-[1.5]" />}
+        {isError ? (
+          <AlertCircle aria-hidden="true" className="size-6 stroke-[1.5]" />
+        ) : (
+          <MapPinOff aria-hidden="true" className="size-6 stroke-[1.5]" />
+        )}
       </div>
 
       <h4 className={cn("mt-3 text-sm font-semibold", isError ? "text-destructive" : "text-foreground")}>
@@ -72,7 +76,7 @@ export const MapEmptyState = memo(function MapEmptyState({
             onClick={onAction}
             className="h-8 gap-1.5 text-xs"
           >
-            {isError ? <RefreshCw className="size-3.5" /> : null}
+            {isError ? <RefreshCw aria-hidden="true" className="size-3.5" /> : null}
             {actionLabel}
           </Button>
         </div>

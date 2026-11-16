@@ -19,4 +19,5 @@ export interface TreemapDistributionChartProps {
   showTooltip?: boolean;
   isAnimationActive?: boolean;
   className?: string;
+  ariaLabel?: string;
 }

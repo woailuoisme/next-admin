@@ -1,5 +1,6 @@
 import { isNil } from "es-toolkit";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { memo, useEffect, useState } from "react";
 
 import { CopyButton } from "@/components/shared/CopyButton";
@@ -96,6 +97,7 @@ export const MaskedCell = memo(function MaskedCell({
   align = "left",
   className,
 }: MaskedCellProps) {
+  const t = useTranslations("table");
   const [revealed, setRevealed] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
 
@@ -155,9 +157,12 @@ export const MaskedCell = memo(function MaskedCell({
               variant="ghost"
               size="icon"
               className="text-muted-foreground hover:text-foreground h-6 w-6"
-              onClick={handleToggleReveal}
-              aria-label={revealed ? "隐藏数据" : "查看明文"}
-              title={revealed ? "隐藏数据" : "查看明文"}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleReveal();
+              }}
+              aria-label={revealed ? t("aria_hide_value") : t("aria_reveal_value")}
+              title={revealed ? t("aria_hide_value") : t("aria_reveal_value")}
             >
               {revealed ? (
                 <EyeOff aria-hidden="true" className="size-3.5" />

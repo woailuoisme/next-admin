@@ -28,11 +28,7 @@ playwright-report/
 # Environment files
 # 只有 .env.example 进版本库；其余由本地 / CI / 部署平台注入
 .env
-.env.local
-.env.*.local
-.env.development
-.env.production
-.env.test
+.env.*
 !.env.example
 
 # IDEs & System files

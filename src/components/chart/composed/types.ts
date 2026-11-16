@@ -32,4 +32,5 @@ export interface ComposedTrendChartProps {
   showTooltip?: boolean;
   isAnimationActive?: boolean;
   className?: string;
+  ariaLabel?: string;
 }

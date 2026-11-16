@@ -1,5 +1,6 @@
 import { isNil } from "es-toolkit";
 import { BadgeCheck, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { type KeyboardEvent, memo } from "react";
 
 import { CopyButton } from "@/components/shared/CopyButton";
@@ -10,6 +11,9 @@ import type { UserCellProps } from "./types";
 
 import { TEXT_ALIGN_CLASSES } from "../base";
 import { avatarShapeClasses, avatarSizeClasses, AvatarThumb } from "../media/avatar/AvatarThumb";
+
+/** 后端可能直接回传的未指派文案，与界面语言无关 */
+const UNASSIGNED_LITERALS = new Set(["Unassigned", "未指派", "待分配"]);
 
 export const UserCell = memo(function UserCell({
   name,
@@ -25,14 +29,17 @@ export const UserCell = memo(function UserCell({
   verified = false,
   copyableSubtitle = false,
   allowUnassigned = true,
-  unassignedText = "未指派",
+  unassignedText,
   badge,
   align = "left",
   onClick,
   className,
 }: UserCellProps) {
+  const t = useTranslations("table");
+  const resolvedUnassignedText = unassignedText ?? t("unassigned");
   const isExplicitUnassigned =
-    allowUnassigned && (isNil(name) || name === "" || name === "未指派" || name === "Unassigned" || name === "待分配");
+    allowUnassigned &&
+    (isNil(name) || name === "" || name === resolvedUnassignedText || UNASSIGNED_LITERALS.has(String(name)));
 
   const hasNoInfo = isNil(name) && isNil(subtitle);
 
@@ -68,7 +75,7 @@ export const UserCell = memo(function UserCell({
           <User aria-hidden="true" className="size-3.5 opacity-60" />
         </div>
         <div className="flex min-w-0 flex-col leading-tight">
-          <span className="text-muted-foreground/60 truncate text-xs italic">{unassignedText}</span>
+          <span className="text-muted-foreground/60 truncate text-xs italic">{resolvedUnassignedText}</span>
           {subtitle && <span className="text-muted-foreground/50 mt-0.5 truncate text-[11px]">{subtitle}</span>}
         </div>
       </div>
@@ -116,7 +123,7 @@ export const UserCell = memo(function UserCell({
               {name}
             </span>
           )}
-          {verified && <BadgeCheck className="text-primary size-3.5 shrink-0" aria-label="已官方认证" />}
+          {verified && <BadgeCheck className="text-primary size-3.5 shrink-0" aria-label={t("aria_verified")} />}
           {badge}
         </div>
         {subtitle && (

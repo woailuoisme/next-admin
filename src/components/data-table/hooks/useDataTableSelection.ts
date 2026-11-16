@@ -1,3 +1,5 @@
+"use client";
+
 import { useLatest, useMemoizedFn } from "ahooks";
 import { difference, union } from "es-toolkit";
 import { useMemo, useState } from "react";

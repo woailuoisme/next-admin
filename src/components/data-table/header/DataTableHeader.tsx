@@ -29,6 +29,7 @@ export interface DataTableHeaderProps<TData = unknown> {
   sortModel?: DataTableSortModel;
   onSortClick?: (field: string) => void;
   onResizeStart?: (field: string, initialWidth: number, e: MouseEvent) => void;
+  onResizeStep?: (field: string, delta: number) => void;
 }
 
 function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData>) {
@@ -53,6 +54,7 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
   const sortDirectionByField = useMemo(() => new Map(sortModel.map((s) => [s.field, s.sort])), [sortModel]);
   const onSortClick = props.onSortClick ?? ctx?.handleSortClick ?? NOOP;
   const onResizeStart = props.onResizeStart ?? ctx?.handleResizeStart ?? NOOP;
+  const onResizeStep = props.onResizeStep ?? ctx?.handleResizeStep ?? NOOP;
 
   return (
     <TableHeader className="bg-muted/60 sticky top-0 z-20 backdrop-blur-xs">
@@ -170,14 +172,31 @@ function DataTableHeaderInner<TData = unknown>(props: DataTableHeaderProps<TData
               {resizable && (
                 <div
                   role="separator"
+                  // 键盘可达：聚焦后左右方向键步进 16px，Shift 加速到 64px
+                  tabIndex={0}
                   aria-orientation="vertical"
                   aria-label={t("aria_resize_column", { name: headerName || field })}
+                  aria-valuenow={currentWidth ?? 120}
+                  aria-valuemin={minWidth}
+                  aria-valuemax={maxWidth}
+                  onKeyDown={(e) => {
+                    const step = e.shiftKey ? 64 : 16;
+                    if (e.key === "ArrowLeft") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onResizeStep(field, -step);
+                    } else if (e.key === "ArrowRight") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onResizeStep(field, step);
+                    }
+                  }}
                   onClick={(e) => e.stopPropagation()}
                   onMouseDown={(e) => {
                     e.stopPropagation();
                     onResizeStart(field, currentWidth ?? 120, e);
                   }}
-                  className="hover:bg-primary/50 absolute top-0 right-0 z-30 h-full w-2 cursor-col-resize opacity-0 transition-opacity group-hover/header:opacity-100"
+                  className="hover:bg-primary/50 focus-visible:bg-primary/50 absolute top-0 right-0 z-30 h-full w-2 cursor-col-resize opacity-0 transition-opacity group-hover/header:opacity-100 focus-visible:opacity-100 focus-visible:outline-hidden"
                 >
                   <div className="bg-border group-hover/header:bg-primary mx-auto h-full w-0.5" />
                 </div>

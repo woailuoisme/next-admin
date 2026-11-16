@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { memo, useId, useState } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -13,12 +14,13 @@ function renderSparklineTooltip(
   min: number,
   max: number,
   isUp: boolean,
+  t: ReturnType<typeof useTranslations<"table">>,
   customTooltip?: React.ReactNode,
 ) {
   if (hoveredIndex !== null) {
     return (
       <div className="font-mono text-[11px]">
-        <span>点位 #{hoveredIndex + 1}: </span>
+        <span>{t("sparkline_point", { index: hoveredIndex + 1 })} </span>
         <span className="font-semibold">{data[hoveredIndex]}</span>
       </div>
     );
@@ -27,10 +29,10 @@ function renderSparklineTooltip(
   return (
     <div className="space-y-0.5 font-mono text-[11px]">
       <p>
-        最新: <span className="font-semibold">{data[data.length - 1]}</span>
+        {t("sparkline_latest")} <span className="font-semibold">{data[data.length - 1]}</span>
       </p>
       <p className="text-muted-foreground">
-        区间: {min} - {max} ({isUp ? "↑ 涨" : "↓ 跌"})
+        {t("sparkline_range", { min, max, trend: isUp ? t("sparkline_up") : t("sparkline_down") })}
       </p>
     </div>
   );
@@ -56,6 +58,7 @@ export const SparklineCell = memo(function SparklineCell({
   align = "left",
   className,
 }: SparklineCellProps) {
+  const t = useTranslations("table");
   const gradientId = useId();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -173,7 +176,7 @@ export const SparklineCell = memo(function SparklineCell({
           <div className="inline-flex max-w-full cursor-default">{barSvg}</div>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">
-          {renderSparklineTooltip(hoveredIndex, data, min, max, isUp, tooltip)}
+          {renderSparklineTooltip(hoveredIndex, data, min, max, isUp, t, tooltip)}
         </TooltipContent>
       </Tooltip>
     );
@@ -287,7 +290,7 @@ export const SparklineCell = memo(function SparklineCell({
         <div className="inline-flex max-w-full cursor-default">{svgElement}</div>
       </TooltipTrigger>
       <TooltipContent side="top" className="text-xs">
-        {renderSparklineTooltip(hoveredIndex, data, min, max, isUp, tooltip)}
+        {renderSparklineTooltip(hoveredIndex, data, min, max, isUp, t, tooltip)}
       </TooltipContent>
     </Tooltip>
   );

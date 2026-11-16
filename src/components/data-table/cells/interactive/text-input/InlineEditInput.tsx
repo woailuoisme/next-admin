@@ -11,6 +11,8 @@ interface InlineEditInputProps {
   value: string;
   type?: "text" | "number" | "email" | "password" | "url";
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  /** 可访问名称（字段名），placeholder 仅作视觉提示 */
+  ariaLabel?: string;
   placeholder?: string;
   prefix?: React.ReactNode;
   suffix?: React.ReactNode;
@@ -25,6 +27,7 @@ export function InlineEditInput({
   value,
   type = "text",
   inputMode,
+  ariaLabel,
   placeholder,
   prefix,
   suffix,
@@ -76,7 +79,7 @@ export function InlineEditInput({
               "border-destructive text-destructive focus-visible:border-destructive focus-visible:ring-destructive",
           )}
           placeholder={placeholder}
-          aria-label={placeholder || "Edit value"}
+          aria-label={ariaLabel}
           aria-invalid={Boolean(error)}
         />
         {error && (

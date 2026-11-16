@@ -1,5 +1,6 @@
 import { useMemoizedFn } from "ahooks";
 import { isNil } from "es-toolkit";
+import { useTranslations } from "next-intl";
 import { memo, useState } from "react";
 import { toast } from "sonner";
 
@@ -11,6 +12,7 @@ import { InlineEditInput } from "./InlineEditInput";
 function TextInputCellInner<TData = unknown>({
   value,
   row,
+  fieldLabel,
   onCellChange,
   type = "text",
   inputMode,
@@ -25,6 +27,7 @@ function TextInputCellInner<TData = unknown>({
   align = "left",
   className,
 }: TextInputCellProps<TData>) {
+  const t = useTranslations("table");
   const externalVal = !isNil(value) ? String(value) : "";
   const [isEditing, setIsEditing] = useState(false);
   const [currentVal, setCurrentVal] = useState(externalVal);
@@ -121,6 +124,7 @@ function TextInputCellInner<TData = unknown>({
         value={currentVal}
         type={type}
         inputMode={inputMode}
+        ariaLabel={fieldLabel ? t("cell_edit_field_aria", { name: fieldLabel }) : t("cell_edit_input_aria")}
         placeholder={placeholder}
         prefix={prefix}
         suffix={suffix}

@@ -7,6 +7,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ArcFlightMap, GeoDistributionMap, GeoHeatmapMap, LocationMarkerMap, RouteTrackingMap } from "@/components/map";
 import { MapFrame } from "@/components/map/frame/MapFrame";
+import { useGeoDistribution } from "@/components/map/geo/useGeoDistribution";
+import { useRouteTracking } from "@/components/map/route/useRouteTracking";
+import { renderHook } from "@testing-library/react";
 import zhMessages from "@/messages/zh.json";
 
 const mapMocks = vi.hoisted(() => {
@@ -102,7 +105,24 @@ vi.mock("@/components/ui/map", () => {
     ),
     RouteProgress: ({ color }: { color?: string }) => <div data-testid="mock-route-progress" data-color={color} />,
     RouteMarker: ({ children }: { children?: ReactNode }) => <div data-testid="mock-route-marker">{children}</div>,
-    MapGeoJSON: ({ data }: { data: GeoJSON.GeoJSON }) => <div data-testid="mock-map-geojson" data-type={data.type} />,
+    MapGeoJSON: ({
+      data,
+      onHover,
+    }: {
+      data: GeoJSON.GeoJSON;
+      onHover?: (e: { feature: GeoJSON.Feature } | null) => void;
+    }) => (
+      <div
+        data-testid="mock-map-geojson"
+        data-type={data.type}
+        onMouseEnter={() => {
+          if (data.type === "FeatureCollection" && data.features[0]) {
+            onHover?.({ feature: data.features[0] });
+          }
+        }}
+        onMouseLeave={() => onHover?.(null)}
+      />
+    ),
     MapArc: ({
       data,
       onHover,
@@ -341,5 +361,107 @@ describe("MapFrame & All 5 Map Families", () => {
       expect(mapMocks.fakeMap.removeSource).not.toHaveBeenCalled();
       expect(mapMocks.fakeMap.setPaintProperty).toHaveBeenCalled();
     });
+  });
+
+  it("does not coerce null or empty geo property values to 0 on hover", () => {
+    const geojson: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: { id: "bj", name: "Beijing", value: null },
+          geometry: { type: "Point", coordinates: [116.4, 39.9] },
+        },
+      ],
+    };
+
+    renderMap(<GeoDistributionMap data={geojson} unit="pts" />);
+    const layer = screen.getByTestId("mock-map-geojson");
+    fireEvent.mouseEnter(layer);
+
+    expect(screen.getByText("Beijing")).toBeInTheDocument();
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
+    expect(screen.queryByText("pts")).not.toBeInTheDocument();
+  });
+
+  it("reuses geojsonUrlCache when switching back to a cached URL after retry", async () => {
+    const sampleA: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features: [
+        { type: "Feature", properties: { name: "A", value: 1 }, geometry: { type: "Point", coordinates: [0, 0] } },
+      ],
+    };
+    const sampleB: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features: [
+        { type: "Feature", properties: { name: "B", value: 2 }, geometry: { type: "Point", coordinates: [1, 1] } },
+      ],
+    };
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      const body = url.includes("a.json") ? sampleA : sampleB;
+      return new Response(JSON.stringify(body), { status: 200 });
+    });
+
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <NextIntlClientProvider locale="zh" messages={zhMessages}>
+        {children}
+      </NextIntlClientProvider>
+    );
+
+    const { result, rerender } = renderHook(({ data }: { data: string }) => useGeoDistribution({ data }), {
+      initialProps: { data: "https://example.com/a.json" },
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.resolvedData).not.toBeNull());
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    // Explicit retry increments fetchNonce and refetches a.json
+    act(() => {
+      result.current.retryFetch();
+    });
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
+
+    // Fetch b.json once
+    rerender({ data: "https://example.com/b.json" });
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(3));
+
+    // Switching back to cached a.json must hit cache even when fetchNonce > 0
+    rerender({ data: "https://example.com/a.json" });
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+
+    fetchSpy.mockRestore();
+  });
+
+  it("aligns getServerSnapshot with controlled progress and honors prefers-reduced-motion for autoPlay", () => {
+    const origMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)",
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    const { result } = renderHook(() =>
+      useRouteTracking({
+        coordinates: [
+          [116.4, 39.9],
+          [117.2, 39.1],
+        ],
+        progress: 0.45,
+        defaultProgress: 0,
+        autoPlay: true,
+      }),
+    );
+
+    expect(result.current.progressStore.getServerSnapshot()).toBe(0.45);
+    expect(result.current.isPlaying).toBe(false);
+
+    window.matchMedia = origMatchMedia;
   });
 });

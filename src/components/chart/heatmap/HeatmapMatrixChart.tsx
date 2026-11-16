@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useRef, useState } from "react";
+import { type KeyboardEvent, memo, useCallback, useRef, useState } from "react";
 
 import { cn } from "cn";
 
@@ -23,6 +23,69 @@ const CELL_GAP = 3;
 const CELL_RADIUS = 3;
 const VIEW_BOX_WIDTH = 800;
 const LEGEND_STEP_RATIOS = [0.1, 0.3, 0.55, 0.8, 1] as const;
+
+interface HeatmapCellNodeProps {
+  cell: ComputedHeatmapCell;
+  rowIndex: number;
+  colIndex: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill: string;
+  opacity: number;
+  isHovered: boolean;
+  isFocusable: boolean;
+  ariaLabel: string;
+  onHover: (cell: ComputedHeatmapCell, target: SVGRectElement) => void;
+  onFocusCell: (cell: ComputedHeatmapCell, rowIndex: number, colIndex: number, target: SVGRectElement) => void;
+  onDeactivate: () => void;
+  onKeyNavigate: (e: KeyboardEvent<SVGRectElement>, rowIndex: number, colIndex: number) => void;
+}
+
+const HeatmapCellNode = memo(function HeatmapCellNode({
+  cell,
+  rowIndex,
+  colIndex,
+  x,
+  y,
+  width,
+  height,
+  fill,
+  opacity,
+  isHovered,
+  isFocusable,
+  ariaLabel,
+  onHover,
+  onFocusCell,
+  onDeactivate,
+  onKeyNavigate,
+}: HeatmapCellNodeProps) {
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      rx={CELL_RADIUS}
+      fill={fill}
+      opacity={opacity}
+      stroke={isHovered ? "var(--foreground)" : "transparent"}
+      strokeWidth={isHovered ? 1.5 : 0}
+      tabIndex={isFocusable ? 0 : -1}
+      role="gridcell"
+      aria-label={ariaLabel}
+      data-row={rowIndex}
+      data-col={colIndex}
+      className="focus-visible:stroke-foreground cursor-pointer transition-all duration-150 outline-none hover:brightness-110"
+      onMouseEnter={(e) => onHover(cell, e.currentTarget)}
+      onMouseLeave={onDeactivate}
+      onFocus={(e) => onFocusCell(cell, rowIndex, colIndex, e.currentTarget)}
+      onBlur={onDeactivate}
+      onKeyDown={(e) => onKeyNavigate(e, rowIndex, colIndex)}
+    />
+  );
+});
 
 export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
   data,
@@ -48,7 +111,9 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
   const resolvedLegendTitle = legendTitle ?? t("heatmap_legend_title");
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
+  const [activeCoord, setActiveCoord] = useState<{ row: number; col: number }>({ row: 0, col: 0 });
   const [hoveredCell, setHoveredCell] = useState<{
     cell: ComputedHeatmapCell;
     x: number;
@@ -69,6 +134,18 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
     [showTooltip],
   );
 
+  const handleCellFocus = useCallback(
+    (cell: ComputedHeatmapCell, rowIndex: number, colIndex: number, target: SVGRectElement) => {
+      setActiveCoord({ row: rowIndex, col: colIndex });
+      handleCellActivate(cell, target);
+    },
+    [handleCellActivate],
+  );
+
+  const handleCellDeactivate = useCallback(() => {
+    setHoveredCell(null);
+  }, []);
+
   const {
     xLabels: computedXLabels,
     yLabels: computedYLabels,
@@ -86,11 +163,60 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
 
   const themeColor = getChartTheme(colorTheme).fillColor;
 
-  const leftInset = LABEL_LEFT_WIDTH + (yLabel ? Y_AXIS_TITLE_OFFSET : 0);
+  const maxYLabelLen = computedYLabels.reduce((acc, label) => Math.max(acc, String(label).length), 0);
+  const computedLabelLeftWidth = Math.min(120, Math.max(LABEL_LEFT_WIDTH, maxYLabelLen * 7 + 12));
+  const leftInset = computedLabelLeftWidth + (yLabel ? Y_AXIS_TITLE_OFFSET : 0);
   const topInset = LABEL_TOP_HEIGHT + (xLabel ? X_AXIS_TITLE_OFFSET : 0);
 
   const numCols = computedXLabels.length || 1;
   const numRows = computedYLabels.length || 1;
+  const clampedActiveRow = rows.length > 0 ? Math.min(activeCoord.row, rows.length - 1) : 0;
+  const clampedActiveCol = numCols > 0 ? Math.min(activeCoord.col, numCols - 1) : 0;
+
+  const handleCellKeyDown = useCallback(
+    (e: KeyboardEvent<SVGRectElement>, rowIndex: number, colIndex: number) => {
+      if (e.key === "Escape") {
+        setHoveredCell(null);
+        return;
+      }
+
+      let nextRow = rowIndex;
+      let nextCol = colIndex;
+
+      switch (e.key) {
+        case "ArrowRight":
+          nextCol = Math.min(numCols - 1, colIndex + 1);
+          break;
+        case "ArrowLeft":
+          nextCol = Math.max(0, colIndex - 1);
+          break;
+        case "ArrowDown":
+          nextRow = Math.min(rows.length - 1, rowIndex + 1);
+          break;
+        case "ArrowUp":
+          nextRow = Math.max(0, rowIndex - 1);
+          break;
+        case "Home":
+          nextCol = 0;
+          break;
+        case "End":
+          nextCol = Math.max(0, numCols - 1);
+          break;
+        default:
+          return;
+      }
+
+      e.preventDefault();
+      if (nextRow !== rowIndex || nextCol !== colIndex) {
+        setActiveCoord({ row: nextRow, col: nextCol });
+        const nextTarget = svgRef.current?.querySelector<SVGRectElement>(
+          `[data-row="${nextRow}"][data-col="${nextCol}"]`,
+        );
+        nextTarget?.focus();
+      }
+    },
+    [numCols, rows.length],
+  );
 
   // ViewBox dimensions
   const availableWidth = VIEW_BOX_WIDTH - leftInset - 10;
@@ -105,10 +231,11 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
   return (
     <div ref={containerRef} className={cn("relative w-full select-none", className)}>
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${actualSvgWidth} ${actualSvgHeight}`}
         className="h-auto w-full overflow-visible"
         style={{ maxHeight: resolvedHeight }}
-        role="img"
+        role="grid"
         aria-label={t("heatmap_aria_label", { title: resolvedLegendTitle })}
       >
         {xLabel ? (
@@ -116,6 +243,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
             x={leftInset + (numCols * cellWidth + (numCols - 1) * CELL_GAP) / 2}
             y={12}
             textAnchor="middle"
+            aria-hidden="true"
             className="fill-muted-foreground text-[11px] font-medium"
           >
             {xLabel}
@@ -128,6 +256,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
             y={topInset + (numRows * cellHeight + (numRows - 1) * CELL_GAP) / 2}
             textAnchor="middle"
             transform={`rotate(-90 12 ${topInset + (numRows * cellHeight + (numRows - 1) * CELL_GAP) / 2})`}
+            aria-hidden="true"
             className="fill-muted-foreground text-[11px] font-medium"
           >
             {yLabel}
@@ -148,6 +277,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
               x={xPos}
               y={topInset - 8}
               textAnchor="middle"
+              aria-hidden="true"
               className="fill-muted-foreground font-mono text-[11px] tracking-tight"
             >
               {String(xVal)}
@@ -164,6 +294,7 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
               x={leftInset - 8}
               y={yPos}
               textAnchor="end"
+              aria-hidden="true"
               className="fill-muted-foreground text-[11px] font-medium"
             >
               {row.y}
@@ -172,45 +303,41 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
         })}
 
         {/* Matrix Cells */}
-        {rows.map((row, rowIndex) =>
-          row.cells.map((cell, colIndex) => {
-            const xPos = leftInset + colIndex * (cellWidth + CELL_GAP);
-            const yPos = topInset + rowIndex * (cellHeight + CELL_GAP);
+        {rows.map((row, rowIndex) => (
+          <g key={`row-${row.y}-${rowIndex}`} role="row">
+            {row.cells.map((cell, colIndex) => {
+              const xPos = leftInset + colIndex * (cellWidth + CELL_GAP);
+              const yPos = topInset + rowIndex * (cellHeight + CELL_GAP);
 
-            const isZero = cell.value === 0;
-            const opacity = isZero ? 0.08 : 0.2 + cell.ratio * 0.8;
-            const isHovered = hoveredCell?.cell.x === cell.x && hoveredCell?.cell.y === cell.y;
+              const isZero = cell.value === 0;
+              const opacity = isZero ? 0.08 : 0.2 + cell.ratio * 0.8;
+              const isHovered = hoveredCell?.cell.x === cell.x && hoveredCell?.cell.y === cell.y;
+              const isFocusable = rowIndex === clampedActiveRow && colIndex === clampedActiveCol;
 
-            return (
-              <g key={`cell-${cell.x}-${cell.y}`}>
-                <rect
+              return (
+                <HeatmapCellNode
+                  key={`cell-${cell.x}-${cell.y}`}
+                  cell={cell}
+                  rowIndex={rowIndex}
+                  colIndex={colIndex}
                   x={xPos}
                   y={yPos}
                   width={cellWidth}
                   height={cellHeight}
-                  rx={CELL_RADIUS}
                   fill={themeColor}
                   opacity={opacity}
-                  stroke={isHovered ? "var(--foreground)" : "transparent"}
-                  strokeWidth={isHovered ? 1.5 : 0}
-                  tabIndex={0}
-                  role="img"
-                  aria-label={`${cell.y} ${String(cell.x)}: ${valueFormatter(cell.value)}`}
-                  className="focus-visible:stroke-foreground cursor-pointer transition-all duration-150 outline-none hover:brightness-110"
-                  onMouseEnter={(e) => handleCellActivate(cell, e.currentTarget)}
-                  onMouseLeave={() => setHoveredCell(null)}
-                  onFocus={(e) => handleCellActivate(cell, e.currentTarget)}
-                  onBlur={() => setHoveredCell(null)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") {
-                      setHoveredCell(null);
-                    }
-                  }}
+                  isHovered={isHovered}
+                  isFocusable={isFocusable}
+                  ariaLabel={`${cell.y} ${String(cell.x)}: ${valueFormatter(cell.value)}`}
+                  onHover={handleCellActivate}
+                  onFocusCell={handleCellFocus}
+                  onDeactivate={handleCellDeactivate}
+                  onKeyNavigate={handleCellKeyDown}
                 />
-              </g>
-            );
-          }),
-        )}
+              );
+            })}
+          </g>
+        ))}
       </svg>
 
       {/* Bottom Legend (Flexbox prevents label/swatch overlap at any text length) */}

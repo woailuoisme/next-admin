@@ -157,8 +157,8 @@ export const DataTableSavedViews = memo(function DataTableSavedViews({
                           size="icon"
                           onClick={() => onDeleteView(v.id)}
                           className="text-muted-foreground/50 hover:text-destructive size-5 rounded p-0.5 opacity-0 transition-opacity group-hover/view:opacity-100 focus-visible:opacity-100"
-                          title="Delete view"
-                          aria-label={`Delete ${v.name}`}
+                          title={t("views_delete_title")}
+                          aria-label={t("aria_delete_view", { name: v.name })}
                         >
                           <Trash2 aria-hidden="true" className="size-3" />
                         </Button>

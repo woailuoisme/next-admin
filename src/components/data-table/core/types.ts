@@ -3,6 +3,9 @@ import type { DataTableEmptyStateConfig, DataTableEmptyStateContext } from "../e
 
 export type DataTableAlignment = "left" | "center" | "right";
 
+/** 行激活事件：鼠标点击与键盘 Enter/Space 共用同一回调签名 */
+export type RowActivationEvent = React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>;
+
 export type DataTableColType = "string" | "number" | "date" | "dateTime" | "boolean" | "singleSelect" | "actions";
 
 export interface DataTableRenderCellParams<TData = any, TValue = any> {
@@ -320,7 +323,7 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
   summaryLabel?: string;
   virtualize?: boolean;
   maxHeight?: number | string;
-  onRowClick?: (row: TData, event: React.MouseEvent) => void;
+  onRowClick?: (row: TData, event: RowActivationEvent) => void;
   batchActions?: (selectedRows: TData[], clearSelection: () => void) => React.ReactNode;
 
   // Customization

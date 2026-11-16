@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 
 import dynamic from "next/dynamic";
 import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
-import { memo, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,6 +61,9 @@ export const ChartCard = memo(function ChartCard({
 }: ChartCardProps) {
   const t = useTranslations("chart");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const handleOpenFullscreen = useCallback(() => {
+    setIsFullscreen(true);
+  }, []);
 
   // Normalize periods to ChartPeriodOption[]
   const normalizedPeriods = useMemo<ChartPeriodOption[]>(() => {
@@ -111,7 +114,7 @@ export const ChartCard = memo(function ChartCard({
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => setIsFullscreen(true)}
+                onClick={handleOpenFullscreen}
                 disabled={isLoading || isEmpty}
                 className="text-muted-foreground hover:text-foreground size-8"
                 title={t("fullscreen_title")}

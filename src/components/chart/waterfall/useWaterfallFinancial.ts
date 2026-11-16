@@ -37,46 +37,48 @@ export function useWaterfallFinancial(props: WaterfallFinancialChartProps) {
   const processedData = useMemo<WaterfallProcessedItem[]>(() => {
     if (!data || data.length === 0) return [];
 
-    return data.reduce<{ items: WaterfallProcessedItem[]; runningTotal: number }>(
-      (acc, item, index) => {
-        const rawVal = toFiniteNumber(item.value);
-        const itemType = resolveWaterfallType(item, index, data.length, rawVal);
+    let runningTotal = 0;
+    const items: WaterfallProcessedItem[] = [];
 
-        let start = 0;
-        let end = rawVal;
-        let nextRunningTotal = rawVal;
+    for (const [index, item] of data.entries()) {
+      const rawVal = toFiniteNumber(item.value);
+      const itemType = resolveWaterfallType(item, index, data.length, rawVal);
 
-        if (itemType === "increase") {
-          start = acc.runningTotal;
-          end = acc.runningTotal + Math.abs(rawVal);
-          nextRunningTotal = end;
-        } else if (itemType === "decrease") {
-          start = acc.runningTotal;
-          end = acc.runningTotal - Math.abs(rawVal);
-          nextRunningTotal = end;
-        }
+      let start = 0;
+      let end = rawVal;
+      let nextRunningTotal = rawVal;
 
-        const range: [number, number] = [Math.min(start, end), Math.max(start, end)];
-        const defaultFill =
-          itemType === "start" || itemType === "total"
-            ? "var(--primary)"
-            : itemType === "increase"
-              ? "var(--chart-1)"
-              : "var(--destructive)";
+      if (itemType === "increase") {
+        start = runningTotal;
+        end = runningTotal + Math.abs(rawVal);
+        nextRunningTotal = end;
+      } else if (itemType === "decrease") {
+        start = runningTotal;
+        end = runningTotal - Math.abs(rawVal);
+        nextRunningTotal = end;
+      }
 
-        acc.items.push({
-          label: item.label,
-          rawVal,
-          range,
-          type: itemType,
-          fill: item.fill || defaultFill,
-          runningTotal: nextRunningTotal,
-        });
+      const range: [number, number] = [Math.min(start, end), Math.max(start, end)];
+      const defaultFill =
+        itemType === "start" || itemType === "total"
+          ? "var(--primary)"
+          : itemType === "increase"
+            ? "var(--chart-1)"
+            : "var(--destructive)";
 
-        return { items: acc.items, runningTotal: nextRunningTotal };
-      },
-      { items: [], runningTotal: 0 },
-    ).items;
+      items.push({
+        label: item.label,
+        rawVal,
+        range,
+        type: itemType,
+        fill: item.fill || defaultFill,
+        runningTotal: nextRunningTotal,
+      });
+
+      runningTotal = nextRunningTotal;
+    }
+
+    return items;
   }, [data]);
 
   const { valueFormatter } = useChartFormatters({ valueFormatter: customFormatter });

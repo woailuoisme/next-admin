@@ -34,4 +34,5 @@ export interface AreaTrendChartProps {
   showBrush?: boolean | ChartBrushConfig;
   /** Custom className */
   className?: string;
+  ariaLabel?: string;
 }

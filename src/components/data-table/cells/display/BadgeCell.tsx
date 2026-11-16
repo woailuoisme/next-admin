@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 
+import type { RowActivationEvent } from "../../core/types";
 import type { BadgeCellOption, BadgeCellProps, BadgeVariantType } from "./types";
 
 import { JUSTIFY_ALIGN_CLASSES } from "../base";
 
+// 与 InfolistCallout 的状态色约定保持一致：info→chart-1 / success→chart-2 / warning→chart-4
 const semanticVariants: Record<string, string> = {
   success: "border-chart-2/30 bg-chart-2/10 text-chart-2 dark:bg-chart-2/20",
   warning: "border-chart-4/30 bg-chart-4/10 text-chart-4 dark:bg-chart-4/20",
@@ -24,7 +26,7 @@ function renderSingleBadge(
   pulse = false,
   density: "default" | "compact" = "default",
   DefaultIcon?: React.ComponentType<{ className?: string }>,
-  onBadgeClick?: (value: any, event: React.MouseEvent) => void,
+  onBadgeClick?: (value: any, event: RowActivationEvent) => void,
   className?: string,
 ) {
   const stringKey = String(val);
@@ -72,7 +74,7 @@ function renderSingleBadge(
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 e.stopPropagation();
-                onBadgeClick?.(val, e as any);
+                onBadgeClick?.(val, e);
               }
             }
           : undefined

@@ -27,6 +27,37 @@ export interface ArcSplitLineLayerProps {
 
 const HIT_LINE_MIN_WIDTH = 12;
 
+function buildArcPaintSpecs(
+  arcColor: string,
+  arcHoverColor: string,
+  arcWidth: number,
+  effectiveHoverWidth: number,
+  arcOpacity: number,
+) {
+  return {
+    lineColor: [
+      "case",
+      ["boolean", ["feature-state", "hover"], false],
+      arcHoverColor,
+      ["coalesce", ["get", "color"], arcColor],
+    ] as MapLibreGL.ExpressionSpecification,
+    lineWidth: [
+      "case",
+      ["boolean", ["feature-state", "hover"], false],
+      effectiveHoverWidth,
+      arcWidth,
+    ] as MapLibreGL.ExpressionSpecification,
+    lineOpacity: [
+      "case",
+      ["boolean", ["feature-state", "hover"], false],
+      1,
+      arcOpacity,
+    ] as MapLibreGL.ExpressionSpecification,
+    hitLineColor: ["coalesce", ["get", "color"], arcColor] as MapLibreGL.ExpressionSpecification,
+    hitLineWidth: Math.max(HIT_LINE_MIN_WIDTH, arcWidth + 8),
+  };
+}
+
 export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
   data,
   curvature = 0.25,
@@ -81,10 +112,18 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
   latestGeojsonRef.current = geojson;
 
   const effectiveHoverWidth = hoverArcWidth ?? arcWidth + 2;
+  const paintSpecs = useMemo(
+    () => buildArcPaintSpecs(arcColor, arcHoverColor, arcWidth, effectiveHoverWidth, arcOpacity),
+    [arcColor, arcHoverColor, arcOpacity, arcWidth, effectiveHoverWidth],
+  );
+  const latestPaintRef = useRef(paintSpecs);
+  latestPaintRef.current = paintSpecs;
 
   // Effect 1: 挂载数据源与图层
   useEffect(() => {
     if (!isLoaded || !map) return;
+
+    const initialPaint = latestPaintRef.current;
 
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
@@ -104,14 +143,9 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
           "line-cap": "round",
         },
         paint: {
-          "line-color": [
-            "case",
-            ["boolean", ["feature-state", "hover"], false],
-            arcHoverColor,
-            ["coalesce", ["get", "color"], arcColor],
-          ],
-          "line-width": ["case", ["boolean", ["feature-state", "hover"], false], effectiveHoverWidth, arcWidth],
-          "line-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 1, arcOpacity],
+          "line-color": initialPaint.lineColor,
+          "line-width": initialPaint.lineWidth,
+          "line-opacity": initialPaint.lineOpacity,
         },
       });
     }
@@ -126,9 +160,9 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
           "line-cap": "round",
         },
         paint: {
-          "line-color": ["coalesce", ["get", "color"], arcColor],
+          "line-color": initialPaint.hitLineColor,
           "line-opacity": 0,
-          "line-width": Math.max(HIT_LINE_MIN_WIDTH, arcWidth + 8),
+          "line-width": initialPaint.hitLineWidth,
         },
       });
     }
@@ -142,7 +176,6 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
         // 样式重建期间忽略清理异常
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, map, sourceId, lineLayerId, hitLayerId]);
 
   // Effect 2: 同步 GeoJSON 数据而不重挂图层
@@ -155,39 +188,13 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
   // Effect 3: 增量更新画笔样式（支持切换深浅主题或传入色板）
   useEffect(() => {
     if (!isLoaded || !map || !map.getSource(sourceId) || !map.getLayer(lineLayerId)) return;
-    map.setPaintProperty(lineLayerId, "line-color", [
-      "case",
-      ["boolean", ["feature-state", "hover"], false],
-      arcHoverColor,
-      ["coalesce", ["get", "color"], arcColor],
-    ]);
-    map.setPaintProperty(lineLayerId, "line-width", [
-      "case",
-      ["boolean", ["feature-state", "hover"], false],
-      effectiveHoverWidth,
-      arcWidth,
-    ]);
-    map.setPaintProperty(lineLayerId, "line-opacity", [
-      "case",
-      ["boolean", ["feature-state", "hover"], false],
-      1,
-      arcOpacity,
-    ]);
+    map.setPaintProperty(lineLayerId, "line-color", paintSpecs.lineColor);
+    map.setPaintProperty(lineLayerId, "line-width", paintSpecs.lineWidth);
+    map.setPaintProperty(lineLayerId, "line-opacity", paintSpecs.lineOpacity);
     if (map.getLayer(hitLayerId)) {
-      map.setPaintProperty(hitLayerId, "line-width", Math.max(HIT_LINE_MIN_WIDTH, arcWidth + 8));
+      map.setPaintProperty(hitLayerId, "line-width", paintSpecs.hitLineWidth);
     }
-  }, [
-    arcColor,
-    arcHoverColor,
-    arcOpacity,
-    arcWidth,
-    effectiveHoverWidth,
-    hitLayerId,
-    isLoaded,
-    lineLayerId,
-    map,
-    sourceId,
-  ]);
+  }, [hitLayerId, isLoaded, lineLayerId, map, paintSpecs, sourceId]);
 
   // Effect 4: 绑定悬浮与点击交互
   useEffect(() => {
@@ -211,7 +218,8 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
       const feature = e.features?.[0];
       if (!feature) return;
       map.getCanvas().style.cursor = "pointer";
-      const featureId = (feature.properties?.id ?? feature.id) as string | undefined;
+      const rawId = feature.properties?.id ?? feature.id;
+      const featureId = rawId != null ? String(rawId) : undefined;
       if (!featureId || featureId === hoveredId) return;
       setHover(featureId);
       const match = arcIndexRef.current.get(featureId) ?? null;
@@ -226,7 +234,8 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
 
     const handleClick = (e: MapLibreGL.MapLayerMouseEvent) => {
       const feature = e.features?.[0];
-      const featureId = (feature?.properties?.id ?? feature?.id) as string | undefined;
+      const rawId = feature?.properties?.id ?? feature?.id;
+      const featureId = rawId != null ? String(rawId) : undefined;
       if (!featureId) return;
       const match = arcIndexRef.current.get(featureId);
       if (match) {

@@ -33,4 +33,5 @@ export interface LineTrendChartProps {
   showTooltip?: boolean;
   isAnimationActive?: boolean;
   className?: string;
+  ariaLabel?: string;
 }

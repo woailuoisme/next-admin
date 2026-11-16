@@ -62,8 +62,10 @@ export const DataTablePagination = memo(function DataTablePagination({
   renderSummary,
 }: DataTablePaginationProps) {
   const t = useTranslations("table");
-  const { page, pageSize } = paginationModel;
+  const { page: rawPage, pageSize } = paginationModel;
   const totalPages = Math.max(1, Math.ceil(rowCount / pageSize));
+  // server 模式末页数据被删空后 rawPage 会越界，展示层统一收敛，避免 from > to 倒挂
+  const page = Math.min(Math.max(1, rawPage), totalPages);
 
   const from = rowCount === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, rowCount);
@@ -106,7 +108,10 @@ export const DataTablePagination = memo(function DataTablePagination({
           {t("pagination_page_size_prefix")}
         </span>
         <Select value={String(pageSize)} onValueChange={(val) => handlePageSizeChange(Number(val))}>
-          <SelectTrigger className="h-8 min-w-12 rounded-none border-0 bg-transparent py-0 pr-2 pl-2.5 font-mono text-xs shadow-none hover:bg-transparent focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent dark:hover:bg-transparent">
+          <SelectTrigger
+            aria-label={t("aria_page_size")}
+            className="h-8 min-w-12 rounded-none border-0 bg-transparent py-0 pr-2 pl-2.5 font-mono text-xs shadow-none hover:bg-transparent focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent dark:hover:bg-transparent"
+          >
             <SelectValue placeholder={String(pageSize)}>{pageSize}</SelectValue>
           </SelectTrigger>
           <SelectContent side="top">

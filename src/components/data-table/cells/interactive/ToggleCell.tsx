@@ -1,5 +1,6 @@
 import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { memo, startTransition, useOptimistic, useState } from "react";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ function ToggleCellInner<TData = unknown>({
   align = "center",
   className,
 }: ToggleCellProps<TData>) {
+  const t = useTranslations("table");
   const handler = onCellChange || onToggle;
   const [optimisticChecked, setOptimistic] = useOptimistic(checked, (_current, next: boolean) => next);
   const [loading, setLoading] = useState(false);
@@ -43,7 +45,7 @@ function ToggleCellInner<TData = unknown>({
             const msg =
               typeof errorToastMessage === "function"
                 ? errorToastMessage(err)
-                : errorToastMessage || "更新状态失败，已回滚";
+                : errorToastMessage || t("cell_toggle_save_error");
             toast.error(msg);
           }
         } finally {
@@ -60,7 +62,7 @@ function ToggleCellInner<TData = unknown>({
     >
       <Switch
         size="sm"
-        aria-label="切换状态"
+        aria-label={t("aria_toggle_status")}
         checked={optimisticChecked}
         onCheckedChange={handleCheckedChange}
         disabled={disabled || readOnly || loading}

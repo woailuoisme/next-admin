@@ -19,6 +19,7 @@ dist
 .cnb
 lefthook.yml
 scratch
+helm
 
 # IDE and Editor
 .vscode
@@ -29,17 +30,26 @@ scratch
 *.sln
 *.sw?
 .DS_Store
+**/.DS_Store
 
-# Tests and coverage (源码目录名为 test/，需显式排除)
+# Tests, coverage and lint/dev configs (源码目录名为 test/，需显式排除)
 test
 tests
 __tests__
 coverage
 test-results
 playwright-report
+.vitest
 *.test.*
 *.spec.*
 vitest.config.ts
+bunfig.toml
+oxfmt.config.ts
+oxlint.config.ts
+.gitleaks.toml
+.mcp.json
+.mise.toml
+.rumdl.toml
 
 # Tool caches
 .turbo
@@ -47,16 +57,16 @@ vitest.config.ts
 .code-review-graph
 
 # Environment files
-# NEXT_PUBLIC_* 经 --build-arg 注入；运行时变量由 compose env_file 提供
+# NEXT_PUBLIC_* 经 --build-arg 注入；运行时变量由 compose env_file 提供，严禁将 .env.production 带入镜像层
 .env
 .env.*
 !.env.example
-!.env.production
 
 # Docs (not needed at build time)
 README.md
 api.md
 AGENTS.md
+GLOSSARY.md
 
 # Debug and Logs
 npm-debug.log*

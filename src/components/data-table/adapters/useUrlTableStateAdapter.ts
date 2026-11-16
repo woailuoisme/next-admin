@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { useDebounceFn, useMemoizedFn } from "ahooks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -169,8 +171,11 @@ export function useUrlTableStateAdapterWithPort<
     return (changed ? merged : router.searchParams) as TSearch;
   }, [propSearch, router.searchParams]);
 
-  const currentPage = Number(search.page ?? 1) || 1;
-  const currentPageSize = Number(search.pageSize ?? DEFAULT_PAGE_SIZE) || DEFAULT_PAGE_SIZE;
+  const rawPage = Number(search.page ?? 1);
+  const currentPage = Number.isFinite(rawPage) && rawPage >= 1 ? Math.trunc(rawPage) : 1;
+  const rawPageSize = Number(search.pageSize ?? DEFAULT_PAGE_SIZE);
+  const currentPageSize =
+    Number.isFinite(rawPageSize) && rawPageSize >= 1 ? Math.trunc(rawPageSize) : DEFAULT_PAGE_SIZE;
   const currentSearch = typeof search.search === "string" ? search.search : "";
   const currentSortBy = typeof search.sortBy === "string" ? search.sortBy : undefined;
   const currentSortOrder = search.sortOrder === "asc" || search.sortOrder === "desc" ? search.sortOrder : undefined;
@@ -200,33 +205,42 @@ export function useUrlTableStateAdapterWithPort<
   });
 
   const handlePageChange = useMemoizedFn((newPage: number) => {
-    router.navigate((prev) => ({
-      ...prev,
-      page: newPage <= 1 ? undefined : newPage,
-    }));
+    router.navigate(
+      (prev) => ({
+        ...prev,
+        page: newPage <= 1 ? undefined : newPage,
+      }),
+      { replace: true },
+    );
   });
 
   const handlePageSizeChange = useMemoizedFn((newPageSize: number) => {
-    router.navigate((prev) => ({
-      ...prev,
-      pageSize: newPageSize === DEFAULT_PAGE_SIZE ? undefined : newPageSize,
-      page: undefined,
-    }));
+    router.navigate(
+      (prev) => ({
+        ...prev,
+        pageSize: newPageSize === DEFAULT_PAGE_SIZE ? undefined : newPageSize,
+        page: undefined,
+      }),
+      { replace: true },
+    );
   });
 
   const handleSortChange = useMemoizedFn((field: string, direction: "asc" | "desc" | null) => {
-    router.navigate((prev) => {
-      if (!direction) {
-        const { sortBy: _b, sortOrder: _o, page: _p, ...rest } = prev;
-        return rest;
-      }
-      return {
-        ...prev,
-        sortBy: field,
-        sortOrder: direction,
-        page: undefined,
-      };
-    });
+    router.navigate(
+      (prev) => {
+        if (!direction) {
+          const { sortBy: _b, sortOrder: _o, page: _p, ...rest } = prev;
+          return rest;
+        }
+        return {
+          ...prev,
+          sortBy: field,
+          sortOrder: direction,
+          page: undefined,
+        };
+      },
+      { replace: true },
+    );
   });
 
   const [filterItems, setFilterItems] = useState<DataTableFilterModel["items"]>(
@@ -285,13 +299,17 @@ export function useUrlTableStateAdapterWithPort<
 
   const paginationMode: TablePaginationMode = explicitPaginationMode ?? (resolvedQueryOptions ? "server" : "client");
 
+  // URL 可能残留越界页码（末页数据被删空），已知 total 时收敛一次，避免表格空白但页码仍可点
+  const pageCount = Math.max(1, Math.ceil(total / currentPageSize));
+  const page = Math.min(currentPage, pageCount);
+
   const state = useMemo<TableStateAdapter<TData>>(
     () => ({
       data: rows,
       total,
       loading: isLoading,
       paginationMode,
-      page: currentPage,
+      page,
       pageSize: currentPageSize,
       sortModel,
       filterModel,
@@ -306,7 +324,7 @@ export function useUrlTableStateAdapterWithPort<
       total,
       isLoading,
       paginationMode,
-      currentPage,
+      page,
       currentPageSize,
       sortModel,
       filterModel,
@@ -325,7 +343,7 @@ export function useUrlTableStateAdapterWithPort<
     total,
     isLoading,
     search,
-    page: currentPage,
+    page,
     pageSize: currentPageSize,
     query,
   };

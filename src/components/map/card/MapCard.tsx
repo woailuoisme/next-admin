@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useMemoizedFn } from "ahooks";
 import { Maximize2 } from "lucide-react";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,10 @@ import { MapBasemapDropdown } from "./MapBasemapDropdown";
 const MapFullscreenDialog = dynamic(() => import("./MapFullscreenDialog").then((mod) => mod.MapFullscreenDialog), {
   ssr: false,
 });
+
+const subscribeNoop = () => () => {};
+const getIsClient = () => true;
+const getIsServer = () => false;
 
 export const MapCard = memo(function MapCard({
   title,
@@ -88,7 +92,8 @@ export const MapCard = memo(function MapCard({
   const hasError = Boolean(isError || error);
   const errorDetail = error instanceof Error ? error.message : typeof error === "string" ? error : undefined;
   const resolvedErrorMsg = errorMessage || errorDetail || (hasError ? t("error_default") : undefined);
-  const shouldRenderMap = !isLoading && !hasError && !isEmpty;
+  const isClient = useSyncExternalStore(subscribeNoop, getIsClient, getIsServer);
+  const shouldRenderMap = isClient && !isLoading && !hasError && !isEmpty;
 
   return (
     <>

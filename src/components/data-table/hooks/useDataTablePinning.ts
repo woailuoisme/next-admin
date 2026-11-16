@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 
 import { EMPTY_ARRAY, EMPTY_RECORD } from "../core/constants";

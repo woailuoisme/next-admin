@@ -9,7 +9,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "cn";
 
-import type { DataTableColDef, DataTableRenderExpandedRowParams, DataTableRowId } from "../core/types";
+import type {
+  DataTableColDef,
+  DataTableRenderExpandedRowParams,
+  DataTableRowId,
+  RowActivationEvent,
+} from "../core/types";
 
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
 import { EMPTY_ARRAY, NOOP } from "../core/constants";
@@ -34,7 +39,7 @@ export interface DataTableRowProps<
   columnWidths?: Record<string, number>;
   densityRowClass?: string;
   onSelectRow?: (id: DataTableRowId, checked: boolean, row: TData) => void;
-  onRowClick?: (row: TData, event: MouseEvent) => void;
+  onRowClick?: (row: TData, event: RowActivationEvent) => void;
 
   // Row Expansion
   renderExpandedRow?: (params: DataTableRenderExpandedRowParams<TData>) => ReactNode;
@@ -99,7 +104,11 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
   const { onKeyDown: propOnKeyDown, tabIndex: propTabIndex, ...divRest } = rest;
   const isRowInteractive = Boolean(onRowClick || (expandOnRowClick && canExpand));
 
-  const handleRowClick = (e: MouseEvent) => {
+  const handleRowClick = (e: MouseEvent<HTMLTableRowElement>) => {
+    // 与键盘路径共用忽略规则：单元格内按钮/链接自行处理，避免与行跳转叠加
+    if (e.target !== e.currentTarget && (e.target as HTMLElement).closest(ROW_ACTIVATION_IGNORE_SELECTOR)) {
+      return;
+    }
     if (expandOnRowClick && canExpand) {
       onToggleExpand?.(rowId);
     }
@@ -115,7 +124,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
         if (expandOnRowClick && canExpand) {
           onToggleExpand?.(rowId);
         }
-        onRowClick?.(row, e as unknown as MouseEvent);
+        onRowClick?.(row, e);
       },
       ROW_ACTIVATION_IGNORE_SELECTOR,
     );

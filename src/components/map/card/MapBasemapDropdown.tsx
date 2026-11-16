@@ -41,7 +41,7 @@ export const MapBasemapDropdown = memo(function MapBasemapDropdown({
           title={t("basemap_selector")}
           aria-label={t("basemap_selector")}
         >
-          <Layers className="size-3.5" />
+          <Layers aria-hidden="true" className="size-3.5" />
           <span className="hidden md:inline">{activeBasemapLabel}</span>
         </Button>
       </DropdownMenuTrigger>

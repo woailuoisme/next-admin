@@ -1,4 +1,5 @@
 import { clamp, isNil } from "es-toolkit";
+import { useTranslations } from "next-intl";
 import { memo } from "react";
 
 import { Progress } from "@/components/ui/progress";
@@ -46,6 +47,7 @@ export const ProgressCell = memo(function ProgressCell({
   align = "left",
   className,
 }: ProgressCellProps) {
+  const t = useTranslations("table");
   const shouldShowLabel = showPercentage ?? showValue ?? showLabel;
 
   // 1. 多段堆叠进度条模式
@@ -99,7 +101,7 @@ export const ProgressCell = memo(function ProgressCell({
         </TooltipTrigger>
         <TooltipContent side="top" className="space-y-1 text-xs">
           <div className="font-mono text-[11px] font-medium">
-            总量: {totalVal} / {effectiveMax} ({totalPercentage}%)
+            {t("progress_total", { total: totalVal, max: effectiveMax, percent: totalPercentage })}
           </div>
           <div className="space-y-0.5 pt-0.5">
             {segments.map((seg, idx) => {
@@ -107,7 +109,7 @@ export const ProgressCell = memo(function ProgressCell({
               return (
                 <div key={idx} className="text-muted-foreground flex items-center gap-1.5 text-[10px]">
                   <span className={cn("size-1.5 shrink-0 rounded-full", seg.color || seg.className || "bg-primary")} />
-                  <span>{seg.label || `分段 ${idx + 1}`}:</span>
+                  <span>{seg.label || t("progress_segment", { index: idx + 1 })}:</span>
                   <span className="text-foreground font-mono font-medium">
                     {seg.value} ({pct}%)
                   </span>
@@ -116,7 +118,7 @@ export const ProgressCell = memo(function ProgressCell({
             })}
             {typeof target === "number" && (
               <div className="border-border/50 text-primary border-t pt-0.5 text-[10px]">
-                {targetLabel || `目标线: ${target}%`}
+                {targetLabel || t("progress_target", { target, percent: Math.round(targetPct ?? 0) })}
               </div>
             )}
           </div>

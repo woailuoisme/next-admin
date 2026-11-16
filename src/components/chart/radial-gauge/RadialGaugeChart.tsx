@@ -22,6 +22,7 @@ export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaug
     safeMax,
     activeColor,
     size,
+    isMini,
     isCompact,
     strokeWidth,
     radius,
@@ -93,7 +94,7 @@ export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaug
         <span
           className={cn(
             "my-0.5 font-mono font-extrabold tracking-tight text-foreground",
-            isCompact ? "text-2xl" : "text-3xl",
+            isMini ? "text-base" : isCompact ? "text-2xl" : "text-3xl",
           )}
         >
           {formattedValue ? (
@@ -101,11 +102,15 @@ export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaug
           ) : (
             <>
               <span>{clampedValue}</span>
-              {unit && <span className={cn("ml-0.5 font-normal", isCompact ? "text-sm" : "text-xl")}>{unit}</span>}
+              {unit && (
+                <span className={cn("ml-0.5 font-normal", isMini ? "text-xs" : isCompact ? "text-sm" : "text-xl")}>
+                  {unit}
+                </span>
+              )}
             </>
           )}
         </span>
-        {subtext && (
+        {subtext && !isMini && (
           <span
             className={cn(
               "truncate text-muted-foreground/80",
@@ -118,23 +123,25 @@ export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaug
       </div>
 
       {/* Scale boundary labels positioned snugly right beneath the arc endpoints */}
-      <div
-        className="text-muted-foreground pointer-events-none absolute flex items-center justify-between font-mono text-[10px]"
-        style={{
-          width: `${Math.round(radius * 1.75)}px`,
-          top: `${Math.round(size / 2 + radius * 0.5 + strokeWidth / 2 + 2)}px`,
-        }}
-        aria-hidden="true"
-      >
-        <span>
-          {safeMin}
-          {unit}
-        </span>
-        <span>
-          {safeMax}
-          {unit}
-        </span>
-      </div>
+      {!isMini && (
+        <div
+          className="text-muted-foreground pointer-events-none absolute flex items-center justify-between font-mono text-[10px]"
+          style={{
+            width: `${Math.round(radius * 1.75)}px`,
+            top: `${Math.round(size / 2 + radius * 0.5 + strokeWidth / 2 + 2)}px`,
+          }}
+          aria-hidden="true"
+        >
+          <span>
+            {safeMin}
+            {unit}
+          </span>
+          <span>
+            {safeMax}
+            {unit}
+          </span>
+        </div>
+      )}
     </div>
   );
 });

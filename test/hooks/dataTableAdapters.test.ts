@@ -136,22 +136,24 @@ describe("DataTable State Adapters", () => {
     expect(result.current.total).toBe(42);
     expect(result.current.state.sortModel).toEqual([{ field: "createdAt", sort: "desc" }]);
 
-    // Page navigation uses push (non-replace)
+    // Page navigation uses replace so lists don't flood browser history
     act(() => {
       result.current.state.onPageChange(3);
     });
     expect(result.current.page).toBe(3);
-    expect(memory.pushCalls).toHaveLength(1);
+    expect(memory.pushCalls).toHaveLength(0);
+    expect(memory.replaceCalls).toHaveLength(1);
 
     // Search debounces and navigates with { replace: true }, resetting page
+    const replaceBeforeSearch = memory.replaceCalls.length;
     act(() => {
       result.current.state.onSearchChange?.("urgent");
     });
-    expect(memory.replaceCalls).toHaveLength(0);
+    expect(memory.replaceCalls).toHaveLength(replaceBeforeSearch);
     act(() => {
       vi.advanceTimersByTime(150);
     });
-    expect(memory.replaceCalls).toHaveLength(1);
+    expect(memory.replaceCalls).toHaveLength(replaceBeforeSearch + 1);
     expect(result.current.search.search).toBe("urgent");
     expect(result.current.page).toBe(1);
     expect(result.current.state.filterModel?.quickFilterValues).toEqual(["urgent"]);

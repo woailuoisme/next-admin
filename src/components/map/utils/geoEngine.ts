@@ -283,6 +283,17 @@ function defaultFormatNum(value: number): string {
 }
 
 /**
+ * 将 GeoJSON 属性中的未知数值安全解析为有限数字（排除 null、空字符串、NaN 与 Infinity）
+ */
+export function parseFiniteMetricValue(raw: unknown): number | undefined {
+  if (raw === null || raw === undefined || raw === "" || typeof raw === "boolean") {
+    return undefined;
+  }
+  const num = Number(raw);
+  return Number.isFinite(num) ? num : undefined;
+}
+
+/**
  * 构建支持任意数值尺度（含 [0, 1] 浮点比率）的安全分级设色步进表达式与图例。
  * MapLibre `["step", ...]` 严格要求 stop 严格单调递增，此处会显式去重/退避。
  */

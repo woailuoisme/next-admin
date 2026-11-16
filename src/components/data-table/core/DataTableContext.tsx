@@ -9,6 +9,7 @@ import type {
   DataTableRowId,
   DataTableSlotProps,
   DataTableSlots,
+  RowActivationEvent,
   TableEmptyStateConfig,
   TableEmptyStateContext,
 } from "./types";
@@ -46,8 +47,9 @@ export interface DataTableConfigContextValue<TData = unknown> {
 
   // Stabilized callback functions
   onSelectRow: (id: DataTableRowId, checked: boolean, row: TData) => void;
-  onRowClick?: (row: TData, event: React.MouseEvent) => void;
+  onRowClick?: (row: TData, event: RowActivationEvent) => void;
   handleResizeStart: (field: string, initialWidth: number, e: React.MouseEvent) => void;
+  handleResizeStep: (field: string, delta: number) => void;
   handleSortClick: (field: string) => void;
 }
 

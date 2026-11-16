@@ -1,5 +1,6 @@
 import { isNil } from "es-toolkit";
 import { CheckCircle2, Minus, XCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { memo, type ReactNode } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -28,6 +29,7 @@ export const IconCell = memo(function IconCell({
   align = "center",
   className,
 }: IconCellProps) {
+  const t = useTranslations("table");
   let iconNode: ReactNode = null;
   let resolvedTooltip = tooltip;
   let extractedLabel: ReactNode = label;
@@ -37,10 +39,10 @@ export const IconCell = memo(function IconCell({
   if (typeof value === "boolean") {
     if (value) {
       iconNode = <CheckCircle2 className={cn(sizeClasses[size], mappedColor || "text-chart-2", "shrink-0")} />;
-      resolvedTooltip = resolvedTooltip || "是 / 已启用";
+      resolvedTooltip = resolvedTooltip || t("boolean_yes");
     } else {
       iconNode = <XCircle className={cn(sizeClasses[size], mappedColor || "text-destructive", "shrink-0")} />;
-      resolvedTooltip = resolvedTooltip || "否 / 未启用";
+      resolvedTooltip = resolvedTooltip || t("boolean_no");
     }
   } else if (isNil(value)) {
     if (DefaultIcon) {

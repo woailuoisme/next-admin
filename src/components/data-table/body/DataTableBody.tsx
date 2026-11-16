@@ -1,6 +1,6 @@
 import type { Virtualizer } from "@tanstack/react-virtual";
 
-import { memo, useMemo, type MouseEvent, type ReactElement, type ReactNode } from "react";
+import { memo, useMemo, type ReactElement, type ReactNode } from "react";
 
 import { TableBody } from "@/components/ui/table";
 
@@ -10,6 +10,7 @@ import type {
   DataTableRowId,
   DataTableRowSelectionModel,
   DataTableSlots,
+  RowActivationEvent,
   TableEmptyStateConfig,
   TableEmptyStateContext,
 } from "../core/types";
@@ -46,7 +47,7 @@ export interface DataTableBodyProps<TData extends Record<string, any> = Record<s
   slots?: DataTableSlots;
   emptyState?: ReactNode | TableEmptyStateConfig | ((context: TableEmptyStateContext) => ReactNode);
   onSelectRow?: (id: DataTableRowId, checked: boolean, row: TData) => void;
-  onRowClick?: (row: TData, event: MouseEvent) => void;
+  onRowClick?: (row: TData, event: RowActivationEvent) => void;
 
   // Row Expansion
   renderExpandedRow?: (params: DataTableRenderExpandedRowParams<TData>) => ReactNode;

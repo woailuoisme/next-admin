@@ -122,11 +122,13 @@ export const ChartTooltip = memo(function ChartTooltip({
 
   return (
     <ChartTooltipSurface title={!hideLabel && displayLabel !== undefined ? displayLabel : undefined}>
-      {payload.map((entry) => {
+      {payload.map((entry, idx) => {
         const rawVal = Array.isArray(entry.value) ? entry.value[0] : entry.value;
         const val = typeof rawVal === "number" ? resolvedValueFormatter(rawVal) : String(rawVal ?? 0);
         const dotColor = entry.color || entry.stroke || entry.fill || "var(--primary)";
-        const itemKey = typeof entry.dataKey === "function" ? String(entry.name) : String(entry.dataKey || entry.name);
+        const baseKey =
+          typeof entry.dataKey === "function" ? String(entry.name ?? "") : String(entry.dataKey ?? entry.name ?? "");
+        const itemKey = `${baseKey}-${idx}`;
         const itemName = entry.name || (typeof entry.dataKey !== "function" ? String(entry.dataKey) : "");
 
         return (

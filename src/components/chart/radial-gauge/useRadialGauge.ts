@@ -41,9 +41,10 @@ export function useRadialGauge(props: RadialGaugeChartProps) {
 
   // Geometry setup for a 240-degree open gauge arc
   const size = Math.max(64, resolveNumericChartHeight(resolvedHeight, 240));
+  const isMini = size < 110;
   const isCompact = size < 150;
   // Responsive stroke width for better visual proportion and spacious inner area
-  const strokeWidth = size < 150 ? 10 : size < 200 ? 12 : 14;
+  const strokeWidth = isMini ? 8 : isCompact ? 10 : size < 200 ? 12 : 14;
   // Safe radius allowing strokeWidth and 2px padding to prevent stroke clipping
   const radius = Math.max(12, (size - strokeWidth) / 2 - 2);
   const circumference = 2 * Math.PI * radius;
@@ -60,6 +61,7 @@ export function useRadialGauge(props: RadialGaugeChartProps) {
     safeMax: high,
     activeColor,
     size,
+    isMini,
     isCompact,
     strokeWidth,
     radius,

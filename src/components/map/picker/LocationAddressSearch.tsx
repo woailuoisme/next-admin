@@ -67,7 +67,9 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
         }
       } catch {
         if (!controller.signal.aborted) {
+          setPlaces([]);
           setError(t("picker_search_error"));
+          setActiveIndex(-1);
           setHasSearched(true);
           setIsSearching(false);
           setIsOpen(true);
@@ -150,12 +152,15 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
 
   const showEmptyNotice =
     isOpen && hasSearched && !isSearching && !error && places.length === 0 && keyword.trim().length > 0;
-  const isDropdownVisible = isOpen && (places.length > 0 || Boolean(error) || showEmptyNotice);
+  const isDropdownVisible = !blocked && isOpen && (places.length > 0 || Boolean(error) || showEmptyNotice);
   const activeOptionId = activeIndex >= 0 && places[activeIndex] ? `${listboxId}-opt-${activeIndex}` : undefined;
 
   return (
     <div ref={containerRef} className="relative">
-      <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
+      <Search
+        aria-hidden="true"
+        className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2"
+      />
       <Input
         role="combobox"
         aria-autocomplete="list"
@@ -212,7 +217,10 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
       />
 
       {isSearching ? (
-        <Loader2 className="text-muted-foreground pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 animate-spin" />
+        <Loader2
+          aria-hidden="true"
+          className="text-muted-foreground pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 animate-spin"
+        />
       ) : keyword && !blocked ? (
         <Button
           type="button"
@@ -222,7 +230,7 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
           aria-label={t("picker_clear_search")}
           className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1 -translate-y-1/2"
         >
-          <X className="size-3.5" />
+          <X aria-hidden="true" className="size-3.5" />
         </Button>
       ) : null}
 
@@ -253,7 +261,7 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
                   isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent/60",
                 )}
               >
-                <MapPin className="text-primary mt-0.5 size-3.5 shrink-0" />
+                <MapPin aria-hidden="true" className="text-primary mt-0.5 size-3.5 shrink-0" />
                 <span className="min-w-0 flex-1">
                   <span className="text-foreground block truncate font-medium">{place.name}</span>
                   {place.address ? (

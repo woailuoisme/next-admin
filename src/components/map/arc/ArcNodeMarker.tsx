@@ -29,7 +29,8 @@ export const ArcNodeMarker = memo(function ArcNodeMarker({ node, size = 10, arcC
           style={{ width: size + 8, height: size + 8 }}
         >
           <span
-            className="absolute inset-0 animate-ping rounded-full opacity-35"
+            aria-hidden="true"
+            className="absolute inset-0 animate-ping rounded-full opacity-35 motion-reduce:animate-none"
             style={{ backgroundColor: arcColor }}
           />
           <span

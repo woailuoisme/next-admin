@@ -1,5 +1,8 @@
+"use client";
+
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemoizedFn } from "ahooks";
+import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -129,8 +132,9 @@ export function useResourceManagement<
 >(
   options: UseResourceManagementOptions<TData, TSearch, TQueryResponse> = {},
 ): UseResourceManagementReturn<TData, TSearch, TQueryResponse> {
+  const t = useTranslations("table");
   const {
-    entityName = "Item",
+    entityName = t("resource_default_entity"),
     modalKeys,
     syncModalWithUrl = false,
     onOpenCreate,
@@ -191,6 +195,7 @@ export function useResourceManagement<
     entityName,
     concurrency: 3,
     mutationFn: async (item) => {
+      onBeforeItemDelete?.(item);
       if (batchDeleteMutationFn) {
         return batchDeleteMutationFn([item]);
       }
@@ -218,9 +223,6 @@ export function useResourceManagement<
             : table.rows.filter((r) => modal.deleteIds.includes(String(r.id)));
 
         if (itemsToDelete.length > 0) {
-          for (const item of itemsToDelete) {
-            onBeforeItemDelete?.(item);
-          }
           const deletedResults = await batchDelete.mutateBatchAsync(itemsToDelete);
           if (deletedResults.length === 0) {
             return;

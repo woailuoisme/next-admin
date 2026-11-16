@@ -18,4 +18,5 @@ export interface BarTrendChartProps {
   showTooltip?: boolean;
   isAnimationActive?: boolean;
   className?: string;
+  ariaLabel?: string;
 }

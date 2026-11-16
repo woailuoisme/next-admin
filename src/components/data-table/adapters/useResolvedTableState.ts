@@ -1,3 +1,5 @@
+"use client";
+
 import type { TableStateAdapter } from "../core/types";
 import type { TablePaginationMode, UseUrlTableStateAdapterOptions } from "./types";
 

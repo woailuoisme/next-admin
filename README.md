@@ -1,15 +1,4 @@
-![Next Admin logo](src/app/icon.svg)
-
-# Next Admin
-
 面向中后台的企业级前端基座：Next.js 16 + React 19 + TanStack + shadcn/ui，内置数据表格、表单引擎、图表、地图与实时通知子系统。
-
-[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
-[![React](https://img.shields.io/badge/React-19-087EA4?logo=react&logoColor=white)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Bun](https://img.shields.io/badge/Bun-1.x-f472b6?logo=bun&logoColor=white)](https://bun.sh)
-[![Docker](https://img.shields.io/badge/Image-ghcr.io-2496ED?logo=docker&logoColor=white)](https://github.com/woailuoisme/next-admin/pkgs/container/next-admin)
 
 ## 特性
 
@@ -23,6 +12,11 @@
 - **国际化**：`next-intl` 中英双语，Cookie 持久化，无路由前缀。
 - **Mock 优先**：MSW + `@msw/data` + faker 确定性种子，开箱即跑，无需后端。
 - **工程护栏**：oxlint / oxfmt / tsc / vitest / gitleaks 由 Lefthook 钩子与 Conventional Commits 把关。
+
+## DataTable 事件约定
+
+- `onRowClick(row, event)` 的 `event` 类型为 `React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>`：鼠标点击传鼠标事件，行聚焦后 Enter / Space 激活传键盘事件，读取 `clientX` 等鼠标专有字段前需先窄化。
+- 单元格内的交互元素（`button`、`a`、`input`、`select`、`textarea`、`[role="button"]`、`[role="checkbox"]`）由元素自身处理，不触发行回调。
 
 ## 技术栈
 

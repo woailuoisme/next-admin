@@ -196,7 +196,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   // ==================== Table Container Ref & Column Resizing ====================
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  const { columnWidths, handleResizeStart } = useDataTableResize({
+  const { columnWidths, handleResizeStart, handleResizeStep } = useDataTableResize({
     columns: visibleColumns,
     storageKey,
     containerRef: tableContainerRef,
@@ -344,7 +344,11 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
   );
   const totalRowCount = paginationMode === "server" ? (state?.total ?? rows.length) : processedRows.length;
   const totalPages = Math.max(1, Math.ceil(totalRowCount / effectivePageSize));
-  const effectivePage = paginationMode === "client" ? Math.min(Math.max(1, rawPage), totalPages) : Math.max(1, rawPage);
+  // server 模式仅在已知 total 时收敛上限；未提供 total 时保持原页码，避免误压回第 1 页
+  const effectivePage =
+    paginationMode === "server" && state?.total === undefined
+      ? Math.max(1, rawPage)
+      : Math.min(Math.max(1, rawPage), totalPages);
 
   const paginationModel = useMemo(
     () => ({ page: effectivePage, pageSize: effectivePageSize }),
@@ -486,6 +490,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
       onSelectRow: handleSelectRow,
       onRowClick,
       handleResizeStart,
+      handleResizeStep,
       handleSortClick,
     }),
     [
@@ -513,6 +518,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
       handleSelectRow,
       onRowClick,
       handleResizeStart,
+      handleResizeStep,
       handleSortClick,
     ],
   );
@@ -586,7 +592,13 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
             <DataTableBackdropLoader slots={slots} loadingText={resolvedLoadingText} />
           ) : null}
 
-          <Table className={cn("w-full border-collapse", tableClassName)} aria-busy={loading}>
+          {/* 遮罩期间整表 inert，避免 Tab 聚焦到被遮挡的行与控件。
+              仅在有行时生效：首屏 loading 的空态/骨架允许 slots.loadingOverlay 注入可交互内容，不能一并禁用。 */}
+          <Table
+            className={cn("w-full border-collapse", tableClassName)}
+            aria-busy={loading}
+            inert={loading && pagedRows.length > 0}
+          >
             <DataTableHeader
               isAllPageSelected={isAllPageSelected}
               isSomePageSelected={isSomePageSelected}

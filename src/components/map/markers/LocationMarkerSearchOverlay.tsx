@@ -44,7 +44,7 @@ export const LocationMarkerSearchOverlay = memo(function LocationMarkerSearchOve
     <div className="border-border/60 bg-background/90 absolute top-3 right-14 left-3 z-10 flex max-w-sm flex-col gap-2 rounded-lg border p-2.5 shadow-md backdrop-blur-md">
       {showSearch ? (
         <div className="relative w-full">
-          <Search className="text-muted-foreground absolute top-2.5 left-2.5 size-3.5" />
+          <Search aria-hidden="true" className="text-muted-foreground absolute top-2.5 left-2.5 size-3.5" />
           <Input
             placeholder={effectivePlaceholder}
             value={searchQuery}
@@ -61,7 +61,7 @@ export const LocationMarkerSearchOverlay = memo(function LocationMarkerSearchOve
               className="text-muted-foreground hover:text-foreground absolute top-1 right-1 size-6"
               aria-label={t("markers_clear_search")}
             >
-              <X className="size-3.5" />
+              <X aria-hidden="true" className="size-3.5" />
             </Button>
           ) : null}
         </div>

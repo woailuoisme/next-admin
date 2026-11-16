@@ -36,12 +36,15 @@ export const MapSkeleton = memo(function MapSkeleton({ height = 400, className, 
 
       <div className="relative z-10 flex flex-col items-center gap-3">
         <div className="bg-primary/10 relative flex size-14 items-center justify-center rounded-full">
-          <div className="bg-primary/20 absolute size-full animate-ping rounded-full duration-1000" />
-          <MapPin className="text-primary size-6" />
+          <div
+            aria-hidden="true"
+            className="bg-primary/20 absolute size-full animate-ping rounded-full duration-1000 motion-reduce:animate-none"
+          />
+          <MapPin aria-hidden="true" className="text-primary size-6" />
         </div>
 
         <div className="text-muted-foreground flex items-center gap-2 text-xs">
-          <Loader2 className="text-primary size-3.5 animate-spin" />
+          <Loader2 aria-hidden="true" className="text-primary size-3.5 animate-spin motion-reduce:animate-none" />
           <span>{resolvedMessage}</span>
         </div>
       </div>

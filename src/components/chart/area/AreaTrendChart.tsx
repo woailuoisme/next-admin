@@ -6,6 +6,7 @@ import { Area } from "recharts";
 
 import type { AreaTrendChartProps } from "./types";
 
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import { useChartFormatters } from "../hooks/useChartFormatters";
 import { useChartTheme } from "../hooks/useChartTheme";
 import { CartesianScaffold } from "../shared/CartesianScaffold";
@@ -27,8 +28,10 @@ export const AreaTrendChart = memo(function AreaTrendChart({
   isAnimationActive = true,
   referenceLines,
   showBrush,
+  ariaLabel,
   className,
 }: AreaTrendChartProps) {
+  const effectiveAnimationActive = useChartAnimation(isAnimationActive);
   const { activeStroke, secondaryStroke, gradientId } = useChartTheme({
     theme,
     color,
@@ -57,6 +60,7 @@ export const AreaTrendChart = memo(function AreaTrendChart({
       showTooltip={showTooltip}
       referenceLines={referenceLines}
       showBrush={showBrush}
+      ariaLabel={ariaLabel}
       className={className}
     >
       <defs>
@@ -81,7 +85,7 @@ export const AreaTrendChart = memo(function AreaTrendChart({
           strokeDasharray="4 4"
           fillOpacity={1}
           fill={`url(#${secondaryGradId})`}
-          isAnimationActive={isAnimationActive}
+          isAnimationActive={effectiveAnimationActive}
           animationDuration={DEFAULT_ANIMATION_DURATION}
         />
       )}
@@ -93,7 +97,7 @@ export const AreaTrendChart = memo(function AreaTrendChart({
         strokeWidth={2.5}
         fillOpacity={1}
         fill={`url(#${gradientId})`}
-        isAnimationActive={isAnimationActive}
+        isAnimationActive={effectiveAnimationActive}
         animationDuration={DEFAULT_ANIMATION_DURATION}
       />
     </CartesianScaffold>

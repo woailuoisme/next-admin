@@ -7,6 +7,7 @@ import { Funnel, FunnelChart, LabelList, Tooltip } from "recharts";
 
 import type { FunnelConversionChartProps } from "./types";
 
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import { useChartHeight } from "../shared/ChartContext";
 import { ChartFrame } from "../shared/ChartFrame";
 import { type ChartTooltipEntry, type ChartTooltipRow, useChartDetailTooltip } from "../shared/ChartTooltip";
@@ -34,8 +35,10 @@ export const FunnelConversionChart = memo(function FunnelConversionChart(props: 
     showLabels = true,
     showRates = true,
     isAnimationActive = true,
+    ariaLabel,
     className,
   } = props;
+  const effectiveAnimationActive = useChartAnimation(isAnimationActive);
 
   const t = useTranslations("chart");
   const resolvedHeight = useChartHeight(height, 320);
@@ -74,7 +77,7 @@ export const FunnelConversionChart = memo(function FunnelConversionChart(props: 
   const renderTooltip = useChartDetailTooltip(resolveTooltipDetail);
 
   return (
-    <ChartFrame height={resolvedHeight} className={className}>
+    <ChartFrame height={resolvedHeight} ariaLabel={ariaLabel} className={className}>
       <FunnelChart margin={FUNNEL_CHART_MARGIN}>
         {showTooltip && <Tooltip content={renderTooltip} cursor={FUNNEL_TOOLTIP_CURSOR} />}
 
@@ -82,7 +85,7 @@ export const FunnelConversionChart = memo(function FunnelConversionChart(props: 
           dataKey={dataKey}
           nameKey={nameKey}
           data={processedData}
-          isAnimationActive={isAnimationActive}
+          isAnimationActive={effectiveAnimationActive}
           animationDuration={DEFAULT_ANIMATION_DURATION}
         >
           {showLabels && (

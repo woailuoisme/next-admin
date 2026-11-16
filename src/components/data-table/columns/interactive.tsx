@@ -160,6 +160,7 @@ export function textInputCol<TData = any>(
       <TextInputCell
         value={value}
         row={row}
+        fieldLabel={headerName}
         onCellChange={onCellChange}
         type={type}
         inputMode={inputMode}

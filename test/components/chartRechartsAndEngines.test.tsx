@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import type { ReactNode } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { AreaTrendChart } from "@/components/chart/area";
 import { BarTrendChart } from "@/components/chart/bar";
@@ -11,6 +11,7 @@ import { useDonutDistribution } from "@/components/chart/donut/useDonutDistribut
 import { FunnelConversionChart } from "@/components/chart/funnel";
 import { useFunnelConversion } from "@/components/chart/funnel/useFunnelConversion";
 import { useHeatmapMatrix } from "@/components/chart/heatmap/useHeatmapMatrix";
+import { useChartAnimation } from "@/components/chart/hooks/useChartAnimation";
 import { LazyAreaTrendChart } from "@/components/chart/lazy";
 import { LineTrendChart } from "@/components/chart/line";
 import { RadarMetricChart } from "@/components/chart/radar";
@@ -218,6 +219,39 @@ describe("Chart Calculation Engines", () => {
     expect(sparkline.current.linePath).toBe("");
     expect(sparkline.current.trend).toBe("neutral");
   });
+
+  it("useChartAnimation disables animations when prefers-reduced-motion matches", () => {
+    const originalMatchMedia = window.matchMedia;
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      configurable: true,
+      value: (query: string) =>
+        ({
+          matches: query === "(prefers-reduced-motion: reduce)",
+          media: query,
+          onchange: null,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as unknown as MediaQueryList,
+    });
+
+    try {
+      const { result: reduced } = renderHook(() => useChartAnimation(true));
+      expect(reduced.current).toBe(false);
+
+      const { result: explicitOff } = renderHook(() => useChartAnimation(false));
+      expect(explicitOff.current).toBe(false);
+    } finally {
+      Object.defineProperty(window, "matchMedia", {
+        writable: true,
+        configurable: true,
+        value: originalMatchMedia,
+      });
+    }
+  });
 });
 
 describe("Recharts Visualizations Render & Lazy Smoke Tests", () => {
@@ -230,6 +264,7 @@ describe("Recharts Visualizations Render & Lazy Smoke Tests", () => {
           theme="chart-2"
           showBrush
           isAnimationActive={false}
+          ariaLabel="Revenue area trend"
         />
         <BarTrendChart data={SAMPLE_SERIES} secondaryDataKey="secondary" isAnimationActive={false} />
         <LineTrendChart data={SAMPLE_SERIES} referenceValue={2000} showDots isAnimationActive={false} />
@@ -246,6 +281,7 @@ describe("Recharts Visualizations Render & Lazy Smoke Tests", () => {
             { name: "Edge", value: 100 },
           ]}
           isAnimationActive={false}
+          ariaLabel="Cloud vs Edge distribution"
         />
         <RadarMetricChart
           data={[
@@ -299,6 +335,8 @@ describe("Recharts Visualizations Render & Lazy Smoke Tests", () => {
     );
 
     expect(container.querySelectorAll(".recharts-responsive-container").length).toBe(10);
+    expect(screen.getByRole("img", { name: "Revenue area trend" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Cloud vs Edge distribution" })).toBeInTheDocument();
     expect(screen.getByText("Cloud")).toBeInTheDocument();
     expect(screen.getByText("Edge")).toBeInTheDocument();
     expect(screen.getByText("75.0%")).toBeInTheDocument();

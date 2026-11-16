@@ -8,6 +8,7 @@ import { cn } from "cn";
 
 import type { DonutDistributionChartProps, EnrichedDonutSliceData } from "./types";
 
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import { useChartHeight } from "../shared/ChartContext";
 import { ChartFrame } from "../shared/ChartFrame";
 import { type ChartTooltipEntry, useChartDetailTooltip } from "../shared/ChartTooltip";
@@ -22,8 +23,10 @@ export const DonutDistributionChart = memo(function DonutDistributionChart(props
     height,
     showLegend = true,
     isAnimationActive = true,
+    ariaLabel,
     className,
   } = props;
+  const effectiveAnimationActive = useChartAnimation(isAnimationActive);
 
   const resolvedHeight = useChartHeight(height, 260);
   const numericHeight = resolveNumericChartHeight(resolvedHeight, 260);
@@ -61,7 +64,7 @@ export const DonutDistributionChart = memo(function DonutDistributionChart(props
         )}
         style={{ height: resolvedHeight }}
       >
-        <ChartFrame height={resolvedHeight} initialWidth={numericHeight}>
+        <ChartFrame height={resolvedHeight} initialWidth={numericHeight} ariaLabel={ariaLabel}>
           <PieChart>
             <Tooltip content={renderTooltip} />
             <Pie
@@ -75,7 +78,7 @@ export const DonutDistributionChart = memo(function DonutDistributionChart(props
               paddingAngle={3}
               stroke="var(--background)"
               strokeWidth={2}
-              isAnimationActive={isAnimationActive}
+              isAnimationActive={effectiveAnimationActive}
               animationDuration={DEFAULT_ANIMATION_DURATION}
             />
           </PieChart>

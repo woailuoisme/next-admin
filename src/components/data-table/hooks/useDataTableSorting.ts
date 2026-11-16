@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { keyBy, orderBy } from "es-toolkit";
 import { useCallback, useState } from "react";

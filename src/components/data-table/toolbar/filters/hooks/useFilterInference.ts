@@ -64,9 +64,11 @@ export function useFilterInference<TData = any>({
           typeof opt === "string" ? { label: opt, value: opt } : opt,
         );
       } else if (data && data.length > 0) {
+        // shortcut: 只采样前 200 行推导选项，超过 200 行且候选值仅出现在尾部时下拉会缺值，需要精确全量选项时改用显式 valueOptions
+        const sample = data.length > 200 ? data.slice(0, 200) : data;
         const uniqueVals = Array.from(
           new Set(
-            data
+            sample
               .map((row: any) => row?.[selectCandidate.field])
               .filter((v) => v !== undefined && v !== null && v !== ""),
           ),

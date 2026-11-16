@@ -25,7 +25,10 @@ export const VehicleMarker = memo(function VehicleMarker({ vehicle, progress }: 
           className="relative flex items-center justify-center"
           aria-label={vehicle?.name || t("route_vehicle_default")}
         >
-          <span aria-hidden="true" className="bg-primary/30 absolute -inset-2.5 animate-ping rounded-full" />
+          <span
+            aria-hidden="true"
+            className="bg-primary/30 absolute -inset-2.5 animate-ping rounded-full motion-reduce:animate-none"
+          />
           <div className="border-background bg-primary text-primary-foreground relative flex size-8 items-center justify-center overflow-hidden rounded-full border-2 shadow-lg">
             {vehicle?.avatarUrl ? (
               <img src={vehicle.avatarUrl} alt={vehicle.name} className="size-full object-cover" />

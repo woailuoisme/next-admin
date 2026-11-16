@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Clock, MapPin } from "lucide-react";
-import { type ComponentType, memo } from "react";
+import { type ComponentType, memo, useCallback } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { MapMarker, MarkerContent, MarkerPopup } from "@/components/ui/map";
@@ -32,7 +32,7 @@ const STOP_STATUS_STYLES: Record<
   current: {
     marker: "bg-primary text-primary-foreground ring-2 ring-primary/40 ring-offset-2",
     Icon: Clock,
-    iconExtra: "animate-pulse",
+    iconExtra: "animate-pulse motion-reduce:animate-none",
     badge: "secondary",
   },
   pending: {
@@ -46,9 +46,12 @@ export const StopMarker = memo(function StopMarker({ stop, onStopClick }: StopMa
   const t = useTranslations("map");
   const status = stop.status ?? "pending";
   const { marker, Icon, iconExtra, badge } = STOP_STATUS_STYLES[status];
+  const handleClick = useCallback(() => {
+    onStopClick?.(stop);
+  }, [onStopClick, stop]);
 
   return (
-    <MapMarker longitude={stop.coordinates[0]} latitude={stop.coordinates[1]} onClick={() => onStopClick?.(stop)}>
+    <MapMarker longitude={stop.coordinates[0]} latitude={stop.coordinates[1]} onClick={handleClick}>
       <MarkerContent>
         <button
           type="button"

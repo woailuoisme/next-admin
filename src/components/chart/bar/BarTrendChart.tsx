@@ -6,6 +6,7 @@ import { Bar } from "recharts";
 
 import type { BarTrendChartProps } from "./types";
 
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import { useChartFormatters } from "../hooks/useChartFormatters";
 import { useChartTheme } from "../hooks/useChartTheme";
 import { CartesianScaffold } from "../shared/CartesianScaffold";
@@ -29,8 +30,10 @@ export const BarTrendChart = memo(function BarTrendChart({
   showGrid = true,
   showTooltip = true,
   isAnimationActive = true,
+  ariaLabel,
   className,
 }: BarTrendChartProps) {
+  const effectiveAnimationActive = useChartAnimation(isAnimationActive);
   const { activeStroke, secondaryStroke } = useChartTheme({ theme, color });
 
   const { valueFormatter, xAxisFormatter, yAxisFormatter } = useChartFormatters({
@@ -53,6 +56,7 @@ export const BarTrendChart = memo(function BarTrendChart({
       showTooltip={showTooltip}
       referenceLines={referenceLines}
       showBrush={showBrush}
+      ariaLabel={ariaLabel}
       className={className}
     >
       <Bar
@@ -60,7 +64,7 @@ export const BarTrendChart = memo(function BarTrendChart({
         fill={activeStroke}
         radius={BAR_RADIUS}
         maxBarSize={40}
-        isAnimationActive={isAnimationActive}
+        isAnimationActive={effectiveAnimationActive}
         animationDuration={DEFAULT_ANIMATION_DURATION}
       />
 
@@ -71,7 +75,7 @@ export const BarTrendChart = memo(function BarTrendChart({
           opacity={0.7}
           radius={BAR_RADIUS}
           maxBarSize={40}
-          isAnimationActive={isAnimationActive}
+          isAnimationActive={effectiveAnimationActive}
           animationDuration={DEFAULT_ANIMATION_DURATION}
         />
       )}

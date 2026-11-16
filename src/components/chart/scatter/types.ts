@@ -46,4 +46,5 @@ export interface ScatterMetricChartProps {
   zRange?: [number, number]; // [minArea, maxArea] for bubble sizing
   referenceLines?: ChartReferenceLine[];
   className?: string;
+  ariaLabel?: string;
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemoizedFn } from "ahooks";
 import { useMemo, useState } from "react";
 
@@ -156,7 +158,10 @@ export function useDataTableViews<TData = unknown>({
 
   // Save current state as new view
   const saveCurrentAsView = useMemoizedFn((name: string) => {
-    const newId = `view_${Date.now()}`;
+    const newId =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? `view_${crypto.randomUUID()}`
+        : `view_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const newView: DataTableSavedView = {
       id: newId,
       name,

@@ -8,6 +8,8 @@ export interface TextInputCellProps<TData = any> extends BaseCellProps {
   value: string | number | null;
   /** 当前行数据对象 */
   row: TData;
+  /** 字段标签（列头名），用于编辑态输入框的可访问名称 */
+  fieldLabel?: string;
   /** 变更提交事件回调 (Enter 或 Blur 触发) */
   onCellChange?: (row: TData, nextValue: string) => Promise<void | boolean> | void;
   /** 输入框类型，默认 'text' */

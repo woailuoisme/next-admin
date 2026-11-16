@@ -6,6 +6,7 @@ import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, Tooltip 
 
 import type { RadarMetricChartProps } from "./types";
 
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import { useChartFormatters } from "../hooks/useChartFormatters";
 import { useChartHeight } from "../shared/ChartContext";
 import { ChartFrame } from "../shared/ChartFrame";
@@ -35,8 +36,10 @@ export const RadarMetricChart = memo(function RadarMetricChart({
   showRadiusAxis = false,
   showRadiusTicks = false,
   isAnimationActive = true,
+  ariaLabel,
   className,
 }: RadarMetricChartProps) {
+  const effectiveAnimationActive = useChartAnimation(isAnimationActive);
   const resolvedHeight = useChartHeight(height, 300);
   const numericHeight = resolveNumericChartHeight(resolvedHeight, 300);
   const { valueFormatter } = useChartFormatters({ valueFormatter: propValueFormatter });
@@ -66,7 +69,7 @@ export const RadarMetricChart = memo(function RadarMetricChart({
   );
 
   return (
-    <ChartFrame height={resolvedHeight} className={className} initialWidth={numericHeight}>
+    <ChartFrame height={resolvedHeight} ariaLabel={ariaLabel} className={className} initialWidth={numericHeight}>
       <RadarChart data={data} margin={DEFAULT_RADAR_CHART_MARGIN}>
         <PolarGrid stroke={CHART_GRID_STROKE} />
 
@@ -90,7 +93,7 @@ export const RadarMetricChart = memo(function RadarMetricChart({
             fill={s.color}
             fillOpacity={s.fillOpacity}
             strokeWidth={2}
-            isAnimationActive={isAnimationActive}
+            isAnimationActive={effectiveAnimationActive}
             animationDuration={DEFAULT_ANIMATION_DURATION}
           />
         ))}

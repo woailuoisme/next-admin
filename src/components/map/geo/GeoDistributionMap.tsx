@@ -11,6 +11,7 @@ import type { GeoDistributionMapProps } from "./types";
 import { MapFrame, useMapBasemapState } from "../frame/MapFrame";
 import { CHINA_MAP_CENTER } from "../shared/constants";
 import { type LeafHoverStore, useLeafHoverStore } from "../shared/useLeafHoverStore";
+import { parseFiniteMetricValue } from "../utils/geoEngine";
 import { GeoDistributionHoverCard, type HoveredRegionInfo } from "./GeoDistributionHoverCard";
 import { GeoDistributionLegend } from "./GeoDistributionLegend";
 import { type LegendStep, useGeoDistribution } from "./useGeoDistribution";
@@ -128,7 +129,7 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
     }
     const props = (e.feature.properties || {}) as Record<string, unknown>;
     const name = String(props[labelKey] || props.name || props.title || t("geo_region_fallback"));
-    const val = props[valueKey] !== undefined ? Number(props[valueKey]) : undefined;
+    const val = parseFiniteMetricValue(props[valueKey]);
     setHovered({ name, value: val, properties: props });
   });
 

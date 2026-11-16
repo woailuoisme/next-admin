@@ -1,3 +1,4 @@
+import { useMemoizedFn } from "ahooks";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { Filter } from "lucide-react";
@@ -90,6 +91,8 @@ interface FilterSelectOptionItem {
   badge?: string | number;
 }
 
+const EMPTY_OPTIONS: FilterSelectOptionItem[] = [];
+
 function FilterSelectField({
   value,
   placeholder,
@@ -152,7 +155,7 @@ interface FilterRegistryBodyProps<TData = any> {
   onApply: () => void;
 }
 
-function FilterRegistryBody<TData = any>({
+function FilterRegistryBodyInner<TData = any>({
   resolvedFilters,
   filterableColumns,
   currentItems,
@@ -182,6 +185,30 @@ function FilterRegistryBody<TData = any>({
     }
     return map;
   }, [filterableColumns]);
+
+  // 下拉 options 按字段预计算，避免在渲染循环里每次新建数组击穿 Select 的 memo
+  const selectOptionsByField = useMemo(() => {
+    const map = new Map<string, FilterSelectOptionItem[]>();
+    resolvedFilters.forEach((def, idx) => {
+      const field = resolveFilterField(def, idx);
+      if (def.type === "select") {
+        map.set(
+          field,
+          def.options.map((opt: DataTableSelectFilterOption) => ({
+            label: opt.label,
+            value: String(opt.value),
+            badge: opt.badge,
+          })),
+        );
+      } else if (def.type === "ternary") {
+        map.set(field, [
+          { label: def.trueLabel ?? t("op_true"), value: "true" },
+          { label: def.falseLabel ?? t("op_false"), value: "false" },
+        ]);
+      }
+    });
+    return map;
+  }, [resolvedFilters, t]);
 
   const { presetItemByField, queryBuilderRules } = useMemo(() => {
     const presetMap = new Map<string, DataTableFilterItem>();
@@ -224,7 +251,7 @@ function FilterRegistryBody<TData = any>({
       ) : null}
 
       {resolvedFilters.length === 0 ? (
-        <p className="text-muted-foreground py-4 text-center text-xs">No filters available for this table.</p>
+        <p className="text-muted-foreground py-4 text-center text-xs">{t("filter_empty")}</p>
       ) : (
         <div className={cn("grid gap-3.5", GRID_COLUMN_CLASSES[columnsCount] ?? GRID_COLUMN_CLASSES[2])}>
           {resolvedFilters.map((def, idx) => {
@@ -233,42 +260,20 @@ function FilterRegistryBody<TData = any>({
             const labelText = def.label ?? col?.headerName ?? filterField;
             const activeItem = presetItemByField.get(filterField);
 
-            if (def.type === "select") {
-              const selectOptions: FilterSelectOptionItem[] = def.options.map((opt: DataTableSelectFilterOption) => ({
-                label: opt.label,
-                value: String(opt.value),
-                badge: opt.badge,
-              }));
+            if (def.type === "select" || def.type === "ternary") {
+              const allLabel = def.type === "select" ? t("filter_all_option") : "-";
               return (
                 <div key={filterField} className="space-y-1.5">
                   <Label className="text-foreground text-xs font-medium">{labelText}</Label>
                   <FilterSelectField
                     value={activeItem?.operator === "equals" ? activeItem.value : undefined}
-                    placeholder={def.placeholder ?? "All"}
-                    allLabel="- (All)"
-                    options={selectOptions}
+                    placeholder={def.placeholder ?? allLabel}
+                    allLabel={allLabel}
+                    options={selectOptionsByField.get(filterField) ?? EMPTY_OPTIONS}
                     ariaLabel={labelText}
-                    onChange={(val) => onSelectChange(filterField, val)}
-                  />
-                </div>
-              );
-            }
-
-            if (def.type === "ternary") {
-              const ternaryOptions: FilterSelectOptionItem[] = [
-                { label: def.trueLabel ?? "Yes", value: "true" },
-                { label: def.falseLabel ?? "No", value: "false" },
-              ];
-              return (
-                <div key={filterField} className="space-y-1.5">
-                  <Label className="text-foreground text-xs font-medium">{labelText}</Label>
-                  <FilterSelectField
-                    value={activeItem?.operator === "equals" ? activeItem.value : undefined}
-                    placeholder={def.placeholder ?? "-"}
-                    allLabel="-"
-                    options={ternaryOptions}
-                    ariaLabel={labelText}
-                    onChange={(val) => onTernaryChange(filterField, val)}
+                    onChange={(val) =>
+                      def.type === "select" ? onSelectChange(filterField, val) : onTernaryChange(filterField, val)
+                    }
                   />
                 </div>
               );
@@ -314,6 +319,10 @@ function FilterRegistryBody<TData = any>({
     </div>
   );
 }
+
+const FilterRegistryBody = memo(FilterRegistryBodyInner) as <TData = any>(
+  props: FilterRegistryBodyProps<TData>,
+) => ReactElement | null;
 
 /**
  * FilterRegistry (Deep Module):
@@ -363,24 +372,46 @@ function FilterRegistryInner<TData = any>({
   const columnsCount = filterConfig?.columns ?? (resolvedFilters.length >= 3 ? 3 : resolvedFilters.length >= 2 ? 2 : 1);
   const showQueryBuilder = Boolean(filterConfig?.showQueryBuilder);
 
-  const sharedBodyProps: FilterRegistryBodyProps<TData> = {
-    resolvedFilters,
-    filterableColumns,
-    currentItems,
-    activeCount,
-    columnsCount,
-    deferFilters,
-    showQueryBuilder,
-    onSelectChange: handleSelectChange,
-    onTernaryChange: handleTernaryChange,
-    onCustomChange: handleCustomChange,
-    onAddRule: handleAddRule,
-    onUpdateRule: handleUpdateRule,
-    onRemoveRule: handleRemoveRule,
-    onReset: handleResetAll,
-    onClose: () => setOpen(false),
-    onApply: handleApply,
-  };
+  const handleClose = useMemoizedFn(() => setOpen(false));
+
+  const sharedBodyProps = useMemo<FilterRegistryBodyProps<TData>>(
+    () => ({
+      resolvedFilters,
+      filterableColumns,
+      currentItems,
+      activeCount,
+      columnsCount,
+      deferFilters,
+      showQueryBuilder,
+      onSelectChange: handleSelectChange,
+      onTernaryChange: handleTernaryChange,
+      onCustomChange: handleCustomChange,
+      onAddRule: handleAddRule,
+      onUpdateRule: handleUpdateRule,
+      onRemoveRule: handleRemoveRule,
+      onReset: handleResetAll,
+      onClose: handleClose,
+      onApply: handleApply,
+    }),
+    [
+      resolvedFilters,
+      filterableColumns,
+      currentItems,
+      activeCount,
+      columnsCount,
+      deferFilters,
+      showQueryBuilder,
+      handleSelectChange,
+      handleTernaryChange,
+      handleCustomChange,
+      handleAddRule,
+      handleUpdateRule,
+      handleRemoveRule,
+      handleResetAll,
+      handleClose,
+      handleApply,
+    ],
+  );
 
   if (layout === "aboveContent") {
     return (

@@ -1,3 +1,8 @@
+/**
+ * 地图模块总出口（为兼容既有导入保留全量重导出）。
+ * 页面与交互场景请优先从 `@/components/map/lazy` 导入 `Lazy*` 异步包装组件以避免将 `maplibre-gl` 打入首屏 Bundle；
+ * 纯逻辑/类型/坐标转换请优先从 `@/components/map/core` 导入。
+ */
 export * from "./core";
 
 export { MapCard } from "./card/MapCard";

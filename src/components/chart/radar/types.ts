@@ -19,4 +19,5 @@ export interface RadarMetricChartProps {
   showRadiusTicks?: boolean;
   isAnimationActive?: boolean;
   className?: string;
+  ariaLabel?: string;
 }

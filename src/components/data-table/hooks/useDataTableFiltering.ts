@@ -1,3 +1,5 @@
+"use client";
+
 import { useLatest, useMemoizedFn } from "ahooks";
 import { useMemo, useState } from "react";
 
@@ -5,6 +7,25 @@ import { EMPTY_ARRAY } from "../core/constants";
 import type { DataTableColDef, DataTableFilterItem, DataTableFilterModel } from "../core/types";
 
 import { readCellValue } from "../core/utils";
+
+type NumericComparisonOp = "greaterThan" | "greaterThanOrEqual" | "lessThan" | "lessThanOrEqual";
+
+function compareNumericValue(val: unknown, target: number, op: NumericComparisonOp): boolean {
+  if (val === null || val === undefined || val === "") return false;
+  const numVal = Number(val);
+  if (Number.isNaN(numVal) || Number.isNaN(target)) return false;
+
+  switch (op) {
+    case "greaterThan":
+      return numVal > target;
+    case "greaterThanOrEqual":
+      return numVal >= target;
+    case "lessThan":
+      return numVal < target;
+    case "lessThanOrEqual":
+      return numVal <= target;
+  }
+}
 
 export interface UseDataTableFilteringOptions<TData> {
   rows: TData[];
@@ -175,13 +196,10 @@ export function useDataTableFiltering<TData = Record<string, any>>({
                 .toLowerCase()
                 .endsWith(lowerItemValue);
             case "greaterThan":
-              return Number(val) > numItemValue;
             case "greaterThanOrEqual":
-              return Number(val) >= numItemValue;
             case "lessThan":
-              return Number(val) < numItemValue;
             case "lessThanOrEqual":
-              return Number(val) <= numItemValue;
+              return compareNumericValue(val, numItemValue, item.operator);
             default:
               return true;
           }

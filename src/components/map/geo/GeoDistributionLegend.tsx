@@ -23,8 +23,8 @@ export const GeoDistributionLegend = memo(function GeoDistributionLegend({
     <div className="border-border/80 bg-background/90 absolute bottom-3 left-3 z-10 max-h-[calc(100%-1.5rem)] overflow-y-auto rounded-lg border p-3 shadow-md backdrop-blur-md">
       <h5 className="text-muted-foreground mb-2 text-[11px] font-semibold tracking-wider uppercase">{resolvedTitle}</h5>
       <div className="flex flex-col gap-1.5">
-        {legendSteps.map((step, index) => (
-          <div key={`${index}-${step.rangeText}`} className="flex items-center gap-2 text-xs">
+        {legendSteps.map((step) => (
+          <div key={`${step.color}-${step.rangeText}`} className="flex items-center gap-2 text-xs">
             <span
               className="border-border/60 size-3.5 shrink-0 rounded-sm border shadow-xs"
               style={{ backgroundColor: step.color }}

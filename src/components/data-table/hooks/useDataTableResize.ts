@@ -1,3 +1,5 @@
+"use client";
+
 import { useLatest, useMemoizedFn } from "ahooks";
 import { clamp } from "es-toolkit";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -100,6 +102,19 @@ export function useDataTableResize<TData = unknown>({
 
   const getColumnWidth = useMemoizedFn((field: string, fallbackWidth = 120) => {
     return latestRef.current.columnWidths[field] ?? latestRef.current.columnByField.get(field)?.width ?? fallbackWidth;
+  });
+
+  /** 键盘步进调整列宽（列宽手柄左右方向键），与拖拽共用同一份宽度状态与持久化 */
+  const handleResizeStep = useMemoizedFn((field: string, delta: number) => {
+    const { columnWidths: currentWidths, columnByField: colMap } = latestRef.current;
+    const col = colMap.get(field);
+    const baseWidth = currentWidths[field] ?? col?.width ?? 120;
+    const nextWidths = {
+      ...currentWidths,
+      [field]: clamp(baseWidth + delta, col?.minWidth ?? 50, col?.maxWidth ?? 9999),
+    };
+    setColumnWidths(nextWidths);
+    persistWidths(nextWidths);
   });
 
   const handleResizeStart = useMemoizedFn((field: string, initialWidth: number, e: React.MouseEvent) => {
@@ -206,6 +221,7 @@ export function useDataTableResize<TData = unknown>({
     setColumnWidths,
     getColumnWidth,
     handleResizeStart,
+    handleResizeStep,
     resetColumnWidths,
   };
 }

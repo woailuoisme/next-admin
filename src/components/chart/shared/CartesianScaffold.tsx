@@ -43,7 +43,7 @@ export interface CartesianScaffoldProps {
   xAxisKey?: string;
   xAxisType?: "category" | "number";
   xAxisName?: string;
-  xAxisFormatter?: ((value: string | number) => string) | ((value: number) => string);
+  xAxisFormatter?: (value: string | number) => string;
   yAxisId?: string;
   yAxisType?: "number" | "category";
   yAxisKey?: string;
@@ -121,7 +121,7 @@ export const CartesianScaffold = memo(function CartesianScaffold({
         axisLine={false}
         tickLine={false}
         tick={AXIS_TICK_STYLE}
-        tickFormatter={xAxisFormatter as ((value: unknown, index: number) => string) | undefined}
+        tickFormatter={xAxisFormatter}
       />
 
       <YAxis
@@ -157,11 +157,7 @@ export const CartesianScaffold = memo(function CartesianScaffold({
 
       {children}
 
-      <ChartBrush
-        showBrush={showBrush}
-        xAxisKey={xAxisKey}
-        tickFormatter={xAxisFormatter as ((value: string | number) => string) | undefined}
-      />
+      <ChartBrush showBrush={showBrush} xAxisKey={xAxisKey} tickFormatter={xAxisFormatter} />
     </>
   );
 

@@ -115,4 +115,25 @@ describe("useDataTablePinning & useDataTableResize", () => {
     expect(removeSpy).toHaveBeenCalledWith("mousemove", expect.any(Function));
     expect(removeSpy).toHaveBeenCalledWith("mouseup", expect.any(Function));
   });
+
+  it("steps column width from keyboard within min/max bounds and persists", () => {
+    const storageKey = "test-resize-step";
+    const { result } = renderHook(() => useDataTableResize({ columns, storageKey }));
+
+    act(() => {
+      result.current.handleResizeStep("name", 16);
+    });
+    expect(result.current.columnWidths).toEqual({ name: 216 });
+    expect(JSON.parse(window.localStorage.getItem(storageKey) ?? "{}")).toEqual({ name: 216 });
+
+    act(() => {
+      result.current.handleResizeStep("name", 9999);
+    });
+    expect(result.current.columnWidths).toEqual({ name: 300 });
+
+    act(() => {
+      result.current.handleResizeStep("name", -9999);
+    });
+    expect(result.current.columnWidths).toEqual({ name: 100 });
+  });
 });

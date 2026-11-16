@@ -22,4 +22,5 @@ export interface DonutDistributionChartProps {
   showLegend?: boolean;
   isAnimationActive?: boolean;
   className?: string;
+  ariaLabel?: string;
 }

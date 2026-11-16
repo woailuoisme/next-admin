@@ -1,3 +1,5 @@
+"use client";
+
 import { useLatest, useMemoizedFn } from "ahooks";
 
 import type { DataTableColDef } from "../core/types";

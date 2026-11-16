@@ -141,7 +141,7 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
           onClick={onReset}
           className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs"
         >
-          <RotateCcw className="size-3" />
+          <RotateCcw aria-hidden="true" className="size-3" />
           {t("picker_reset")}
         </Button>
       ) : null}
