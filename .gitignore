@@ -57,3 +57,5 @@ bun-debug.log*
 # Scratch & Temporary files
 scratch/
 .vercel
+.codebuddy
+
