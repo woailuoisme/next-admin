@@ -6,7 +6,7 @@ import { type ComponentType, type ReactNode, Suspense } from "react";
 import type { z } from "zod";
 
 import "@/lib/serverAuthHeaders";
-import DashboardLoading from "@/app/(app)/loading";
+import { ResourceActionSkeleton, ResourceListSkeleton } from "@/components/resource/ResourceSkeletons";
 import {
   normalizeSearchParamsWithSchema,
   parseScalarSearchParam,
@@ -51,6 +51,7 @@ export function createResourceMetadata<TItem extends { id: string | number }, TF
 export interface CreateResourceListPageOptions<TItem extends { id: string | number }, TFilters> {
   resource: ResourceDefinition<TItem, any, TFilters, any, any>;
   Component: ComponentType<{ search?: TFilters }>;
+  withStats?: boolean;
   fallback?: ReactNode;
 }
 
@@ -61,7 +62,8 @@ export interface CreateResourceListPageOptions<TItem extends { id: string | numb
 export function createResourceListPage<TItem extends { id: string | number }, TFilters>({
   resource,
   Component,
-  fallback = <DashboardLoading />,
+  withStats = false,
+  fallback,
 }: CreateResourceListPageOptions<TItem, TFilters>) {
   return async function ResourceListServerPage(props: {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -74,7 +76,7 @@ export function createResourceListPage<TItem extends { id: string | number }, TF
 
     return (
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <Suspense fallback={fallback}>
+        <Suspense fallback={fallback ?? <ResourceListSkeleton withStats={withStats} />}>
           <Component search={search} />
         </Suspense>
       </HydrationBoundary>
@@ -104,7 +106,7 @@ export interface CreateResourceActionPageOptions<TItem extends { id: string | nu
 export function createResourceActionPage<TItem extends { id: string | number }>({
   resource,
   Component,
-  fallback = <DashboardLoading />,
+  fallback = <ResourceActionSkeleton />,
 }: CreateResourceActionPageOptions<TItem>) {
   return async function ResourceActionServerPage(props: { params: Promise<{ action: string[] }> }) {
     const { action } = await props.params;

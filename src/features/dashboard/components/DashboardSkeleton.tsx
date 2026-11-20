@@ -1,5 +1,6 @@
 "use client";
 
+import { PageSkeletonRegion } from "@/components/shared/PageSkeletonRegion";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { CategoryDistributionChart } from "./CategoryDistributionChart";
@@ -10,7 +11,7 @@ import { RevenueChart } from "./RevenueChart";
 
 export function DashboardSkeleton() {
   return (
-    <div className="space-y-6" data-testid="dashboard-skeleton">
+    <PageSkeletonRegion data-testid="dashboard-skeleton">
       {/* Page Header Skeleton */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="space-y-1.5">
@@ -39,6 +40,6 @@ export function DashboardSkeleton() {
           <QuickActions />
         </div>
       </div>
-    </div>
+    </PageSkeletonRegion>
   );
 }

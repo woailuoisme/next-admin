@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import "@/lib/serverAuthHeaders";
-import DashboardLoading from "@/app/(app)/loading";
+import { DashboardSkeleton } from "@/features/dashboard/components/DashboardSkeleton";
 import { DashboardContainer } from "@/features/dashboard/pages/DashboardContainer";
 import { dashboardQueries } from "@/features/dashboard/resource";
 import { dashboardTimeRangeSchema } from "@/features/dashboard/schemas";
@@ -26,7 +26,7 @@ export default async function Page(props: { searchParams: Promise<{ range?: stri
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Suspense fallback={<DashboardLoading />}>
+      <Suspense fallback={<DashboardSkeleton />}>
         <DashboardContainer />
       </Suspense>
     </HydrationBoundary>

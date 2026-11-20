@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 
-import DashboardLoading from "@/app/(app)/loading";
+import { ProfileSkeleton } from "@/features/auth/components/profile/ProfileSkeleton";
 import { ProfilePage } from "@/features/auth/pages/ProfilePage";
 
 export default function Page() {
   return (
-    <Suspense fallback={<DashboardLoading />}>
+    <Suspense fallback={<ProfileSkeleton />}>
       <ProfilePage />
     </Suspense>
   );

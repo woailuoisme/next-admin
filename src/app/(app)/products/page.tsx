@@ -7,4 +7,5 @@ export const generateMetadata = createResourceMetadata(productResource);
 export default createResourceListPage({
   resource: productResource,
   Component: ProductsListView,
+  withStats: true,
 });
