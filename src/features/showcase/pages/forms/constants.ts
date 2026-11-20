@@ -265,7 +265,7 @@ export const DEFAULT_VALUES: ShowcaseFormValues = {
   avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
   attachments: ["https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80"],
   articleContent:
-    "<h2>Welcome to TanStack Dashboard</h2><p>This rich content is managed by <strong>TipTap</strong>, matching the <em>Filament v5</em> RichEditor experience.</p><ul><li><p>Full WYSIWYG editing</p></li><li><p>Dual-mode HTML/Markdown output</p></li></ul>",
+    "## Welcome to TanStack Dashboard\n\nThis rich content is managed by **Plate**, built natively on *shadcn/ui* and Markdown.\n\n- Full WYSIWYG block editing\n- Native Fixed & Floating Toolbars with Markdown serialization",
   password: "SecretPassword123!",
   twoFactorCode: "884192",
   annualSalary: 165000,

@@ -14,21 +14,21 @@ export function MediaTab({ form }: MediaTabProps) {
   return (
     <div className="space-y-6">
       <FormSection
-        title="Rich Text Editor (TipTap)"
-        description="Full WYSIWYG rich content editor supporting bold, italic, headings, lists, blockquotes, links, and code blocks."
+        title="Rich Text Editor (Plate)"
+        description="Official Plate + shadcn/ui WYSIWYG editor with fixed & floating toolbars, headings, lists, links, and code blocks."
       >
         <RichEditorInput
           form={form}
           name="articleContent"
           label="Publication Article Content"
-          helperText="Supports dual output modes (HTML / Markdown). Matches Filament RichEditor toolbar and style."
+          helperText="Stores clean Markdown natively via @platejs/markdown with full theme token support."
           minHeight={200}
         />
       </FormSection>
 
       <FormSection
-        title="File & Avatar Uploaders (Dropzone)"
-        description="1:1 FilePond-like design with drag-and-drop, image preview thumbnails, circular avatar mode, and size validation."
+        title="File & Avatar Uploaders (UploadCN)"
+        description="Built on official UploadCN + shadcn/ui primitives with drag-and-drop, Ctrl/⌘+V paste, circular avatar cropping, image lightbox, and size validation."
       >
         <FormGrid columns={{ sm: 1, md: 3 }}>
           <FileUploadInput
@@ -36,9 +36,8 @@ export function MediaTab({ form }: MediaTabProps) {
             name="avatarUrl"
             label="Profile Avatar (mode='avatar')"
             mode="avatar"
-            valueCodec="url"
             accept="image/*"
-            helperText="Single image circular uploader with hover camera overlay."
+            helperText="Single image circular uploader with interactive round cropping and progress ring."
             colSpan={1}
           />
           <div className="md:col-span-2">
@@ -47,7 +46,6 @@ export function MediaTab({ form }: MediaTabProps) {
               name="attachments"
               label="Project Documents & Images (mode='grid')"
               mode="grid"
-              valueCodec="url"
               multiple
               maxFiles={6}
               maxSize={5 * 1024 * 1024}

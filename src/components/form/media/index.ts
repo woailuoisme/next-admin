@@ -4,10 +4,9 @@ import dynamic from "next/dynamic";
 
 export * from "./color-picker/colorUtils";
 export type { ColorPickerInputProps } from "./color-picker/types";
-export * from "./file-upload/pipeline";
 export * from "./file-upload/types";
-export * from "./rich-editor/converters";
-export type { RichEditorInputProps, RichEditorToolbarButton } from "./rich-editor/types";
+export { DEFAULT_MAX_FILES, DEFAULT_MAX_SIZE, normalizeUrls } from "./file-upload/utils";
+export type { RichEditorInputProps } from "./rich-editor/types";
 
 export const ColorPickerInput = dynamic(
   () => import("./color-picker/ColorPickerInput").then((mod) => mod.ColorPickerInput),

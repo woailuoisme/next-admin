@@ -1,21 +1,32 @@
 # 智能体工程与开发规范 (Agent Project Guidelines)
 
-本规范定义了在当前仓库开发、重构与维护前端界面时的核心原则，重点固化基础 UI 组件复用、设计系统主题令牌（Theme Tokens）规范与目录边界红线。
+本规范定义了在当前仓库开发、重构与维护前端界面时的核心原则，重点固化 **CLI 生成代码冻结**、基础 UI 组件复用、设计系统主题令牌（Theme Tokens）规范、目录边界红线与静态检查 / 代码审核要求。
 
 ---
 
 ## 1. 核心三大红线 (Core Red Lines)
 
-1. **`src/components/ui` 严禁手动修改**：
-   - [`src/components/ui/`](file:///Users/seaside/Projects/react/nextjs/next-sn-admin/src/components/ui) 目录为基础 UI 组件库，**完全由 shadcn CLI 工具链生成与维护，严格禁止任何手动篡改、格式改写或逻辑微调**。
-   - 若功能不满足需求，**严禁侵入修改底层 ui 源码**，必须在业务层（例如 [`src/components/`](file:///Users/seaside/Projects/react/nextjs/next-sn-admin/src/components) 或具体 Feature 模块内）通过高阶组件、组合包装（Wrapper / Compound Pattern）或传递 Props 进行扩展。
-   - 若需新增基础组件，统一使用命令生成：`bun x shadcn@latest add <component>`。
+1. **CLI 生成代码严禁手动修改**：
+
+   下列四套组件库全部由 shadcn CLI 及其 registry 生成与维护，**严禁任何手动篡改、格式改写或逻辑微调**（包括"只改一行样式"）：
+
+   | 来源             | 生成命令                                        | 产物目录                                               |
+   | :--------------- | :---------------------------------------------- | :----------------------------------------------------- |
+   | shadcn/ui        | `bun x shadcn@latest add <component>`           | `src/components/ui/`                                   |
+   | plate（富文本）  | `bun x shadcn@latest add @plate/<component>`    | `src/components/ui/`、`src/components/editor/plugins/` |
+   | uploadcn（上传） | `bun x shadcn@latest add @uploadcn/<component>` | `src/components/ui/`                                   |
+   | mapcn（地图）    | `bun x shadcn@latest add @mapcn/<component>`    | `src/components/ui/map.tsx`（基础图元）                |
+
+   - registry 别名以 [`components.json`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/components.json) 的 `registries` 为准；需要新增组件时只能用命令生成，禁止手写复制生成产物。
+   - 功能不满足需求时，**严禁侵入生成源码**，必须在业务层（例如 [`src/components/`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components) 或具体 Feature 模块内）通过高阶组件、组合包装（Wrapper / Compound Pattern）或传递 Props 进行扩展。
+   - [`src/components/map/`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/map) 是自研包装层（底图预设、坐标系转换、Choropleth 计算），**可正常修改**；只有 mapcn 生成的基础图元属于冻结范围。
+   - 重新生成/升级导致的产物变化，不得与业务改动放在同一提交。
 
 2. **强制 UI 组件优先原则 (UI First)**：
-   - 构建任何业务页面、抽屉表单、弹窗或状态展示时，**必须强制优先复用 [`src/components/ui/`](file:///Users/seaside/Projects/react/nextjs/next-sn-admin/src/components/ui) 既有组件**，严禁重复造轮子或手写原生 HTML 替代。
+   - 构建任何业务页面、抽屉表单、弹窗或状态展示时，**必须强制优先复用 [`src/components/ui/`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/ui) 既有组件**，严禁重复造轮子或手写原生 HTML 替代。
 
 3. **强制设计令牌规范，严禁硬编码色值 (Design Tokens Enforced)**：
-   - 必须严格使用 [`src/app/globals.css`](file:///Users/seaside/Projects/react/nextjs/next-sn-admin/src/app/globals.css) 与主题系统（`@theme inline`）定义的语义化 CSS / Tailwind 设计令牌。
+   - 必须严格使用 [`src/app/globals.css`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/app/globals.css) 与主题系统（`@theme inline`）定义的语义化 CSS / Tailwind 设计令牌。
    - **绝对严禁在代码中硬编码任何 HEX、RGB、HSL 颜色**（例如禁止 `style={{ color: '#333' }}` 或 `bg-[#f5f5f5]`），禁止脱离主题系统使用非语义化固定色阶。所有界面必须开箱原生适配浅色模式、深色模式（Dark Mode）以及全局动态换肤。
 
 ---
@@ -108,6 +119,17 @@
    - **跨边界严格渲染控制**：通过单元测试显式锁定的行级/单元格渲染隔离边界（如 `DataTableRow`），或配合 `"use no memo"` 局部逃生舱使用。
    - **稳定事件回调引用**：跨 `useEffect` / 定时器 / 订阅监听器使用的回调，优先使用项目既有的 `useMemoizedFn`（`ahooks`）。
 3. **逃生舱指令**：若极个别命令式组件与 Compiler 自动优化冲突，优先在该组件或 Hook 顶部添加 `"use no memo"` 指令做局部豁免，严禁关闭全局 `reactCompiler`。
+
+---
+
+## 6. 静态检查与代码审核 (Lint & Review)
+
+1. **提交前必须全绿**：`bun run check`（`oxlint --fix` + `oxfmt` + `tsc --noEmit`）与 `bun run test`（vitest）必须全部通过，禁止提交带 lint / 类型错误 / 失败用例的代码。
+2. **禁止静默绕过检查**：不得为了让报错消失而新增 `oxlint-disable` / `eslint-disable` / `@ts-ignore` / `@ts-expect-error`；确需抑制时限定单行并在同一行注明原因（`// eslint-disable-next-line <rule> -- <原因>`）。严禁通过放宽 `oxlint` 或 `tsconfig` 配置来消除报错。
+3. **合并前必须代码审核**，按两条独立轴汇报，不得用一条掩盖另一条：
+   - **Standards 轴**：是否符合本文件与仓库既有约定；**生成目录（见红线 1）被改动即视为违规**。
+   - **Spec 轴**：是否忠实实现需求；未被要求的额外改动（scope creep）需单独列出。
+4. **审核结论必须可定位**：每条问题给出 `文件:行`、对应规则条目与证据。工具已强制的项（格式化、未使用变量、类型错误）不重复报告，也不作为 review 通过与否的依据。
 
 <!-- BEGIN:nextjs-agent-rules -->
 

@@ -23,71 +23,17 @@ import {
   normalizeHexInput,
   toSixDigitHex,
 } from "@/components/form/media/color-picker/colorUtils";
-import {
-  itemFileValueCodec,
-  matchesAccept,
-  mergeUploadedItems,
-  urlFileValueCodec,
-  validateCandidateFiles,
-} from "@/components/form/media/file-upload/pipeline";
-import type { FileUploadItem } from "@/components/form/media/file-upload/types";
-import { formatBytes } from "@/components/form/media/file-upload/utils";
-import {
-  escapeHtml,
-  htmlRichEditorCodec,
-  sanitizeRichEditorUrl,
-  simpleHtmlToMarkdown,
-  simpleMarkdownToHtml,
-} from "@/components/form/media/rich-editor/converters";
+import { formatBytes, normalizeUrls, parseAllowedFileTypes } from "@/components/form/media/file-upload/utils";
+import { sanitizeRichEditorUrl } from "@/components/shared/url";
 
-describe("file-upload/pipeline", () => {
-  it("isolates uploading and error items in urlFileValueCodec", () => {
-    const items: FileUploadItem[] = [
-      { id: "1", name: "a.png", url: "https://cdn.example.com/a.png", status: "done" },
-      { id: "2", name: "b.png", url: "blob:pending", status: "uploading", progress: 40 },
-      { id: "3", name: "c.png", url: "https://cdn.example.com/c.png", status: "error", error: "fail" },
-    ];
-
-    expect(urlFileValueCodec.encode(items, "grid")).toEqual(["https://cdn.example.com/a.png"]);
-    expect(urlFileValueCodec.encode(items, "avatar")).toBe("https://cdn.example.com/a.png");
-    expect(itemFileValueCodec.encode(items, "grid")).toHaveLength(3);
-    expect(itemFileValueCodec.encode(items, "avatar")).toEqual(items[0]);
-  });
-
-  it("validates candidate files by accept, maxSize, and maxFiles slots", () => {
-    const validImg = new File(["img"], "photo.png", { type: "image/png" });
-    const secondImg = new File(["img2"], "photo2.png", { type: "image/png" });
-    const badType = new File(["txt"], "notes.txt", { type: "text/plain" });
-    const tooLarge = new File([new Uint8Array(2048)], "huge.jpg", { type: "image/jpeg" });
-
-    expect(matchesAccept(validImg, "image/*,.pdf")).toBe(true);
-    expect(matchesAccept(badType, "image/*,.pdf")).toBe(false);
-
-    const res = validateCandidateFiles([badType, tooLarge, validImg, secondImg], {
-      accept: "image/*",
-      maxSize: 1024,
-      maxFiles: 2,
-      currentCount: 1,
-      mode: "grid",
-      multiple: true,
-    });
-
-    expect(res.accepted).toEqual([validImg]);
-    expect(res.rejected.map((r) => r.reason)).toEqual(["type", "size", "limit"]);
-  });
-
-  it("merges concurrent item updates immutably by target id", () => {
-    const initial: FileUploadItem[] = [
-      { id: "f1", name: "1.png", url: "", status: "uploading", progress: 20 },
-      { id: "f2", name: "2.png", url: "", status: "uploading", progress: 50 },
-    ];
-
-    const step1 = mergeUploadedItems(initial, "f2", { status: "done", url: "/2.png", progress: 100 });
-    expect(step1[0]?.status).toBe("uploading");
-    expect(step1[1]).toMatchObject({ status: "done", url: "/2.png", progress: 100 });
-
-    const missing = mergeUploadedItems(step1, "removed-id", { status: "done" });
-    expect(missing).toBe(step1);
+describe("file-upload/utils", () => {
+  it("normalizes single/array URL form values and parses accept rules for Uppy", () => {
+    expect(normalizeUrls("/cdn/avatar.png")).toEqual(["/cdn/avatar.png"]);
+    expect(normalizeUrls(["/a.png", "", "/b.pdf"])).toEqual(["/a.png", "/b.pdf"]);
+    expect(normalizeUrls(null)).toEqual([]);
+    expect(parseAllowedFileTypes("image/*, .pdf, */*")).toEqual(["image/*", ".pdf"]);
+    expect(parseAllowedFileTypes("*/*")).toBeNull();
+    expect(parseAllowedFileTypes("   ")).toBeNull();
   });
 });
 
@@ -129,77 +75,20 @@ describe("key-value/parsers", () => {
   });
 });
 
-describe("rich-editor/converters", () => {
+describe("shared/url sanitizeRichEditorUrl", () => {
   it("blocks obfuscated dangerous URL protocols while preserving safe links", () => {
     expect(sanitizeRichEditorUrl("javascript:alert(1)")).toBeNull();
     expect(sanitizeRichEditorUrl("java\tscript:alert(1)")).toBeNull();
     expect(sanitizeRichEditorUrl("\u0001vbscript:msgbox(1)")).toBeNull();
     expect(sanitizeRichEditorUrl("&#106;avascript:alert(1)")).toBeNull();
     expect(sanitizeRichEditorUrl("data:text/html,<script>alert(1)</script>")).toBeNull();
+    expect(sanitizeRichEditorUrl("javascript&colon;alert(1)")).toBeNull();
+    expect(sanitizeRichEditorUrl("java&tab;script&colon;alert(1)")).toBeNull();
 
     expect(sanitizeRichEditorUrl("https://nextjs.org/docs")).toBe("https://nextjs.org/docs");
     expect(sanitizeRichEditorUrl("mailto:team@example.com")).toBe("mailto:team@example.com");
     expect(sanitizeRichEditorUrl("/dashboard/users")).toBe("/dashboard/users");
     expect(sanitizeRichEditorUrl("example.com")).toBe("https://example.com");
-  });
-
-  it("escapes inline HTML and strips unsafe markdown link hrefs", () => {
-    expect(escapeHtml('<script>"test"</script>')).toBe("&lt;script&gt;&quot;test&quot;&lt;/script&gt;");
-
-    const html = simpleMarkdownToHtml(
-      "## Hello <img onerror=alert(1)>\n- [bad](javascript:alert(1)) & [good](https://example.com)",
-    );
-    expect(html).not.toContain("<img");
-    expect(html).not.toContain("javascript:");
-    expect(html).toContain('<a href="https://example.com">good</a>');
-    expect(html).toContain("&lt;img onerror=alert(1)&gt;");
-
-    const md = simpleHtmlToMarkdown('<p><a href="javascript:alert(1)">Click</a> and <strong>bold</strong></p>');
-    expect(md).not.toContain("javascript:");
-    expect(md).toContain("Click and **bold**");
-  });
-
-  it("preserves markdown link URLs with asterisks/tildes and sanitizes dangerous rich HTML", () => {
-    const htmlWithStarUrl = simpleMarkdownToHtml(
-      "See [docs](https://example.com/a*b*c~~d~~) and **bold** with `code*raw*`",
-    );
-    expect(htmlWithStarUrl).toContain('<a href="https://example.com/a*b*c~~d~~">docs</a>');
-    expect(htmlWithStarUrl).toContain("<strong>bold</strong>");
-    expect(htmlWithStarUrl).toContain("<code>code*raw*</code>");
-
-    const dirtyHtml =
-      '<p onclick="alert(1)">Hello</p><script>alert(1)</script><a href="javascript:alert(1)">Bad</a><img src="data:text/html,xss" onerror=alert(1) />';
-    const cleanDecoded = htmlRichEditorCodec.decode(dirtyHtml);
-    expect(cleanDecoded).not.toContain("<script");
-    expect(cleanDecoded).not.toContain("onclick");
-    expect(cleanDecoded).not.toContain("onerror");
-    expect(cleanDecoded).not.toContain("javascript:");
-    expect(cleanDecoded).not.toContain("data:text/html");
-    expect(cleanDecoded).toContain("Hello");
-
-    const cleanEncoded = htmlRichEditorCodec.encode(dirtyHtml, false);
-    expect(cleanEncoded).not.toContain("<script");
-    expect(cleanEncoded).not.toContain("javascript:");
-
-    // Bypass vectors: slash-separated event handlers, nested tag reconstruction, named entities, and single-quoted href
-    expect(sanitizeRichEditorUrl("javascript&colon;alert(1)")).toBeNull();
-    expect(sanitizeRichEditorUrl("java&tab;script&colon;alert(1)")).toBeNull();
-
-    const obfuscatedHtml =
-      '<img/onerror=alert(1) src="https://example.com/a.png"><scr<script></script>ipt>alert(1)</script><p>Safe</p>';
-    const decodedObfuscated = htmlRichEditorCodec.decode(obfuscatedHtml);
-    expect(decodedObfuscated).not.toContain("onerror");
-    expect(decodedObfuscated).not.toContain("<script");
-    expect(decodedObfuscated).not.toContain("alert(1)");
-    expect(decodedObfuscated).toContain('src="https://example.com/a.png"');
-    expect(decodedObfuscated).toContain("<p>Safe</p>");
-
-    const singleQuotedMd = simpleHtmlToMarkdown(
-      "<a href='https://example.com/ok'>Good</a> and <a href='javascript:alert(1)'>Bad</a>",
-    );
-    expect(singleQuotedMd).toContain("[Good](https://example.com/ok)");
-    expect(singleQuotedMd).not.toContain("javascript:");
-    expect(singleQuotedMd).toContain("and Bad");
   });
 });
 
@@ -316,19 +205,6 @@ describe("choice/treeEngine", () => {
       { key: "CERT", value: "-----BEGIN-----\nABC=123\n-----END-----" },
       { key: "SIMPLE", value: "ok" },
     ]);
-  });
-
-  it("handles ordered lists, fenced code blocks, and safe entity decoding order in rich-editor converters", () => {
-    const html = "<ol><li><p>First</p></li><li><p>Second</p></li></ol><p>&amp;lt;tag&amp;gt;</p>";
-    const md = simpleHtmlToMarkdown(html);
-    expect(md).toContain("1. First");
-    expect(md).toContain("2. Second");
-    expect(md).toContain("&lt;tag&gt;");
-    expect(md).not.toContain("<tag>");
-
-    const convertedHtml = simpleMarkdownToHtml("1. Alpha\n2. Beta\n\n```\n<script>\n```");
-    expect(convertedHtml).toContain("<ol><li><p>Alpha</p></li><li><p>Beta</p></li></ol>");
-    expect(convertedHtml).toContain("<pre><code>&lt;script&gt;</code></pre>");
   });
 
   it("formats zero, negative, NaN, and TB byte counts safely in formatBytes", () => {

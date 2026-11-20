@@ -40,6 +40,7 @@ flowchart LR
 
 - **AST 语法树转储（获取节点精确类型名称）**：
   - MCP 工具：`ast-grep:dump_syntax_tree(code: "func Foo() error { ... }", language: "go")`
+
 - **代码模式探索定位**：
   - MCP 工具：`ast-grep:find_code(pattern: "$OBJ.Call($$$ARGS)", language: "go")`
   - CLI 终端：`rtk ast-grep run --pattern '$OBJ.Call($$$ARGS)' --lang go <search-path>`
@@ -47,6 +48,7 @@ flowchart LR
 ### Step 2: 规则设计与改写模板 (Authoring)
 
 - **轻量单行改写**：直接设计 `--pattern` 与 `--rewrite` 表达模板。
+
 - **系统级/关系型改写**：编写 YAML 规则（可保存在 `scratch/rule.yml` 等临时路径）。若使用关系型匹配（`inside` / `has`），**必须显式指定 `stopBy: end`** 以深度遍历子树：
 
   ```yaml
@@ -66,6 +68,7 @@ flowchart LR
 
 - **MCP 规则验证**：
   - 调用 `ast-grep:test_match_code_rule(code: "target code", yaml: "rule yaml content")`
+
 - **CLI 标准输入验证**：
 
   ```bash

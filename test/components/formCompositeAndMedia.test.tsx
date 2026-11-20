@@ -1,34 +1,16 @@
-import { act, fireEvent, renderHook } from "@testing-library/react";
-import type { Editor } from "@tiptap/react";
-import { NextIntlClientProvider } from "next-intl";
-import { useState, type ReactNode } from "react";
+import { createAdapter } from "@uploadcn/core";
+import { act, fireEvent } from "@testing-library/react";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-const tiptapSpy = vi.hoisted(() => ({
-  useEditor: vi.fn(),
-}));
-
-vi.mock("@tiptap/react", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@tiptap/react")>();
-  tiptapSpy.useEditor.mockImplementation((options, deps) => actual.useEditor(options, deps));
-  return {
-    ...actual,
-    useEditor: tiptapSpy.useEditor,
-  };
-});
-
+import { AvatarUpload } from "@/components/form/media/file-upload/AvatarUpload";
 import { KeyValueInput } from "@/components/form/composite/key-value/KeyValueInput";
 import { Repeater } from "@/components/form/composite/repeater/Repeater";
 import { ColorPickerContent } from "@/components/form/media/color-picker/ColorPickerContent";
 import { ColorPickerInput } from "@/components/form/media/color-picker/ColorPickerInput";
-import { AvatarUploader } from "@/components/form/media/file-upload/AvatarUploader";
-import { FileItemCard } from "@/components/form/media/file-upload/FileItemCard";
-import { useFileUpload } from "@/components/form/media/file-upload/useFileUpload";
+import { FileUploadCore } from "@/components/form/media/file-upload/FileUploadCore";
+import { PlateEditorCore } from "@/components/form/media/rich-editor/PlateEditorCore";
 import { RichEditorInput } from "@/components/form/media/rich-editor/RichEditorInput";
-import { RichEditorLinkPopover } from "@/components/form/media/rich-editor/RichEditorLinkPopover";
-import { RichEditorToolbar } from "@/components/form/media/rich-editor/RichEditorToolbar";
-import { TipTapCore } from "@/components/form/media/rich-editor/TipTapCore";
-import { DICTIONARY } from "@/i18n";
 import { renderWithProviders, screen, waitFor } from "test/test-utils";
 
 describe("Repeater WeakMap identity & focus preservation", () => {
@@ -112,7 +94,7 @@ describe("KeyValueInput reconciliation & Raw mode", () => {
   });
 });
 
-describe("RichEditor single wrapper & safe link filtering", () => {
+describe("RichEditor (Plate) single wrapper & Markdown rendering", () => {
   it("renders single label and error message through RichEditorInput", () => {
     renderWithProviders(<RichEditorInput name="bio" label="Biography" error="Biography is required" />, {
       locale: "en",
@@ -122,55 +104,36 @@ describe("RichEditor single wrapper & safe link filtering", () => {
     expect(screen.getAllByText("Biography is required")).toHaveLength(1);
   });
 
-  it("rejects javascript: links with inline validation alert in RichEditorLinkPopover", async () => {
-    const setLink = vi.fn(() => ({ run: vi.fn() }));
-    const unsetLink = vi.fn(() => ({ run: vi.fn() }));
-    const chainObj = {
-      focus: () => chainObj,
-      extendMarkRange: () => chainObj,
-      setLink,
-      unsetLink,
-    };
-    const mockEditor = {
-      isActive: () => false,
-      getAttributes: () => ({}),
-      chain: () => chainObj,
-    } as unknown as Editor;
+  it("deserializes Markdown content, renders official FixedToolbar buttons, and syncs external value changes", async () => {
+    const { container, rerender } = renderWithProviders(
+      <PlateEditorCore
+        id="bio-editor"
+        value={"## Heading Two\n\nHello **Plate**\n\n| Col A | Col B |\n| --- | --- |\n| Cell 1 | $E=mc^2$ |"}
+        onChange={vi.fn()}
+      />,
+      { locale: "en" },
+    );
 
-    const { user } = renderWithProviders(<RichEditorLinkPopover editor={mockEditor} />, { locale: "en" });
+    expect(container.querySelector('[contenteditable="true"]')).toBeInTheDocument();
+    expect(screen.getByText("Heading Two")).toBeInTheDocument();
+    expect(screen.getByText("Plate")).toBeInTheDocument();
+    expect(screen.getByText("Col A")).toBeInTheDocument();
+    expect(screen.getByText("Cell 1")).toBeInTheDocument();
+    expect(container.querySelector(".katex")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Indent" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Inline Equation" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Bold" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Italic" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Link" })).toBeInTheDocument();
+    expect(container.querySelector(".lucide-table")).toBeInTheDocument();
+    expect(container.querySelector(".lucide-plus")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Link" }));
-    const urlInput = await screen.findByPlaceholderText("Enter link URL...");
-    await user.type(urlInput, "javascript:alert(1)");
-    await user.click(screen.getByRole("button", { name: "Apply Link" }));
+    rerender(<PlateEditorCore id="bio-editor" value="Updated Markdown Content" onChange={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText("Updated Markdown Content")).toBeInTheDocument());
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Invalid or unsupported link URL protocol");
-    expect(setLink).not.toHaveBeenCalled();
-  });
-
-  it("renders TipTapCore immediately on the client without Next.js immediatelyRender warnings", () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    try {
-      const { container } = renderWithProviders(
-        <TipTapCore
-          id="bio-editor"
-          value="<p>Hello world</p>"
-          onChange={vi.fn()}
-          format="html"
-          toolbarButtons={["bold", "link"]}
-        />,
-        { locale: "en" },
-      );
-
-      expect(container.querySelector('[contenteditable="true"]')).toBeInTheDocument();
-      if (typeof process === "undefined" || !process.versions?.bun) {
-        expect(tiptapSpy.useEditor).toHaveBeenCalledWith(expect.objectContaining({ immediatelyRender: true }));
-      }
-      expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining("immediatelyRender"));
-    } finally {
-      warnSpy.mockRestore();
-    }
+    rerender(<PlateEditorCore id="bio-editor" value="Read only body" readOnly onChange={vi.fn()} />);
+    expect(screen.queryByRole("toolbar")).not.toBeInTheDocument();
   });
 });
 
@@ -213,224 +176,114 @@ describe("ColorPicker keyboard nav & HEX validation", () => {
   });
 });
 
-describe("useFileUpload concurrent uploads & cleanup", () => {
-  it("merges concurrent completions safely and revokes preview blob URLs on remove", async () => {
-    const originalCreateObjectURL = URL.createObjectURL;
-    const originalRevokeObjectURL = URL.revokeObjectURL;
-    let blobSeq = 0;
-    URL.createObjectURL = vi.fn(() => `blob:preview-${++blobSeq}`);
-    URL.revokeObjectURL = vi.fn();
+describe("UploadCN FileUploadCore & AvatarUpload behavior", () => {
+  it("merges concurrent UploadCN completions safely, aborts cancelled upload, and outputs URL array", async () => {
+    const resolvers = new Map<string, (url: string) => void>();
+    const abortedNames: string[] = [];
+    const onChange = vi.fn();
 
-    try {
-      const resolvers: Array<(url: string) => void> = [];
-      const transport = {
-        upload: vi.fn(
-          () =>
-            new Promise<string>((resolve) => {
-              resolvers.push(resolve);
-            }),
-        ),
-      };
-
-      const onChange = vi.fn();
-      const wrapper = ({ children }: { children: ReactNode }) => (
-        <NextIntlClientProvider locale="en" messages={DICTIONARY.en}>
-          {children}
-        </NextIntlClientProvider>
-      );
-
-      const { result, unmount } = renderHook(
-        () =>
-          useFileUpload({
-            value: [],
-            onChange,
-            transport,
-            valueCodec: "url",
-            multiple: true,
-          }),
-        { wrapper },
-      );
-
-      const file1 = new File(["one"], "one.png", { type: "image/png" });
-      const file2 = new File(["two"], "two.png", { type: "image/png" });
-
-      act(() => {
-        result.current.triggerUploadFiles([file1, file2]);
+    const adapter = createAdapter(async ({ file, signal }) => {
+      signal.addEventListener("abort", () => abortedNames.push(file.name));
+      const url = await new Promise<string>((resolve) => {
+        resolvers.set(file.name, resolve);
       });
+      return { url };
+    });
 
-      expect(result.current.items).toHaveLength(2);
-      // In-flight files are not emitted as URLs yet
-      expect(onChange).not.toHaveBeenCalled();
-
-      // Finish second file first (out of order)
-      await act(async () => {
-        resolvers[1]!("/cdn/two.png");
-      });
-
-      await waitFor(() => expect(onChange).toHaveBeenCalledWith(["/cdn/two.png"]));
-      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:preview-2");
-
-      // Remove first file before upload completes -> aborts & revokes blob:preview-1
-      const firstId = result.current.items[0]!.id;
-      act(() => {
-        result.current.handleRemove(firstId);
-      });
-      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:preview-1");
-
-      unmount();
-    } finally {
-      URL.createObjectURL = originalCreateObjectURL;
-      URL.revokeObjectURL = originalRevokeObjectURL;
-    }
-  });
-
-  it("allows clicking existing avatar in AvatarUploader to replace even when canUploadMore is false", async () => {
-    const onChooseFile = vi.fn();
-    const onRemove = vi.fn();
-    const { user } = renderWithProviders(
-      <AvatarUploader
-        currentAvatar={{ id: "av1", name: "avatar.png", url: "https://cdn.example.com/a.png", status: "done" }}
-        isDragging={false}
-        canUploadMore={false}
-        onChooseFile={onChooseFile}
-        onRemove={onRemove}
-        onDragOver={() => {}}
-        onDragLeave={() => {}}
-        onDrop={() => {}}
-      />,
+    const { container } = renderWithProviders(
+      <FileUploadCore id="attachments" value={[]} onChange={onChange} multiple adapter={adapter} />,
       { locale: "en" },
     );
 
-    const avatarTrigger = screen.getAllByRole("button", { name: "Change Avatar" })[0]!;
-    await user.click(avatarTrigger);
-    expect(onChooseFile).toHaveBeenCalledTimes(1);
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file1 = new File(["one"], "one.png", { type: "image/png" });
+    const file2 = new File(["two"], "two.png", { type: "image/png" });
+
+    fireEvent.change(fileInput, { target: { files: [file1, file2] } });
+
+    await waitFor(() => expect(resolvers.size).toBe(2));
+    expect(onChange).not.toHaveBeenCalled();
+
+    // Finish second file first (out of order)
+    resolvers.get("two.png")!("/cdn/two.png");
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(["/cdn/two.png"]));
+
+    // Cancel pending first file -> aborts adapter AbortSignal
+    const cancelBtn = screen.getByRole("button", { name: "Cancel upload of one.png" });
+    fireEvent.click(cancelBtn);
+    await waitFor(() => expect(abortedNames).toContain("one.png"));
   });
 
-  it("renders error fallback instead of broken empty-src img when avatar upload fails", () => {
-    renderWithProviders(
-      <AvatarUploader
-        currentAvatar={{ id: "av-err", name: "broken.png", url: "", status: "error", error: "Upload failed" }}
-        isDragging={false}
-        canUploadMore={false}
-        onChooseFile={() => {}}
-        onRemove={() => {}}
-        onDragOver={() => {}}
-        onDragLeave={() => {}}
-        onDrop={() => {}}
-      />,
+  it("renders error fallback without broken img when avatar upload fails and supports retry", async () => {
+    let shouldFailOnce = true;
+    const onChange = vi.fn();
+
+    const adapter = createAdapter(async () => {
+      if (shouldFailOnce) {
+        shouldFailOnce = false;
+        throw new Error("Transient failure");
+      }
+      return { url: "/cdn/retried.png" };
+    });
+
+    const { container, user } = renderWithProviders(
+      <FileUploadCore id="avatar" mode="avatar" crop={false} value="" onChange={onChange} adapter={adapter} />,
       { locale: "en" },
     );
 
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
-    expect(screen.getByText("Upload failed")).toBeInTheDocument();
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const avatarFile = new File(["a"], "fail.png", { type: "image/png" });
+    fireEvent.change(fileInput, { target: { files: [avatarFile] } });
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Transient failure");
+    expect(container.querySelector("img")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith("/cdn/retried.png"));
   });
 
-  it("revokes mock transport blob URLs and excludes error items from maxCount limit in useFileUpload", async () => {
-    const originalCreateObjectURL = URL.createObjectURL;
-    const originalRevokeObjectURL = URL.revokeObjectURL;
-    URL.createObjectURL = vi.fn(() => "blob:initial-preview");
-    URL.revokeObjectURL = vi.fn();
-
-    try {
-      let attempt = 0;
-      const transport = {
-        upload: vi.fn(async () => {
-          attempt += 1;
-          if (attempt === 1) {
-            throw new Error("Transient failure");
-          }
-          return { url: "blob:mock-upload-result" };
-        }),
-      };
-
-      const wrapper = ({ children }: { children: ReactNode }) => (
-        <NextIntlClientProvider locale="en" messages={DICTIONARY.en}>
-          {children}
-        </NextIntlClientProvider>
+  it("uploads with default localAdapter and removes persisted URLs cleanly", async () => {
+    const onChange = vi.fn();
+    function DocsHarness() {
+      const [val, setVal] = useState<string[]>(["https://example.com/existing.pdf"]);
+      return (
+        <FileUploadCore
+          id="docs"
+          value={val}
+          onChange={(next) => {
+            const arr = (Array.isArray(next) ? next : []) as string[];
+            setVal(arr);
+            onChange(arr);
+          }}
+          multiple
+        />
       );
-
-      const { result, unmount } = renderHook(
-        () => {
-          const [val, setVal] = useState<string | undefined>(undefined);
-          return useFileUpload({
-            value: val,
-            onChange: setVal,
-            transport,
-            valueCodec: "url",
-            multiple: false,
-            maxFiles: 1,
-          });
-        },
-        { wrapper },
-      );
-
-      const file1 = new File(["a"], "fail.png", { type: "image/png" });
-      await act(async () => {
-        await result.current.triggerUploadFiles([file1]);
-      });
-
-      // Failed item should not block uploading a replacement when maxCount=1
-      expect(result.current.items[0]?.status).toBe("error");
-      expect(result.current.canUploadMore).toBe(true);
-
-      const file2 = new File(["b"], "ok.png", { type: "image/png" });
-      await act(async () => {
-        await result.current.triggerUploadFiles([file2]);
-      });
-
-      expect(result.current.items.some((it) => it.url === "blob:mock-upload-result")).toBe(true);
-      unmount();
-      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-upload-result");
-    } finally {
-      URL.createObjectURL = originalCreateObjectURL;
-      URL.revokeObjectURL = originalRevokeObjectURL;
     }
-  });
 
-  it("updates RichEditorToolbar active and undo/redo disabled states on TipTap transactions", () => {
-    let boldActive = false;
-    let canUndo = false;
-    const listeners = new Map<string, Set<() => void>>();
+    const { container, user } = renderWithProviders(<DocsHarness />, { locale: "en" });
 
-    const mockEditor = {
-      isActive: (name: string) => (name === "bold" ? boldActive : false),
-      can: () => ({
-        undo: () => canUndo,
-        redo: () => false,
-      }),
-      chain: () => ({
-        focus: () => ({
-          toggleBold: () => ({ run: () => true }),
-          undo: () => ({ run: () => true }),
-        }),
-      }),
-      on: (event: string, fn: () => void) => {
-        const set = listeners.get(event) ?? new Set();
-        set.add(fn);
-        listeners.set(event, set);
-      },
-      off: (event: string, fn: () => void) => {
-        listeners.get(event)?.delete(fn);
-      },
-    } as unknown as Editor;
+    expect(screen.getByText("existing.pdf")).toBeInTheDocument();
 
-    renderWithProviders(<RichEditorToolbar editor={mockEditor} toolbarButtons={["bold", "undo"]} />, {
-      locale: "en",
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, {
+      target: { files: [new File(["hello"], "notes.txt", { type: "text/plain" })] },
     });
 
-    const boldBtn = screen.getByRole("button", { name: "Bold" });
-    const undoBtn = screen.getByRole("button", { name: "Undo" });
-    expect(boldBtn).toHaveAttribute("aria-pressed", "false");
-    expect(undoBtn).toBeDisabled();
-
-    act(() => {
-      boldActive = true;
-      canUndo = true;
-      listeners.get("transaction")?.forEach((cb) => cb());
+    let latestBlobUrl = "";
+    await waitFor(() => {
+      const latest = onChange.mock.calls.at(-1)?.[0] as string[] | undefined;
+      expect(latest?.[0]).toBe("https://example.com/existing.pdf");
+      expect(latest?.[1]).toMatch(/^blob:/);
+      latestBlobUrl = latest?.[1] ?? "";
     });
 
-    expect(boldBtn).toHaveAttribute("aria-pressed", "true");
-    expect(undoBtn).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Remove" }));
+    expect(screen.queryByText("existing.pdf")).not.toBeInTheDocument();
+    expect(onChange).toHaveBeenLastCalledWith([latestBlobUrl]);
+
+    await user.click(screen.getByRole("button", { name: "Remove notes.txt" }));
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith([]));
   });
 
   it("fires Repeater and KeyValueInput onBlur only when focus leaves the container", async () => {
@@ -491,54 +344,17 @@ describe("useFileUpload concurrent uploads & cleanup", () => {
     expect(onKvBlur).toHaveBeenCalledTimes(1);
   });
 
-  it("blocks unsafe javascript: and HTML data: URLs in FileItemCard and AvatarUploader", () => {
+  it("blocks unsafe javascript: and HTML data: URLs in FileUploadCore and AvatarUpload", () => {
     const { container } = renderWithProviders(
       <>
-        <FileItemCard
-          file={{
-            id: "bad-1",
-            name: "evil.png",
-            size: 120,
-            type: "image/png",
-            status: "done",
-            url: "javascript:alert(1)",
-          }}
+        <FileUploadCore
+          id="sec-grid"
+          value={["javascript:alert(1)", "blob:https://example.com/123"]}
+          onChange={vi.fn()}
           showDownload
           showRemove={false}
-          onPreview={vi.fn()}
-          onRemove={vi.fn()}
         />
-        <AvatarUploader
-          currentAvatar={{
-            id: "bad-avatar",
-            name: "avatar.png",
-            size: 120,
-            type: "image/png",
-            status: "done",
-            url: "data:text/html,<script>alert(1)</script>",
-          }}
-          isDragging={false}
-          canUploadMore={false}
-          onChooseFile={vi.fn()}
-          onRemove={vi.fn()}
-          onDragOver={vi.fn()}
-          onDragLeave={vi.fn()}
-          onDrop={vi.fn()}
-        />
-        <FileItemCard
-          file={{
-            id: "good-1",
-            name: "safe.png",
-            size: 120,
-            type: "image/png",
-            status: "done",
-            url: "blob:https://example.com/123",
-          }}
-          showDownload
-          showRemove={false}
-          onPreview={vi.fn()}
-          onRemove={vi.fn()}
-        />
+        <AvatarUpload src="data:text/html,<script>alert(1)</script>" />
       </>,
       { locale: "en" },
     );

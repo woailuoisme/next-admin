@@ -1,35 +1,15 @@
 import type { BaseInputProps } from "../../core";
-import type { RichEditorCodec } from "./converters";
-
-export type RichEditorToolbarButton =
-  | "bold"
-  | "italic"
-  | "strike"
-  | "code"
-  | "h2"
-  | "h3"
-  | "bulletList"
-  | "orderedList"
-  | "blockquote"
-  | "codeBlock"
-  | "link"
-  | "horizontalRule"
-  | "undo"
-  | "redo";
 
 export interface RichEditorInputProps extends BaseInputProps {
+  /** 受控值（Markdown 字符串） */
   value?: string;
+  /** 非受控初始值（Markdown 字符串） */
   defaultValue?: string;
+  /** 值变更回调（输出 Markdown 字符串） */
   onChange?: (value: string) => void;
   onBlur?: () => void;
-  /** 输出格式：支持 HTML（默认，对标 Filament 原生）或 Markdown */
-  format?: "html" | "markdown";
-  /** 自定义富文本编解码适配器 */
-  codec?: RichEditorCodec;
   /** 占位提示文案 */
   placeholder?: string;
-  /** 可选自定义工具栏按钮集 */
-  toolbarButtons?: RichEditorToolbarButton[];
   /** 编辑区域最小高度，例如 "180px" 或 180 */
   minHeight?: string | number;
   /** 编辑区域最大高度 */
@@ -38,20 +18,3 @@ export interface RichEditorInputProps extends BaseInputProps {
   editorClassName?: string;
   readOnly?: boolean;
 }
-
-export const DEFAULT_TOOLBAR: RichEditorToolbarButton[] = [
-  "bold",
-  "italic",
-  "strike",
-  "code",
-  "h2",
-  "h3",
-  "bulletList",
-  "orderedList",
-  "blockquote",
-  "codeBlock",
-  "link",
-  "horizontalRule",
-  "undo",
-  "redo",
-];

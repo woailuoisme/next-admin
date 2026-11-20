@@ -15,6 +15,11 @@ export default defineConfig({
     environment: "happy-dom",
     setupFiles: ["./test/setup.ts"],
     include: ["test/**/*.test.{ts,tsx}"],
+    server: {
+      deps: {
+        inline: ["@platejs/math"],
+      },
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],

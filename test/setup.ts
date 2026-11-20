@@ -3,24 +3,9 @@ import { cleanup } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
 import { server } from "@/mocks/server";
+import { installConsoleNoiseFilter } from "./console-noise-filter";
 
-// ==================== React 19 / next-themes / Radix Presence Warning Filter ====================
-if (typeof window !== "undefined") {
-  const originalError = console.error;
-  console.error = (...args: unknown[]) => {
-    const fullMessage = args.map((a) => (typeof a === "string" ? a : "")).join(" ");
-    if (
-      fullMessage.includes("Encountered a script tag") ||
-      (fullMessage.includes("was not wrapped in act(...)") &&
-        (fullMessage.includes("ForwardRef(LoadableComponent)") ||
-          fullMessage.includes("Presence") ||
-          fullMessage.includes("LoadableComponent")))
-    ) {
-      return;
-    }
-    originalError.apply(console, args);
-  };
-}
+installConsoleNoiseFilter();
 
 // ==================== MSW Lifecycle ====================
 // 在所有测试运行前启动 MSW 拦截服务，严格报错未 Mock 请求 (MSW 3.x onUnhandledFrame)
@@ -40,6 +25,10 @@ afterAll(() => {
 });
 
 // ==================== Browser Environment Mocks ====================
+
+if (typeof document !== "undefined" && !("compatMode" in document)) {
+  Object.defineProperty(document, "compatMode", { value: "CSS1Compat", configurable: true });
+}
 
 // Mock window.matchMedia (happy-dom 未完全实现时兜底)
 if (typeof window !== "undefined") {

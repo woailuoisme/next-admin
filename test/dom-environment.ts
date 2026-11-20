@@ -1,11 +1,16 @@
 import { GlobalWindow } from "happy-dom";
 
+import { installConsoleNoiseFilter } from "./console-noise-filter";
+
 // 1. 初始化 Happy DOM 虚拟浏览器环境
 const testOrigin = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 3000}`;
 const win = new GlobalWindow({ url: testOrigin });
 
 globalThis.window = win as unknown as Window & typeof globalThis;
 globalThis.document = win.document as unknown as Document;
+if (!("compatMode" in win.document)) {
+  Object.defineProperty(win.document, "compatMode", { value: "CSS1Compat", configurable: true });
+}
 globalThis.navigator = win.navigator as unknown as Navigator;
 globalThis.location = win.location as unknown as Location;
 globalThis.history = win.history as unknown as History;
@@ -148,26 +153,5 @@ if (!window.URL.revokeObjectURL) {
   window.URL.revokeObjectURL = () => {};
 }
 
-// 4. 过滤已知测试环境噪音输出（React 19 next-themes 客户端渲染 script 警告、Radix Presence/LoadableComponent 异步卸载警告与 Bun 下 MSW _wrapHandle 兼容警告）
-const originalError = console.error;
-console.error = (...args: unknown[]) => {
-  const fullMessage = args.map((a) => (typeof a === "string" ? a : "")).join(" ");
-  if (
-    fullMessage.includes("Encountered a script tag") ||
-    (fullMessage.includes("was not wrapped in act(...)") &&
-      (fullMessage.includes("ForwardRef(LoadableComponent)") ||
-        fullMessage.includes("Presence") ||
-        fullMessage.includes("LoadableComponent")))
-  ) {
-    return;
-  }
-  originalError.apply(console, args);
-};
-
-const originalWarn = console.warn;
-console.warn = (...args: unknown[]) => {
-  if (typeof args[0] === "string" && args[0].includes('Failed to replace a global value at "_wrapHandle"')) {
-    return;
-  }
-  originalWarn.apply(console, args);
-};
+// 4. 过滤已知测试环境噪音输出
+installConsoleNoiseFilter();

@@ -1,24 +1,23 @@
 "use client";
 
-import { memo } from "react";
-
-import type { FileUploadInputProps, FileUploadValue } from "./types";
-
 import { FormFieldEngine } from "../../core";
 import { FileUploadCore } from "./FileUploadCore";
-import { DEFAULT_MAX_FILES, DEFAULT_MAX_SIZE } from "./pipeline";
+import type { FileUploadInputProps, FileUploadValue } from "./types";
+import { DEFAULT_MAX_FILES, DEFAULT_MAX_SIZE } from "./utils";
 
-export const FileUploadInput = memo(function FileUploadInput({
+export function FileUploadInput({
   mode = "grid",
   accept,
   multiple = true,
   maxFiles = DEFAULT_MAX_FILES,
   maxSize = DEFAULT_MAX_SIZE,
+  adapter,
+  endpoint,
+  headers,
+  paste = true,
+  crop = true,
   showDownload = true,
   showRemove = true,
-  onUpload,
-  transport,
-  valueCodec,
   dropzoneClassName,
   ...fieldProps
 }: FileUploadInputProps) {
@@ -35,11 +34,13 @@ export const FileUploadInput = memo(function FileUploadInput({
           multiple={multiple}
           maxFiles={maxFiles}
           maxSize={maxSize}
+          adapter={adapter}
+          endpoint={endpoint}
+          headers={headers}
+          paste={paste}
+          crop={crop}
           showDownload={showDownload}
           showRemove={showRemove}
-          onUpload={onUpload}
-          transport={transport}
-          valueCodec={valueCodec}
           disabled={isDisabled}
           readOnly={isReadOnly}
           hasError={hasError}
@@ -49,5 +50,4 @@ export const FileUploadInput = memo(function FileUploadInput({
       )}
     </FormFieldEngine>
   );
-});
-FileUploadInput.displayName = "FileUploadInput";
+}

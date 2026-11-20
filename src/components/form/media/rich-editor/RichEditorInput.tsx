@@ -1,23 +1,19 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { memo } from "react";
 
 import { FormFieldEngine } from "../../core";
 import { RichEditorSkeleton } from "./RichEditorSkeleton";
-import { DEFAULT_TOOLBAR, type RichEditorInputProps } from "./types";
+import type { RichEditorInputProps } from "./types";
 
-const DynamicTipTapCore = dynamic(() => import("./TipTapCore").then((mod) => mod.TipTapCore), {
+const DynamicPlateEditorCore = dynamic(() => import("./PlateEditorCore").then((mod) => mod.PlateEditorCore), {
   ssr: false,
   loading: () => <RichEditorSkeleton />,
 });
 
-export const RichEditorInput = memo(function RichEditorInput({
+export function RichEditorInput({
   placeholder,
   defaultValue = "",
-  format = "html",
-  codec,
-  toolbarButtons = DEFAULT_TOOLBAR,
   minHeight = 160,
   maxHeight,
   editorClassName,
@@ -25,20 +21,17 @@ export const RichEditorInput = memo(function RichEditorInput({
 }: RichEditorInputProps) {
   return (
     <FormFieldEngine<string> defaultValue={defaultValue} {...fieldProps}>
-      {({ id, value = "", onChange, onBlur, disabled: isDisabled, readOnly: isReadOnly, hasError, describedBy }) => (
-        <DynamicTipTapCore
+      {({ id, value = "", onChange, onBlur, disabled, readOnly, hasError, describedBy }) => (
+        <DynamicPlateEditorCore
           id={id}
           value={value ?? ""}
           onChange={onChange}
           onBlur={onBlur}
-          format={format}
-          codec={codec}
           placeholder={placeholder}
-          toolbarButtons={toolbarButtons}
           minHeight={minHeight}
           maxHeight={maxHeight}
-          disabled={isDisabled}
-          readOnly={isReadOnly}
+          disabled={disabled}
+          readOnly={readOnly}
           hasError={hasError}
           describedBy={describedBy}
           className={editorClassName}
@@ -46,5 +39,4 @@ export const RichEditorInput = memo(function RichEditorInput({
       )}
     </FormFieldEngine>
   );
-});
-RichEditorInput.displayName = "RichEditorInput";
+}

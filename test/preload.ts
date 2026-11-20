@@ -35,15 +35,6 @@ if (typeof vi !== "undefined") {
       return vi;
     };
   }
-  const originalViMock = vi.mock.bind(vi);
-  viRecord.mock = (moduleName: string, factory?: unknown) => {
-    // Bun's mock.module does not provide Vitest's importOriginal; spying on @tiptap/react
-    // via import("@tiptap/react") inside the factory recurses infinitely on useEditor.
-    if (moduleName === "@tiptap/react") {
-      return vi;
-    }
-    return originalViMock(moduleName, factory as never);
-  };
 }
 
 // 1. 注入 @testing-library/jest-dom 匹配器至 bun:test 和 vitest expect
