@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { http, HttpResponse } from "msw";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { apiClient, setServerHeadersResolver, toSearchParams } from "@/lib/apiClient";
+import { apiClient, resolveApiPrefix, setServerHeadersResolver, toSearchParams } from "@/lib/apiClient";
 import { server } from "@/mocks/server";
 
 describe("toSearchParams", () => {
@@ -61,8 +61,23 @@ describe("toSearchParams", () => {
 });
 
 describe("apiClient SSR serverHeadersResolver", () => {
+  const originalWindow = globalThis.window;
+
+  beforeEach(() => {
+    Object.defineProperty(globalThis, "window", {
+      value: undefined,
+      writable: true,
+      configurable: true,
+    });
+  });
+
   afterEach(() => {
     setServerHeadersResolver(null);
+    Object.defineProperty(globalThis, "window", {
+      value: originalWindow,
+      writable: true,
+      configurable: true,
+    });
   });
 
   it("forwards cookie and Authorization headers when running on server", async () => {
@@ -70,7 +85,7 @@ describe("apiClient SSR serverHeadersResolver", () => {
     let capturedCookie: string | null = null;
 
     server.use(
-      http.get("http://localhost:3000/v1/ssr-probe", ({ request }) => {
+      http.get(`${resolveApiPrefix()}/ssr-probe`, ({ request }) => {
         capturedAuth = request.headers.get("authorization");
         capturedCookie = request.headers.get("cookie");
         return HttpResponse.json({ ok: true });
@@ -92,7 +107,7 @@ describe("apiClient SSR serverHeadersResolver", () => {
     let capturedAuth: string | null = null;
 
     server.use(
-      http.get("http://localhost:3000/v1/ssr-probe-override", ({ request }) => {
+      http.get(`${resolveApiPrefix()}/ssr-probe-override`, ({ request }) => {
         capturedAuth = request.headers.get("authorization");
         return HttpResponse.json({ ok: true });
       }),

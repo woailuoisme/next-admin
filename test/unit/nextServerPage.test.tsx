@@ -16,12 +16,6 @@ vi.mock("next-intl/server", () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
 }));
 
-vi.mock("@/app/(app)/loading", () => ({
-  default: function MockLoading() {
-    return null;
-  },
-}));
-
 vi.mock("@/lib/queryClient", async () => {
   const { QueryClient } = await import("@tanstack/react-query");
   const client = new QueryClient();

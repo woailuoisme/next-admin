@@ -1,7 +1,6 @@
 "use client";
 
 import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
-import { useMemo } from "react";
 
 import { StatsGrid } from "@/components/stats/grid/StatsGrid";
 import { StatCard } from "@/components/stats/stat-card/StatCard";
@@ -24,14 +23,9 @@ function formatSignedGrowth(value: number): string {
 
 export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = false }: MetricsCardsProps) {
   const t = useTranslations("dashboard");
-  // hooks 必须先于提前返回：本组件可能从 loading 骨架态原地切换到数据态
-  const { revenueSparkline, ordersSparkline } = useMemo(() => {
-    const fromTrends = (pick: (point: MonthlyTrendPoint) => number) => monthlyTrends?.map(pick) ?? EMPTY_NUMBER_ARRAY;
-    return {
-      revenueSparkline: sparklines?.revenue?.length ? sparklines.revenue : fromTrends((point) => point.revenue),
-      ordersSparkline: sparklines?.orders?.length ? sparklines.orders : fromTrends((point) => point.orders),
-    };
-  }, [sparklines, monthlyTrends]);
+  const fromTrends = (pick: (point: MonthlyTrendPoint) => number) => monthlyTrends?.map(pick) ?? EMPTY_NUMBER_ARRAY;
+  const revenueSparkline = sparklines?.revenue?.length ? sparklines.revenue : fromTrends((point) => point.revenue);
+  const ordersSparkline = sparklines?.orders?.length ? sparklines.orders : fromTrends((point) => point.orders);
 
   const productsSparkline = sparklines?.products ?? EMPTY_NUMBER_ARRAY;
   const customersSparkline = sparklines?.customers ?? EMPTY_NUMBER_ARRAY;

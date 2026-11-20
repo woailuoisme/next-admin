@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo } from "react";
+import { type ReactNode, useEffect } from "react";
 
 import { AccessControlProvider, createRoleAccessEvaluator } from "@/lib/resource";
 
@@ -13,7 +13,7 @@ import { subscribeAuthStorageSync, useAuthRole, useAuthStore } from "../store";
  */
 export function AuthAppBridge({ children }: { children: ReactNode }) {
   const role = useAuthRole();
-  const evaluator = useMemo(() => createRoleAccessEvaluator(role), [role]);
+  const evaluator = createRoleAccessEvaluator(role);
 
   useEffect(() => {
     void useAuthStore.persist.rehydrate();

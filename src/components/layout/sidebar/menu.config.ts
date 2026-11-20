@@ -12,7 +12,6 @@ import {
   TableProperties,
 } from "lucide-react";
 
-import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 
 import { createScopedTranslator } from "@/i18n/scoped";
@@ -199,11 +198,17 @@ export function getRouteTitle(pathname: string, fallback?: string, items?: FlatN
  * React hook to retrieve the localized route title, reactive to locale changes
  */
 export function useRouteTitle(pathname: string, fallback?: string): string {
+  const tMenu = useTranslations("menu");
   const menuGroups = useSidebarMenuGroups();
-  return useMemo(() => {
-    const flatItems = getFlatNavItems(menuGroups);
-    return getRouteTitle(pathname, fallback, flatItems);
-  }, [menuGroups, pathname, fallback]);
+  const cleanPath = pathname.split("?")[0].replace(/\/+$/, "") || "/";
+  if (cleanPath === "/notifications" || cleanPath.startsWith("/notifications/")) {
+    return tMenu("notifications");
+  }
+  if (cleanPath === "/profile" || cleanPath.startsWith("/profile/")) {
+    return tMenu("profile");
+  }
+  const flatItems = getFlatNavItems(menuGroups);
+  return getRouteTitle(pathname, fallback, flatItems);
 }
 
 /**
@@ -211,7 +216,7 @@ export function useRouteTitle(pathname: string, fallback?: string): string {
  */
 export function useSidebarMenuGroups(): NavGroup[] {
   const t = useTranslations("menu");
-  return useMemo(() => getSidebarMenuGroups(t), [t]);
+  return getSidebarMenuGroups(t);
 }
 
 /**
@@ -222,13 +227,19 @@ export function useAuthorizedMenuGroups(customGroups?: NavGroup[], userRoleProp?
   const userRole = userRoleProp ?? layoutAuth.user?.role;
   const dynamicGroups = useSidebarMenuGroups();
 
-  return useMemo(() => {
-    const baseGroups = customGroups ?? dynamicGroups;
-    return getAuthorizedMenu(baseGroups, userRole);
-  }, [customGroups, dynamicGroups, userRole]);
+  const baseGroups = customGroups ?? dynamicGroups;
+  return getAuthorizedMenu(baseGroups, userRole);
 }
 
 export function useAuthorizedFlatNavItems(customGroups?: NavGroup[], userRoleProp?: string): FlatNavItem[] {
+  const tMenu = useTranslations("menu");
   const authorizedGroups = useAuthorizedMenuGroups(customGroups, userRoleProp);
-  return useMemo(() => getFlatNavItems(authorizedGroups), [authorizedGroups]);
+  const items = getFlatNavItems(authorizedGroups);
+  if (!customGroups) {
+    items.push(
+      { title: tMenu("notifications"), to: "/notifications", parentTitle: tMenu("navigation") },
+      { title: tMenu("profile"), to: "/profile", parentTitle: tMenu("navigation") },
+    );
+  }
+  return items;
 }

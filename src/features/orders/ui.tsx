@@ -3,7 +3,6 @@
 import { sumBy } from "es-toolkit";
 import { Clock, DollarSign, PackageCheck, Printer, ShoppingCart } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
 
 import { col } from "@/components/data-table/columns/col";
 import { Infolist } from "@/components/infolist";
@@ -40,10 +39,7 @@ function OrderDetailInfolist({ order }: { order: Order | null }) {
   const t = useTranslations("orders");
   const statusMutation = useResourceAction(orderResource, "updateStatus");
 
-  const statusOptions = useMemo(
-    () => ORDER_STATUS_OPTIONS.map((item) => ({ value: item.value, label: t(item.labelKey) })),
-    [t],
-  );
+  const statusOptions = ORDER_STATUS_OPTIONS.map((item) => ({ value: item.value, label: t(item.labelKey) }));
 
   if (!order) return null;
 

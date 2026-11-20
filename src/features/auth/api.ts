@@ -5,10 +5,12 @@ import { apiClient } from "@/lib/apiClient";
 import type {
   AdminUser,
   AuthSession,
+  ChangePasswordPayload,
   ForgotPasswordCredentials,
   ForgotPasswordResponse,
   LoginCredentials,
   ResetPasswordCredentials,
+  UpdateProfilePayload,
   VerifyOtpCredentials,
   VerifyOtpResponse,
 } from "./types";
@@ -42,5 +44,15 @@ export async function verifyOtpApi(credentials: VerifyOtpCredentials): Promise<V
 export async function resetPasswordApi(credentials: ResetPasswordCredentials): Promise<void> {
   const response = await apiClient.post("auth/reset-password", { json: credentials });
   // 契约返回 204：显式消费空响应体，避免流式响应悬挂
+  await response.arrayBuffer();
+}
+
+export async function updateProfileApi(payload: UpdateProfilePayload): Promise<AdminUser> {
+  const res = await apiClient.patch("auth/me", { json: payload }).json<ApiResponse<{ admin: AdminUser }>>();
+  return res.data.admin;
+}
+
+export async function changePasswordApi(payload: ChangePasswordPayload): Promise<void> {
+  const response = await apiClient.post("auth/change-password", { json: payload });
   await response.arrayBuffer();
 }

@@ -55,6 +55,16 @@ export interface ResetPasswordCredentials {
   password: string;
 }
 
+export interface UpdateProfilePayload {
+  name: string;
+  avatarUrl?: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
 /** 重置流程中后端可能返回的业务错误码 */
 export type ResetFlowErrorCode =
   | "INVALID_CODE"

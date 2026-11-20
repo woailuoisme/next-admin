@@ -31,11 +31,10 @@ curl https://api.example.com/v1/users/me \
 
 ### 1.2 服务地址 (Base URL)
 
-| 环境                   | API Base URL                         | 说明                   |
-| :--------------------- | :----------------------------------- | :--------------------- |
-| **开发环境 (Dev)**     | `http://localhost:{port}/v1`         | 本地开发与联调         |
-| **测试环境 (Staging)** | `https://staging-api.example.com/v1` | 集成测试与验收         |
-| **生产环境 (Prod)**    | `https://api.example.com/v1`         | 线上环境（强制 HTTPS） |
+| 环境                 | API Base URL                       | 说明                   |
+| :------------------- | :--------------------------------- | :--------------------- |
+| **测试环境 (Stage)** | `https://api.stage.example.com/v1` | 集成测试与验收         |
+| **生产环境 (Prod)**  | `https://api.example.com/v1`       | 线上环境（强制 HTTPS） |
 
 - 版本号位于路径首段：`/{version}/{resources}`，当前稳定版本为 `v1`。
 - 生产环境仅接受 **HTTPS** 请求，请勿在生产环境使用明文 HTTP。
@@ -48,9 +47,9 @@ curl https://api.example.com/v1/users/me \
 ### 2.1 命名约定 (Naming)
 
 - **资源路径**：复数名词、全小写短横线，不使用动词（如 `/{version}/{resources}`）。
-- **Query 参数与 JSON 键名**：小驼峰（`camelCase`），例如 `createdAt`、`sortBy`。
-- **布尔字段**：统一使用 `is` / `has` / `can` 前缀，例如 `isActive`、`hasAttachments`。
-- **枚举值**：全大写下划线（`UPPER_SNAKE`），例如 `"ACTIVE"`、`"IN_PROGRESS"`。
+- **Query 参数与 JSON 键名**：小驼峰（`camelCase`），例如 `createdAt`、`sortBy`、`pageSize`。
+- **布尔字段**：统一使用 `is` / `has` / `can` 驼峰前缀或清晰布尔语义，例如 `isActive`、`hasAttachments`、`banned`、`emailVerified`。
+- **枚举值**：全小写，多词用下划线分隔，例如 `"user"`、`"admin"`、`"active"`、`"in_progress"`（与 AGENTS.md §5.3 的示范一致）。
 
 ### 2.2 时间与数值精度 (Timestamp & Precision)
 
@@ -68,11 +67,11 @@ curl https://api.example.com/v1/users/me \
 
 ### 2.4 输入校验与失败反馈 (Validation)
 
-所有输入在服务边界完成校验。校验失败时统一返回 `422 Unprocessable Entity`，并在 `error.fields` 中按字段归集失败原因，调用方可直接映射到表单控件（详见 [5.2 错误响应](#52-错误响应-error-response)）。
+所有输入在服务边界完成校验。校验失败时统一返回 `422 Unprocessable Entity`，并在响应的 `errors` 字段中按字段名归集失败原因，调用方可直接映射到表单控件（详见 [5.2 错误响应](#52-错误响应-error-response)）。
 
 ---
 
-## 3. 认证、请求头与并发控制 (Authentication, Headers & Concurrency)
+## 3. 认证与请求头 (Authentication & Headers)
 
 ### 3.1 认证方式 (Authentication)
 
@@ -89,35 +88,34 @@ Authorization: Bearer <your_access_token>
 
 **安全提示**：请仅在请求头中传递令牌，不要将令牌拼接到 URL、写入日志或落盘到客户端明文存储。
 
+**令牌说明**：角色变更不影响已签发的访问令牌，续签后生效；需立即失效请调用登出/撤销接口。客户端不得解析令牌做权限判断，一切以 `403 Forbidden` 为准。
+
 ### 3.2 标准请求头 (Request Headers)
 
-| 请求头                | 必需 | 描述                                                   | 示例                                   |
-| :-------------------- | :--: | :----------------------------------------------------- | :------------------------------------- |
-| **`Content-Type`**    |  ✅  | 请求体媒体类型                                         | `application/json`                     |
-| **`Accept`**          |  ✅  | 客户端期望的响应格式                                   | `application/json`                     |
-| **`Authorization`**   | 条件 | 访问受保护资源的 Bearer Token                          | `Bearer eyJhbGci...`                   |
-| **`x-request-id`**    |  ❌  | 全链路追踪 ID；未提供时由服务端生成，并在响应头回写    | `req_019572d4a6c878b18cf0`             |
-| **`Idempotency-Key`** | 条件 | 非幂等写操作的去重键，确保重试不产生重复副作用         | `019572d4-a6c8-78b1-8cf0-281b94c032a1` |
-| **`If-Match`**        | 条件 | 条件更新：携带前序`ETag`，防止并发覆盖导致的数据丢失   | `W/"019572d4a6c878b1"`                 |
-| **`If-None-Match`**   |  ❌  | 条件读取：资源未变化时返回`304 Not Modified`，节省带宽 | `W/"019572d4a6c878b1"`                 |
+| 请求头                | 必需 | 描述                                                                           | 示例                                   |
+| :-------------------- | :--: | :----------------------------------------------------------------------------- | :------------------------------------- |
+| **`Content-Type`**    |  是  | 请求体媒体类型                                                                 | `application/json`                     |
+| **`Accept`**          |  是  | 客户端期望的响应格式                                                           | `application/json`                     |
+| **`Authorization`**   | 条件 | 访问受保护资源的 Bearer Token                                                  | `Bearer eyJhbGci...`                   |
+| **`x-request-id`**    |  否  | 全链路追踪 ID；未提供时由服务端生成，并在响应头回写                            | `req_019572d4a6c878b18cf0`             |
+| **`Idempotency-Key`** | 可选 | 非幂等写操作的去重键（36 字符 UUID）；携带则去重并回放首次响应，未携带行为不变 | `019572d4-a6c8-78b1-8cf0-281b94c032a1` |
+
+> 本 API 只使用 `application/json`：不实现 415/406 内容协商——`Accept` 与 `Content-Type` 不匹配不会单独报错，请求体结构有问题时仍返回 400。
 
 ### 3.3 幂等请求 (Idempotency)
 
+> **已接线（探测模式）。** 服务端已挂载幂等中间件：携带 `Idempotency-Key` 的写请求会按该键去重、并在重复提交时回放首次响应；**未携带时行为与从前完全一致**（不强制要求，避免破坏既有客户端与渠道回调）。以下语义适用于携带该头的请求。
+
 对创建类、支付类等非幂等写操作，建议携带 `Idempotency-Key`：
 
-- **Key 取值**：推荐使用 UUIDv7 或 ULID 等全局唯一、单调递增的字符串。
+- **Key 取值**：必须为 36 字符 UUID（服务端按长度校验），推荐 UUIDv7。
 - **重试保持稳定**：同一业务意图的多次重试必须复用同一个 Key；每次重试生成新 Key 将失去去重保护。
 - **服务端行为**：
-  - 相同 Key、相同请求载荷：返回首次请求的结果，不会重复执行；
-  - 相同 Key、不同请求载荷：拒绝执行并返回 `422 Unprocessable Entity`；
-  - 相同 Key 的首次请求仍在处理中：返回 `409 Conflict`，请退避后重试；
-  - Key 在约定的保留期内有效，覆盖常规重试与异步补偿周期。
-
-### 3.4 条件请求与并发保护 (Conditional Requests)
-
-- `GET /{version}/{resources}/{id}` 的响应头携带实体版本标识：`ETag: W/"<version_hash>"`。
-- 更新时携带 `If-Match: W/"<version_hash>"`，服务端将仅在该版本仍然有效时写入。
-- 版本已过时（资源已被他人修改）时返回 **`412 Precondition Failed`**，请重新读取最新资源后再提交。
+  - 相同 Key 的并发请求串行化：只有首个请求真正执行，其余等待并回放同一结果；
+  - 回放包含首次响应的状态码、响应体与可回放响应头（默认排除 `Set-Cookie`）；
+  - 处理器返回错误的请求不写入缓存，可用同一 Key 安全重试；
+  - Key 默认保留 30 分钟，可通过中间件配置调整；
+  - 幂等作用域按认证用户 / 凭据 / 会话 / 客户端标识 / IP+UA 隔离，不同主体使用相同 Key 互不影响。
 
 ---
 
@@ -125,32 +123,34 @@ Authorization: Bearer <your_access_token>
 
 ### 4.1 HTTP 动词语义
 
-|     方法     | 语义                         |     幂等性     |                 成功返回                  | 典型场景                       |
-| :----------: | :--------------------------- | :------------: | :---------------------------------------: | :----------------------------- |
-|  **`GET`**   | 获取单个资源或列表           |    ✅ 幂等     |                 `200 OK`                  | 读取详情、分页查询             |
-|  **`POST`**  | 创建新资源或执行非 CRUD 操作 |   ❌ 非幂等    | `201 Created` / `202 Accepted` / `200 OK` | 创建实体、提交认证、异步长任务 |
-|  **`PUT`**   | 全量覆盖替换目标资源         |    ✅ 幂等     |                 `200 OK`                  | 完整替换目标配置               |
-| **`PATCH`**  | 局部修改目标资源属性         | 视具体端点而定 |                 `200 OK`                  | 局部更新字段、变更状态         |
-| **`DELETE`** | 销毁或注销目标资源           |    ✅ 幂等     |        `204 No Content` / `200 OK`        | 删除资源、解绑关联             |
+|     方法     | 语义                         |     幂等性     |          成功返回           | 典型场景               |
+| :----------: | :--------------------------- | :------------: | :-------------------------: | :--------------------- |
+|  **`GET`**   | 获取单个资源或列表           |      幂等      |          `200 OK`           | 读取详情、分页查询     |
+|  **`POST`**  | 创建新资源或执行非 CRUD 操作 |     非幂等     |  `201 Created` / `200 OK`   | 创建实体、提交认证     |
+|  **`PUT`**   | 全量覆盖替换目标资源         |      幂等      |          `200 OK`           | 完整替换目标配置       |
+| **`PATCH`**  | 局部修改目标资源属性         | 视具体端点而定 |          `200 OK`           | 局部更新字段、变更状态 |
+| **`DELETE`** | 销毁或注销目标资源           |      幂等      | `204 No Content` / `200 OK` | 删除资源、解绑关联     |
 
 ### 4.2 响应状态码速查
 
-|  状态码   | 对应枚举 Code           | 说明                                         |
-| :-------: | :---------------------- | :------------------------------------------- |
-| **`200`** | `OK`                    | 请求处理成功                                 |
-| **`201`** | `CREATED`               | 资源创建成功                                 |
-| **`202`** | `ACCEPTED`              | 异步长任务已受理排队，后台处理中             |
-| **`204`** | `NO_CONTENT`            | 请求成功，无返回数据体（0 字节）             |
-| **`304`** | `NOT_MODIFIED`          | 资源未变更（配合`If-None-Match` 缓存）       |
-| **`400`** | `BAD_REQUEST`           | 请求格式无效、缺少必填参数或语法错误         |
-| **`401`** | `UNAUTHORIZED`          | 未提供身份凭证或 Token 已过期失效            |
-| **`403`** | `FORBIDDEN`             | 凭证有效但无权执行该操作（权限不足）         |
-| **`404`** | `NOT_FOUND`             | 请求的资源或 URI 不存在                      |
-| **`409`** | `CONFLICT`              | 资源状态冲突（如唯一键重复、幂等请求处理中） |
-| **`412`** | `PRECONDITION_FAILED`   | 前置条件未满足（如`If-Match` 版本冲突）      |
-| **`422`** | `UNPROCESSABLE_ENTITY`  | 请求体字段语义或参数验证规则校验失败         |
-| **`429`** | `TOO_MANY_REQUESTS`     | 请求频率超出速率配额限制                     |
-| **`500`** | `INTERNAL_SERVER_ERROR` | 服务器内部异常，未捕获错误统一转为通用提示   |
+| 状态码    | `code` 字段 / 状态语义  | 说明                                                                           |
+| :-------- | :---------------------- | :----------------------------------------------------------------------------- |
+| **`200`** | `OK`                    | 请求处理成功                                                                   |
+| **`201`** | `CREATED`               | 资源创建成功                                                                   |
+| **`204`** | `NO_CONTENT`            | 请求成功，无返回数据体（0 字节）                                               |
+| **`400`** | `BAD_REQUEST`           | 请求格式无效、缺少必填参数或语法错误                                           |
+| **`401`** | `AUTH_TOKEN_INVALID` 等 | 未携带凭证，或令牌无效、已过期、已被撤销                                       |
+| **`403`** | `FORBIDDEN` 等          | 凭证有效但无权执行该操作（权限不足或账号受限）                                 |
+| **`404`** | `NOT_FOUND`             | 请求的资源或 URI 不存在                                                        |
+| **`405`** | `METHOD_NOT_ALLOWED`    | 请求的 HTTP 方法不受支持                                                       |
+| **`409`** | `CONFLICT` 等           | 资源状态冲突（如唯一键重复）                                                   |
+| **`413`** | `REQUEST_TOO_LARGE`     | 请求体超过服务端上限（普通请求 1 MiB；multipart 上传按 `MEDIA_MAX_FILE_SIZE`） |
+| **`422`** | `VALIDATION_FAILED` 等  | 请求体字段语义或参数验证规则校验失败                                           |
+| **`429`** | `RATE_LIMITED`          | 请求频率超出速率配额限制                                                       |
+| **`500`** | `INTERNAL_SERVER_ERROR` | 服务器内部异常，未捕获错误统一转为通用提示                                     |
+| **`504`** | `GATEWAY_TIMEOUT`       | 请求处理超时（上游数据库或依赖未在时限内响应）                                 |
+
+> 关于第二列：2xx 的成功响应**不含 `code` 字段**（成功响应直接返回业务对象本身，见 5.1），该列对这些行给出的是状态语义名；4xx 与 5xx 行给出的是错误响应体里 `code` 字段的字面取值，标为「等」表示该状态码对应多个具体错误码。
 
 ---
 
@@ -206,23 +206,7 @@ Authorization: Bearer <your_access_token>
 }
 ```
 
-#### 3. 异步任务受理 (`202 Accepted`)
-
-长耗时操作受理后返回 `202 Accepted`，并在 `Location` 响应头给出任务查询地址：
-
-```http
-HTTP/1.1 202 Accepted
-Location: /{version}/tasks/<task_id>
-```
-
-```json
-{
-  "taskId": "<task_id>",
-  "status": "PENDING"
-}
-```
-
-#### 4. 无返回数据体 (`204 No Content`)
+#### 3. 无返回数据体 (`204 No Content`)
 
 删除、登出、修改密码等无返回内容的操作统一返回 `204 No Content`，响应体为空（0 字节），请勿解析响应体。
 
@@ -230,7 +214,7 @@ Location: /{version}/tasks/<task_id>
 
 所有错误响应统一采用扁平根级结构，包含机器可读的 `code` 与人类可读的 `message` 描述信息。
 
-#### 1. 通用业务与客户端错误 (`400` / `401` / `403` / `404` / `409` / `412`)
+#### 1. 通用业务与客户端错误 (`400` / `401` / `403` / `404` / `409`)
 
 ```json
 {
@@ -248,7 +232,7 @@ Location: /{version}/tasks/<task_id>
   "code": "VALIDATION_FAILED",
   "message": "Validation failed",
   "errors": {
-    "team_name": ["The team name must be a string.", "The team name must be at least 1 characters."],
+    "teamName": ["The team name must be a string.", "The team name must be at least 1 characters."],
     "authorization.role": ["The selected authorization.role is invalid."],
     "users.0.email": ["The users.0.email field is required."],
     "users.2.email": ["The users.2.email must be a valid email address."]
@@ -297,21 +281,32 @@ Location: /{version}/tasks/<task_id>
 
 ### 6.2 过滤、排序与检索
 
-- **字段过滤**：
-  - 精确匹配：`?filter[<field>]=<value>`
-  - 多值匹配（IN 查询）：`?filter[<field>]=<val1>,<val2>`
-  - 区间过滤：`?filter[<field>After]=<date>` 或 `?filter[<field>Min]=<num>`
-- **链式排序**：
-  - 升序：`?sort=<field>`；降序：`?sort=-<field>`；复合排序：`?sort=-<field1>,<field2>`
-  - 服务端始终提供确定性的默认排序（如按创建时间倒序），分页遍历不会出现数据漂移。
-- **全局搜索**：`?search=<keyword>`（在核心可检索列执行模糊匹配）。
-- **关联加载与字段投影**：
-  - 关联预加载：`?include=<relation1>,<relation2>`
-  - 稀疏字段集：`?fields[<resource>]=<field1>,<field2>`（精简响应体积）
-- **综合请求示例**：
+查询串遵循 spatie/laravel-query-builder v7 的约定。
+
+#### 过滤 (filter)
+
+- 单字段：`?filter[<field>]=<value>`；不同字段之间为 AND
+- 多值（OR）：`?filter[<field>]=<v1>,<v2>`
+- 匹配语义按字段声明：文本字段默认模糊匹配（不区分大小写，`LIKE %value%`），ID / 枚举 / 布尔为精确匹配（`1`、`0`、`true`、`false` 按布尔处理）
+- 空值忽略：`?filter[<field>]=` 等同不传该条件
+- 运算符过滤：`?filter[<field]>=<op><value>`，`op` 取 `>`、`>=`、`<`、`<=`、`<>`，如 `?filter[salary]=>3000`
+- 未声明的可过滤字段返回 `400 BAD_REQUEST`
+
+#### 排序 (sort)
+
+- 升序 `?sort=<field>`；降序 `?sort=-<field>`；复合 `?sort=-<field1>,<field2>`
+- 未声明的排序字段返回 `400 BAD_REQUEST`；服务端始终提供确定性默认排序，分页遍历不会出现数据漂移
+
+#### 检索与关联
+
+- 全局搜索：`?search=<keyword>`（在核心可检索列执行模糊匹配）
+- 关联预加载：`?include=<relation1>,<relation2>`
+- 稀疏字段集：`?fields[<resource>]=<field1>,<field2>`（精简响应体积）
+
+#### 综合请求示例
 
 ```http
-GET /{version}/{resources}?page=1&pageSize=20&search=<keyword>&filter[<field>]=<value>&sort=-<field>&include=<relation>
+GET /{version}/{resources}?filter[status]=active&filter[role]=user,admin&filter[created_at]=>2026-01-01&sort=-created_at&include=<relation>&fields[<resource>]=id,created_at&page=1&pageSize=20
 ```
 
 ---
@@ -320,9 +315,10 @@ GET /{version}/{resources}?page=1&pageSize=20&search=<keyword>&filter[<field>]=<
 
 接口在网关与中间件层实施多级配额控制：
 
-- **未认证客户端**：低频防刷配额；
 - **已认证用户**：标准业务并发配额；
 - **敏感认证端点**：防暴力破解的严格限制。
+
+支付与实时回调端点**不做限流**：渠道服务端的阶梯重试是合法流量，限流会误伤、极端情况下导致漏单；这两个端点依靠签名校验（渠道验签 / HMAC）与幂等防重放抵御滥用。
 
 超出配额时返回 `429 Too Many Requests`，并通过标准响应头给出配额状态：
 
@@ -343,9 +339,7 @@ X-RateLimit-Reset: 1756137600
 
 ---
 
-## 8. 版本演进、废弃策略与支持 (Versioning, Deprecation & Support)
-
-### 8.1 版本演进
+## 8. 版本演进 (Versioning)
 
 接口通过向前兼容的方式演进，同一大版本内不会引入破坏性变更：
 
@@ -353,22 +347,3 @@ X-RateLimit-Reset: 1756137600
 - **破坏性变更**：修改字段类型、将可选参数改为必填、删除或改名既有字段、变更既有成功状态码——此类变更仅通过新版本（如 `/v2`）提供。
 
 请调用方对响应中的新增字段保持宽容（忽略未知字段），以平滑获取新能力。
-
-### 8.2 废弃通告
-
-端点或字段确需下线时，会提前通过 RFC 8594 标准响应头通告：
-
-```http
-Deprecation: @1756137600
-Sunset: Wed, 11 Nov 2026 00:00:00 GMT
-Link: <https://api.example.com/v2/{resources}>; rel="successor-version"
-```
-
-- `Deprecation`：废弃生效时间（Unix 秒）；
-- `Sunset`：该能力停止服务的时间，请在此之前完成迁移；
-- `Link`：替代版本或端点地址。
-
-### 8.3 支持与反馈
-
-- **联系人**：Developer Support（`dev@example.com`）；
-- **问题反馈**：请提供请求端点、时间点与响应头中的 `x-request-id`，以便快速定位链路。

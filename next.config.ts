@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  reactCompiler: true,
   experimental: {
     optimizePackageImports: [
       "lucide-react",

@@ -4,12 +4,13 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 
 import { clearQueryCache } from "@/lib/queryClient";
 
-import type { AuthSession, AuthState } from "./types";
+import type { AdminUser, AuthSession, AuthState } from "./types";
 
 export interface AuthStore extends AuthState {
   hasHydrated: boolean;
   setHasHydrated: (hasHydrated: boolean) => void;
   setSession: (session: AuthSession) => void;
+  updateAdminUser: (admin: AdminUser) => void;
   clearSession: () => void;
   setIsLoading: (isLoading: boolean) => void;
 }
@@ -83,6 +84,17 @@ export const useAuthStore = create<AuthStore>()(
           session,
           isAuthenticated: Boolean(session?.token),
           isLoading: false,
+        });
+      },
+      updateAdminUser: (admin: AdminUser) => {
+        set((state) => {
+          if (!state.session) return state;
+          return {
+            session: {
+              ...state.session,
+              admin,
+            },
+          };
         });
       },
       clearSession: () => {

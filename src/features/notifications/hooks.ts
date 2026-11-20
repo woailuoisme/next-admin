@@ -241,3 +241,29 @@ export function useRealtimeNotifications(options: RealtimeNotificationsOptions =
     isConnected,
   };
 }
+
+function useBatchNotificationMutation(action: (id: string) => Promise<unknown>, fallbackError: () => string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id) => action(id)));
+      return ids.length;
+    },
+    onError: async (err) => {
+      const msg = await getApiErrorMessage(err, fallbackError());
+      toast.error(msg);
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+    },
+  });
+}
+
+export function useBatchMarkNotificationsReadMutation() {
+  return useBatchNotificationMutation(markNotificationAsRead, toastMessages.statusError);
+}
+
+export function useBatchDeleteNotificationsMutation() {
+  return useBatchNotificationMutation(deleteNotification, toastMessages.deleteError);
+}

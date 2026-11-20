@@ -11,9 +11,18 @@ import { getSafeRedirectUrl } from "@/lib/security";
 import { toastMessages } from "@/lib/toastMessages";
 import type { MessageKeyOf } from "@/types/i18n";
 
-import { fetchCurrentAdminApi, forgotPasswordApi, loginApi, logoutApi, resetPasswordApi, verifyOtpApi } from "./api";
+import {
+  changePasswordApi,
+  fetchCurrentAdminApi,
+  forgotPasswordApi,
+  loginApi,
+  logoutApi,
+  resetPasswordApi,
+  updateProfileApi,
+  verifyOtpApi,
+} from "./api";
 import { clearResetFlow, readResetFlow, saveResetFlow, patchResetFlow } from "./resetFlow";
-import { clearAuthSession, getAuthToken, setAuthSession, useIsAuthenticated } from "./store";
+import { clearAuthSession, getAuthToken, setAuthSession, useAuthStore, useIsAuthenticated } from "./store";
 
 const RESET_ERROR_KEYS: Record<string, MessageKeyOf<"auth">> = {
   INVALID_CODE: "error_invalid_code",
@@ -139,5 +148,20 @@ export function useResetPasswordMutation() {
       toast.success(t("reset_success"));
       router.push(email ? `/login?email=${encodeURIComponent(email)}` : "/login");
     },
+  });
+}
+
+export function useUpdateProfileMutation() {
+  return useMutation({
+    mutationFn: updateProfileApi,
+    onSuccess: (admin) => {
+      useAuthStore.getState().updateAdminUser(admin);
+    },
+  });
+}
+
+export function useChangePasswordMutation() {
+  return useMutation({
+    mutationFn: changePasswordApi,
   });
 }

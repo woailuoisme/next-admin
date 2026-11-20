@@ -65,6 +65,95 @@ function useResourceUIAdapters<
   );
 }
 
+function ResourceListViewImpl<
+  TItem extends { id: string | number },
+  TInput extends Record<string, unknown>,
+  TFilters extends Record<string, unknown>,
+  TListResponse,
+  TActions extends Record<string, ResourceCustomAction<any, any>>,
+>({
+  resource,
+  config,
+  search,
+}: {
+  resource: ResourceDefinition<TItem, TInput, TFilters, TListResponse, TActions>;
+  config: ResourceUIConfig<TItem, TFilters, TListResponse, TActions>;
+  search?: TFilters;
+}) {
+  const t = useTranslations(resource.i18nNamespace as never) as unknown as ResourceTranslateFn;
+  const headerExtra = config.headerExtra?.(t);
+  const adapters = useResourceUIAdapters(resource, config, t);
+
+  const statsSchema = config.stats;
+  const renderStats: ResourceScaffoldProps<TItem, TInput, TFilters, TListResponse>["renderStats"] = statsSchema
+    ? ({ rows, total, rawResponse, isLoading }) => (
+        <ResourceStats
+          i18nNamespace={resource.i18nNamespace}
+          schema={statsSchema}
+          rows={rows}
+          total={total}
+          rawResponse={rawResponse}
+          isLoading={isLoading}
+        />
+      )
+    : undefined;
+
+  const renderTable: ResourceScaffoldProps<TItem, TInput, TFilters, TListResponse>["renderTable"] = ({
+    tableState,
+    openView,
+    openEdit,
+    openDelete,
+    handleBatchDelete,
+    canDelete,
+  }) => (
+    <ResourceTable
+      resource={resource}
+      schema={config.table}
+      tableState={tableState}
+      openView={openView}
+      openEdit={openEdit}
+      openDelete={openDelete}
+      handleBatchDelete={handleBatchDelete}
+      canDelete={canDelete}
+    />
+  );
+
+  return (
+    <ResourceScaffold<TItem, TInput, TFilters, TListResponse>
+      resource={resource}
+      search={search}
+      formSize={config.form?.size}
+      viewSize={config.infolist?.size}
+      allowFullscreen={config.allowFullscreen}
+      headerExtra={headerExtra}
+      renderStats={renderStats}
+      renderTable={renderTable}
+      {...adapters}
+    />
+  );
+}
+
+function ResourceActionViewImpl<
+  TItem extends { id: string | number },
+  TInput extends Record<string, unknown>,
+  TFilters extends Record<string, unknown>,
+  TListResponse,
+  TActions extends Record<string, ResourceCustomAction<any, any>>,
+>({
+  resource,
+  config,
+  mode,
+  id,
+}: ResourceSubPageRenderProps & {
+  resource: ResourceDefinition<TItem, TInput, TFilters, TListResponse, TActions>;
+  config: ResourceUIConfig<TItem, TFilters, TListResponse, TActions>;
+}) {
+  const t = useTranslations(resource.i18nNamespace as never) as unknown as ResourceTranslateFn;
+  const adapters = useResourceUIAdapters(resource, config, t);
+
+  return <ResourceSubPageScaffold<TItem, TInput> resource={resource} mode={mode} id={id} {...adapters} />;
+}
+
 /**
  * defineResourceUI:
  * 混合架构的核心声明式 UI 工厂，将零胶水契约（ResourceDefinition）与表现层 Schema 绑定，
@@ -82,62 +171,13 @@ export function defineResourceUI<
   config: ResourceUIConfig<TItem, TFilters, TListResponse, TActions>,
 ): ResourceUIBundle<TItem, TInput, TFilters, TListResponse, TActions> {
   const ListView = memo(function ResourceListView({ search }: { search?: TFilters }) {
-    const t = useTranslations(resource.i18nNamespace as never) as unknown as ResourceTranslateFn;
-    const headerExtra = useMemo(() => config.headerExtra?.(t), [t]);
-    const adapters = useResourceUIAdapters(resource, config, t);
-
-    const renderStats = useMemo<ResourceScaffoldProps<TItem, TInput, TFilters, TListResponse>["renderStats"]>(() => {
-      if (!config.stats) return undefined;
-      const statsSchema = config.stats;
-      return ({ rows, total, rawResponse, isLoading }) => (
-        <ResourceStats
-          i18nNamespace={resource.i18nNamespace}
-          schema={statsSchema}
-          rows={rows}
-          total={total}
-          rawResponse={rawResponse}
-          isLoading={isLoading}
-        />
-      );
-    }, []);
-
-    const renderTable = useMemo<ResourceScaffoldProps<TItem, TInput, TFilters, TListResponse>["renderTable"]>(
-      () =>
-        ({ tableState, openView, openEdit, openDelete, handleBatchDelete, canDelete }) => (
-          <ResourceTable
-            resource={resource}
-            schema={config.table}
-            tableState={tableState}
-            openView={openView}
-            openEdit={openEdit}
-            openDelete={openDelete}
-            handleBatchDelete={handleBatchDelete}
-            canDelete={canDelete}
-          />
-        ),
-      [],
-    );
-
-    return (
-      <ResourceScaffold<TItem, TInput, TFilters, TListResponse>
-        resource={resource}
-        search={search}
-        formSize={config.form?.size}
-        viewSize={config.infolist?.size}
-        allowFullscreen={config.allowFullscreen}
-        headerExtra={headerExtra}
-        renderStats={renderStats}
-        renderTable={renderTable}
-        {...adapters}
-      />
-    );
+    "use no memo";
+    return <ResourceListViewImpl resource={resource} config={config} search={search} />;
   });
 
   const ActionView = memo(function ResourceActionView({ mode, id }: ResourceSubPageRenderProps) {
-    const t = useTranslations(resource.i18nNamespace as never) as unknown as ResourceTranslateFn;
-    const adapters = useResourceUIAdapters(resource, config, t);
-
-    return <ResourceSubPageScaffold<TItem, TInput> resource={resource} mode={mode} id={id} {...adapters} />;
+    "use no memo";
+    return <ResourceActionViewImpl resource={resource} config={config} mode={mode} id={id} />;
   });
 
   return {

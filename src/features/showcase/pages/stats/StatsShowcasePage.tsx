@@ -33,7 +33,7 @@ export function StatsShowcasePage() {
 
   return (
     <DemoTelemetryProvider>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-6">
+      <div className="space-y-6">
         <StatsHeaderBar demoState={demoState} onDemoStateChange={handleDemoStateChange} />
 
         {/* Primary Navigation Tabs */}

@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 
 import { Activity, Bug } from "lucide-react";
-import { memo } from "react";
 import { toast } from "sonner";
 import { cn } from "cn";
 
@@ -27,11 +26,7 @@ function handleTest() {
   }
 }
 
-export const GlitchTipDiagnostic = memo(function GlitchTipDiagnostic({
-  className,
-  title,
-  triggerText,
-}: GlitchTipDiagnosticProps) {
+export function GlitchTipDiagnostic({ className, title, triggerText }: GlitchTipDiagnosticProps) {
   const t = useTranslations("shared");
   const isEnabled = isGlitchTipEnabled();
 
@@ -71,4 +66,4 @@ export const GlitchTipDiagnostic = memo(function GlitchTipDiagnostic({
       </Button>
     </div>
   );
-});
+}

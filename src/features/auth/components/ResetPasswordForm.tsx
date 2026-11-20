@@ -3,7 +3,7 @@
 import { useForm } from "@tanstack/react-form";
 import { KeyRound, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { TextInput } from "@/components/form/basic";
 import { Form } from "@/components/form/core";
@@ -12,17 +12,9 @@ import { CardContent, CardDescription, CardHeader, CardTitle } from "@/component
 import type { MessageKeyOf } from "@/types/i18n";
 
 import { resolveResetErrorKey, useResetPasswordMutation } from "../hooks";
-import { buildResetPasswordSchema } from "../schemas";
+import { buildResetPasswordSchema, PASSWORD_REQUIREMENT_LABEL_KEYS } from "../schemas";
 
 import { AuthCard, AuthFormError, AuthSubmitButton } from "./AuthShell";
-
-// 与 DEFAULT_PASSWORD_REQUIREMENTS 的顺序一一对应，仅替换文案
-const REQUIREMENT_LABEL_KEYS = [
-  "password_req_length",
-  "password_req_case",
-  "password_req_number",
-  "password_req_symbol",
-] as const;
 
 export interface ResetPasswordFormProps {
   resetToken: string;
@@ -35,25 +27,17 @@ export function ResetPasswordForm({ resetToken, email }: ResetPasswordFormProps)
   const mutation = useResetPasswordMutation();
   const [errorKey, setErrorKey] = useState<MessageKeyOf<"auth"> | null>(null);
 
-  const requirements = useMemo(
-    () =>
-      DEFAULT_PASSWORD_REQUIREMENTS.map((requirement, index) => ({
-        ...requirement,
-        label: tForm(REQUIREMENT_LABEL_KEYS[index]),
-      })),
-    [tForm],
-  );
+  const requirements = DEFAULT_PASSWORD_REQUIREMENTS.map((requirement, index) => ({
+    ...requirement,
+    label: tForm(PASSWORD_REQUIREMENT_LABEL_KEYS[index]),
+  }));
 
-  const schema = useMemo(
-    () =>
-      buildResetPasswordSchema({
-        tooShort: t("error_password_weak"),
-        tooWeak: t("error_password_weak"),
-        sameAsEmail: t("error_password_same_as_email"),
-        mismatch: t("error_password_mismatch"),
-      }),
-    [t],
-  );
+  const schema = buildResetPasswordSchema({
+    tooShort: t("error_password_weak"),
+    tooWeak: t("error_password_weak"),
+    sameAsEmail: t("error_password_same_as_email"),
+    mismatch: t("error_password_mismatch"),
+  });
 
   const form = useForm({
     defaultValues: { email, password: "", confirmPassword: "" },

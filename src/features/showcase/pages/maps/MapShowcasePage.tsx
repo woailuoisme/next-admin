@@ -57,7 +57,7 @@ export function MapShowcasePage() {
   };
 
   return (
-    <div className="space-y-6 p-4 md:p-8">
+    <div className="space-y-6">
       <MapHeaderBar demoState={demoState} onDemoStateChange={setDemoState} onReset={handleRetry} />
 
       <MapFeatureHighlights />

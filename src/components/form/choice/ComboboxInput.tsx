@@ -27,6 +27,7 @@ const LazyComboboxMenu = dynamic(
     import("@/components/ui/command").then((mod) => {
       const { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } = mod;
       return function ComboboxMenu({ options, value, searchPlaceholder, emptyText, onSelectValue }: ComboboxMenuProps) {
+        "use no memo";
         return (
           <Command>
             <CommandInput placeholder={searchPlaceholder} />

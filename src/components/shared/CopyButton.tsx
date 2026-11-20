@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { useMemoizedFn } from "ahooks";
 import { Check, Copy } from "lucide-react";
-import { type MouseEvent, memo, useEffect, useRef, useState } from "react";
+import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "cn";
 
@@ -20,14 +20,7 @@ export interface CopyButtonProps {
   copiedTooltip?: string;
 }
 
-export const CopyButton = memo(function CopyButton({
-  text,
-  className,
-  title,
-  successMessage,
-  errorMessage,
-  copiedTooltip,
-}: CopyButtonProps) {
+export function CopyButton({ text, className, title, successMessage, errorMessage, copiedTooltip }: CopyButtonProps) {
   const t = useTranslations("shared");
 
   const resolvedTitle = title ?? t("copy_action");
@@ -91,4 +84,4 @@ export const CopyButton = memo(function CopyButton({
       </TooltipContent>
     </Tooltip>
   );
-});
+}

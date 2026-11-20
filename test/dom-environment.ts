@@ -93,6 +93,16 @@ while (proto && proto !== Object.prototype) {
 }
 
 // 3. 垫片
+for (const rafKey of ["requestAnimationFrame", "cancelAnimationFrame"] as const) {
+  Object.defineProperty(globalThis, rafKey, {
+    get: () => winDict[rafKey],
+    set: (v: unknown) => {
+      winDict[rafKey] = v;
+    },
+    configurable: true,
+  });
+}
+
 if (!window.matchMedia) {
   window.matchMedia = (query: string) =>
     ({

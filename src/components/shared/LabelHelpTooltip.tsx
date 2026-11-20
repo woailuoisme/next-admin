@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { memo, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { HelpCircle } from "lucide-react";
 
@@ -18,7 +18,7 @@ export interface LabelHelpTooltipProps {
 /**
  * 字段/条目标签旁的帮助说明 tooltip（form / infolist 共用）
  */
-export const LabelHelpTooltip = memo(function LabelHelpTooltip({ content, helpTooltipAria }: LabelHelpTooltipProps) {
+export function LabelHelpTooltip({ content, helpTooltipAria }: LabelHelpTooltipProps) {
   const t = useTranslations("shared");
   const resolvedAria = helpTooltipAria ?? t("help_tooltip_aria");
 
@@ -40,4 +40,4 @@ export const LabelHelpTooltip = memo(function LabelHelpTooltip({ content, helpTo
       </TooltipContent>
     </Tooltip>
   );
-});
+}

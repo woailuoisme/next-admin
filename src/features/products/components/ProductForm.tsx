@@ -2,7 +2,6 @@
 
 import { DollarSign, Image as ImageIcon, Layers, Package, Tag } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
 
 import { NumberInput, TextareaInput, TextInput } from "@/components/form/basic";
 import { SelectInput } from "@/components/form/choice/SelectInput";
@@ -29,14 +28,12 @@ export function ProductForm({ form, isEditing = false }: ProductFormProps) {
     isEditing,
   });
 
-  const statusOptions = useMemo(() => {
-    const labelMap = {
-      active: t("status_active"),
-      draft: t("status_draft"),
-      out_of_stock: t("status_out_of_stock"),
-    };
-    return PRODUCT_STATUSES.map((value) => ({ label: labelMap[value], value }));
-  }, [t]);
+  const labelMap = {
+    active: t("status_active"),
+    draft: t("status_draft"),
+    out_of_stock: t("status_out_of_stock"),
+  };
+  const statusOptions = PRODUCT_STATUSES.map((value) => ({ label: labelMap[value], value }));
 
   const handleTitleChange = useSlugSync(form, "slug", !isEditing);
 

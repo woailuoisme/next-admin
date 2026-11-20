@@ -4,7 +4,6 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { useMemoizedFn } from "ahooks";
 import { Check, Languages } from "lucide-react";
-import { memo } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "cn";
 
@@ -35,7 +34,7 @@ const LOCALE_OPTIONS = [
   { code: "en", name: "English", nativeName: "English (US)" },
 ] as const satisfies readonly { code: SupportedLocale; name: string; nativeName: string }[];
 
-export const LanguageSwitcher = memo(function LanguageSwitcher({
+export function LanguageSwitcher({
   className,
   value,
   onLocaleChange,
@@ -101,4 +100,4 @@ export const LanguageSwitcher = memo(function LanguageSwitcher({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-});
+}

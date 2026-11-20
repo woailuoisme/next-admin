@@ -31,7 +31,10 @@ vi.mock("@/integrations/centrifuge", () => ({
 }));
 
 vi.mock("@/features/notifications/resource", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/notifications/resource")>();
+  const actual =
+    typeof importOriginal === "function"
+      ? await importOriginal<typeof import("@/features/notifications/resource")>()
+      : await import("@/features/notifications/resource");
   return {
     ...actual,
     fetchNotifications: vi.fn(),
@@ -382,23 +385,41 @@ describe("Core UI Shell & Dialogs Seams", () => {
       expect(usePreferencesStore.getState().radius).toBe("0.45rem");
       cleanup();
 
-      const getItemSpy = vi.spyOn(window.localStorage, "getItem").mockImplementation(() => {
+      const originalLocalStorage = window.localStorage;
+      const getItemSpy = vi.fn(() => {
         throw new Error("SecurityError");
       });
-      expect(() => {
-        const stop = usePreferencesStore.getState().initTheme();
-        stop();
-      }).not.toThrow();
-      expect(getItemSpy).toHaveBeenCalled();
-      getItemSpy.mockRestore();
-
-      const setItemSpy = vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {
+      const setItemSpy = vi.fn(() => {
         throw new Error("QuotaExceededError");
       });
-      expect(() => usePreferencesStore.getState().setMode("dark")).not.toThrow();
-      expect(usePreferencesStore.getState().mode).toBe("dark");
-      expect(setItemSpy).toHaveBeenCalled();
-      setItemSpy.mockRestore();
+      Object.defineProperty(window, "localStorage", {
+        value: {
+          getItem: getItemSpy,
+          setItem: setItemSpy,
+          removeItem: vi.fn(),
+          clear: vi.fn(),
+          key: vi.fn(() => null),
+          length: 0,
+        },
+        configurable: true,
+      });
+
+      try {
+        expect(() => {
+          const stop = usePreferencesStore.getState().initTheme();
+          stop();
+        }).not.toThrow();
+        expect(getItemSpy).toHaveBeenCalled();
+
+        expect(() => usePreferencesStore.getState().setMode("dark")).not.toThrow();
+        expect(usePreferencesStore.getState().mode).toBe("dark");
+        expect(setItemSpy).toHaveBeenCalled();
+      } finally {
+        Object.defineProperty(window, "localStorage", {
+          value: originalLocalStorage,
+          configurable: true,
+        });
+      }
     });
   });
 

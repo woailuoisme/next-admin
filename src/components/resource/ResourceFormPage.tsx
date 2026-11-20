@@ -124,7 +124,7 @@ function ResourceFormPageImpl<TData = Record<string, unknown>>({
   const handleSaveAndContinueClick = useLockedAsyncCallback(onSaveAndContinue, isSubmitBlocked);
 
   return (
-    <div className={cn("mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8", className)}>
+    <div className={cn("space-y-6", className)}>
       <ResourcePageHeader
         title={resolvedTitle}
         description={description}
@@ -150,7 +150,7 @@ function ResourceFormPageImpl<TData = Record<string, unknown>>({
         {/* 工业级吸底固定操作栏 (Sticky Bottom Bar) */}
         <div
           className={cn(
-            "sticky bottom-0 z-20 -mx-4 flex flex-row items-center justify-between gap-3 border-t border-border/70 bg-background/85 px-4 py-3.5 backdrop-blur-md transition-all sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8",
+            "sticky bottom-0 z-20 -mx-4 flex flex-row items-center justify-between gap-3 border-t border-border/70 bg-background/85 px-4 py-3.5 backdrop-blur-md transition-all md:-mx-6 md:px-6 lg:-mx-8 lg:px-8",
             footerClassName,
           )}
         >

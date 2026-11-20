@@ -16,7 +16,7 @@ export function RealtimeShowcasePage() {
   const [activeTab, setActiveTab] = useState("telemetry");
 
   return (
-    <div className="mx-auto max-w-7xl flex-1 space-y-6 p-4 pt-6 md:p-8">
+    <div className="space-y-6">
       {/* Header Bar */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>

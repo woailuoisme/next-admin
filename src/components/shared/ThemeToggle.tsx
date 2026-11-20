@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 
 import { useMemoizedFn } from "ahooks";
 import { Moon, Sun } from "lucide-react";
-import { memo } from "react";
 import { cn } from "cn";
 
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,7 @@ export interface ThemeToggleProps {
   ariaLabel?: string;
 }
 
-export const ThemeToggle = memo(function ThemeToggle({ className, tooltip, ariaLabel }: ThemeToggleProps) {
+export function ThemeToggle({ className, tooltip, ariaLabel }: ThemeToggleProps) {
   const t = useTranslations("shared");
   const mode = usePreferencesStore((s) => s.mode);
   const setMode = usePreferencesStore((s) => s.setMode);
@@ -77,6 +76,6 @@ export const ThemeToggle = memo(function ThemeToggle({ className, tooltip, ariaL
       </TooltipContent>
     </Tooltip>
   );
-});
+}
 
 export default ThemeToggle;

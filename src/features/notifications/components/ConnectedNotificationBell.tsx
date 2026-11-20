@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemoizedFn } from "ahooks";
 import { useRouter } from "next/navigation";
-import { memo, useMemo, useState } from "react";
+import { useState } from "react";
 
 import {
   NotificationBell,
@@ -31,19 +31,14 @@ const EMPTY_ITEMS: NotificationItem[] = [];
 /**
  * 业务连接容器：绑定 notifications 域查询、突变与 Centrifuge 实时推送。
  */
-export const ConnectedNotificationBell = memo(function ConnectedNotificationBell({
-  className,
-}: ConnectedNotificationBellProps = {}) {
+export function ConnectedNotificationBell({ className }: ConnectedNotificationBellProps = {}) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<NotificationTabKey>("all");
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const { category: filterCategory, unreadOnly: filterUnread } = resolveNotificationTabFilters(activeTab);
-  const filters = useMemo(
-    () => ({ category: filterCategory, unreadOnly: filterUnread }),
-    [filterCategory, filterUnread],
-  );
+  const filters = { category: filterCategory, unreadOnly: filterUnread };
 
   const { data: countData } = useUnreadNotificationCount();
   useRealtimeNotifications();
@@ -98,7 +93,7 @@ export const ConnectedNotificationBell = memo(function ConnectedNotificationBell
 
   const handleGotoOverview = useMemoizedFn(() => {
     setOpen(false);
-    router.push("/orders");
+    router.push("/notifications");
   });
 
   return (
@@ -121,4 +116,4 @@ export const ConnectedNotificationBell = memo(function ConnectedNotificationBell
       onGotoOverview={handleGotoOverview}
     />
   );
-});
+}

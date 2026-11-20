@@ -2,7 +2,7 @@
 
 import { useMemoizedFn } from "ahooks";
 import { useFormatter, useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { ChartCard, LazyAreaTrendChart } from "@/components/chart";
 
@@ -24,24 +24,19 @@ export function RevenueChart({ data = EMPTY_REVENUE_DATA, isLoading = false }: R
     format.number(val, { style: "currency", currency: "USD", maximumFractionDigits: 0 }),
   );
 
-  const revenuePeriods = useMemo(
-    () => [
-      { label: t("period_7d"), value: "7D" },
-      { label: t("period_30d"), value: "30D" },
-      { label: t("period_12m"), value: "12M" },
-    ],
-    [t],
-  );
+  const revenuePeriods = [
+    { label: t("period_7d"), value: "7D" },
+    { label: t("period_30d"), value: "30D" },
+    { label: t("period_12m"), value: "12M" },
+  ];
 
   // Map MonthlyTrendPoint data to AreaTrendChart data format filtered by active period
-  const chartData = useMemo(() => {
-    const sliced = activePeriod === "7D" ? data.slice(-3) : activePeriod === "30D" ? data.slice(-6) : data;
-    return sliced.map((item) => ({
-      label: item.month,
-      value: item.revenue,
-      secondaryValue: item.orders * 100, // normalized scale if needed
-    }));
-  }, [data, activePeriod]);
+  const sliced = activePeriod === "7D" ? data.slice(-3) : activePeriod === "30D" ? data.slice(-6) : data;
+  const chartData = sliced.map((item) => ({
+    label: item.month,
+    value: item.revenue,
+    secondaryValue: item.orders * 100, // normalized scale if needed
+  }));
 
   return (
     <ChartCard

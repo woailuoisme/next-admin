@@ -68,10 +68,11 @@
 - **侧边栏 (Sidebar)**：
   - `bg-sidebar`, `text-sidebar-foreground`, `border-sidebar-border`, `bg-sidebar-accent`
 
-### 3.2 圆角与间距规范
+### 3.2 圆角、间距与页面容器规范
 
 - 统一使用主题圆角令牌：`rounded-lg` (标准组件), `rounded-xl` (卡片/大容器), `rounded-md` (小控件), `rounded-full` (头像/圆标)。
 - 阴影统一使用：`shadow-xs`, `shadow-sm`, `shadow-md`，避免过重深色阴影。
+- **页面根容器规范**：[`DashboardShell`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/layout/DashboardShell.tsx) 唯一持有主内容区外层内边距（`p-4 md:p-6 lg:p-8`）；所有 `(app)` 路由组内的业务页面、详情/表单子页与加载骨架屏统一使用全宽 `space-y-6` 根容器，**严禁重复叠加 `p-4`/`p-6`/`p-8` 或 `mx-auto max-w-*`**。
 
 ---
 
@@ -91,6 +92,22 @@
 3. **图标规范**：
    - 统一从 `lucide-react` 导入图标。
    - 图标尺寸建议使用统一类名：`size-3.5` (行内/小按钮), `size-4` (常规控件), `size-5` (标题/统计卡)。
+
+---
+
+## 5. React Compiler 与性能控制规范
+
+本仓库已在 [`next.config.ts`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/next.config.ts) 中启用 `reactCompiler: true`，以 **Compiler 编译期自动记忆化为主，手动 Memo 作为特殊场景的性能控制手段**：
+
+1. **默认禁止手写手动 Memo**：
+   - 编写新组件、新 Hook、业务页面与表单时，**禁止默认编写 `useMemo`、`useCallback`、`React.memo`（或 `memo`）**。
+   - 简单派生表达式、常规配置数组/对象、普通事件回调与叶子展示组件一律交给 React Compiler 自动优化。
+2. **允许使用手动 Memo 的特殊场景白名单**（使用时需简短注释说明原因）：
+   - **高开销计算隔离**：万级数据集遍历、复杂矩阵/拓扑转换等明确昂贵的派生计算。
+   - **第三方库引用稳定性契约**：向 `@tanstack/react-table`、`@tanstack/react-virtual`、`maplibre-gl` 等非 Compiler 感知的外部引擎传递配置、数据源或 Effect 依赖时。
+   - **跨边界严格渲染控制**：通过单元测试显式锁定的行级/单元格渲染隔离边界（如 `DataTableRow`），或配合 `"use no memo"` 局部逃生舱使用。
+   - **稳定事件回调引用**：跨 `useEffect` / 定时器 / 订阅监听器使用的回调，优先使用项目既有的 `useMemoizedFn`（`ahooks`）。
+3. **逃生舱指令**：若极个别命令式组件与 Compiler 自动优化冲突，优先在该组件或 Hook 顶部添加 `"use no memo"` 指令做局部豁免，严禁关闭全局 `reactCompiler`。
 
 <!-- BEGIN:nextjs-agent-rules -->
 

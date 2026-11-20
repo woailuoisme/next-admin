@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { useMemoizedFn } from "ahooks";
 import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from "lucide-react";
-import { memo } from "react";
+import { useRouter } from "next/navigation";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -34,7 +34,7 @@ function getUserInitials(name: string): string {
     .slice(0, 2);
 }
 
-export const NavUserSkeleton = memo(function NavUserSkeleton() {
+export function NavUserSkeleton() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -48,14 +48,14 @@ export const NavUserSkeleton = memo(function NavUserSkeleton() {
       </SidebarMenuItem>
     </SidebarMenu>
   );
-});
+}
 
 export interface NavUserProps {
   defaultOpen?: boolean;
 }
 
 /** 头像 + 姓名/邮箱组合（侧栏按钮与下拉菜单头部共用） */
-const UserIdentity = memo(function UserIdentity({ user, initials }: { user: SidebarUser; initials: string }) {
+function UserIdentity({ user, initials }: { user: SidebarUser; initials: string }) {
   return (
     <>
       <Avatar className="h-8 w-8 rounded-lg after:rounded-lg [&_img]:rounded-lg">
@@ -68,10 +68,11 @@ const UserIdentity = memo(function UserIdentity({ user, initials }: { user: Side
       </div>
     </>
   );
-});
+}
 
-export const NavUser = memo(function NavUser({ defaultOpen }: NavUserProps) {
+export function NavUser({ defaultOpen }: NavUserProps) {
   const t = useTranslations("layout");
+  const router = useRouter();
   const { isMobile, state } = useSidebar();
   const { user, onLogout, isLoggingOut = false } = useLayoutAuth();
 
@@ -121,7 +122,7 @@ export const NavUser = memo(function NavUser({ defaultOpen }: NavUserProps) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onSelect={() => router.push("/profile")}>
                 <BadgeCheck className="mr-2 size-4" />
                 <span>{t("nav_user_account")}</span>
               </DropdownMenuItem>
@@ -129,7 +130,7 @@ export const NavUser = memo(function NavUser({ defaultOpen }: NavUserProps) {
                 <CreditCard className="mr-2 size-4" />
                 <span>{t("nav_user_billing")}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onSelect={() => router.push("/notifications")}>
                 <Bell className="mr-2 size-4" />
                 <span>{t("nav_user_notifications")}</span>
               </DropdownMenuItem>
@@ -151,4 +152,4 @@ export const NavUser = memo(function NavUser({ defaultOpen }: NavUserProps) {
       </SidebarMenuItem>
     </SidebarMenu>
   );
-});
+}

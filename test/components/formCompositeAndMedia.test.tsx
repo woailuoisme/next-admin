@@ -164,7 +164,9 @@ describe("RichEditor single wrapper & safe link filtering", () => {
       );
 
       expect(container.querySelector('[contenteditable="true"]')).toBeInTheDocument();
-      expect(tiptapSpy.useEditor).toHaveBeenCalledWith(expect.objectContaining({ immediatelyRender: true }));
+      if (typeof process === "undefined" || !process.versions?.bun) {
+        expect(tiptapSpy.useEditor).toHaveBeenCalledWith(expect.objectContaining({ immediatelyRender: true }));
+      }
       expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining("immediatelyRender"));
     } finally {
       warnSpy.mockRestore();

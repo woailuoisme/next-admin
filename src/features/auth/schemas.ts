@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { sanitizeUrl } from "@/components/shared/url";
+
 export const loginSchema = z.object({
   email: z.email(),
   password: z.string().min(6),
@@ -64,6 +66,55 @@ export const resetPasswordSchema = buildResetPasswordSchema({
   mismatch: "Passwords do not match",
 });
 
+export const PASSWORD_REQUIREMENT_LABEL_KEYS = [
+  "password_req_length",
+  "password_req_case",
+  "password_req_number",
+  "password_req_symbol",
+] as const;
+
 export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 export type VerifyOtpValues = z.infer<typeof verifyOtpSchema>;
 export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+
+export function buildProfileSchema(messages: { nameRequired: string; avatarInvalid: string }) {
+  return z.object({
+    name: z.string().trim().min(2, messages.nameRequired),
+    avatarUrl: z
+      .string()
+      .trim()
+      .refine(
+        (val) => !val || sanitizeUrl(val, { allowRelative: true, allowBareDomain: false }) !== null,
+        messages.avatarInvalid,
+      ),
+  });
+}
+
+export function buildChangePasswordSchema(
+  messages: ResetPasswordMessages & { currentRequired: string },
+  currentEmail?: string,
+) {
+  return z
+    .object({
+      currentPassword: z.string().min(1, messages.currentRequired),
+      newPassword: z.string(),
+      confirmPassword: z.string(),
+    })
+    .superRefine(({ newPassword, confirmPassword }, ctx) => {
+      if (newPassword.length < MIN_PASSWORD_LENGTH) {
+        ctx.addIssue({ code: "custom", path: ["newPassword"], message: messages.tooShort });
+        return;
+      }
+      if (!isStrongEnough(newPassword)) {
+        ctx.addIssue({ code: "custom", path: ["newPassword"], message: messages.tooWeak });
+        return;
+      }
+      if (currentEmail && newPassword.toLowerCase() === currentEmail.toLowerCase()) {
+        ctx.addIssue({ code: "custom", path: ["newPassword"], message: messages.sameAsEmail });
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        ctx.addIssue({ code: "custom", path: ["confirmPassword"], message: messages.mismatch });
+      }
+    });
+}
