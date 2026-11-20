@@ -15,6 +15,9 @@ export default defineConfig({
     environment: "happy-dom",
     setupFiles: ["./test/setup.ts"],
     include: ["test/**/*.test.{ts,tsx}"],
+    // vmThreads/vmForks 不可用（MSW 依赖 BroadcastChannel），isolate 不可关（用例间有状态依赖）
+    pool: "threads",
+    reporters: process.env.CI ? ["dot"] : ["default"],
     server: {
       deps: {
         inline: ["@platejs/math"],
@@ -24,14 +27,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html", "lcov"],
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.d.ts", "src/mocks/**", "src/env.ts", "src/types/**"],
-      // 在增量补齐测试用例后可开启全局阻断门槛：
-      // thresholds: {
-      //   lines: 70,
-      //   functions: 70,
-      //   branches: 65,
-      //   statements: 70,
-      // },
+      exclude: ["src/**/*.d.ts", "src/mocks/**", "src/env.ts", "src/types/**", "test/**", "**/*.config.*"],
     },
   },
 });
