@@ -1,0 +1,73 @@
+version: 2
+updates:
+  # Bun 前端依赖（package.json / bun.lock）
+  - package-ecosystem: "bun"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    groups:
+      # 强关联 UI / 状态引擎套件同批升级，避免子包版本错位
+      platejs:
+        patterns:
+          - "platejs"
+          - "@platejs/*"
+          - "@udecode/cn"
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      dnd-kit:
+        patterns:
+          - "@dnd-kit/*"
+      # 开发/测试工具与生产依赖的 minor/patch 合并批处理；框架大版本保留独立 PR
+      development-minor-patch:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-minor-patch:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Dockerfile 基础镜像（oven/bun、node Alpine）
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      docker-base-images:
+        patterns:
+          - "*"
+
+  # GitHub Actions workflows（.github/workflows/release.yml）
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      actions:
+        patterns:
+          - "*"
