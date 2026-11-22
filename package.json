@@ -45,7 +45,7 @@
     "@tanstack/react-form": "^1.33.5",
     "@tanstack/react-pacer": "^0.24.1",
     "@tanstack/react-query": "^5.108.2",
-    "@tanstack/react-table": "^8",
+    "@tanstack/react-table": "^9",
     "@tanstack/react-virtual": "^3.14.26",
     "@udecode/cn": "^52.3.4",
     "@uploadcn/core": "^0.1.5",
