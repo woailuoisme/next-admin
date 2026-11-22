@@ -54,9 +54,10 @@ export type FileUploadCoreProps = Pick<
   | "showDownload"
   | "showRemove"
   | "readOnly"
+  | "dropzoneClassName"
 > & {
   id: string;
-  value: unknown;
+  value: FileUploadValue | null | undefined;
   onChange: (val: FileUploadValue | null) => void;
   disabled?: boolean;
   hasError?: boolean;

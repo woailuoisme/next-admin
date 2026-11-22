@@ -23,6 +23,3 @@ export const STACK_ALIGN_CLASSES: Record<CellAlignment, string> = {
   center: "justify-center text-center items-center",
   right: "justify-end text-right items-end",
 };
-
-/** @deprecated 请改用 `STACK_ALIGN_CLASSES`（纵向堆叠）或 `TEXT_ALIGN_CLASSES`（横向图文行） */
-export const AVATAR_ALIGN_CLASSES = STACK_ALIGN_CLASSES;

@@ -1,143 +1,139 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
 import { useMemoizedFn } from "ahooks";
 import { useTranslations } from "next-intl";
-import { type ReactNode, useMemo, useRef } from "react";
+import { type ReactNode, useRef } from "react";
 
-import type { DialogSize } from "@/components/dialogs/types";
-import { type ResourceDefinition, useResourceCreate, useResourceUpdate } from "@/lib/resource";
+import { type DialogSize, FormDialog } from "@/components/dialogs";
+import { useAppForm } from "@/components/form";
+import { type ResourceDefinition, useResourceCreate, useResourceDetail, useResourceUpdate } from "@/lib/resource";
 
-import { ResourceFormHost } from "./ResourceFormHost";
 import type { BreadcrumbItem, ResourceFormSlotContext, ResourcePresentation } from "./types";
-import { resolveResourceFormDefaults, safeResourceTranslate } from "./utils";
+import { resolveResourceFormDefaults, safeResourceTranslate } from "./useResourceBridge";
 
 export type { ResourceFormSlotContext };
 
 export interface ResourceFormControllerProps<
-  TItem extends { id: string | number },
-  TInput extends Record<string, unknown>,
+	TItem extends { id: string | number },
+	TInput extends Record<string, unknown>,
 > {
-  resource: ResourceDefinition<TItem, TInput, any, any, any>;
-  presentation: ResourcePresentation;
-  mode: "create" | "edit";
-  entity: TItem | null;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  onAfterSuccess?: (stayOnForm: boolean) => void;
-  size?: DialogSize;
-  allowFullscreen?: boolean;
-  loading?: boolean;
-  breadcrumbs?: BreadcrumbItem[];
-  backTo?: string;
-  resolveFormDefaults?: (entity: TItem | null) => TInput;
-  renderForm: (ctx: ResourceFormSlotContext<TItem>) => ReactNode;
+	resource: ResourceDefinition<TItem, TInput, any, any, any>;
+	presentation: ResourcePresentation;
+	mode?: "create" | "edit";
+	editId?: string | null;
+	entity?: TItem | null;
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
+	onAfterSuccess?: (stayOnForm: boolean) => void;
+	size?: DialogSize;
+	allowFullscreen?: boolean;
+	loading?: boolean;
+	breadcrumbs?: BreadcrumbItem[];
+	backTo?: string;
+	resolveFormDefaults?: (entity: TItem | null) => TInput;
+	renderForm: (ctx: ResourceFormSlotContext<TItem>) => ReactNode;
 }
 
 /**
  * 共享资源表单生命周期控制器（供 ResourceScaffold 与 ResourceSubPageScaffold 共用）：
- * - 统一收口 defaultValues、Zod 校验、create/update mutation 与“保存并继续编辑”；
- * - 编辑模式下强制校验 entity 已就绪（未加载完成前禁用提交并在 submit 中二次保护），杜绝误触发 createMutation。
+ * 统一收口详情补全拉取（`editId`）、`defaultValues` 派生、Zod 校验、`create/update` 提交与“保存并继续编辑”。
  */
 export function ResourceFormController<TItem extends { id: string | number }, TInput extends Record<string, unknown>>({
-  resource,
-  presentation,
-  mode,
-  entity,
-  open,
-  onOpenChange,
-  onAfterSuccess,
-  size,
-  allowFullscreen,
-  loading = false,
-  breadcrumbs,
-  backTo,
-  resolveFormDefaults,
-  renderForm,
+	resource,
+	presentation,
+	mode: explicitMode,
+	editId = null,
+	entity: explicitEntity = null,
+	open = true,
+	onOpenChange,
+	onAfterSuccess,
+	size,
+	allowFullscreen,
+	loading = false,
+	breadcrumbs,
+	backTo,
+	resolveFormDefaults,
+	renderForm,
 }: ResourceFormControllerProps<TItem, TInput>) {
-  const t = useTranslations(resource.i18nNamespace as never);
-  const createMutation = useResourceCreate(resource);
-  const updateMutation = useResourceUpdate(resource);
-  const keepOpenAfterSubmitRef = useRef(false);
+	const t = useTranslations(resource.i18nNamespace as never);
+	const createMutation = useResourceCreate(resource);
+	const updateMutation = useResourceUpdate(resource);
+	const keepOpenAfterSubmitRef = useRef(false);
 
-  const isEditing = mode === "edit";
-  const isEditingEntityMissing = isEditing && !entity;
-  const isDetailLoading = isEditing && loading && !entity;
-  const isPending = createMutation.isPending || updateMutation.isPending;
+	const shouldFetchDetail = Boolean(open && editId && !explicitEntity);
+	const detailQuery = useResourceDetail(resource, editId ?? "", { enabled: shouldFetchDetail });
+	const effectiveEntity = explicitEntity ?? detailQuery.data ?? null;
+	const mode: "create" | "edit" = explicitMode ?? (editId ? "edit" : "create");
 
-  const defaultValues = useMemo<TInput>(
-    () => resolveResourceFormDefaults(resource, entity, resolveFormDefaults),
-    [entity, resolveFormDefaults, resource],
-  );
+	const isEditing = mode === "edit";
+	const isEditingEntityMissing = isEditing && !effectiveEntity;
+	const isDetailLoading = isEditing && (loading || (shouldFetchDetail && detailQuery.isLoading)) && !effectiveEntity;
+	const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const handleSubmit = useMemoizedFn(async ({ value }: { value: TInput }) => {
-    const stay = keepOpenAfterSubmitRef.current;
-    keepOpenAfterSubmitRef.current = false;
-    try {
-      if (isEditing) {
-        if (!entity) return;
-        await updateMutation.mutateAsync({
-          id: String(entity.id),
-          input: value,
-        });
-      } else {
-        await createMutation.mutateAsync(value);
-      }
-    } catch {
-      // 变更错误已由 useResourceCreate / useResourceUpdate 的 onError 统一处理，
-      // 阻止异常穿透 fire-and-forget 的 form.handleSubmit() 产生未捕获 Promise 拒绝。
-      return;
-    }
-    onAfterSuccess?.(stay);
-    if (!stay) {
-      onOpenChange?.(false);
-    }
-  });
+	const defaultValues = resolveResourceFormDefaults(resource, effectiveEntity, resolveFormDefaults);
 
-  const form = useForm({
-    defaultValues,
-    validators: resource.schema ? { onChange: resource.schema as never } : undefined,
-    onSubmit: handleSubmit,
-  });
+	const handleSubmit = useMemoizedFn(async ({ value }: { value: TInput }) => {
+		const stay = keepOpenAfterSubmitRef.current;
+		keepOpenAfterSubmitRef.current = false;
+		try {
+			if (isEditing) {
+				if (!effectiveEntity) return;
+				await updateMutation.mutateAsync({ id: String(effectiveEntity.id), input: value });
+			} else {
+				await createMutation.mutateAsync(value);
+			}
+		} catch {
+			return;
+		}
+		onAfterSuccess?.(stay);
+		if (!stay) onOpenChange?.(false);
+	});
 
-  const handleSaveAndContinue = useMemoizedFn(async () => {
-    keepOpenAfterSubmitRef.current = true;
-    try {
-      await form.handleSubmit();
-    } finally {
-      keepOpenAfterSubmitRef.current = false;
-    }
-  });
+	const form = useAppForm({
+		defaultValues,
+		validators: resource.schema ? { onChange: resource.schema as never } : undefined,
+		onSubmit: handleSubmit,
+	});
 
-  const createTitle = safeResourceTranslate(t, resource.i18nKeys.formCreateTitle);
-  const editTitle = safeResourceTranslate(t, resource.i18nKeys.formEditTitle);
-  const createDesc = safeResourceTranslate(t, resource.i18nKeys.formCreateDesc);
-  const editDesc = safeResourceTranslate(t, resource.i18nKeys.formEditDesc);
-  const fallbackDesc = safeResourceTranslate(t, "form_desc");
+	const handleSaveAndContinue = useMemoizedFn(async () => {
+		keepOpenAfterSubmitRef.current = true;
+		try {
+			await form.handleSubmit();
+		} finally {
+			keepOpenAfterSubmitRef.current = false;
+		}
+	});
 
-  return (
-    <ResourceFormHost
-      presentation={presentation}
-      open={open}
-      onOpenChange={onOpenChange}
-      form={form}
-      defaultValues={defaultValues}
-      mode={mode}
-      entity={entity}
-      entityName={resource.entityName}
-      createTitle={createTitle}
-      editTitle={editTitle}
-      description={isEditing ? (editDesc ?? fallbackDesc) : (createDesc ?? fallbackDesc)}
-      size={size}
-      allowFullscreen={allowFullscreen}
-      breadcrumbs={breadcrumbs}
-      backTo={backTo}
-      loading={isDetailLoading}
-      isSubmitting={isPending}
-      isSubmitDisabled={isEditingEntityMissing}
-      onSaveAndContinue={handleSaveAndContinue}
-    >
-      {renderForm({ form, mode, entity, isEditing, isSubmitting: isPending })}
-    </ResourceFormHost>
-  );
+	const createTitle = safeResourceTranslate(t, resource.i18nKeys.formCreateTitle);
+	const editTitle = safeResourceTranslate(t, resource.i18nKeys.formEditTitle);
+	const createDesc = safeResourceTranslate(t, resource.i18nKeys.formCreateDesc);
+	const editDesc = safeResourceTranslate(t, resource.i18nKeys.formEditDesc);
+	const fallbackDesc = safeResourceTranslate(t, "form_desc");
+
+	return (
+		<FormDialog
+			presentation={presentation}
+			open={open}
+			onOpenChange={onOpenChange}
+			form={form}
+			defaultValues={defaultValues}
+			mode={mode}
+			entity={effectiveEntity}
+			entityName={resource.entityName}
+			createTitle={createTitle}
+			editTitle={editTitle}
+			description={isEditing ? (editDesc ?? fallbackDesc) : (createDesc ?? fallbackDesc)}
+			size={size}
+			allowFullscreen={allowFullscreen}
+			breadcrumbs={breadcrumbs}
+			backTo={backTo}
+			enableDirtyGuard
+			loading={isDetailLoading}
+			isSubmitting={isPending}
+			isSubmitDisabled={isEditingEntityMissing}
+			onSaveAndContinue={handleSaveAndContinue}
+		>
+			{renderForm({ form, mode, entity: effectiveEntity, isEditing, isSubmitting: isPending })}
+		</FormDialog>
+	);
 }

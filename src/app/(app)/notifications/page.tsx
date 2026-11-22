@@ -4,9 +4,9 @@ import { NotificationsSkeleton } from "@/features/notifications/components/Notif
 import { NotificationsPage } from "@/features/notifications/pages/NotificationsPage";
 
 export default function Page() {
-  return (
-    <Suspense fallback={<NotificationsSkeleton />}>
-      <NotificationsPage />
-    </Suspense>
-  );
+	return (
+		<Suspense fallback={<NotificationsSkeleton />}>
+			<NotificationsPage />
+		</Suspense>
+	);
 }

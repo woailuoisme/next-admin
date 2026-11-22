@@ -3,7 +3,7 @@ import ky from "ky";
 import { toast } from "sonner";
 
 import { env } from "@/env";
-import { clearAuthSession, getAuthToken } from "@/stores/auth";
+import { clearAuthSession, getAuthToken } from "@/features/auth";
 
 export function toSearchParams(params: unknown): string {
   if (!isPlainObject(params)) return "";

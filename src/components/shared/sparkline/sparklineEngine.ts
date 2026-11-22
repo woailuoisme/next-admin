@@ -29,6 +29,8 @@ export interface SparklineGeometryInput {
   width?: number;
   height?: number;
   padding?: number;
+  barWidth?: number;
+  barGap?: number;
 }
 
 export interface SparklineGeometryResult {
@@ -39,6 +41,7 @@ export interface SparklineGeometryResult {
   first: number;
   last: number;
   trend: SparklineTrend;
+  totalWidth: number;
   linePath: string;
   areaPath: string;
   bars: SparklineBarGeometry[];
@@ -58,6 +61,7 @@ const EMPTY_GEOMETRY: SparklineGeometryResult = {
   first: 0,
   last: 0,
   trend: "neutral",
+  totalWidth: 0,
   linePath: "",
   areaPath: "",
   bars: [],
@@ -106,6 +110,8 @@ export function computeSparklineGeometry({
   width = 100,
   height = 32,
   padding = 2,
+  barWidth: explicitBarWidth,
+  barGap: explicitBarGap,
 }: SparklineGeometryInput): SparklineGeometryResult {
   if (!data || data.length === 0) {
     return EMPTY_GEOMETRY;
@@ -155,13 +161,17 @@ export function computeSparklineGeometry({
   const lastPoint = points[points.length - 1] ?? null;
 
   if (variant === "bar") {
-    const barWidth = Math.max(2, round1((width / values.length) * 0.65));
-    const step = width / values.length;
+    const useFixedBarLayout = explicitBarWidth !== undefined || explicitBarGap !== undefined;
+    const fixedBarW = explicitBarWidth ?? 4;
+    const fixedGap = explicitBarGap ?? 2;
+    const resolvedBarWidth = useFixedBarLayout ? fixedBarW : Math.max(2, round1((width / values.length) * 0.65));
+    const step = useFixedBarLayout ? fixedBarW + fixedGap : width / values.length;
+    const totalWidth = useFixedBarLayout ? Math.max(width, values.length * step - fixedGap) : width;
 
     const bars: SparklineBarGeometry[] = values.map((val, idx) => {
       const ratio = max > min ? (val - min) / range : 0.5;
-      const barH = Math.max(3, round1(ratio * effectiveHeight));
-      const x = round1(idx * step + (step - barWidth) / 2);
+      const barH = Math.max(useFixedBarLayout ? 2 : 3, round1(ratio * effectiveHeight));
+      const x = useFixedBarLayout ? idx * step : round1(idx * step + (step - resolvedBarWidth) / 2);
       const y = round1(height - padding - barH);
       const isLast = idx === values.length - 1;
 
@@ -169,7 +179,7 @@ export function computeSparklineGeometry({
         key: idx,
         x,
         y,
-        width: barWidth,
+        width: resolvedBarWidth,
         height: barH,
         opacity: isLast ? 1 : 0.65,
       };
@@ -183,6 +193,7 @@ export function computeSparklineGeometry({
       first,
       last,
       trend,
+      totalWidth,
       linePath: "",
       areaPath: "",
       bars,
@@ -226,6 +237,7 @@ export function computeSparklineGeometry({
     first,
     last,
     trend,
+    totalWidth: width,
     linePath,
     areaPath,
     bars: [],

@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   type LucideIcon,
   MapPin,
+  MousePointerClick,
   Radio,
   Sparkles,
   TableProperties,
@@ -50,6 +51,11 @@ export function getSidebarMenuGroups(tMenu?: MenuTranslator): NavGroup[] {
             title: t("showcase_tables"),
             to: "/showcase/tables",
             icon: TableProperties,
+          },
+          {
+            title: t("showcase_actions"),
+            to: "/showcase/actions",
+            icon: MousePointerClick,
           },
           {
             title: t("showcase_forms"),

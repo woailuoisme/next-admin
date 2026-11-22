@@ -20,15 +20,12 @@ async function updateCategory(id: string, request: Request): Promise<Response> {
   if (chaos) return chaos;
 
   const body = (await request.json()) as Partial<Category>;
-  const existing = db.category.findFirst({
-    where: { id: { equals: id } },
-  });
+  const existing = db.category.findFirst((q) => q.where({ id }));
   if (!existing) {
     return jsonError(404, "NOT_FOUND", "Category not found");
   }
 
-  const updatedCategory = await db.category.update({
-    where: { id: { equals: id } },
+  const updatedCategory = await db.category.update((q) => q.where({ id }), {
     data: body,
   });
 
@@ -87,16 +84,13 @@ export const categoriesHandlers = [
     if (chaos) return chaos;
 
     const { id } = params;
-    const existing = db.category.findFirst({
-      where: { id: { equals: id as string } },
-    });
+    const categoryId = id as string;
+    const existing = db.category.findFirst((q) => q.where({ id: categoryId }));
     if (!existing) {
       return jsonError(404, "NOT_FOUND", "Category not found");
     }
 
-    db.category.delete({
-      where: { id: { equals: id as string } },
-    });
+    db.category.delete((q) => q.where({ id: categoryId }));
 
     return jsonNoContent();
   }),

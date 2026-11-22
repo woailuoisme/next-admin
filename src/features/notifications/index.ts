@@ -1,9 +1,12 @@
 // Public API seam for notifications feature
 export { ConnectedNotificationBell, type ConnectedNotificationBellProps } from "./components/ConnectedNotificationBell";
 export {
-  NOTIFICATIONS_QUERY_KEY,
-  notificationKeys,
-  notificationQueries,
+  type BatchNotificationOptions,
+  doesNotificationMatchFilters,
+  extractNotificationFiltersFromKey,
+  normalizeNotificationFilters,
+  useBatchDeleteNotificationsMutation,
+  useBatchMarkNotificationsReadMutation,
   useDeleteNotificationMutation,
   useMarkAllAsReadMutation,
   useMarkAsReadMutation,
@@ -17,6 +20,7 @@ export {
   fetchNotifications,
   markAllNotificationsAsRead,
   markNotificationAsRead,
+  NOTIFICATION_LIST_KEY_PREFIX,
   notificationsEndpoint,
   selectUnreadCount,
 } from "./resource";

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 
 import dynamic from "next/dynamic";
 import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
-import { memo, useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,156 +19,155 @@ import { ChartSkeleton } from "../shared/ChartSkeleton";
 import type { MessageKeyOf } from "@/types/i18n";
 
 const ChartFullscreenDialog = dynamic(
-  () => import("./ChartFullscreenDialog").then((mod) => mod.ChartFullscreenDialog),
-  { ssr: false },
+	() => import("./ChartFullscreenDialog").then((mod) => mod.ChartFullscreenDialog),
+	{ ssr: false },
 );
 
 const EMPTY_PERIODS: ChartPeriodOption[] = [];
 
 const PERIOD_KEY_MAP: Record<string, MessageKeyOf<"chart">> = {
-  "7D": "period_7d",
-  "30D": "period_30d",
-  "90D": "period_90d",
-  "1Y": "period_1y",
-  "12M": "period_year",
-  day: "period_day",
-  week: "period_week",
-  month: "period_month",
-  year: "period_year",
-  all: "period_all",
+	"7D": "period_7d",
+	"30D": "period_30d",
+	"90D": "period_90d",
+	"1Y": "period_1y",
+	"12M": "period_year",
+	day: "period_day",
+	week: "period_week",
+	month: "period_month",
+	year: "period_year",
+	all: "period_all",
 };
 
-export const ChartCard = memo(function ChartCard({
-  title,
-  description,
-  periods,
-  activePeriod,
-  onPeriodChange,
-  actionSlot,
-  legendSlot,
-  footerSlot,
-  height = 300,
-  isLoading = false,
-  isEmpty = false,
-  emptyMessage,
-  errorMessage,
-  onRetry,
-  skeletonVariant = "trend",
-  className,
-  children,
-  showFullscreen = false,
-  fullscreenHeight = 500,
+export function ChartCard({
+	title,
+	description,
+	periods,
+	activePeriod,
+	onPeriodChange,
+	actionSlot,
+	legendSlot,
+	footerSlot,
+	height = 300,
+	isLoading = false,
+	isEmpty = false,
+	emptyMessage,
+	errorMessage,
+	onRetry,
+	skeletonVariant = "trend",
+	className,
+	children,
+	showFullscreen = false,
+	fullscreenHeight = 500,
 }: ChartCardProps) {
-  const t = useTranslations("chart");
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const handleOpenFullscreen = useCallback(() => {
-    setIsFullscreen(true);
-  }, []);
+	const t = useTranslations("chart");
+	const [isFullscreen, setIsFullscreen] = useState(false);
+	const handleOpenFullscreen = () => {
+		setIsFullscreen(true);
+	};
 
-  // Normalize periods to ChartPeriodOption[]
-  const normalizedPeriods = useMemo<ChartPeriodOption[]>(() => {
-    if (!periods?.length) return EMPTY_PERIODS;
-    return periods.map((p) => {
-      if (typeof p === "string") {
-        const i18nKey = PERIOD_KEY_MAP[p];
-        return { label: i18nKey ? t(i18nKey) : p, value: p };
-      }
-      return p;
-    });
-  }, [periods, t]);
+	// Normalize periods to ChartPeriodOption[]
+	const normalizedPeriods: ChartPeriodOption[] = !periods?.length
+		? EMPTY_PERIODS
+		: periods.map((p) => {
+				if (typeof p === "string") {
+					const i18nKey = PERIOD_KEY_MAP[p];
+					return { label: i18nKey ? t(i18nKey) : p, value: p };
+				}
+				return p;
+			});
 
-  const currentPeriod = activePeriod ?? normalizedPeriods[0]?.value;
+	const currentPeriod = activePeriod ?? normalizedPeriods[0]?.value;
 
-  return (
-    <>
-      <Card className={cn("flex flex-col overflow-hidden border-border/60 shadow-xs", className)}>
-        <CardHeader className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0 space-y-1">
-            <CardTitle className="text-base font-semibold tracking-tight">{title}</CardTitle>
-            {description && <CardDescription className="text-muted-foreground text-xs">{description}</CardDescription>}
-          </div>
+	return (
+		<>
+			<Card className={cn("flex flex-col overflow-hidden border-border/60 shadow-xs", className)}>
+				<CardHeader className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">
+					<div className="min-w-0 space-y-1">
+						<CardTitle className="text-base font-semibold tracking-tight">{title}</CardTitle>
+						{description && <CardDescription className="text-muted-foreground text-xs">{description}</CardDescription>}
+					</div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-            {legendSlot}
+					<div className="flex shrink-0 flex-wrap items-center gap-1.5">
+						{legendSlot}
 
-            {normalizedPeriods.length > 0 && (
-              <Tabs value={currentPeriod} onValueChange={onPeriodChange} className="h-8">
-                <TabsList className="bg-muted/60 h-8 p-0.5">
-                  {normalizedPeriods.map((opt) => (
-                    <TabsTrigger
-                      key={opt.value}
-                      value={opt.value}
-                      className="data-[state=active]:bg-background h-7 px-2.5 text-xs data-[state=active]:shadow-2xs"
-                    >
-                      {opt.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            )}
+						{normalizedPeriods.length > 0 && (
+							<Tabs value={currentPeriod} onValueChange={onPeriodChange} className="h-8">
+								<TabsList className="bg-muted/60 h-8 p-0.5">
+									{normalizedPeriods.map((opt) => (
+										<TabsTrigger
+											key={opt.value}
+											value={opt.value}
+											className="data-[state=active]:bg-background h-7 px-2.5 text-xs data-[state=active]:shadow-2xs"
+										>
+											{opt.label}
+										</TabsTrigger>
+									))}
+								</TabsList>
+							</Tabs>
+						)}
 
-            {actionSlot}
+						{actionSlot}
 
-            {showFullscreen && (
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={handleOpenFullscreen}
-                disabled={isLoading || isEmpty}
-                className="text-muted-foreground hover:text-foreground size-8"
-                title={t("fullscreen_title")}
-                aria-label={t("fullscreen_title")}
-              >
-                <Maximize2 className="size-3.5" aria-hidden="true" />
-              </Button>
-            )}
-          </div>
-        </CardHeader>
+						{showFullscreen && (
+							<Button
+								type="button"
+								variant="outline"
+								size="icon"
+								onClick={handleOpenFullscreen}
+								disabled={isLoading || isEmpty}
+								className="text-muted-foreground hover:text-foreground size-8"
+								title={t("fullscreen_title")}
+								aria-label={t("fullscreen_title")}
+							>
+								<Maximize2 className="size-3.5" aria-hidden="true" />
+							</Button>
+						)}
+					</div>
+				</CardHeader>
 
-        <CardContent className="min-w-0 flex-1 pt-2 pb-5">
-          {isLoading ? (
-            <ChartSkeleton height={height} variant={skeletonVariant} />
-          ) : errorMessage ? (
-            <div
-              className="flex w-full flex-col items-center justify-center space-y-3 p-6 text-center"
-              style={{ height }}
-            >
-              <div className="bg-destructive/10 text-destructive rounded-full p-2.5">
-                <AlertCircle className="size-5" aria-hidden="true" />
-              </div>
-              <p className="text-destructive text-sm font-medium">{errorMessage}</p>
-              {onRetry && (
-                <Button type="button" variant="outline" size="sm" onClick={onRetry} className="h-8 gap-1.5 text-xs">
-                  <RefreshCw className="size-3.5" aria-hidden="true" />
-                  {t("retry")}
-                </Button>
-              )}
-            </div>
-          ) : isEmpty ? (
-            <ChartEmptyState message={emptyMessage} height={height} />
-          ) : (
-            <div className="w-full min-w-0" style={{ height }}>
-              <ChartProvider height={height}>{children}</ChartProvider>
-            </div>
-          )}
+				<CardContent className="min-w-0 flex-1 pt-2 pb-5">
+					{isLoading ? (
+						<ChartSkeleton height={height} variant={skeletonVariant} />
+					) : errorMessage ? (
+						<div
+							className="flex w-full flex-col items-center justify-center space-y-3 p-6 text-center"
+							style={{ height }}
+						>
+							<div className="bg-destructive/10 text-destructive rounded-full p-2.5">
+								<AlertCircle className="size-5" aria-hidden="true" />
+							</div>
+							<p className="text-destructive text-sm font-medium">{errorMessage}</p>
+							{onRetry && (
+								<Button type="button" variant="outline" size="sm" onClick={onRetry} className="h-8 gap-1.5 text-xs">
+									<RefreshCw className="size-3.5" aria-hidden="true" />
+									{t("retry")}
+								</Button>
+							)}
+						</div>
+					) : isEmpty ? (
+						<ChartEmptyState message={emptyMessage} height={height} />
+					) : (
+						<div className="w-full min-w-0" style={{ height }}>
+							<ChartProvider height={height}>{children}</ChartProvider>
+						</div>
+					)}
 
-          {footerSlot && <div className="border-border/40 mt-2 border-t pt-4">{footerSlot}</div>}
-        </CardContent>
-      </Card>
+					{footerSlot && <div className="border-border/40 mt-2 border-t pt-4">{footerSlot}</div>}
+				</CardContent>
+			</Card>
 
-      {/* Fullscreen Focus Dialog (Lazy loaded on demand) */}
-      {showFullscreen && isFullscreen && (
-        <ChartFullscreenDialog
-          open={isFullscreen}
-          onOpenChange={setIsFullscreen}
-          title={title}
-          description={description}
-          fullscreenHeight={fullscreenHeight}
-        >
-          {children}
-        </ChartFullscreenDialog>
-      )}
-    </>
-  );
-});
+			{/* Fullscreen Focus Dialog (Lazy loaded on demand) */}
+			{showFullscreen && isFullscreen && (
+				<ChartFullscreenDialog
+					open={isFullscreen}
+					onOpenChange={setIsFullscreen}
+					title={title}
+					description={description}
+					fullscreenHeight={fullscreenHeight}
+				>
+					{children}
+				</ChartFullscreenDialog>
+			)}
+		</>
+	);
+}

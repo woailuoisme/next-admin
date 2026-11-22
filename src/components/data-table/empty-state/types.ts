@@ -38,11 +38,3 @@ export interface TableEmptyStateContext {
 export interface TableEmptyStateConfig extends TableEmptyStateProps {
   filtered?: TableEmptyStateProps;
 }
-
-// Aliases for DataTable compatibility
-export type DataTableEmptyStateIconColor = TableEmptyStateIconColor;
-export type DataTableEmptyStateSize = TableEmptyStateSize;
-export type DataTableEmptyStateAction = TableEmptyStateAction;
-export type DataTableEmptyStateProps = TableEmptyStateProps;
-export type DataTableEmptyStateContext = TableEmptyStateContext;
-export type DataTableEmptyStateConfig = TableEmptyStateConfig;

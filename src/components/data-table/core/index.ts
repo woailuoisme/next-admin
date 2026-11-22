@@ -4,8 +4,14 @@ export {
   useDataTableContext,
   useOptionalDataTableContext,
   type DataTableConfigContextValue,
-  type DataTableContextValue,
 } from "./DataTableContext";
+export {
+  computePinningOffsets,
+  resolveNextSortDirection,
+  resolvePinnedFields,
+  type ComputePinningOffsetsOptions,
+} from "./tableEngineHelpers";
+export { useDataTableEngine, type UseDataTableEngineOptions } from "./useDataTableEngine";
 export * from "./constants";
 export { baseTableSearchSchema, type BaseTableSearchParams } from "./tableSearchSchema";
 export * from "./types";

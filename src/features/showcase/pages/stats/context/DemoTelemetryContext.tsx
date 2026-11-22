@@ -7,18 +7,18 @@ import type { LiveStatus } from "@/components/stats/live-card/types";
 import { useDemoTelemetryTicker } from "../hooks/useDemoTelemetryTicker";
 
 export interface DemoTelemetryData {
-  value: number;
-  sparklineData: number[];
-  status: LiveStatus;
-  lastUpdated: string;
+	value: number;
+	sparklineData: number[];
+	status: LiveStatus;
+	lastUpdated: string;
 }
 
 export interface DemoTelemetryControls {
-  isRunning: boolean;
-  toggle: () => void;
-  start: () => void;
-  stop: () => void;
-  tick: () => void;
+	isRunning: boolean;
+	toggle: () => void;
+	start: () => void;
+	stop: () => void;
+	tick: () => void;
 }
 
 const DemoTelemetryDataContext = createContext<DemoTelemetryData | null>(null);
@@ -29,55 +29,55 @@ const DemoTelemetryControlsContext = createContext<DemoTelemetryControls | null>
  * Showcase tabs and Recharts containers never re-render on telemetry ticks.
  */
 export function DemoTelemetryProvider({ children }: { children: ReactNode }) {
-  const ticker = useDemoTelemetryTicker({
-    initialValue: 1420,
-    intervalMs: 2500,
-    bufferSize: 12,
-    min: 1200,
-    max: 1800,
-    volatility: 0.04,
-  });
+	const ticker = useDemoTelemetryTicker({
+		initialValue: 1420,
+		intervalMs: 2500,
+		bufferSize: 12,
+		min: 1200,
+		max: 1800,
+		volatility: 0.04,
+	});
 
-  const dataValue = useMemo<DemoTelemetryData>(
-    () => ({
-      value: ticker.value,
-      sparklineData: ticker.sparklineData,
-      status: ticker.status,
-      lastUpdated: ticker.lastUpdated,
-    }),
-    [ticker.value, ticker.sparklineData, ticker.status, ticker.lastUpdated],
-  );
+	const dataValue = useMemo<DemoTelemetryData>(
+		() => ({
+			value: ticker.value,
+			sparklineData: ticker.sparklineData,
+			status: ticker.status,
+			lastUpdated: ticker.lastUpdated,
+		}),
+		[ticker.value, ticker.sparklineData, ticker.status, ticker.lastUpdated],
+	);
 
-  const controlsValue = useMemo<DemoTelemetryControls>(
-    () => ({
-      isRunning: ticker.isRunning,
-      toggle: ticker.toggle,
-      start: ticker.start,
-      stop: ticker.stop,
-      tick: ticker.tick,
-    }),
-    [ticker.isRunning, ticker.toggle, ticker.start, ticker.stop, ticker.tick],
-  );
+	const controlsValue = useMemo<DemoTelemetryControls>(
+		() => ({
+			isRunning: ticker.isRunning,
+			toggle: ticker.toggle,
+			start: ticker.start,
+			stop: ticker.stop,
+			tick: ticker.tick,
+		}),
+		[ticker.isRunning, ticker.toggle, ticker.start, ticker.stop, ticker.tick],
+	);
 
-  return (
-    <DemoTelemetryControlsContext value={controlsValue}>
-      <DemoTelemetryDataContext value={dataValue}>{children}</DemoTelemetryDataContext>
-    </DemoTelemetryControlsContext>
-  );
+	return (
+		<DemoTelemetryControlsContext value={controlsValue}>
+			<DemoTelemetryDataContext value={dataValue}>{children}</DemoTelemetryDataContext>
+		</DemoTelemetryControlsContext>
+	);
 }
 
 export function useDemoTelemetryData(): DemoTelemetryData {
-  const ctx = useContext(DemoTelemetryDataContext);
-  if (!ctx) {
-    throw new Error("useDemoTelemetryData must be used inside DemoTelemetryProvider");
-  }
-  return ctx;
+	const ctx = useContext(DemoTelemetryDataContext);
+	if (!ctx) {
+		throw new Error("useDemoTelemetryData must be used inside DemoTelemetryProvider");
+	}
+	return ctx;
 }
 
 export function useDemoTelemetryControls(): DemoTelemetryControls {
-  const ctx = useContext(DemoTelemetryControlsContext);
-  if (!ctx) {
-    throw new Error("useDemoTelemetryControls must be used inside DemoTelemetryProvider");
-  }
-  return ctx;
+	const ctx = useContext(DemoTelemetryControlsContext);
+	if (!ctx) {
+		throw new Error("useDemoTelemetryControls must be used inside DemoTelemetryProvider");
+	}
+	return ctx;
 }

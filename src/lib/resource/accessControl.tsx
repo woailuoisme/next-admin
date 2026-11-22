@@ -6,15 +6,15 @@ import { APP_RESOURCE_LIST } from "./manifest";
 import type { ResourceActionName } from "./types";
 
 export interface AccessControlParams {
-  resource: string;
-  action: ResourceActionName;
-  record?: unknown;
+	resource: string;
+	action: ResourceActionName;
+	record?: unknown;
 }
 
 export type AccessControlEvaluator = (params: AccessControlParams) => boolean;
 
 export interface AccessControlContextValue {
-  can: AccessControlEvaluator;
+	can: AccessControlEvaluator;
 }
 
 /**
@@ -23,42 +23,42 @@ export interface AccessControlContextValue {
  * - 若声明了角色限制但当前用户无角色（`!userRole`），默认拒绝。
  */
 export function createRoleAccessEvaluator(userRole?: string | null): AccessControlEvaluator {
-  const policyMap = new Map(
-    APP_RESOURCE_LIST.map((item) => [item.name, { roles: item.roles, permissions: item.permissions }]),
-  );
+	const policyMap = new Map(
+		APP_RESOURCE_LIST.map((item) => [item.name, { roles: item.roles, permissions: item.permissions }]),
+	);
 
-  return ({ resource, action }) => {
-    const policy = policyMap.get(resource);
-    const allowedRoles = policy?.permissions?.[action] ?? policy?.roles;
-    if (!allowedRoles?.length) {
-      return true;
-    }
-    if (!userRole) {
-      return false;
-    }
-    return allowedRoles.includes(userRole);
-  };
+	return ({ resource, action }) => {
+		const policy = policyMap.get(resource);
+		const allowedRoles = policy?.permissions?.[action] ?? policy?.roles;
+		if (!allowedRoles?.length) {
+			return true;
+		}
+		if (!userRole) {
+			return false;
+		}
+		return allowedRoles.includes(userRole);
+	};
 }
 
 const DEFAULT_EVALUATOR: AccessControlEvaluator = () => true;
 
 const AccessControlContext = createContext<AccessControlContextValue>({
-  can: DEFAULT_EVALUATOR,
+	can: DEFAULT_EVALUATOR,
 });
 
 export interface AccessControlProviderProps {
-  evaluator?: AccessControlEvaluator;
-  children: ReactNode;
+	evaluator?: AccessControlEvaluator;
+	children: ReactNode;
 }
 
 export function AccessControlProvider({ evaluator = DEFAULT_EVALUATOR, children }: AccessControlProviderProps) {
-  const can = useCallback<AccessControlEvaluator>((params) => evaluator(params), [evaluator]);
-  const value = useMemo(() => ({ can }), [can]);
-  return <AccessControlContext value={value}>{children}</AccessControlContext>;
+	const can = useCallback<AccessControlEvaluator>((params) => evaluator(params), [evaluator]);
+	const value = useMemo(() => ({ can }), [can]);
+	return <AccessControlContext value={value}>{children}</AccessControlContext>;
 }
 
 export function useAccessControl(): AccessControlContextValue {
-  return useContext(AccessControlContext);
+	return useContext(AccessControlContext);
 }
 
 /**
@@ -67,19 +67,19 @@ export function useAccessControl(): AccessControlContextValue {
  * 用于统一控制新建按钮、行操作（view/edit/delete）及自定义动作的显隐。
  */
 export function useCan(resource: string, action: ResourceActionName, record?: unknown): boolean {
-  const { can } = useContext(AccessControlContext);
-  return can({ resource, action, record });
+	const { can } = useContext(AccessControlContext);
+	return can({ resource, action, record });
 }
 
 export interface CanAccessProps {
-  resource: string;
-  action: ResourceActionName;
-  record?: unknown;
-  fallback?: ReactNode;
-  children: ReactNode;
+	resource: string;
+	action: ResourceActionName;
+	record?: unknown;
+	fallback?: ReactNode;
+	children: ReactNode;
 }
 
 export function CanAccess({ resource, action, record, fallback = null, children }: CanAccessProps) {
-  const allowed = useCan(resource, action, record);
-  return allowed ? children : fallback;
+	const allowed = useCan(resource, action, record);
+	return allowed ? children : fallback;
 }

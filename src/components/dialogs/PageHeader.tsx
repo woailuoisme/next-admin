@@ -1,0 +1,111 @@
+"use client";
+
+import { ArrowLeft } from "lucide-react";
+import type { Route } from "next";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { Fragment, type ReactNode } from "react";
+
+import {
+	Breadcrumb,
+	BreadcrumbItem as UiBreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { cn } from "cn";
+
+import type { BreadcrumbItem } from "./types";
+import { useBackNavigation } from "./useBackNavigation";
+
+export interface PageHeaderProps {
+	title: ReactNode;
+	description?: ReactNode;
+	badge?: ReactNode;
+	breadcrumbs?: BreadcrumbItem[];
+	backTo?: string | (() => void);
+	backLabel?: ReactNode;
+	extraActions?: ReactNode;
+	className?: string;
+}
+
+export function PageHeader({
+	title,
+	description,
+	badge,
+	breadcrumbs,
+	backTo,
+	backLabel,
+	extraActions,
+	className,
+}: PageHeaderProps) {
+	const t = useTranslations("resource");
+	const handleBack = useBackNavigation(backTo);
+	const resolvedBackLabel = backLabel ?? t("back");
+	const backTitle = typeof resolvedBackLabel === "string" ? resolvedBackLabel : t("back");
+
+	return (
+		<div className={cn("border-border/70 flex flex-col gap-3 border-b pb-5", className)}>
+			{breadcrumbs && breadcrumbs.length > 0 ? (
+				<Breadcrumb aria-label={t("breadcrumb_aria")} className="text-xs">
+					<BreadcrumbList className="gap-1.5 text-xs">
+						{breadcrumbs.map((item, index) => {
+							const isLast = index === breadcrumbs.length - 1;
+							const itemKey = item.href
+								? `${item.href}-${index}`
+								: `${typeof item.label === "string" ? item.label : index}`;
+							return (
+								<Fragment key={itemKey}>
+									{index > 0 ? <BreadcrumbSeparator className="[&>svg]:size-3" /> : null}
+									<UiBreadcrumbItem>
+										{item.href && !isLast ? (
+											<BreadcrumbLink asChild className="hover:text-foreground text-xs font-medium transition-colors">
+												<Link href={item.href as Route}>{item.label}</Link>
+											</BreadcrumbLink>
+										) : (
+											<BreadcrumbPage className={cn("text-xs", isLast && "text-foreground font-semibold")}>
+												{item.label}
+											</BreadcrumbPage>
+										)}
+									</UiBreadcrumbItem>
+								</Fragment>
+							);
+						})}
+					</BreadcrumbList>
+				</Breadcrumb>
+			) : null}
+
+			<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+				<div className="flex items-start gap-3 sm:items-center">
+					{backTo ? (
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon-sm"
+							onClick={handleBack}
+							className="text-muted-foreground hover:text-foreground mt-0.5 -ml-2 rounded-lg sm:mt-0"
+							title={backTitle}
+							aria-label={backTitle}
+						>
+							<ArrowLeft className="size-4" />
+						</Button>
+					) : null}
+
+					<div>
+						<div className="flex flex-wrap items-center gap-2.5">
+							<h1 className="text-foreground text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
+							{badge ? <div>{badge}</div> : null}
+						</div>
+						{description ? <p className="text-muted-foreground mt-1 text-xs sm:text-sm">{description}</p> : null}
+					</div>
+				</div>
+
+				{extraActions ? (
+					<div className="flex shrink-0 items-center gap-2 self-start sm:self-auto">{extraActions}</div>
+				) : null}
+			</div>
+		</div>
+	);
+}

@@ -14,7 +14,6 @@ export const categoryInputSchema = z.object({
 export const categorySearchSchema = baseTableSearchSchema.extend({
   createCategory: z.boolean().optional(),
   editCategoryId: z.string().optional(),
-  deleteCategoryId: z.string().optional(),
 });
 
 export const categoryResource = defineResource<Category, CategoryInput, CategorySearchParams, Category[]>({
@@ -28,7 +27,6 @@ export const categoryResource = defineResource<Category, CategoryInput, Category
   modalKeys: {
     createKey: "createCategory",
     editKey: "editCategoryId",
-    deleteKey: "deleteCategoryId",
   },
   i18nKeys: {
     title: "page_title",

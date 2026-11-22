@@ -9,13 +9,10 @@ async function markAllNotificationsAsRead(request: Request): Promise<Response> {
   const chaos = checkChaosError(request);
   if (chaos) return chaos;
 
-  const unread = db.notification.findMany({
-    where: { read: { equals: false } },
-  });
+  const unread = db.notification.findMany((q) => q.where({ read: false }));
 
   for (const item of unread) {
-    await db.notification.update({
-      where: { id: { equals: item.id } },
+    await db.notification.update((q) => q.where({ id: item.id }), {
       data: { read: true },
     });
   }
@@ -60,9 +57,8 @@ export const notificationHandlers = [
     if (chaos) return chaos;
 
     const { id } = params;
-    const target = db.notification.findFirst({
-      where: { id: { equals: id as string } },
-    });
+    const targetId = id as string;
+    const target = db.notification.findFirst((q) => q.where({ id: targetId }));
 
     if (!target) {
       return jsonError(404, "NOT_FOUND", "Notification not found");
@@ -76,8 +72,7 @@ export const notificationHandlers = [
     }
 
     const isRead = body.isRead ?? body.read ?? true;
-    const updated = await db.notification.update({
-      where: { id: { equals: id as string } },
+    const updated = await db.notification.update((q) => q.where({ id: targetId }), {
       data: { read: isRead },
     });
 
@@ -95,16 +90,14 @@ export const notificationHandlers = [
     if (chaos) return chaos;
 
     const { id } = params;
-    const target = db.notification.findFirst({
-      where: { id: { equals: id as string } },
-    });
+    const targetId = id as string;
+    const target = db.notification.findFirst((q) => q.where({ id: targetId }));
 
     if (!target) {
       return jsonError(404, "NOT_FOUND", "Notification not found");
     }
 
-    const updated = await db.notification.update({
-      where: { id: { equals: id as string } },
+    const updated = await db.notification.update((q) => q.where({ id: targetId }), {
       data: { read: true },
     });
 
@@ -130,17 +123,14 @@ export const notificationHandlers = [
     if (chaos) return chaos;
 
     const { id } = params;
-    const target = db.notification.findFirst({
-      where: { id: { equals: id as string } },
-    });
+    const targetId = id as string;
+    const target = db.notification.findFirst((q) => q.where({ id: targetId }));
 
     if (!target) {
       return jsonError(404, "NOT_FOUND", "Notification not found");
     }
 
-    db.notification.delete({
-      where: { id: { equals: id as string } },
-    });
+    db.notification.delete((q) => q.where({ id: targetId }));
 
     return jsonNoContent();
   }),

@@ -1,7 +1,19 @@
-import type { DataTableRowId } from "./types";
+import type { DataTableDensity, DataTableRowId } from "./types";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_PAGE_SIZE_OPTIONS: readonly number[] = [20, 50, 100];
+
+export const DENSITY_ROW_CLASSES: Record<DataTableDensity, string> = {
+  compact: "h-9 py-1 text-xs",
+  comfortable: "h-16 py-3.5 text-sm",
+  standard: "h-12 py-2 text-xs",
+};
+
+export const DENSITY_ROW_HEIGHTS: Record<DataTableDensity, number> = {
+  compact: 36,
+  comfortable: 64,
+  standard: 48,
+};
 
 /** 稳定的空数组引用，用作 memo 组件 props 的兜底默认值 */
 export const EMPTY_ARRAY: never[] = [];

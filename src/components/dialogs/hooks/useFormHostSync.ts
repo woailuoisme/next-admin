@@ -4,13 +4,13 @@ import { useSelector } from "@tanstack/react-form";
 import { isEqual } from "es-toolkit";
 import { useEffect, useRef } from "react";
 
-import type { BaseFormInstance } from "../types";
+import type { AppFormContract } from "@/components/form/core/types";
 
 export interface UseFormHostSyncOptions<TData = Record<string, unknown>> {
   /** Whether the host container is currently active/open (defaults to true for page mode). */
   open?: boolean;
-  /** Bound TanStack Form instance (or mock compatible with BaseFormInstance). */
-  form?: BaseFormInstance;
+  /** Bound TanStack Form instance (or mock compatible with AppFormContract). */
+  form?: AppFormContract;
   /** Entity record being edited or initialized. */
   entity?: TData | null;
   /** Asynchronous or default fallback values; takes precedence over raw entity fields. */
@@ -49,7 +49,7 @@ function mergeDefinedValues(target: Record<string, unknown>, source: Record<stri
 }
 
 /**
- * Shared synchronization & reactive dirty-state hook used by both FormDialog and ResourceFormPage.
+ * Shared synchronization & reactive dirty-state hook used across Dialog / Drawer / Page form surfaces.
  * Keeps `entity`, `defaultValues` (with `defaultValues` precedence), and `form.reset` in sync
  * across modal open cycles, form swaps, and async entity/default updates.
  */
@@ -116,9 +116,9 @@ export function useFormHostSync<TData = Record<string, unknown>>({
       }
 
       if (Object.keys(mergedValues).length > 0) {
-        form.reset(mergedValues);
+        form.reset?.(mergedValues);
       } else {
-        form.reset();
+        form.reset?.();
       }
     }
 

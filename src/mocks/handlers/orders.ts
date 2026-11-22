@@ -90,13 +90,9 @@ export const ordersHandlers = [
     if (chaos) return chaos;
 
     const { id } = params;
+    const key = id as string;
     const order =
-      db.order.findFirst({
-        where: { id: { equals: id as string } },
-      }) ??
-      db.order.findFirst({
-        where: { orderNumber: { equals: id as string } },
-      });
+      db.order.findFirst((q) => q.where({ id: key })) ?? db.order.findFirst((q) => q.where({ orderNumber: key }));
 
     if (!order) {
       return jsonError(404, "NOT_FOUND", "Order not found");
@@ -111,22 +107,17 @@ export const ordersHandlers = [
     if (chaos) return chaos;
 
     const { id } = params;
+    const key = id as string;
     const body = (await request.json()) as { status: OrderStatus };
 
     const existing =
-      db.order.findFirst({
-        where: { id: { equals: id as string } },
-      }) ??
-      db.order.findFirst({
-        where: { orderNumber: { equals: id as string } },
-      });
+      db.order.findFirst((q) => q.where({ id: key })) ?? db.order.findFirst((q) => q.where({ orderNumber: key }));
 
     if (!existing) {
       return jsonError(404, "NOT_FOUND", "Order not found");
     }
 
-    const updated = await db.order.update({
-      where: { id: { equals: existing.id } },
+    const updated = await db.order.update((q) => q.where({ id: existing.id }), {
       data: { status: body.status },
     });
 

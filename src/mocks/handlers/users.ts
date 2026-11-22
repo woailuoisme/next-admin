@@ -61,15 +61,13 @@ export const usersHandlers = [
     const { id } = params;
     const body = (await request.json()) as { status: "active" | "inactive" };
 
-    const customer = db.customer.findFirst({
-      where: { id: { equals: id as string } },
-    });
+    const customerId = id as string;
+    const customer = db.customer.findFirst((q) => q.where({ id: customerId }));
     if (!customer) {
       return jsonError(404, "NOT_FOUND", "Customer not found");
     }
 
-    const updated = await db.customer.update({
-      where: { id: { equals: id as string } },
+    const updated = await db.customer.update((q) => q.where({ id: customerId }), {
       data: { status: body.status },
     });
 

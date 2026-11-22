@@ -4,4 +4,4 @@ export type {
   NotificationItem,
   NotificationListResponse,
   NotificationSeverity,
-} from "@/components/notifications/shared/types";
+} from "@/components/notifications/shared";

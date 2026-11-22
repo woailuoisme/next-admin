@@ -1,18 +1,28 @@
 import type { ComponentType, ReactNode } from "react";
 
 /**
- * Narrow structural interface for TanStack Form (useForm return value) and test doubles.
- * Method syntax keeps parameters bivariant across generic field paths.
+ * 全仓唯一表单实例结构契约（统一收敛 `useAppForm` 返回值、Resource/Action/Dialog 宿主与测试替身）。
+ * 采用方法语法保证泛型字段路径下的双变兼容性。
  */
-export interface FormInstanceLike {
-  Field?(props: any): ReactNode | Promise<ReactNode>;
-  Subscribe?(props: any): ReactNode | Promise<ReactNode>;
+export interface AppFormContract {
+  Field?: ComponentType<any>;
+  Subscribe?: ComponentType<any>;
+  AppField?: ComponentType<any>;
+  AppForm?: ComponentType<any>;
   handleSubmit?(): void | Promise<void>;
-  reset?(): void;
-  setFieldValue?(field: any, value: any): void;
+  reset?(values?: Record<string, unknown>): void;
+  getFieldValue?(field: any): unknown;
+  setFieldValue?(field: any, value: any, opts?: { dontUpdateMeta?: boolean }): void;
+  store?: {
+    get(): { isDirty?: boolean; values?: Record<string, any> } | undefined;
+    subscribe(listener: (value: any) => void): { unsubscribe(): void };
+  };
   state?: {
     isDirty?: boolean;
     values?: Record<string, any>;
+  };
+  options?: {
+    defaultValues?: unknown;
   };
 }
 
@@ -61,7 +71,7 @@ export interface BaseInputProps extends Omit<FieldWrapperProps, "children"> {
   /** 是否只读 */
   readOnly?: boolean;
   /** 显式传递的受控表单实例，如未传递则从 Form 上下文中自动获取 */
-  form?: FormInstanceLike;
+  form?: AppFormContract;
 }
 
 export interface SelectOption<T = string | number> {

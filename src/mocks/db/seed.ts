@@ -2,18 +2,14 @@ import { generateMockData, type MockDatabase } from "../factories";
 import { resetIdempotencyStore } from "../middleware";
 import { db, type MockDb } from "./instance";
 
-/**
- * Drop all records across all database collections.
- */
+/** Drop all records across all database collections. */
 export function dropDatabase(targetDb: MockDb = db): void {
   for (const key of Object.keys(targetDb) as (keyof MockDb)[]) {
     targetDb[key].clear();
   }
 }
 
-/**
- * Seed the mock database deterministically using the factory data generator.
- */
+/** Seed the mock database deterministically using the factory data generator. */
 export async function seedDatabase(seed = 2026): Promise<MockDatabase> {
   dropDatabase(db);
   resetIdempotencyStore();
@@ -31,16 +27,12 @@ export async function seedDatabase(seed = 2026): Promise<MockDatabase> {
   return data;
 }
 
-/**
- * Reset the mock database with a given deterministic seed.
- */
+/** Reset the mock database with a given deterministic seed. */
 export function resetDatabase(seed = 2026): Promise<MockDatabase> {
   return seedDatabase(seed);
 }
 
-/**
- * Retrieve a serializable snapshot of the entire database state.
- */
+/** Retrieve a serializable snapshot of the entire database state. */
 export function getDatabaseSnapshot(): MockDatabase {
   return {
     adminUsers: db.adminUser.getAll(),
@@ -52,16 +44,8 @@ export function getDatabaseSnapshot(): MockDatabase {
   };
 }
 
-// Backward-compatible aliases
-export const drop = dropDatabase;
-export const seedMockDatabase = seedDatabase;
-export const resetDb = resetDatabase;
-export const getDb = getDatabaseSnapshot;
-
-// Initial deterministic in-memory seed
 await seedDatabase();
 
-// Devtools helper attached to window for manual testing in browser console
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   (window as unknown as { __resetMockDb?: () => Promise<MockDatabase> }).__resetMockDb = resetDatabase;
 }

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { baseTableSearchSchema } from "@/components/data-table/core/tableSearchSchema";
 import { categoryResource } from "@/features/categories/resource";
-import { dashboardKeys } from "@/features/dashboard/resource";
+import { dashboardResource } from "@/features/dashboard/resource";
 import { defineResource, RESOURCE_MANIFEST } from "@/lib/resource";
 
 import type { Product, ProductFilters, ProductInput, ProductListResponse } from "./types";
@@ -31,7 +31,6 @@ export const productSearchSchema = baseTableSearchSchema.extend({
   status: productStatusSchema.or(z.literal("all")).optional(),
   createProduct: z.boolean().optional(),
   editProductId: z.string().optional(),
-  deleteProductId: z.string().optional(),
 });
 
 export type ProductSearchParams = z.infer<typeof productSearchSchema>;
@@ -45,9 +44,8 @@ export const productResource = defineResource<Product, ProductInput, ProductFilt
   modalKeys: {
     createKey: "createProduct",
     editKey: "editProductId",
-    deleteKey: "deleteProductId",
   },
-  invalidates: [dashboardKeys.all, categoryResource.keys.all],
+  invalidates: [dashboardResource.keys.all, categoryResource.keys.all],
   defaultValues: {
     title: "",
     slug: "",

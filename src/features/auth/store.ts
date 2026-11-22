@@ -1,4 +1,3 @@
-import { isPlainObject } from "es-toolkit";
 import { create } from "zustand";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 
@@ -15,7 +14,7 @@ export interface AuthStore extends AuthState {
   setIsLoading: (isLoading: boolean) => void;
 }
 
-const AUTH_STORAGE_KEY = "tanstack_admin_auth_session_v1";
+const AUTH_STORAGE_KEY = "next_admin_auth_session";
 
 export const AUTH_COOKIE_NAME = "auth_token";
 
@@ -28,35 +27,8 @@ export function syncAuthCookie(token: string | null): void {
   }
 }
 
-const customStorage: StateStorage = {
-  getItem: (name: string): string | null => {
-    if (typeof window === "undefined") return null;
-    const str = window.localStorage.getItem(name);
-    if (!str) {
-      return null;
-    }
-    try {
-      const parsed = JSON.parse(str);
-      // Already in Zustand persist format
-      if (isPlainObject(parsed) && "state" in parsed) {
-        return str;
-      }
-      // Legacy raw AuthSession format { token, admin }
-      if (isPlainObject(parsed) && "token" in parsed) {
-        const session = parsed as AuthSession;
-        return JSON.stringify({
-          state: {
-            session,
-            isAuthenticated: Boolean(session.token),
-          },
-          version: 0,
-        });
-      }
-    } catch (e) {
-      console.error("Failed to parse auth storage session", e);
-    }
-    return str;
-  },
+const authStorage: StateStorage = {
+  getItem: (name: string): string | null => (typeof window !== "undefined" ? window.localStorage.getItem(name) : null),
   setItem: (name: string, value: string): void => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(name, value);
@@ -113,7 +85,7 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: AUTH_STORAGE_KEY,
-      storage: createJSONStorage(() => customStorage),
+      storage: createJSONStorage(() => authStorage),
       skipHydration: true,
       partialize: (state) => ({
         session: state.session,

@@ -1,123 +1,77 @@
 import { useTranslations } from "next-intl";
-import { Edit2, Eye, Trash2 } from "lucide-react";
 
-import type { ActionItem } from "../cells/action/types";
+import type { ActionEntry } from "@/components/actions";
+
 import type { DataTableColDef, DataTableRenderCellParams } from "../core/types";
 import type { ActionsColOptions } from "./types";
 
 import { ActionsCell } from "../cells/action/ActionsCell";
 
 function ActionsColHeader({ headerName }: { headerName?: string }) {
-  const t = useTranslations("table");
-  return <span>{headerName ?? t("actions_column_title")}</span>;
+	const t = useTranslations("table");
+	return <span>{headerName ?? t("actions_column_title")}</span>;
+}
+
+function estimateActionSlots<T>(entries: readonly ActionEntry<T>[], maxInline: number): number {
+	let inlineCount = 0;
+	let hasDropdown = false;
+
+	for (const entry of entries) {
+		if (entry.kind === "group" && entry.layout === "dropdown") {
+			hasDropdown = true;
+		} else if (entry.kind === "action" && inlineCount < maxInline) {
+			inlineCount++;
+		} else if (entry.kind === "group") {
+			inlineCount++;
+		} else {
+			hasDropdown = true;
+		}
+	}
+
+	return inlineCount + (hasDropdown ? 1 : 0);
 }
 
 /**
  * 操作列构造器 (ActionsColumn)
- * 支持声明式 crud 预置配置以及原生 quickActions/dropdownActions
+ * 统一接收基于 action.* 构造的声明式 ActionEntry[] 数组。
  */
-export function actionsCol<TData = any>(options: ActionsColOptions<TData> = {}): DataTableColDef<TData> {
-  const {
-    field = "actions",
-    headerName,
-    renderHeader: propRenderHeader,
-    quickActions = options.quick,
-    dropdownActions = options.dropdown,
-    maxQuickActions,
-    moreActionsLabel,
-    crud,
-    quick: _quick,
-    dropdown: _dropdown,
-    ...colDef
-  } = options;
+export function actionsCol<TData = any>(options: ActionsColOptions<TData>): DataTableColDef<TData> {
+	const {
+		field = "__actions",
+		headerName,
+		renderHeader: propRenderHeader,
+		actions,
+		maxInline = 2,
+		moreActionsLabel,
+		...colDef
+	} = options;
 
-  const resolvedQuick: ActionItem<TData>[] = [...(quickActions ?? [])];
-  const resolvedDropdown: ActionItem<TData>[] = [...(dropdownActions ?? [])];
+	const totalButtons = estimateActionSlots(actions, maxInline);
+	const calculatedWidth = Math.max(70, totalButtons * 36 + 28);
+	const resolvedWidth = colDef.width ?? calculatedWidth;
+	const resolvedMinWidth = colDef.minWidth ?? calculatedWidth;
 
-  if (crud) {
-    const {
-      onView,
-      viewLabel,
-      isViewHidden,
-      isViewDisabled,
-      onEdit,
-      editLabel,
-      isEditHidden,
-      isEditDisabled,
-      onDelete,
-      deleteLabel,
-      isDeleteHidden,
-      isDeleteDisabled,
-    } = crud;
-
-    if (onView) {
-      resolvedQuick.push({
-        id: "crud-view",
-        label: viewLabel,
-        ariaLabel: viewLabel,
-        icon: Eye,
-        tooltip: viewLabel,
-        onClick: onView,
-        hidden: isViewHidden,
-        disabled: isViewDisabled,
-      });
-    }
-    if (onEdit) {
-      resolvedQuick.push({
-        id: "crud-edit",
-        label: editLabel,
-        ariaLabel: editLabel,
-        icon: Edit2,
-        tooltip: editLabel,
-        onClick: onEdit,
-        hidden: isEditHidden,
-        disabled: isEditDisabled,
-      });
-    }
-    if (onDelete) {
-      resolvedDropdown.push({
-        id: "crud-delete",
-        label: deleteLabel,
-        ariaLabel: deleteLabel,
-        icon: Trash2,
-        tooltip: deleteLabel,
-        destructive: true,
-        onClick: onDelete,
-        hidden: isDeleteHidden,
-        disabled: isDeleteDisabled,
-      });
-    }
-  }
-
-  const quickCount = Math.min(resolvedQuick.length, maxQuickActions ?? 2);
-  const hasDropdown = resolvedDropdown.length > 0 || resolvedQuick.length > (maxQuickActions ?? 2);
-  const totalButtons = quickCount + (hasDropdown ? 1 : 0);
-  const calculatedWidth = Math.max(70, totalButtons * 36 + 28);
-  const resolvedWidth = colDef.width ?? calculatedWidth;
-  const resolvedMinWidth = colDef.minWidth ?? calculatedWidth;
-
-  return {
-    field,
-    type: "actions",
-    headerName: headerName ?? "",
-    renderHeader: propRenderHeader ?? (() => <ActionsColHeader headerName={headerName} />),
-    sortable: false,
-    filterable: false,
-    align: "center",
-    headerAlign: "center",
-    pinned: "right",
-    width: resolvedWidth,
-    minWidth: resolvedMinWidth,
-    renderCell: ({ row }: DataTableRenderCellParams<TData>) => (
-      <ActionsCell
-        row={row}
-        quickActions={resolvedQuick}
-        dropdownActions={resolvedDropdown}
-        maxQuickActions={maxQuickActions}
-        moreActionsLabel={moreActionsLabel}
-        align={colDef.align || "center"}
-      />
-    ),
-    ...colDef,
-  };
+	return {
+		field,
+		type: "actions",
+		headerName: headerName ?? "",
+		renderHeader: propRenderHeader ?? (() => <ActionsColHeader headerName={headerName} />),
+		sortable: false,
+		filterable: false,
+		align: "center",
+		headerAlign: "center",
+		pinned: "right",
+		...colDef,
+		width: resolvedWidth,
+		minWidth: resolvedMinWidth,
+		renderCell: ({ row }: DataTableRenderCellParams<TData>) => (
+			<ActionsCell
+				row={row}
+				actions={actions}
+				maxInline={maxInline}
+				moreActionsLabel={moreActionsLabel}
+				align={colDef.align || "center"}
+			/>
+		),
+	};
 }

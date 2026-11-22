@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, lazy, memo, useCallback } from "react";
+import { Suspense, lazy } from "react";
 
 import type { GlobalSearchProps } from "./types";
 
@@ -10,38 +10,38 @@ import { useGlobalSearch } from "./useGlobalSearch";
 // Prefetch function to load the dialog bundle in idle time, hover, or keypress
 let prefetchPromise: Promise<unknown> | null = null;
 export const prefetchGlobalSearchDialog = () => {
-  if (!prefetchPromise) {
-    prefetchPromise = import("./GlobalSearchDialog");
-  }
-  return prefetchPromise;
+	if (!prefetchPromise) {
+		prefetchPromise = import("./GlobalSearchDialog");
+	}
+	return prefetchPromise;
 };
 
 const GlobalSearchDialog = lazy(() =>
-  import("./GlobalSearchDialog").then((mod) => ({
-    default: mod.GlobalSearchDialog,
-  })),
+	import("./GlobalSearchDialog").then((mod) => ({
+		default: mod.GlobalSearchDialog,
+	})),
 );
 
-export const GlobalSearch = memo(function GlobalSearch({ className, customGroups }: GlobalSearchProps) {
-  const { open, handleOpen, setOpen } = useGlobalSearch({ onPrefetch: prefetchGlobalSearchDialog });
+export function GlobalSearch({ className, customGroups }: GlobalSearchProps) {
+	const { open, handleOpen, setOpen } = useGlobalSearch({ onPrefetch: prefetchGlobalSearchDialog });
 
-  const handlePrefetch = useCallback(() => {
-    prefetchGlobalSearchDialog();
-  }, []);
+	const handlePrefetch = () => {
+		prefetchGlobalSearchDialog();
+	};
 
-  return (
-    <>
-      <GlobalSearchTrigger
-        onClick={handleOpen}
-        onMouseEnter={handlePrefetch}
-        onFocus={handlePrefetch}
-        className={className}
-      />
-      {open ? (
-        <Suspense fallback={null}>
-          <GlobalSearchDialog open={open} onOpenChange={setOpen} customGroups={customGroups} />
-        </Suspense>
-      ) : null}
-    </>
-  );
-});
+	return (
+		<>
+			<GlobalSearchTrigger
+				onClick={handleOpen}
+				onMouseEnter={handlePrefetch}
+				onFocus={handlePrefetch}
+				className={className}
+			/>
+			{open ? (
+				<Suspense fallback={null}>
+					<GlobalSearchDialog open={open} onOpenChange={setOpen} customGroups={customGroups} />
+				</Suspense>
+			) : null}
+		</>
+	);
+}

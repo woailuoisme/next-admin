@@ -1,7 +1,7 @@
 import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { memo, startTransition, useOptimistic, useState } from "react";
+import { startTransition, useOptimistic, useState } from "react";
 import { toast } from "sonner";
 
 import { Switch } from "@/components/ui/switch";
@@ -12,65 +12,65 @@ import type { ToggleCellProps } from "./types";
 import { JUSTIFY_ALIGN_CLASSES } from "../base";
 
 function ToggleCellInner<TData = unknown>({
-  checked = false,
-  row,
-  onCellChange,
-  onToggle,
-  showErrorToast = true,
-  errorToastMessage,
-  disabled = false,
-  readOnly = false,
-  align = "center",
-  className,
+	checked = false,
+	row,
+	onCellChange,
+	onToggle,
+	showErrorToast = true,
+	errorToastMessage,
+	disabled = false,
+	readOnly = false,
+	align = "center",
+	className,
 }: ToggleCellProps<TData>) {
-  const t = useTranslations("table");
-  const handler = onCellChange || onToggle;
-  const [optimisticChecked, setOptimistic] = useOptimistic(checked, (_current, next: boolean) => next);
-  const [loading, setLoading] = useState(false);
+	const t = useTranslations("table");
+	const handler = onCellChange || onToggle;
+	const [optimisticChecked, setOptimistic] = useOptimistic(checked, (_current, next: boolean) => next);
+	const [loading, setLoading] = useState(false);
 
-  const handleCheckedChange = useMemoizedFn(async (nextChecked: boolean) => {
-    if (disabled || readOnly || loading) return;
+	const handleCheckedChange = useMemoizedFn(async (nextChecked: boolean) => {
+		if (disabled || readOnly || loading) return;
 
-    startTransition(async () => {
-      setOptimistic(nextChecked);
-      if (handler) {
-        try {
-          setLoading(true);
-          const result = handler(row, nextChecked);
-          if (result instanceof Promise) {
-            await result;
-          }
-        } catch (err) {
-          if (showErrorToast) {
-            const msg =
-              typeof errorToastMessage === "function"
-                ? errorToastMessage(err)
-                : errorToastMessage || t("cell_toggle_save_error");
-            toast.error(msg);
-          }
-        } finally {
-          setLoading(false);
-        }
-      }
-    });
-  });
+		startTransition(async () => {
+			setOptimistic(nextChecked);
+			if (handler) {
+				try {
+					setLoading(true);
+					const result = handler(row, nextChecked);
+					if (result instanceof Promise) {
+						await result;
+					}
+				} catch (err) {
+					if (showErrorToast) {
+						const msg =
+							typeof errorToastMessage === "function"
+								? errorToastMessage(err)
+								: errorToastMessage || t("cell_toggle_save_error");
+						toast.error(msg);
+					}
+				} finally {
+					setLoading(false);
+				}
+			}
+		});
+	});
 
-  return (
-    <div
-      className={cn("flex items-center gap-1.5", JUSTIFY_ALIGN_CLASSES[align], className)}
-      onClick={(e) => e.stopPropagation()} // Prevent row selection on switch click
-    >
-      <Switch
-        size="sm"
-        aria-label={t("aria_toggle_status")}
-        checked={optimisticChecked}
-        onCheckedChange={handleCheckedChange}
-        disabled={disabled || readOnly || loading}
-        className={cn(readOnly && "pointer-events-none cursor-default opacity-80")}
-      />
-      {loading && <Loader2 className="text-muted-foreground size-3 shrink-0 animate-spin" />}
-    </div>
-  );
+	return (
+		<div
+			className={cn("flex items-center gap-1.5", JUSTIFY_ALIGN_CLASSES[align], className)}
+			onClick={(e) => e.stopPropagation()} // Prevent row selection on switch click
+		>
+			<Switch
+				size="sm"
+				aria-label={t("aria_toggle_status")}
+				checked={optimisticChecked}
+				onCheckedChange={handleCheckedChange}
+				disabled={disabled || readOnly || loading}
+				className={cn(readOnly && "pointer-events-none cursor-default opacity-80")}
+			/>
+			{loading && <Loader2 className="text-muted-foreground size-3 shrink-0 animate-spin" />}
+		</div>
+	);
 }
 
-export const ToggleCell = memo(ToggleCellInner) as typeof ToggleCellInner;
+export const ToggleCell = ToggleCellInner as typeof ToggleCellInner;

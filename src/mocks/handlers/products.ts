@@ -25,16 +25,13 @@ async function updateProduct(id: string, request: Request): Promise<Response> {
   if (chaos) return chaos;
 
   const body = (await request.json()) as Partial<Product>;
-  const existing = db.product.findFirst({
-    where: { id: { equals: id } },
-  });
+  const existing = db.product.findFirst((q) => q.where({ id }));
 
   if (!existing) {
     return jsonError(404, "NOT_FOUND", "Product not found");
   }
 
-  const updatedProduct = await db.product.update({
-    where: { id: { equals: id } },
+  const updatedProduct = await db.product.update((q) => q.where({ id }), {
     data: body,
   });
 
@@ -144,9 +141,8 @@ export const productsHandlers = [
     if (chaos) return chaos;
 
     const { id } = params;
-    const product = db.product.findFirst({
-      where: { id: { equals: id as string } },
-    });
+    const productId = id as string;
+    const product = db.product.findFirst((q) => q.where({ id: productId }));
 
     if (!product) {
       return jsonError(404, "NOT_FOUND", "Product not found");
@@ -165,7 +161,7 @@ export const productsHandlers = [
 
     const body = (await request.json()) as Omit<Product, "id" | "createdAt">;
 
-    const category = body.categoryId ? db.category.findFirst({ where: { id: { equals: body.categoryId } } }) : null;
+    const category = body.categoryId ? db.category.findFirst((q) => q.where({ id: body.categoryId })) : null;
 
     const newProduct = await db.product.create({
       id: `prod-${Date.now()}`,
@@ -183,8 +179,7 @@ export const productsHandlers = [
     });
 
     if (category) {
-      await db.category.update({
-        where: { id: { equals: category.id } },
+      await db.category.update((q) => q.where({ id: category.id }), {
         data: { productCount: (category.productCount || 0) + 1 },
       });
     }
@@ -204,29 +199,23 @@ export const productsHandlers = [
     if (chaos) return chaos;
 
     const { id } = params;
-    const existing = db.product.findFirst({
-      where: { id: { equals: id as string } },
-    });
+    const productId = id as string;
+    const existing = db.product.findFirst((q) => q.where({ id: productId }));
 
     if (!existing) {
       return jsonError(404, "NOT_FOUND", "Product not found");
     }
 
     if (existing.categoryId) {
-      const cat = db.category.findFirst({
-        where: { id: { equals: existing.categoryId } },
-      });
+      const cat = db.category.findFirst((q) => q.where({ id: existing.categoryId }));
       if (cat && cat.productCount > 0) {
-        await db.category.update({
-          where: { id: { equals: cat.id } },
+        await db.category.update((q) => q.where({ id: cat.id }), {
           data: { productCount: cat.productCount - 1 },
         });
       }
     }
 
-    db.product.delete({
-      where: { id: { equals: id as string } },
-    });
+    db.product.delete((q) => q.where({ id: productId }));
 
     return jsonNoContent();
   }),

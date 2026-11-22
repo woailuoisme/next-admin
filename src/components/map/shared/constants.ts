@@ -37,6 +37,3 @@ export const MAP_ATTRIBUTION_PROPS = {
   attributionControl: { compact: true },
   transformRequest: transformMapRequest,
 } as const;
-
-/** @deprecated 兼容保留，内部建议改用 MAP_ATTRIBUTION_PROPS */
-export const MAP_NO_ATTRIBUTION = MAP_ATTRIBUTION_PROPS;

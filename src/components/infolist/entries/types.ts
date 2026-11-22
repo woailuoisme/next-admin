@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { DateTimeFormatOptions } from "next-intl";
 import type * as React from "react";
 
 import type { EntryBaseProps } from "../core/types";
@@ -16,8 +17,8 @@ export interface TextEntryProps extends EntryBaseProps {
   currency?: string;
   /** Number of decimal places */
   decimals?: number;
-  /** Date format string or options */
-  dateOptions?: Intl.DateTimeFormatOptions;
+  /** Date format options */
+  dateOptions?: DateTimeFormatOptions;
   /** Prefix content/text */
   prefix?: React.ReactNode;
   /** Suffix content/text */

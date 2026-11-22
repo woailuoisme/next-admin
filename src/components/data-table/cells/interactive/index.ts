@@ -1,6 +1,6 @@
 export { CheckboxCell } from "./CheckboxCell";
 export { SelectCell } from "./SelectCell";
-export { TextInputCell } from "./text-input";
+export { TextInputCell } from "./text-input/TextInputCell";
 export { ToggleCell } from "./ToggleCell";
 
 export type {

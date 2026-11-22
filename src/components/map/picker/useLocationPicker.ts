@@ -1,22 +1,15 @@
 "use client";
 
 import { useMemoizedFn } from "ahooks";
-import { debounce, type DebouncedFunction } from "es-toolkit";
-import { useEffect, useMemo, useRef, useState } from "react";
-
-import type { LocationPickerProps, LocationPickerValue } from "./types";
+import { useMemo, useRef, useState } from "react";
 
 import { resolveBasemapConfig } from "../presets/basemaps";
 import { DEFAULT_BEIJING_CENTER } from "../shared/constants";
 import { type CoordinateSystem, getBasemapCRS, isValidCoordinate, transformCoordinates } from "../utils/coordinates";
-import { type AmapPlace, reverseGeocode } from "./amapGeo";
+import type { AmapPlace } from "./amapGeo";
+import type { LocationPickerProps, LocationPickerValue } from "./types";
 import { useGeocodeProxyAvailability } from "./useGeocodeProxyAvailability";
-
-const REVERSE_GEOCODE_DEBOUNCE_MS = 450;
-
-function formatCoordKey(pos: readonly [number, number]): string {
-  return `${pos[0].toFixed(5)},${pos[1].toFixed(5)}`;
-}
+import { formatLocationCoordKey, useReverseGeocodeEffect } from "./useReverseGeocodeEffect";
 
 type UseLocationPickerOptions = Pick<
   LocationPickerProps,
@@ -34,9 +27,7 @@ type UseLocationPickerOptions = Pick<
 
 /**
  * 位置选择器核心状态机：
- * - 统一托管受控/非受控坐标、底图坐标系双向转换；
- * - 防抖调用逆地理编码补充地址，并隔离首次挂载的本地展示与用户交互回传；
- * - 管理外部受控更新后的视角飞往目标（`flyToTarget`）。
+ * 统一托管受控/非受控坐标、底图坐标系双向转换、防抖逆地理编码与飞往视口状态。
  */
 export function useLocationPicker({
   coordinateSystem: sourceCRS = "WGS84",
@@ -67,14 +58,14 @@ export function useLocationPicker({
   const sourceLng = hasValidCurrentValue ? currentValue?.lng : undefined;
   const sourceLat = hasValidCurrentValue ? currentValue?.lat : undefined;
   const currentCoordKey =
-    sourceLng !== undefined && sourceLat !== undefined ? formatCoordKey([sourceLng, sourceLat]) : "";
+    sourceLng !== undefined && sourceLat !== undefined ? formatLocationCoordKey([sourceLng, sourceLat]) : "";
 
   const displayPosition = useMemo<[number, number] | undefined>(() => {
     if (sourceLng === undefined || sourceLat === undefined) return undefined;
     return transformCoordinates([sourceLng, sourceLat], sourceCRS, displayCRS);
   }, [sourceLng, sourceLat, sourceCRS, displayCRS]);
 
-  const displayCoordKey = displayPosition ? formatCoordKey(displayPosition) : "";
+  const displayCoordKey = displayPosition ? formatLocationCoordKey(displayPosition) : "";
 
   const fallbackMapCenter = useMemo<[number, number]>(
     () => (isValidCoordinate(center) ? center : DEFAULT_BEIJING_CENTER),
@@ -88,17 +79,10 @@ export function useLocationPicker({
 
   if (displayCoordKey !== prevDisplayCoordKey) {
     setPrevDisplayCoordKey(displayCoordKey);
-    if (!displayPosition) {
-      setFlyToTarget(undefined);
-    } else if (suppressedFlyKey !== displayCoordKey) {
-      setFlyToTarget([...displayPosition]);
-    }
+    if (!displayPosition) setFlyToTarget(undefined);
+    else if (suppressedFlyKey !== displayCoordKey) setFlyToTarget([...displayPosition]);
   }
 
-  /**
-   * 记录用户是否已产生交互变更（点击/拖拽/输入/搜索）：
-   * 仅挂载时对缺失 address 的初始值执行本地逆地理展示丰富，绝不调用 onChange 污染表单 dirty 状态。
-   */
   const hasUserInteractedRef = useRef(externalInteractionEpoch > 0);
   const [localDisplayAddress, setLocalDisplayAddress] = useState<{
     epoch: number;
@@ -118,13 +102,11 @@ export function useLocationPicker({
         lng: Number(lng.toFixed(6)),
         lat: Number(lat.toFixed(6)),
       };
-      if (address !== undefined) {
-        updated.address = address ?? undefined;
-      }
+      if (address !== undefined) updated.address = address ?? undefined;
 
       if (suppressFly) {
         const nextDisplayPos = transformCoordinates([updated.lng, updated.lat], sourceCRS, displayCRS);
-        setSuppressedFlyKey(formatCoordKey(nextDisplayPos));
+        setSuppressedFlyKey(formatLocationCoordKey(nextDisplayPos));
       } else {
         setSuppressedFlyKey(null);
       }
@@ -135,22 +117,29 @@ export function useLocationPicker({
   );
 
   const commitAddress = useMemoizedFn((address: string, targetCoordKey: string) => {
-    if (disabled || readOnly || !currentValue) return;
-    if (currentValue.address === address) return;
+    if (disabled || readOnly || !currentValue || currentValue.address === address) return;
 
     if (!hasUserInteractedRef.current && externalInteractionEpoch <= 0) {
-      // 初始挂载无用户操作时，只补充展示用本地地址，避免触发上游表单 isDirty
       setLocalDisplayAddress({ epoch: externalInteractionEpoch, coordKey: targetCoordKey, address });
       return;
     }
 
-    const updated: LocationPickerValue = {
-      ...currentValue,
-      address,
-    };
-
+    const updated: LocationPickerValue = { ...currentValue, address };
     if (!isControlled) setInternalValue(updated);
     onChange?.(updated);
+  });
+
+  const { cancelPendingRegeo } = useReverseGeocodeEffect({
+    amapEnabled,
+    disabled,
+    readOnly,
+    displayPosition,
+    displayCRS,
+    sourceLng,
+    sourceLat,
+    currentCoordKey,
+    currentAddress: currentValue?.address,
+    onAddressResolved: commitAddress,
   });
 
   const handleMapPick = useMemoizedFn((coords: { lng: number; lat: number }) => {
@@ -161,37 +150,8 @@ export function useLocationPicker({
     commitPosition([lngLat.lng, lngLat.lat], displayCRS, null, true);
   });
 
-  const regeoAbortControllerRef = useRef<AbortController | null>(null);
-  const debouncedRegeoRef = useRef<DebouncedFunction<
-    (pos: [number, number], crs: CoordinateSystem, key: string) => void
-  > | null>(null);
-
-  useEffect(() => {
-    const debounced = debounce(async (pos: [number, number], crs: CoordinateSystem, key: string) => {
-      regeoAbortControllerRef.current?.abort();
-      const controller = new AbortController();
-      regeoAbortControllerRef.current = controller;
-
-      const gcjPosition = transformCoordinates(pos, crs, "GCJ02");
-      const address = await reverseGeocode(gcjPosition, controller.signal);
-      if (controller.signal.aborted || !address) return;
-      commitAddress(address, key);
-    }, REVERSE_GEOCODE_DEBOUNCE_MS);
-
-    debouncedRegeoRef.current = debounced;
-
-    return () => {
-      debounced.cancel();
-      regeoAbortControllerRef.current?.abort();
-    };
-  }, [commitAddress]);
-
-  const lastGeocodedCoordsRef = useRef<string | null>(null);
-
   const handlePlaceSelect = useMemoizedFn((place: AmapPlace) => {
-    debouncedRegeoRef.current?.cancel();
-    regeoAbortControllerRef.current?.abort();
-    lastGeocodedCoordsRef.current = formatCoordKey(place.lngLat);
+    cancelPendingRegeo(formatLocationCoordKey(place.lngLat));
     commitPosition(place.lngLat, "GCJ02", place.address || place.name);
   });
 
@@ -208,13 +168,9 @@ export function useLocationPicker({
     hasUserInteractedRef.current = true;
     setSuppressedFlyKey(null);
     setLocalDisplayAddress(null);
-    debouncedRegeoRef.current?.cancel();
-    regeoAbortControllerRef.current?.abort();
-    lastGeocodedCoordsRef.current = null;
+    cancelPendingRegeo(null);
     if (!isControlled) setInternalValue(defaultValue);
-    if (defaultValue) {
-      onChange?.(defaultValue);
-    }
+    if (defaultValue) onChange?.(defaultValue);
 
     const hasDefaultPos = defaultValue && isValidCoordinate([defaultValue.lng, defaultValue.lat]);
     const resetTarget = hasDefaultPos
@@ -227,47 +183,11 @@ export function useLocationPicker({
     if (displayPosition) setFlyToTarget([...displayPosition]);
   });
 
-  useEffect(() => {
-    if (
-      !amapEnabled ||
-      disabled ||
-      readOnly ||
-      !displayPosition ||
-      sourceLng === undefined ||
-      sourceLat === undefined
-    ) {
-      return;
-    }
-
-    if (currentValue?.address) {
-      lastGeocodedCoordsRef.current = currentCoordKey;
-      return;
-    }
-
-    if (lastGeocodedCoordsRef.current === currentCoordKey) {
-      return;
-    }
-
-    lastGeocodedCoordsRef.current = currentCoordKey;
-    debouncedRegeoRef.current?.(displayPosition, displayCRS, currentCoordKey);
-  }, [
-    amapEnabled,
-    disabled,
-    readOnly,
-    displayPosition,
-    displayCRS,
-    sourceLng,
-    sourceLat,
-    currentCoordKey,
-    currentValue?.address,
-  ]);
-
   const effectiveAddress =
     currentValue?.address ||
     (localDisplayAddress?.epoch === externalInteractionEpoch && localDisplayAddress.coordKey === currentCoordKey
       ? localDisplayAddress.address
       : undefined);
-  const isPickerBlocked = disabled || readOnly;
 
   return {
     basemapConfig,
@@ -277,7 +197,7 @@ export function useLocationPicker({
     currentValue,
     hasValidCurrentValue,
     effectiveAddress,
-    isPickerBlocked,
+    isPickerBlocked: disabled || readOnly,
     handleMapPick,
     handleMarkerDragEnd,
     handlePlaceSelect,

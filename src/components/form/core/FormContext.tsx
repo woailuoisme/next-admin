@@ -1,29 +1,22 @@
 "use client";
 
+import { useMemoizedFn } from "ahooks";
 import { Loader2 } from "lucide-react";
-import {
-  createContext,
-  type FocusEvent,
-  type ReactNode,
-  type SubmitEvent,
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-} from "react";
+import { createContext, type FocusEvent, type ReactNode, type SubmitEvent, useContext, useRef } from "react";
 
 import { cn } from "cn";
 
-import type { FormInstanceLike } from "./types";
+import { formContext as AppFormContext } from "./formContexts";
+import type { AppFormContract } from "./types";
 
 export interface FormContextValue {
-  form?: FormInstanceLike;
+	form?: AppFormContract;
 }
 
 export const FormContext = createContext<FormContextValue>({});
 
 export function useFormContext() {
-  return useContext(FormContext);
+	return useContext(FormContext);
 }
 
 /**
@@ -31,136 +24,144 @@ export function useFormContext() {
  * When `isBlocked` is true (e.g. submitting, disabled, or async loading), prevents accidental Enter-key submission.
  */
 export function dispatchFormSubmit(
-  e: SubmitEvent<HTMLFormElement>,
-  form?: FormInstanceLike,
-  onSubmit?: (e: SubmitEvent<HTMLFormElement>) => void,
-  isBlocked = false,
+	e: SubmitEvent<HTMLFormElement>,
+	form?: AppFormContract,
+	onSubmit?: (e: SubmitEvent<HTMLFormElement>) => void,
+	isBlocked = false,
 ) {
-  if (isBlocked) {
-    e.preventDefault();
-    e.stopPropagation();
-    return;
-  }
-  if (onSubmit) {
-    e.preventDefault();
-    e.stopPropagation();
-    onSubmit(e);
-    return;
-  }
-  if (form?.handleSubmit) {
-    e.preventDefault();
-    e.stopPropagation();
-    void form.handleSubmit();
-  }
+	if (isBlocked) {
+		e.preventDefault();
+		e.stopPropagation();
+		return;
+	}
+	if (onSubmit) {
+		e.preventDefault();
+		e.stopPropagation();
+		onSubmit(e);
+		return;
+	}
+	if (form?.handleSubmit) {
+		e.preventDefault();
+		e.stopPropagation();
+		void form.handleSubmit();
+	}
 }
 
 /**
  * 复合表单控件容器统一的失焦处理器：仅当焦点真正离开当前容器（而非在子控件间切换）时触发 onBlur。
  */
 export function createContainerBlurHandler<T extends HTMLElement = HTMLElement>(onBlur?: () => void) {
-  return (e: FocusEvent<T>) => {
-    if (onBlur && !e.currentTarget.contains(e.relatedTarget)) {
-      onBlur();
-    }
-  };
+	return (e: FocusEvent<T>) => {
+		if (onBlur && !e.currentTarget.contains(e.relatedTarget)) {
+			onBlur();
+		}
+	};
 }
 
 /**
  * 防止快速双击重复触发异步提交动作的互斥锁 Hook（如 FormDialog 与 ResourceFormPage 的“保存并继续”）。
  */
 export function useLockedAsyncCallback(action?: () => void | Promise<void>, isBlocked = false): () => Promise<void> {
-  const lockRef = useRef(false);
-  return useCallback(async () => {
-    if (!action || lockRef.current || isBlocked) {
-      return;
-    }
-    lockRef.current = true;
-    try {
-      await action();
-    } finally {
-      lockRef.current = false;
-    }
-  }, [action, isBlocked]);
+	const lockRef = useRef(false);
+	// Whitelist AGENTS.md §5.2: 互斥提交回调需跨表单生命周期与异步状态保持稳定引用
+	return useMemoizedFn(async () => {
+		if (!action || lockRef.current || isBlocked) {
+			return;
+		}
+		lockRef.current = true;
+		try {
+			await action();
+		} finally {
+			lockRef.current = false;
+		}
+	});
 }
 
 /**
  * FormDialog 与 ResourceFormPage 共用的表单主体容器：封装 aria-busy、加载横幅、提交禁用遮罩与 FormContext 注入。
  */
 export function FormBodyRegion({
-  formContextValue,
-  loading,
-  loadingLabel,
-  className,
-  contentClassName,
-  bannerClassName,
-  children,
+	formContextValue,
+	loading,
+	loadingLabel,
+	className,
+	contentClassName,
+	bannerClassName,
+	children,
 }: {
-  formContextValue: FormContextValue;
-  loading: boolean;
-  loadingLabel: string;
-  className?: string;
-  contentClassName?: string;
-  bannerClassName?: string;
-  children: ReactNode;
+	formContextValue: FormContextValue;
+	loading: boolean;
+	loadingLabel: string;
+	className?: string;
+	contentClassName?: string;
+	bannerClassName?: string;
+	children: ReactNode;
 }) {
-  return (
-    <div className={className} aria-busy={loading || undefined}>
-      {loading ? <FormLoadingBanner label={loadingLabel} className={bannerClassName} /> : null}
-      <div className={cn(contentClassName, loading && "pointer-events-none opacity-60")}>
-        <FormContext value={formContextValue}>{children}</FormContext>
-      </div>
-    </div>
-  );
+	return (
+		<div className={className} aria-busy={loading || undefined}>
+			{loading ? <FormLoadingBanner label={loadingLabel} className={bannerClassName} /> : null}
+			<div className={cn(contentClassName, loading && "pointer-events-none opacity-60")}>
+				<FormContext value={formContextValue}>
+					{formContextValue.form ? (
+						<AppFormContext value={formContextValue.form as never}>{children}</AppFormContext>
+					) : (
+						children
+					)}
+				</FormContext>
+			</div>
+		</div>
+	);
 }
 
 /**
  * FormDialog 与 ResourceFormPage 共用的表单异步加载状态横幅。
  */
 export function FormLoadingBanner({ label, className }: { label: string; className?: string }) {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className={cn(
-        "border-border/60 bg-muted/40 text-muted-foreground flex items-center gap-2 rounded-lg border px-3 py-2 text-xs",
-        className,
-      )}
-    >
-      <Loader2 className="text-primary size-3.5 animate-spin" aria-hidden="true" />
-      <span>{label}</span>
-    </div>
-  );
+	return (
+		<div
+			role="status"
+			aria-live="polite"
+			className={cn(
+				"border-border/60 bg-muted/40 text-muted-foreground flex items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+				className,
+			)}
+		>
+			<Loader2 className="text-primary size-3.5 animate-spin" aria-hidden="true" />
+			<span>{label}</span>
+		</div>
+	);
 }
 
 export interface FormProps {
-  /** TanStack Form useForm 实例 */
-  form?: FormInstanceLike;
-  children: ReactNode;
-  className?: string;
-  id?: string;
-  as?: "form" | "div";
-  onSubmit?: (e: SubmitEvent<HTMLFormElement>) => void;
+	/** TanStack Form useAppForm 实例 */
+	form?: AppFormContract;
+	children: ReactNode;
+	className?: string;
+	id?: string;
+	as?: "form" | "div";
+	onSubmit?: (e: SubmitEvent<HTMLFormElement>) => void;
 }
 
 export function Form({ form, children, className, id, as = "form", onSubmit }: FormProps) {
-  // 稳定的 Context 值，避免所有 useFormContext 消费方随 Form 重渲染
-  const contextValue = useMemo(() => ({ form }), [form]);
+	const contextValue = { form };
 
-  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
-    dispatchFormSubmit(e, form, onSubmit);
-  };
+	const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
+		dispatchFormSubmit(e, form, onSubmit);
+	};
 
-  return (
-    <FormContext value={contextValue}>
-      {as === "div" ? (
-        <div id={id} className={cn("w-full space-y-5", className)}>
-          {children}
-        </div>
-      ) : (
-        <form id={id} onSubmit={handleSubmit} className={cn("w-full space-y-6", className)}>
-          {children}
-        </form>
-      )}
-    </FormContext>
-  );
+	const body = (
+		<FormContext value={contextValue}>
+			{as === "div" ? (
+				<div id={id} className={cn("w-full space-y-5", className)}>
+					{children}
+				</div>
+			) : (
+				<form id={id} onSubmit={handleSubmit} className={cn("w-full space-y-6", className)}>
+					{children}
+				</form>
+			)}
+		</FormContext>
+	);
+
+	return form ? <AppFormContext value={form as never}>{body}</AppFormContext> : body;
 }

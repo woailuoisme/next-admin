@@ -1,7 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useIsMobile } from "@/hooks/useMobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { createNamespaceTranslator, getLocale, setLocale } from "@/i18n";
 import { getLocale as getConfigLocale, setLocale as setConfigLocale } from "@/i18n/config";
 import { useCentrifuge } from "@/integrations/centrifuge";

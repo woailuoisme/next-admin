@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { Columns3 } from "lucide-react";
-import { memo, useMemo, useState, type ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,126 +18,125 @@ import { isSystemColumn } from "../filters/utils";
 export type { DataTableColumnsPanelProps };
 
 function DataTableColumnsPanelInner<TData = unknown>({
-  columns,
-  columnVisibility,
-  onColumnVisibilityChange,
+	columns,
+	columnVisibility,
+	onColumnVisibilityChange,
 }: DataTableColumnsPanelProps<TData>) {
-  const t = useTranslations("table");
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
+	const t = useTranslations("table");
+	const [open, setOpen] = useState(false);
+	const [search, setSearch] = useState("");
 
-  const toggleableColumns = useMemo(() => {
-    return columns.filter((col: DataTableColDef<TData>) => !isSystemColumn(col));
-  }, [columns]);
+	const toggleableColumns = columns.filter((col: DataTableColDef<TData>) => !isSystemColumn(col));
 
-  const filteredColumns = useMemo(() => {
-    if (!search.trim()) return toggleableColumns;
-    const s = search.toLowerCase();
-    return toggleableColumns.filter((col: DataTableColDef<TData>) =>
-      (col.headerName || col.field).toLowerCase().includes(s),
-    );
-  }, [toggleableColumns, search]);
+	const filteredColumns = !search.trim()
+		? toggleableColumns
+		: (() => {
+				const s = search.toLowerCase();
+				return toggleableColumns.filter((col: DataTableColDef<TData>) =>
+					(col.headerName || col.field).toLowerCase().includes(s),
+				);
+			})();
 
-  const handleToggle = useMemoizedFn((field: string, checked: boolean) => {
-    onColumnVisibilityChange({
-      ...columnVisibility,
-      [field]: checked,
-    });
-  });
+	const handleToggle = useMemoizedFn((field: string, checked: boolean) => {
+		onColumnVisibilityChange({
+			...columnVisibility,
+			[field]: checked,
+		});
+	});
 
-  const handleShowAll = useMemoizedFn(() => {
-    const next: Record<string, boolean> = { ...columnVisibility };
-    for (const col of toggleableColumns) {
-      next[col.field] = true;
-    }
-    onColumnVisibilityChange(next);
-  });
+	const handleShowAll = useMemoizedFn(() => {
+		const next: Record<string, boolean> = { ...columnVisibility };
+		for (const col of toggleableColumns) {
+			next[col.field] = true;
+		}
+		onColumnVisibilityChange(next);
+	});
 
-  const handleHideAll = useMemoizedFn(() => {
-    const next: Record<string, boolean> = { ...columnVisibility };
-    for (const col of toggleableColumns) {
-      next[col.field] = false;
-    }
-    onColumnVisibilityChange(next);
-  });
+	const handleHideAll = useMemoizedFn(() => {
+		const next: Record<string, boolean> = { ...columnVisibility };
+		for (const col of toggleableColumns) {
+			next[col.field] = false;
+		}
+		onColumnVisibilityChange(next);
+	});
 
-  const visibleCount = useMemo(() => {
-    return toggleableColumns.filter((col: DataTableColDef<TData>) => isColumnVisible(col, columnVisibility)).length;
-  }, [toggleableColumns, columnVisibility]);
+	const visibleCount = toggleableColumns.filter((col: DataTableColDef<TData>) =>
+		isColumnVisible(col, columnVisibility),
+	).length;
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs"
-        >
-          <Columns3 aria-hidden="true" className="size-3.5" />
-          <span>{t("columns_button")}</span>
-          <Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
-            {visibleCount}/{toggleableColumns.length}
-          </Badge>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-64 p-3 shadow-lg">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between border-b pb-2">
-            <span className="text-foreground text-xs font-semibold">{t("columns_title")}</span>
-            <div className="flex items-center gap-1.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-[11px]"
-                onClick={handleShowAll}
-              >
-                {t("columns_show_all")}
-              </Button>
-              <Separator orientation="vertical" className="h-3" />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-[11px]"
-                onClick={handleHideAll}
-              >
-                {t("columns_hide_all")}
-              </Button>
-            </div>
-          </div>
+	return (
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger asChild>
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs"
+				>
+					<Columns3 aria-hidden="true" className="size-3.5" />
+					<span>{t("columns_button")}</span>
+					<Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
+						{visibleCount}/{toggleableColumns.length}
+					</Badge>
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent align="start" className="w-64 p-3 shadow-lg">
+				<div className="space-y-3">
+					<div className="flex items-center justify-between border-b pb-2">
+						<span className="text-foreground text-xs font-semibold">{t("columns_title")}</span>
+						<div className="flex items-center gap-1.5">
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-[11px]"
+								onClick={handleShowAll}
+							>
+								{t("columns_show_all")}
+							</Button>
+							<Separator orientation="vertical" className="h-3" />
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-[11px]"
+								onClick={handleHideAll}
+							>
+								{t("columns_hide_all")}
+							</Button>
+						</div>
+					</div>
 
-          {toggleableColumns.length > 6 ? (
-            <Input
-              type="text"
-              placeholder={t("columns_search_placeholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-7 w-full text-xs"
-            />
-          ) : null}
+					{toggleableColumns.length > 6 ? (
+						<Input
+							type="text"
+							placeholder={t("columns_search_placeholder")}
+							value={search}
+							onChange={(e) => setSearch(e.target.value)}
+							className="h-7 w-full text-xs"
+						/>
+					) : null}
 
-          <div className="max-h-60 space-y-1.5 overflow-y-auto pr-1">
-            {filteredColumns.map((col: DataTableColDef<TData>, idx: number) => {
-              const isVisible = isColumnVisible(col, columnVisibility);
-              return (
-                <label
-                  key={col.id ?? `${col.field}_${idx}`}
-                  className="hover:bg-muted/50 flex cursor-pointer items-center justify-between rounded-md p-1.5 text-xs transition-colors"
-                >
-                  <span className="text-foreground truncate">{col.headerName || col.field}</span>
-                  <Checkbox checked={isVisible} onCheckedChange={(val) => handleToggle(col.field, Boolean(val))} />
-                </label>
-              );
-            })}
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
+					<div className="max-h-60 space-y-1.5 overflow-y-auto pr-1">
+						{filteredColumns.map((col: DataTableColDef<TData>, idx: number) => {
+							const isVisible = isColumnVisible(col, columnVisibility);
+							return (
+								<label
+									key={col.id ?? `${col.field}_${idx}`}
+									className="hover:bg-muted/50 flex cursor-pointer items-center justify-between rounded-md p-1.5 text-xs transition-colors"
+								>
+									<span className="text-foreground truncate">{col.headerName || col.field}</span>
+									<Checkbox checked={isVisible} onCheckedChange={(val) => handleToggle(col.field, Boolean(val))} />
+								</label>
+							);
+						})}
+					</div>
+				</div>
+			</PopoverContent>
+		</Popover>
+	);
 }
 
-export const DataTableColumnsPanel = memo(DataTableColumnsPanelInner) as <TData = unknown>(
-  props: DataTableColumnsPanelProps<TData>,
+export const DataTableColumnsPanel = DataTableColumnsPanelInner as <TData = unknown>(
+	props: DataTableColumnsPanelProps<TData>,
 ) => ReactElement | null;

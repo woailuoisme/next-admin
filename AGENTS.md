@@ -16,7 +16,6 @@
    | plate（富文本）  | `bun x shadcn@latest add @plate/<component>`    | `src/components/ui/`、`src/components/editor/plugins/` |
    | uploadcn（上传） | `bun x shadcn@latest add @uploadcn/<component>` | `src/components/ui/`                                   |
    | mapcn（地图）    | `bun x shadcn@latest add @mapcn/<component>`    | `src/components/ui/map.tsx`（基础图元）                |
-
    - registry 别名以 [`components.json`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/components.json) 的 `registries` 为准；需要新增组件时只能用命令生成，禁止手写复制生成产物。
    - 功能不满足需求时，**严禁侵入生成源码**，必须在业务层（例如 [`src/components/`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components) 或具体 Feature 模块内）通过高阶组件、组合包装（Wrapper / Compound Pattern）或传递 Props 进行扩展。
    - [`src/components/map/`](file:///Users/seaside/Projects/frontend/nextjs/next-admin/src/components/map) 是自研包装层（底图预设、坐标系转换、Choropleth 计算），**可正常修改**；只有 mapcn 生成的基础图元属于冻结范围。

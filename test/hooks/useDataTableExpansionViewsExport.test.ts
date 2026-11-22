@@ -1,41 +1,13 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useDataTableExpansion } from "@/components/data-table/hooks/useDataTableExpansion";
 import * as exportModule from "@/components/data-table/hooks/useDataTableExport";
 import { useDataTableViews } from "@/components/data-table/hooks/useDataTableViews";
 
-describe("useDataTableExpansion, useDataTableViews & useDataTableExport", () => {
+describe("useDataTableViews & useDataTableExport", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     window.localStorage.clear();
-  });
-
-  it("supports multi-expand and singleExpand accordion mode in useDataTableExpansion", () => {
-    const { result: multi } = renderHook(() => useDataTableExpansion({ defaultExpandedRowIds: ["a"] }));
-    expect(multi.current.isRowExpanded("a")).toBe(true);
-    act(() => {
-      multi.current.toggleRowExpanded("b");
-    });
-    expect(multi.current.expandedRowIds).toEqual(["a", "b"]);
-    act(() => {
-      multi.current.collapseAll();
-    });
-    expect(multi.current.expandedRowIds).toEqual([]);
-
-    const { result: accordion } = renderHook(() => useDataTableExpansion({ singleExpand: true }));
-    act(() => {
-      accordion.current.toggleRowExpanded("r1");
-    });
-    expect(accordion.current.expandedRowIds).toEqual(["r1"]);
-    act(() => {
-      accordion.current.toggleRowExpanded("r2");
-    });
-    expect(accordion.current.expandedRowIds).toEqual(["r2"]);
-    act(() => {
-      accordion.current.toggleRowExpanded("r2");
-    });
-    expect(accordion.current.expandedRowIds).toEqual([]);
   });
 
   it("manages saved views and derives fallback active tab without useEffect cascading updates", () => {

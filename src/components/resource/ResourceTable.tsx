@@ -1,366 +1,142 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemoizedFn } from "ahooks";
-import { Download, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useMemo } from "react";
 
-import type { ActionItem } from "@/components/data-table/cells/action/types";
+import { ActionList, useActionResourceBridge } from "@/components/actions";
 import { col } from "@/components/data-table/columns/col";
 import { DataTable, type DataTableSlotProps, type TableStateAdapter } from "@/components/data-table/core";
-import { exportRowsAsJson } from "@/components/data-table/hooks/useDataTableExport";
-import { Button } from "@/components/ui/button";
-import { useBatchMutation } from "@/hooks/useBatchMutation";
-import { invalidateResourceScope, useAccessControl, useCan } from "@/lib/resource";
-import type { ResourceCustomAction, ResourceDefinition } from "@/lib/resource/types";
-import { toastMessages } from "@/lib/toastMessages";
+import { useAccessControl } from "@/lib/resource";
+import type { ResourceDefinition } from "@/lib/resource/types";
 
-import type {
-  ResourceBatchActionSpec,
-  ResourceQuickActionSpec,
-  ResourceTableSchema,
-  ResourceTranslateFn,
-} from "./types";
+import { resolveResourceActionsInput } from "./useResourceBridge";
+import type { ResourceTableSchema, ResourceTranslateFn } from "./types";
 
-interface BatchActionItemButtonProps<
-  TItem extends { id: string | number },
-  TActions extends Record<string, ResourceCustomAction<any, any>>,
-> {
-  spec: ResourceBatchActionSpec<TItem, TActions>;
-  resource: ResourceDefinition<TItem, any, any, any, TActions>;
-  selectedRows: TItem[];
-  clearSelection: () => void;
-  canDelete: boolean;
-  handleBatchDelete: (selected: TItem[], clearSelection?: () => void) => void;
-  t: ResourceTranslateFn;
-}
-
-function ResourceBatchActionButton<
-  TItem extends { id: string | number },
-  TActions extends Record<string, ResourceCustomAction<any, any>>,
->({
-  spec,
-  resource,
-  selectedRows,
-  clearSelection,
-  canDelete,
-  handleBatchDelete,
-  t,
-}: BatchActionItemButtonProps<TItem, TActions>) {
-  const queryClient = useQueryClient();
-  const canCustomPermission = useCan(
-    resource.name,
-    spec.kind === "action" || !spec.kind || spec.kind === "custom" ? (spec.permission ?? "edit") : "list",
-  );
-
-  const actionDef = spec.kind === "action" ? resource.actions[spec.actionKey] : undefined;
-  const hasBatchFailureRef = useRef(false);
-  const batchActionLockRef = useRef(false);
-  const [isCustomPending, setIsCustomPending] = useState(false);
-
-  const batchCustom = useBatchMutation<TItem>({
-    mutationFn: async (item) => {
-      if (spec.kind !== "action") return;
-      if (!actionDef) {
-        throw new Error(`Action "${spec.actionKey}" is not defined on resource "${resource.name}"`);
-      }
-      await actionDef.mutationFn(spec.mapVars(item));
-    },
-    entityName: resource.entityName,
-    onSuccess: (results) => {
-      if (results.length > 0) {
-        invalidateResourceScope(queryClient, resource, actionDef?.invalidates);
-      }
-    },
-    onError: () => {
-      hasBatchFailureRef.current = true;
-    },
-  });
-
-  const runBatchAction = useMemoizedFn(async () => {
-    hasBatchFailureRef.current = false;
-    await batchCustom.mutateBatchAsync(selectedRows);
-    if (!hasBatchFailureRef.current) {
-      clearSelection();
-    }
-  });
-
-  const runBatchCustom = useMemoizedFn(async () => {
-    if (spec.kind && spec.kind !== "custom") return;
-    await spec.onClick(selectedRows, clearSelection);
-  });
-
-  const runLockedBatchClick = useMemoizedFn(
-    async (task: () => Promise<void>, setPending?: (pending: boolean) => void) => {
-      if (batchActionLockRef.current) return;
-      batchActionLockRef.current = true;
-      setPending?.(true);
-      try {
-        await task();
-      } finally {
-        batchActionLockRef.current = false;
-        setPending?.(false);
-      }
-    },
-  );
-
-  const renderPillButton = (
-    variant: "outline" | "destructive" | "secondary",
-    Icon: typeof Trash2 | undefined,
-    onClick: () => void,
-    disabled?: boolean,
-  ) => (
-    <Button
-      type="button"
-      variant={variant}
-      size="sm"
-      className="h-7 gap-1 rounded-full text-xs"
-      disabled={disabled}
-      onClick={onClick}
-    >
-      {Icon ? <Icon className="size-3.5" aria-hidden="true" /> : null}
-      <span>{spec.label({ selectedCount: selectedRows.length, t })}</span>
-    </Button>
-  );
-
-  if (spec.kind === "batchDelete") {
-    if (!canDelete) return null;
-    return renderPillButton(spec.variant ?? "destructive", spec.icon ?? Trash2, () => {
-      handleBatchDelete(selectedRows, clearSelection);
-    });
-  }
-
-  if (spec.kind === "exportJson") {
-    return renderPillButton(spec.variant ?? "outline", spec.icon ?? Download, () => {
-      exportRowsAsJson(selectedRows, spec.exportFileName(selectedRows.length), clearSelection);
-    });
-  }
-
-  if (spec.kind === "action") {
-    if (!canCustomPermission) return null;
-    return renderPillButton(
-      spec.variant ?? "destructive",
-      spec.icon,
-      () => void runLockedBatchClick(runBatchAction),
-      batchCustom.isPending,
-    );
-  }
-
-  if (spec.permission && !canCustomPermission) {
-    return null;
-  }
-
-  return renderPillButton(
-    spec.variant ?? "outline",
-    spec.icon,
-    () => void runLockedBatchClick(runBatchCustom, setIsCustomPending),
-    isCustomPending,
-  );
-}
-
-export interface ResourceTableProps<
-  TItem extends { id: string | number },
-  TActions extends Record<string, ResourceCustomAction<any, any>> = Record<string, never>,
-> {
-  resource: ResourceDefinition<TItem, any, any, any, TActions>;
-  schema: ResourceTableSchema<TItem, TActions>;
-  tableState: TableStateAdapter<TItem>;
-  openView: (id: string) => void;
-  openEdit: (id: string) => void;
-  openDelete: (target: string | string[], items?: TItem[]) => void;
-  handleBatchDelete: (selected: TItem[], clearSelection?: () => void) => void;
-  canDelete: boolean;
+export interface ResourceTableProps<TItem extends { id: string | number }> {
+	resource: ResourceDefinition<TItem, any, any, any, any>;
+	schema: ResourceTableSchema<TItem>;
+	tableState: TableStateAdapter<TItem>;
+	/** 独立单测场景（未包在 ResourceScaffold 内）可显式注入，用于 onRowClick */
+	onRowView?: (id: string) => void;
+	onRowEdit?: (id: string) => void;
 }
 
 /**
- * 声明式表格渲染引擎（Filament Table 范式）：
- * 统一接管列构造、过滤器、固定列、CSV/JSON 导出、声明式 rowActions（内置 RBAC 鉴权）
- * 及资源自定义批量/单行突变执行，彻底消除 `*Table.tsx` 壳层与 `DataTable` 业务耦合。
+ * 声明式表格渲染引擎（Filament v5 Table + Actions 统一范式）：
+ * 统一接管列构造、过滤器、toolbarActions、rowActions（ActionList cell）、batchActions（ActionList batch）与行点击鉴权。
  */
-export function ResourceTable<
-  TItem extends { id: string | number },
-  TActions extends Record<string, ResourceCustomAction<any, any>> = Record<string, never>,
->({
-  resource,
-  schema,
-  tableState,
-  openView,
-  openEdit,
-  openDelete,
-  handleBatchDelete,
-  canDelete,
-}: ResourceTableProps<TItem, TActions>) {
-  const t = useTranslations(resource.i18nNamespace as never) as unknown as ResourceTranslateFn;
-  const queryClient = useQueryClient();
-  const { can } = useAccessControl();
+export function ResourceTable<TItem extends { id: string | number }>({
+	resource,
+	schema,
+	tableState,
+	onRowView,
+	onRowEdit,
+}: ResourceTableProps<TItem>) {
+	const t = useTranslations(resource.i18nNamespace as never) as unknown as ResourceTranslateFn;
+	const { can } = useAccessControl();
+	const resourceBridge = useActionResourceBridge();
 
-  const actionMutation = useMutation({
-    mutationFn: async ({ actionKey, vars }: { actionKey: string; vars: unknown }) => {
-      const def = resource.actions[actionKey];
-      if (!def) {
-        throw new Error(`Action "${actionKey}" is not defined on resource "${resource.name}"`);
-      }
-      const result = await def.mutationFn(vars);
-      return { def, vars, result };
-    },
-    onSuccess: ({ def, vars, result }) => {
-      invalidateResourceScope(queryClient, resource, def.invalidates);
-      if (def.successMessage) {
-        toast.success(def.successMessage(result, vars));
-      }
-    },
-    onError: (_err, { actionKey }) => {
-      const def = resource.actions[actionKey];
-      toast.error(def?.errorMessage?.() ?? toastMessages.updateError());
-    },
-  });
+	const resolvedRowActions = resolveResourceActionsInput(schema.rowActions, t);
 
-  const runAction = useMemoizedFn<
-    <K extends keyof TActions & string>(
-      actionKey: K,
-      vars: TActions[K] extends ResourceCustomAction<infer V, any> ? V : never,
-    ) => void
-  >((actionKey, vars) => {
-    actionMutation.mutate({ actionKey, vars });
-  });
+	const resolvedRowActionsCol = schema.rowActionsColumn
+		? typeof schema.rowActionsColumn === "function"
+			? schema.rowActionsColumn(t)
+			: schema.rowActionsColumn
+		: undefined;
 
-  const mapCustomActionItems = useMemoizedFn(
-    (items?: ResourceQuickActionSpec<TItem, TActions>[]): ActionItem<TItem>[] | undefined => {
-      if (!items || items.length === 0) return undefined;
-      return items.map((item) => ({
-        id: item.id,
-        label: item.label,
-        ariaLabel: item.ariaLabel ?? item.label,
-        icon: item.icon,
-        tooltip: item.tooltip,
-        destructive: item.destructive,
-        disabled: item.disabled,
-        hidden: (row: TItem) => {
-          if (item.permission && !can({ resource: resource.name, action: item.permission, record: row })) {
-            return true;
-          }
-          return typeof item.hidden === "function" ? item.hidden(row) : Boolean(item.hidden);
-        },
-        onClick: (row: TItem) => item.onClick(row, { runAction, isActionPending: actionMutation.isPending }),
-      }));
-    },
-  );
+	// 向 @tanstack/react-table ("use no memo") 与 React.memo(DataTableRow) 传递引用稳定的列与槽位配置
+	const columns = useMemo(() => {
+		const baseCols = schema.columns({ t });
+		if (!resolvedRowActions?.length) return baseCols;
 
-  const columns = useMemo(() => {
-    const isActionPending = actionMutation.isPending;
-    const baseCols = schema.columns({
-      t,
-      openView,
-      openEdit,
-      openDelete,
-      runAction,
-      isActionPending,
-    });
+		return [
+			...baseCols,
+			col.actions<TItem>({
+				field: resolvedRowActionsCol?.field ?? "actions",
+				headerName: resolvedRowActionsCol?.headerName,
+				width: resolvedRowActionsCol?.width,
+				align: resolvedRowActionsCol?.align,
+				headerAlign: resolvedRowActionsCol?.headerAlign,
+				pinned: resolvedRowActionsCol?.pinned ?? "right",
+				maxInline: resolvedRowActionsCol?.maxInline,
+				moreActionsLabel: resolvedRowActionsCol?.moreActionsLabel,
+				actions: resolvedRowActions,
+			}),
+		];
+	}, [resolvedRowActions, resolvedRowActionsCol, schema, t]);
 
-    if (!schema.rowActions) return baseCols;
+	// 解析过滤器与 toolbar 插槽配置
+	const filters = schema.filters?.(t);
+	const resolvedToolbarActions = resolveResourceActionsInput(schema.toolbarActions, t);
 
-    const spec = typeof schema.rowActions === "function" ? schema.rowActions(t) : schema.rowActions;
-    const actionsColumn = col.actions<TItem>({
-      field: spec.field ?? "__actions",
-      headerName: spec.headerName,
-      width: spec.width ?? 80,
-      align: spec.align,
-      headerAlign: spec.headerAlign,
-      pinned: spec.pinned ?? "right",
-      maxQuickActions: spec.maxQuickActions,
-      moreActionsLabel: spec.moreActionsLabel,
-      quickActions: mapCustomActionItems(spec.quick),
-      dropdownActions: mapCustomActionItems(spec.dropdown),
-      crud: spec.crud
-        ? {
-            onView: spec.crud.view ? (row) => openView(String(row.id)) : undefined,
-            viewLabel: spec.crud.viewLabel,
-            isViewHidden: (row) => !can({ resource: resource.name, action: "view", record: row }),
-            onEdit: spec.crud.edit ? (row) => openEdit(String(row.id)) : undefined,
-            editLabel: spec.crud.editLabel,
-            isEditHidden: (row) => !can({ resource: resource.name, action: "edit", record: row }),
-            onDelete: spec.crud.delete ? (row) => openDelete(String(row.id), [row]) : undefined,
-            deleteLabel: spec.crud.deleteLabel,
-            isDeleteHidden: (row) => !can({ resource: resource.name, action: "delete", record: row }),
-          }
-        : undefined,
-    });
+	const toolbarCustomActions = resolvedToolbarActions?.length ? (
+		<div className="flex items-center gap-2">
+			<ActionList actions={resolvedToolbarActions} surface="toolbar" />
+			{schema.slotProps?.toolbar?.customActions}
+		</div>
+	) : (
+		schema.slotProps?.toolbar?.customActions
+	);
 
-    return [...baseCols, actionsColumn];
-  }, [
-    actionMutation.isPending,
-    can,
-    mapCustomActionItems,
-    openDelete,
-    openEdit,
-    openView,
-    resource.name,
-    runAction,
-    schema,
-    t,
-  ]);
+	const slotProps: DataTableSlotProps | undefined =
+		!schema.exportFileName && !schema.slotProps && !resolvedToolbarActions?.length
+			? undefined
+			: {
+					...schema.slotProps,
+					toolbar: {
+						...schema.slotProps?.toolbar,
+						...(schema.exportFileName ? { exportFileName: schema.exportFileName } : {}),
+						...(toolbarCustomActions ? { customActions: toolbarCustomActions } : {}),
+					},
+				};
 
-  const filters = useMemo(() => schema.filters?.(t), [schema, t]);
+	const getRowId = useMemoizedFn((row: TItem) => (schema.getRowId ? schema.getRowId(row) : String(row.id)));
 
-  const slotProps = useMemo<DataTableSlotProps | undefined>(() => {
-    if (!schema.exportFileName && !schema.slotProps) return undefined;
-    return {
-      ...schema.slotProps,
-      toolbar: {
-        ...schema.slotProps?.toolbar,
-        ...(schema.exportFileName ? { exportFileName: schema.exportFileName } : {}),
-      },
-    };
-  }, [schema.exportFileName, schema.slotProps]);
+	const effectiveOpenView = onRowView ?? resourceBridge?.openView;
+	const effectiveOpenEdit = onRowEdit ?? resourceBridge?.openEdit;
 
-  const getRowId = useMemoizedFn((row: TItem) => (schema.getRowId ? schema.getRowId(row) : String(row.id)));
+	// 白名单：保持传入 React.memo(DataTableRow) 的行点击处理器引用稳定
+	const handleRowClick = useMemo(() => {
+		if (!schema.onRowClick) return undefined;
+		if (schema.onRowClick === "view") {
+			return (row: TItem) => {
+				if (!can({ resource: resource.name, action: "view", record: row })) return;
+				effectiveOpenView?.(String(row.id));
+			};
+		}
+		const customClick = schema.onRowClick;
+		return (row: TItem) =>
+			customClick(row, {
+				openView: (id) => effectiveOpenView?.(id),
+				openEdit: (id) => effectiveOpenEdit?.(id),
+			});
+	}, [can, effectiveOpenEdit, effectiveOpenView, resource.name, schema]);
 
-  const handleRowClick = useMemo(() => {
-    if (!schema.onRowClick) return undefined;
-    if (schema.onRowClick === "view") {
-      return (row: TItem) => {
-        if (!can({ resource: resource.name, action: "view", record: row })) return;
-        openView(String(row.id));
-      };
-    }
-    const customClick = schema.onRowClick;
-    return (row: TItem) => customClick(row, { openView, openEdit });
-  }, [can, openEdit, openView, resource.name, schema]);
+	const resolvedBatchActions = resolveResourceActionsInput(schema.batchActions, t);
 
-  const renderBatchActions = useMemo(() => {
-    const specs = schema.batchActions;
-    if (!specs || specs.length === 0) return undefined;
-    return (selectedRows: TItem[], clearSelection: () => void) => (
-      <div className="flex items-center gap-2">
-        {specs.map((spec) => (
-          <ResourceBatchActionButton
-            key={spec.id}
-            spec={spec}
-            resource={resource}
-            selectedRows={selectedRows}
-            clearSelection={clearSelection}
-            canDelete={canDelete}
-            handleBatchDelete={handleBatchDelete}
-            t={t}
-          />
-        ))}
-      </div>
-    );
-  }, [canDelete, handleBatchDelete, resource, schema.batchActions, t]);
+	const renderBatchActions = resolvedBatchActions?.length
+		? (selectedRows: TItem[], clearSelection: () => void) => (
+				<ActionList
+					actions={resolvedBatchActions}
+					payload={selectedRows}
+					surface="batch"
+					clearSelection={clearSelection}
+				/>
+			)
+		: undefined;
 
-  return (
-    <DataTable<TItem>
-      state={tableState}
-      columns={columns}
-      getRowId={getRowId}
-      checkboxSelection={schema.checkboxSelection ?? Boolean(schema.batchActions?.length)}
-      pinnedColumns={schema.pinnedColumns}
-      filters={filters}
-      onRowClick={handleRowClick}
-      slotProps={slotProps}
-      batchActions={renderBatchActions}
-    />
-  );
+	return (
+		<DataTable<TItem>
+			state={tableState}
+			columns={columns}
+			getRowId={getRowId}
+			checkboxSelection={schema.checkboxSelection ?? Boolean(resolvedBatchActions?.length)}
+			pinnedColumns={schema.pinnedColumns}
+			filters={filters}
+			onRowClick={handleRowClick}
+			slotProps={slotProps}
+			batchActions={renderBatchActions}
+		/>
+	);
 }

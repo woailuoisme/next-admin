@@ -1,45 +1,42 @@
+"use client";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { useAuthAdmin } from "@/features/auth";
+import { useBatchMutation } from "@/hooks/useBatchMutation";
 import { useCentrifuge, useSubscription } from "@/integrations/centrifuge";
 import { getApiErrorMessage } from "@/lib/apiClient";
 import { toastMessages } from "@/lib/toastMessages";
-import { useAuthAdmin } from "@/stores/auth";
 
-import type { NotificationFilters, NotificationItem, NotificationListResponse } from "./types";
-
+import {
+  applyOptimisticMarkAllRead,
+  applyOptimisticMarkRead,
+  doesNotificationMatchFilters,
+  injectRealtimeNotification,
+  restoreNotificationSnapshots,
+} from "./cacheSync";
 import {
   deleteNotification,
   extractNotificationFiltersFromKey,
   markAllNotificationsAsRead,
   markNotificationAsRead,
   normalizeNotificationFilters,
-  notificationKeys,
-  notificationQueries,
+  notificationsEndpoint,
 } from "./resource";
+import type { NotificationFilters, NotificationItem } from "./types";
 
-export { extractNotificationFiltersFromKey, normalizeNotificationFilters, notificationKeys, notificationQueries };
-export const NOTIFICATIONS_QUERY_KEY = notificationKeys.all;
-
-/**
- * 校验单条通知是否匹配目标缓存槽位的过滤条件，防止跨分类或已读状态缓存污染
- */
-export function doesNotificationMatchFilters(item: NotificationItem, filters?: NotificationFilters): boolean {
-  if (!filters) return true;
-  if (filters.category && item.category !== filters.category) return false;
-  if (filters.unreadOnly && item.read) return false;
-  return true;
-}
+export { doesNotificationMatchFilters, extractNotificationFiltersFromKey, normalizeNotificationFilters };
 
 export function useNotifications(filters?: NotificationFilters, options?: { enabled?: boolean }) {
   return useQuery({
-    ...notificationQueries.list(filters),
+    ...notificationsEndpoint.queries.list(filters),
     enabled: options?.enabled,
   });
 }
 
 export function useUnreadNotificationCount() {
-  return useQuery(notificationQueries.unreadCount());
+  return useQuery(notificationsEndpoint.queries.unreadCount());
 }
 
 export function useMarkAsReadMutation() {
@@ -47,55 +44,13 @@ export function useMarkAsReadMutation() {
 
   return useMutation({
     mutationFn: markNotificationAsRead,
-    onMutate: async (id: string) => {
-      await queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
-
-      // Snapshot previous cache across notification list queries
-      const previousQueries = queryClient.getQueriesData<NotificationListResponse>({
-        queryKey: notificationKeys.lists(),
-      });
-
-      const targetWasUnread = previousQueries.some(([, data]) =>
-        data?.items.some((item) => item.id === id && !item.read),
-      );
-
-      // Optimistically set read = true and keep unreadCount consistent across all cached filter tabs
-      for (const [key, old] of previousQueries) {
-        if (!old) continue;
-        const filters = extractNotificationFiltersFromKey(key);
-        const nextUnreadCount = targetWasUnread ? Math.max(0, old.unreadCount - 1) : old.unreadCount;
-
-        if (filters?.unreadOnly) {
-          const hadTarget = old.items.some((item) => item.id === id);
-          const nextItems = old.items.filter((item) => item.id !== id);
-          queryClient.setQueryData<NotificationListResponse>(key, {
-            ...old,
-            total: hadTarget ? Math.max(0, old.total - 1) : old.total,
-            unreadCount: nextUnreadCount,
-            items: nextItems,
-          });
-        } else {
-          queryClient.setQueryData<NotificationListResponse>(key, {
-            ...old,
-            unreadCount: nextUnreadCount,
-            items: old.items.map((item) => (item.id === id ? { ...item, read: true } : item)),
-          });
-        }
-      }
-
-      return { previousQueries };
-    },
-    onError: async (err, _id, context) => {
-      if (context?.previousQueries) {
-        for (const [key, data] of context.previousQueries) {
-          queryClient.setQueryData(key, data);
-        }
-      }
-      const msg = await getApiErrorMessage(err, toastMessages.statusError());
-      toast.error(msg);
+    onMutate: (id: string) => applyOptimisticMarkRead(queryClient, id),
+    onError: async (err, _id, previousQueries) => {
+      restoreNotificationSnapshots(queryClient, previousQueries);
+      toast.error(await getApiErrorMessage(err, toastMessages.statusError()));
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: notificationsEndpoint.keys.all });
     },
   });
 }
@@ -105,38 +60,16 @@ export function useMarkAllAsReadMutation() {
 
   return useMutation({
     mutationFn: markAllNotificationsAsRead,
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
-
-      const previousQueries = queryClient.getQueriesData<NotificationListResponse>({
-        queryKey: notificationKeys.lists(),
-      });
-
-      queryClient.setQueriesData<NotificationListResponse>({ queryKey: notificationKeys.lists() }, (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          unreadCount: 0,
-          items: old.items.map((item) => ({ ...item, read: true })),
-        };
-      });
-
-      return { previousQueries };
-    },
-    onError: async (err, _vars, context) => {
-      if (context?.previousQueries) {
-        for (const [key, data] of context.previousQueries) {
-          queryClient.setQueryData(key, data);
-        }
-      }
-      const msg = await getApiErrorMessage(err, toastMessages.allNotificationsReadError());
-      toast.error(msg);
+    onMutate: () => applyOptimisticMarkAllRead(queryClient),
+    onError: async (err, _vars, previousQueries) => {
+      restoreNotificationSnapshots(queryClient, previousQueries);
+      toast.error(await getApiErrorMessage(err, toastMessages.allNotificationsReadError()));
     },
     onSuccess: () => {
       toast.success(toastMessages.allNotificationsRead());
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: notificationsEndpoint.keys.all });
     },
   });
 }
@@ -147,12 +80,11 @@ export function useDeleteNotificationMutation() {
   return useMutation({
     mutationFn: deleteNotification,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: notificationsEndpoint.keys.all });
       toast.success(toastMessages.deleted());
     },
     onError: async (err) => {
-      const msg = await getApiErrorMessage(err, toastMessages.deleteError());
-      toast.error(msg);
+      toast.error(await getApiErrorMessage(err, toastMessages.deleteError()));
     },
   });
 }
@@ -163,19 +95,21 @@ export interface RealtimeNotificationsOptions {
   onNotificationReceived?: (notification: NotificationItem) => void;
 }
 
+const TOAST_BY_SEVERITY = {
+  error: toast.error,
+  warning: toast.warning,
+  success: toast.success,
+  info: toast.info,
+} as const;
+
 /**
- * Subscribes to Centrifuge real-time notification stream for current authenticated user.
- * - Injects new notifications directly into TanStack Query caches without full refetch
- * - Increments unreadCount atomically
- * - Displays toast notification
+ * 订阅 Centrifuge 实时通知流：直接写入匹配缓存并按严重级别弹出轻提示
  */
 export function useRealtimeNotifications(options: RealtimeNotificationsOptions = {}) {
   const queryClient = useQueryClient();
   const admin = useAuthAdmin();
-  const userId = admin?.id;
   const { isConnected } = useCentrifuge();
-
-  const targetChannel = options.channel ?? (userId ? `user:${userId}:notifications` : "notifications");
+  const targetChannel = options.channel ?? (admin?.id ? `user:${admin.id}:notifications` : "notifications");
 
   useSubscription<NotificationItem | { notification: NotificationItem }>(
     targetChannel,
@@ -186,84 +120,50 @@ export function useRealtimeNotifications(options: RealtimeNotificationsOptions =
           ? (rawData as { notification: NotificationItem }).notification
           : (rawData as NotificationItem);
 
-      if (!item || !item.id) return;
-
-      // Optimistically prepend only to matching notification query lists in TanStack Query cache
-      const cachedQueries = queryClient.getQueriesData<NotificationListResponse>({
-        queryKey: notificationKeys.lists(),
-      });
-
-      const alreadyKnown = cachedQueries.some(([, old]) => old?.items.some((existing) => existing.id === item.id));
-      if (!alreadyKnown) {
-        for (const [queryKey, old] of cachedQueries) {
-          if (!old) continue;
-
-          const filters = extractNotificationFiltersFromKey(queryKey);
-          const nextUnreadCount = item.read ? old.unreadCount : old.unreadCount + 1;
-
-          if (doesNotificationMatchFilters(item, filters)) {
-            queryClient.setQueryData<NotificationListResponse>(queryKey, {
-              ...old,
-              total: old.total + 1,
-              unreadCount: nextUnreadCount,
-              items: [item, ...old.items],
-            });
-          } else if (nextUnreadCount !== old.unreadCount) {
-            queryClient.setQueryData<NotificationListResponse>(queryKey, {
-              ...old,
-              unreadCount: nextUnreadCount,
-            });
-          }
-        }
-      }
+      if (!item?.id) return;
+      injectRealtimeNotification(queryClient, item);
 
       if (options.enableToast !== false) {
-        const toastOptions = {
-          description: item.description,
-        };
-        if (item.severity === "error") {
-          toast.error(item.title, toastOptions);
-        } else if (item.severity === "warning") {
-          toast.warning(item.title, toastOptions);
-        } else if (item.severity === "success") {
-          toast.success(item.title, toastOptions);
-        } else {
-          toast.info(item.title, toastOptions);
-        }
+        const showToast = TOAST_BY_SEVERITY[item.severity] ?? toast.info;
+        showToast(item.title, { description: item.description });
       }
-
       options.onNotificationReceived?.(item);
     },
   );
 
+  return { channel: targetChannel, isConnected };
+}
+
+export interface BatchNotificationOptions {
+  successMessage?: (count: number) => string;
+  errorMessage?: (failed: number, total: number) => string;
+}
+
+function useBatchNotificationAction(action: (id: string) => Promise<unknown>, options?: BatchNotificationOptions) {
+  const queryClient = useQueryClient();
+  const batch = useBatchMutation({
+    mutationFn: action,
+    entityName: "Notification",
+    successMessage: options?.successMessage,
+    errorMessage: options?.errorMessage,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: notificationsEndpoint.keys.all });
+    },
+  });
+
   return {
-    channel: targetChannel,
-    isConnected,
+    ...batch,
+    mutateAsync: async (ids: string[]) => {
+      const results = await batch.mutateBatchAsync(ids);
+      return results.length;
+    },
   };
 }
 
-function useBatchNotificationMutation(action: (id: string) => Promise<unknown>, fallbackError: () => string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (ids: string[]) => {
-      await Promise.all(ids.map((id) => action(id)));
-      return ids.length;
-    },
-    onError: async (err) => {
-      const msg = await getApiErrorMessage(err, fallbackError());
-      toast.error(msg);
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
-    },
-  });
+export function useBatchMarkNotificationsReadMutation(options?: BatchNotificationOptions) {
+  return useBatchNotificationAction(markNotificationAsRead, options);
 }
 
-export function useBatchMarkNotificationsReadMutation() {
-  return useBatchNotificationMutation(markNotificationAsRead, toastMessages.statusError);
-}
-
-export function useBatchDeleteNotificationsMutation() {
-  return useBatchNotificationMutation(deleteNotification, toastMessages.deleteError);
+export function useBatchDeleteNotificationsMutation(options?: BatchNotificationOptions) {
+  return useBatchNotificationAction(deleteNotification, options);
 }

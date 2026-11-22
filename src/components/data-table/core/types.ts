@@ -1,5 +1,30 @@
 import type React from "react";
-import type { DataTableEmptyStateConfig, DataTableEmptyStateContext } from "../empty-state";
+import type { TableEmptyStateConfig, TableEmptyStateContext } from "../empty-state";
+import type {
+  DataTableCustomFilterDef,
+  DataTableFilterConfig,
+  DataTableFilterDefinition,
+  DataTableFilterItem,
+  DataTableFilterLayout,
+  DataTableFilterModel,
+  DataTableFilterOperator,
+  DataTableSelectFilterDef,
+  DataTableSelectFilterOption,
+  DataTableTernaryFilterDef,
+} from "./filterTypes";
+
+export type {
+  DataTableCustomFilterDef,
+  DataTableFilterConfig,
+  DataTableFilterDefinition,
+  DataTableFilterItem,
+  DataTableFilterLayout,
+  DataTableFilterModel,
+  DataTableFilterOperator,
+  DataTableSelectFilterDef,
+  DataTableSelectFilterOption,
+  DataTableTernaryFilterDef,
+};
 
 export type DataTableAlignment = "left" | "center" | "right";
 
@@ -67,87 +92,6 @@ export interface DataTableSortItem {
 }
 
 export type DataTableSortModel = DataTableSortItem[];
-
-export type DataTableFilterOperator =
-  | "contains"
-  | "notContains"
-  | "equals"
-  | "notEquals"
-  | "startsWith"
-  | "endsWith"
-  | "isEmpty"
-  | "isNotEmpty"
-  | "greaterThan"
-  | "greaterThanOrEqual"
-  | "lessThan"
-  | "lessThanOrEqual"
-  | "is";
-
-export interface DataTableFilterItem {
-  id: string;
-  field: string;
-  operator: DataTableFilterOperator;
-  value?: any;
-}
-
-export interface DataTableFilterModel {
-  items: DataTableFilterItem[];
-  quickFilterValues?: string[];
-}
-
-export type DataTableFilterLayout = "popover" | "sheet" | "aboveContent";
-
-export interface DataTableSelectFilterOption {
-  label: string;
-  value: string | number;
-  badge?: string | number;
-  badgeColor?: string;
-}
-
-export interface DataTableSelectFilterDef {
-  type: "select";
-  field?: string;
-  name?: string;
-  columnField?: string;
-  label?: string;
-  options: DataTableSelectFilterOption[];
-  multiple?: boolean;
-  placeholder?: string;
-}
-
-export interface DataTableTernaryFilterDef {
-  type: "ternary";
-  field?: string;
-  name?: string;
-  columnField?: string;
-  label?: string;
-  trueLabel?: string;
-  falseLabel?: string;
-  placeholder?: string;
-}
-
-export interface DataTableCustomFilterDef {
-  type: "custom";
-  field?: string;
-  name?: string;
-  columnField?: string;
-  label?: string;
-  render: (props: { value: any; onChange: (val: any) => void; filterItem?: DataTableFilterItem }) => React.ReactNode;
-}
-
-export type DataTableFilterDefinition = DataTableSelectFilterDef | DataTableTernaryFilterDef | DataTableCustomFilterDef;
-
-export interface DataTableFilterConfig {
-  layout?: DataTableFilterLayout;
-  columns?: 1 | 2 | 3 | 4;
-  deferFilters?: boolean;
-  sheetTitle?: string;
-  sheetDescription?: string;
-  filters?: DataTableFilterDefinition[];
-  showQueryBuilder?: boolean;
-  showActiveFiltersPills?: boolean;
-  maxHeight?: number | string;
-}
 
 export type DataTableDensity = "compact" | "standard" | "comfortable";
 
@@ -218,27 +162,23 @@ export interface DataTableToolbarProps {
   onTabChange?: (tabId: string) => void;
   savedViews?: DataTableSavedView[];
   enableSavedViews?: boolean;
+  customActions?: React.ReactNode;
 }
 
 export interface DataTableSlots {
   toolbar?: React.ComponentType<any>;
-  noRowsOverlay?: React.ComponentType<any>;
-  noResultsOverlay?: React.ComponentType<any>;
   loadingOverlay?: React.ComponentType<any>;
   pagination?: React.ComponentType<any>;
 }
 
 export interface DataTableSlotProps {
   toolbar?: DataTableToolbarProps;
-  noRowsOverlay?: Record<string, unknown>;
-  noResultsOverlay?: Record<string, unknown>;
   loadingOverlay?: Record<string, unknown>;
 }
 
 /**
  * TableStateAdapter (State Seam):
- * Unified table state interface consolidating data, pagination, sorting, and search coordination
- * behind a single authoritative adapter.
+ * Unified table state interface consolidating data, pagination, sorting, and search coordination.
  */
 export interface TableStateAdapter<TData = any> {
   data: TData[];
@@ -258,25 +198,16 @@ export interface TableStateAdapter<TData = any> {
 }
 
 export interface DataTableProps<TData = any> extends DataTableExpansionProps<TData> {
-  /**
-   * Unified table state adapter (Recommended).
-   * When provided, binds data, pagination, sorting, and search behind a single deep seam.
-   */
   state?: TableStateAdapter<TData>;
-
   data?: TData[];
   columns: DataTableColDef<TData>[];
   getRowId?: (row: TData) => DataTableRowId;
   loading?: boolean;
-
-  // Selection
   checkboxSelection?: boolean;
   rowSelectionModel?: DataTableRowSelectionModel;
   onRowSelectionModelChange?: (selection: DataTableRowSelectionModel, selectedRows: TData[]) => void;
   onSelectedRowsChange?: (selectedRows: TData[]) => void;
   isRowSelectable?: (row: TData) => boolean;
-
-  // Pagination (direct standalone overrides when `state` is not supplied)
   paginationMode?: "client" | "server";
   pageSize?: number;
   paginationModel?: DataTablePaginationModel;
@@ -284,20 +215,14 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
   pageSizeOptions?: readonly number[];
   hidePagination?: boolean;
   paginationVariant?: "capsule" | "shadcn" | "simple";
-
-  // Sorting
   sortingMode?: "client" | "server";
   sortModel?: DataTableSortModel;
   onSortModelChange?: (model: DataTableSortModel) => void;
-
-  // Filtering
   filterMode?: "client" | "server";
   filterModel?: DataTableFilterModel;
   onFilterModelChange?: (model: DataTableFilterModel) => void;
   filterConfig?: DataTableFilterConfig;
   filters?: DataTableFilterDefinition[];
-
-  // Tabs & Saved Views
   tabs?: DataTableTabItem<TData>[];
   activeTab?: string;
   defaultActiveTab?: string;
@@ -306,18 +231,12 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
   defaultSavedViews?: DataTableSavedView[];
   onSavedViewsChange?: (views: DataTableSavedView[]) => void;
   enableSavedViews?: boolean;
-
-  // Density
   density?: DataTableDensity;
   onDensityChange?: (density: DataTableDensity) => void;
-
-  // Columns & Pinning
   columnVisibilityModel?: Record<string, boolean>;
   onColumnVisibilityModelChange?: (model: Record<string, boolean>) => void;
   pinnedColumns?: DataTablePinnedColumns;
   storageKey?: string;
-
-  // Advanced features
   showToolbar?: boolean;
   summaryRow?: boolean;
   summaryLabel?: string;
@@ -325,24 +244,15 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
   maxHeight?: number | string;
   onRowClick?: (row: TData, event: RowActivationEvent) => void;
   batchActions?: (selectedRows: TData[], clearSelection: () => void) => React.ReactNode;
-
-  // Customization
   className?: string;
   tableClassName?: string;
   slots?: DataTableSlots;
   slotProps?: DataTableSlotProps;
-  emptyState?: React.ReactNode | DataTableEmptyStateConfig | ((context: DataTableEmptyStateContext) => React.ReactNode);
+  emptyState?: React.ReactNode | TableEmptyStateConfig | ((context: TableEmptyStateContext) => React.ReactNode);
   emptyMessage?: string;
   noResultsMessage?: string;
   resetFiltersText?: string;
   loadingText?: string;
 }
 
-// Re-export empty-state types for convenience
 export type * from "../empty-state/types";
-
-// Backward compatibility aliases
-export type GridColDef<TData = any> = DataTableColDef<TData>;
-export type GridRenderCellParams<TData = any> = DataTableRenderCellParams<TData>;
-export type GridRenderHeaderParams<TData = any> = DataTableRenderHeaderParams<TData>;
-export type DataGridProps<TData = any> = DataTableProps<TData>;

@@ -6,6 +6,7 @@ import { useMemoizedFn } from "ahooks";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
+import type { AppFormContract } from "@/components/form/core/types";
 import { handleMutationError } from "@/lib/apiClient";
 import { slugify } from "@/lib/slug";
 import { toastMessages } from "@/lib/toastMessages";
@@ -147,19 +148,10 @@ export function useResourceAction<
   });
 }
 
-export interface UseResourceOptionsForm {
-  getFieldValue?: (field: any) => unknown;
-  setFieldValue: (field: any, value: any, opts?: { dontUpdateMeta?: boolean }) => void;
-  store?: {
-    get(): { isDirty?: boolean; values?: Record<string, any> } | undefined;
-    subscribe(listener: (value: any) => void): { unsubscribe(): void };
-  };
-}
-
 export interface UseResourceOptionsConfig<TItem extends { id: string | number }, TFilters> {
   filters?: TFilters;
   mapOption?: (item: TItem) => { label: string; value: string };
-  form?: UseResourceOptionsForm;
+  form?: AppFormContract;
   autoSelectField?: string;
   isEditing?: boolean;
 }
@@ -191,7 +183,7 @@ export function useResourceOptions<
     if (currentValue !== undefined && currentValue !== null && currentValue !== "") return;
     const firstId = String(items[0].id);
     if (firstId) {
-      form.setFieldValue(autoSelectField, firstId, { dontUpdateMeta: true });
+      form.setFieldValue?.(autoSelectField, firstId, { dontUpdateMeta: true });
     }
   }, [autoSelectField, form, isEditing, items, trackedFieldValue]);
 
@@ -210,10 +202,10 @@ export function useResourceOptions<
  * useSlugSync:
  * 创建态下根据源输入文本自动派生并写入目标 slug 字段。
  */
-export function useSlugSync(form: Pick<UseResourceOptionsForm, "setFieldValue">, targetField = "slug", enabled = true) {
+export function useSlugSync(form: AppFormContract, targetField = "slug", enabled = true) {
   return useMemoizedFn((val: string) => {
     if (enabled && val) {
-      form.setFieldValue(targetField, slugify(val));
+      form.setFieldValue?.(targetField, slugify(val));
     }
   });
 }

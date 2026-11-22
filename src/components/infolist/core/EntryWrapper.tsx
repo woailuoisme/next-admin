@@ -15,82 +15,82 @@ import { hasRenderableNode } from "./utils";
  * 条目空值统一占位符
  */
 export function EntryPlaceholder({ children }: { children: React.ReactNode }) {
-  return <span className="text-muted-foreground/60 select-none">{children}</span>;
+	return <span className="text-muted-foreground/60 select-none">{children}</span>;
 }
 
-export const EntryWrapper = React.memo(function EntryWrapper({
-  label,
-  hint,
-  tooltip,
-  helperText,
-  hidden,
-  colSpan,
-  inline,
-  className,
-  labelClassName,
-  contentClassName,
-  children,
+export function EntryWrapper({
+	label,
+	hint,
+	tooltip,
+	helperText,
+	hidden,
+	colSpan,
+	inline,
+	className,
+	labelClassName,
+	contentClassName,
+	children,
 }: EntryWrapperProps) {
-  if (hidden) return null;
+	if (hidden) return null;
 
-  const config = React.use(InfolistConfigContext);
-  const isInline = inline ?? config.orientation === "horizontal";
-  const isDense = config.dense;
+	const config = React.use(InfolistConfigContext);
+	const isInline = inline ?? config.orientation === "horizontal";
+	const isDense = config.dense;
 
-  const showLabel = hasRenderableNode(label);
-  const showHint = hasRenderableNode(hint);
-  const showTooltip = hasRenderableNode(tooltip);
-  const showHelperText = hasRenderableNode(helperText);
+	const showLabel = hasRenderableNode(label);
+	const showHint = hasRenderableNode(hint);
+	const showTooltip = hasRenderableNode(tooltip);
+	const showHelperText = hasRenderableNode(helperText);
 
-  return (
-    <div
-      className={cn(
-        "w-full text-left",
-        colSpan ? COL_SPAN_CLASSES[colSpan] : "col-span-1",
-        isInline
-          ? "flex flex-col gap-2 py-1.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
-          : "flex flex-col",
-        !isInline && (isDense ? "gap-1" : "gap-1.5"),
-        className,
-      )}
-    >
-      {(showLabel || showHint || showTooltip) && (
-        <div className={cn("flex items-center justify-between gap-2", isInline && "sm:w-1/3 sm:shrink-0")}>
-          <div className="flex items-center gap-1.5">
-            {showLabel && (
-              <span
-                className={cn(
-                  "font-medium tracking-tight text-muted-foreground select-none",
-                  isDense ? "text-[11px]" : "text-xs",
-                  labelClassName,
-                )}
-              >
-                {label}
-              </span>
-            )}
+	return (
+		<div
+			className={cn(
+				"w-full text-left",
+				colSpan ? COL_SPAN_CLASSES[colSpan] : "col-span-1",
+				isInline
+					? "flex flex-col gap-2 py-1.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
+					: "flex flex-col",
+				!isInline && (isDense ? "gap-1" : "gap-1.5"),
+				className,
+			)}
+		>
+			{(showLabel || showHint || showTooltip) && (
+				<div className={cn("flex items-center justify-between gap-2", isInline && "sm:w-1/3 sm:shrink-0")}>
+					<div className="flex items-center gap-1.5">
+						{showLabel && (
+							<span
+								className={cn(
+									"font-medium tracking-tight text-muted-foreground select-none",
+									isDense ? "text-[11px]" : "text-xs",
+									labelClassName,
+								)}
+							>
+								{label}
+							</span>
+						)}
 
-            {showTooltip && <LabelHelpTooltip content={tooltip} />}
-          </div>
+						{showTooltip && <LabelHelpTooltip content={tooltip} />}
+					</div>
 
-          {showHint && <div className="text-muted-foreground/80 text-[11px] font-normal">{hint}</div>}
-        </div>
-      )}
+					{showHint && <div className="text-muted-foreground/80 text-[11px] font-normal">{hint}</div>}
+				</div>
+			)}
 
-      <div
-        className={cn(
-          "min-w-0",
-          isInline ? "flex flex-1 flex-col items-start text-left sm:w-2/3 sm:items-end sm:text-right" : "w-full",
-          contentClassName,
-        )}
-      >
-        <div className="text-foreground w-full text-sm font-normal break-words">{children}</div>
+			<div
+				className={cn(
+					"min-w-0",
+					isInline ? "flex flex-1 flex-col items-start text-left sm:w-2/3 sm:items-end sm:text-right" : "w-full",
+					contentClassName,
+				)}
+			>
+				<div className="text-foreground w-full text-sm font-normal break-words">{children}</div>
 
-        {showHelperText && (
-          <div className={cn("mt-1 text-[11px] leading-relaxed text-muted-foreground/80", isInline && "sm:text-right")}>
-            {helperText}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-});
+				{showHelperText && (
+					<div className={cn("mt-1 text-[11px] leading-relaxed text-muted-foreground/80", isInline && "sm:text-right")}>
+						{helperText}
+					</div>
+				)}
+			</div>
+		</div>
+	);
+}

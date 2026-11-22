@@ -26,7 +26,6 @@ export {
   useResourceList,
   useResourceOptions,
   type UseResourceOptionsConfig,
-  type UseResourceOptionsForm,
   useResourceUpdate,
   useSlugSync,
 } from "./hooks";

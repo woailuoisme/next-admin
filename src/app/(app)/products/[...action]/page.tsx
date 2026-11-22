@@ -5,6 +5,6 @@ import { createResourceActionPage, createResourceMetadata } from "@/lib/resource
 export const generateMetadata = createResourceMetadata(productResource);
 
 export default createResourceActionPage({
-  resource: productResource,
-  Component: ProductsActionView,
+	resource: productResource,
+	Component: ProductsActionView,
 });

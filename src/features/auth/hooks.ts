@@ -1,9 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { getApiErrorMessage, parseApiError } from "@/lib/apiClient";
@@ -22,7 +21,7 @@ import {
   verifyOtpApi,
 } from "./api";
 import { clearResetFlow, readResetFlow, saveResetFlow, patchResetFlow } from "./resetFlow";
-import { clearAuthSession, getAuthToken, setAuthSession, useAuthStore, useIsAuthenticated } from "./store";
+import { clearAuthSession, setAuthSession, useAuthStore, useIsAuthenticated } from "./store";
 
 const RESET_ERROR_KEYS: Record<string, MessageKeyOf<"auth">> = {
   INVALID_CODE: "error_invalid_code",
@@ -80,27 +79,22 @@ export function useLogoutMutation() {
  */
 export function useSessionValidation() {
   const isAuthenticated = useIsAuthenticated();
-  const validated = useRef(false);
+  const token = useAuthStore((s) => s.session?.token ?? null);
 
-  useEffect(() => {
-    // 持久化状态会异步水合（false → true），用一次性标记避免重复请求
-    if (validated.current || !isAuthenticated || !getAuthToken()) return;
-    validated.current = true;
-
-    let cancelled = false;
-    void fetchCurrentAdminApi()
-      .then((admin) => {
-        const token = getAuthToken();
-        if (!cancelled && token) setAuthSession({ token, admin });
-      })
-      .catch(() => {
-        // 401 已由 apiClient 统一处理，其余错误保留本地会话避免误踢
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isAuthenticated]);
+  useQuery({
+    queryKey: ["auth", "me", token],
+    queryFn: async () => {
+      const admin = await fetchCurrentAdminApi();
+      const currentToken = useAuthStore.getState().session?.token;
+      if (currentToken) {
+        setAuthSession({ token: currentToken, admin });
+      }
+      return admin;
+    },
+    enabled: isAuthenticated && Boolean(token),
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
 }
 
 export function useForgotPasswordMutation() {

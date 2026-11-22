@@ -2,8 +2,6 @@
 
 import { clamp } from "es-toolkit";
 import { AlertTriangle, CheckCircle2, Clock, type LucideIcon } from "lucide-react";
-import { useMemo } from "react";
-
 import type { PacingStatus } from "./types";
 
 import { parseNumericValue } from "../shared/utils";
@@ -91,8 +89,5 @@ export function useProgressStat({
   pacingStatus,
   pacingLabel,
 }: UseProgressStatOptions): ProgressStatResult {
-  return useMemo(
-    () => computeProgressStat({ value, targetValue, progress, pacingStatus, pacingLabel }),
-    [value, targetValue, progress, pacingStatus, pacingLabel],
-  );
+  return computeProgressStat({ value, targetValue, progress, pacingStatus, pacingLabel });
 }

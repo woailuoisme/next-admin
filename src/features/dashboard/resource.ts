@@ -21,10 +21,3 @@ export const dashboardResource = defineEndpoint({
     },
   },
 });
-
-export const dashboardKeys = {
-  all: dashboardResource.keys.all,
-  summary: (range?: DashboardTimeRange) => [...dashboardResource.keys.all, "summary", range ?? "30d"] as const,
-};
-
-export const dashboardQueries = dashboardResource.queries;

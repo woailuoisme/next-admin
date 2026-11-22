@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { baseTableSearchSchema } from "@/components/data-table/core/tableSearchSchema";
-import { dashboardKeys } from "@/features/dashboard/resource";
+import { dashboardResource } from "@/features/dashboard/resource";
 import { apiClient } from "@/lib/apiClient";
 import { defineResource, RESOURCE_MANIFEST, type ResourceCustomAction } from "@/lib/resource";
 import { toastMessages } from "@/lib/toastMessages";
@@ -47,7 +47,7 @@ export const orderResource = defineResource<
   searchSchema: orderSearchSchema,
   presentation: { view: "drawer" },
   modalKeys: { viewKey: "orderId" },
-  invalidates: [dashboardKeys.all],
+  invalidates: [dashboardResource.keys.all],
   transformFilters: (filters) => ({
     ...filters,
     status: filters.status === "all" ? undefined : filters.status,
@@ -63,7 +63,7 @@ export const orderResource = defineResource<
       },
       successMessage: (updated) => toastMessages.statusChanged(updated.orderNumber, updated.status),
       errorMessage: () => toastMessages.statusError(),
-      invalidates: [dashboardKeys.all],
+      invalidates: [dashboardResource.keys.all],
     },
   },
 });

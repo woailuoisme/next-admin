@@ -5,6 +5,6 @@ import { createResourceListPage, createResourceMetadata } from "@/lib/resource/n
 export const generateMetadata = createResourceMetadata(customerResource);
 
 export default createResourceListPage({
-  resource: customerResource,
-  Component: UsersListView,
+	resource: customerResource,
+	Component: UsersListView,
 });

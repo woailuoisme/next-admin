@@ -5,7 +5,7 @@ import type { Order } from "@/features/orders";
 import type { Product } from "@/features/products";
 import type { Customer } from "@/features/users";
 
-import { db, resetDb } from "../db";
+import { db, resetDatabase } from "../db";
 import { checkChaosError, jsonOk, simulateNetwork } from "../middleware";
 
 const CATEGORY_COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ec4899", "#06b6d4"] as const;
@@ -132,7 +132,7 @@ export const dashboardHandlers = [
 
   http.post("/v1/dashboard/reset", async ({ request }) => {
     await simulateNetwork(request);
-    await resetDb();
+    await resetDatabase();
     return jsonOk({
       success: true,
       message: "Database reset to default seed data",

@@ -11,52 +11,52 @@ import type { MonthlyTrendPoint } from "../types";
 const EMPTY_REVENUE_DATA: MonthlyTrendPoint[] = [];
 
 interface RevenueChartProps {
-  data?: MonthlyTrendPoint[];
-  isLoading?: boolean;
+	data?: MonthlyTrendPoint[];
+	isLoading?: boolean;
 }
 
 export function RevenueChart({ data = EMPTY_REVENUE_DATA, isLoading = false }: RevenueChartProps) {
-  const t = useTranslations("dashboard");
-  const format = useFormatter();
-  const [activePeriod, setActivePeriod] = useState("12M");
+	const t = useTranslations("dashboard");
+	const format = useFormatter();
+	const [activePeriod, setActivePeriod] = useState("12M");
 
-  const formatRevenueTooltip = useMemoizedFn((val: number) =>
-    format.number(val, { style: "currency", currency: "USD", maximumFractionDigits: 0 }),
-  );
+	const formatRevenueTooltip = useMemoizedFn((val: number) =>
+		format.number(val, { style: "currency", currency: "USD", maximumFractionDigits: 0 }),
+	);
 
-  const revenuePeriods = [
-    { label: t("period_7d"), value: "7D" },
-    { label: t("period_30d"), value: "30D" },
-    { label: t("period_12m"), value: "12M" },
-  ];
+	const revenuePeriods = [
+		{ label: t("period_7d"), value: "7D" },
+		{ label: t("period_30d"), value: "30D" },
+		{ label: t("period_12m"), value: "12M" },
+	];
 
-  // Map MonthlyTrendPoint data to AreaTrendChart data format filtered by active period
-  const sliced = activePeriod === "7D" ? data.slice(-3) : activePeriod === "30D" ? data.slice(-6) : data;
-  const chartData = sliced.map((item) => ({
-    label: item.month,
-    value: item.revenue,
-    secondaryValue: item.orders * 100, // normalized scale if needed
-  }));
+	// Map MonthlyTrendPoint data to AreaTrendChart data format filtered by active period
+	const sliced = activePeriod === "7D" ? data.slice(-3) : activePeriod === "30D" ? data.slice(-6) : data;
+	const chartData = sliced.map((item) => ({
+		label: item.month,
+		value: item.revenue,
+		secondaryValue: item.orders * 100, // normalized scale if needed
+	}));
 
-  return (
-    <ChartCard
-      title={t("revenue_chart_title")}
-      description={t("revenue_chart_desc")}
-      periods={revenuePeriods}
-      activePeriod={activePeriod}
-      onPeriodChange={setActivePeriod}
-      height={300}
-      isLoading={isLoading}
-      isEmpty={!data?.length}
-      className="col-span-full lg:col-span-4"
-    >
-      <LazyAreaTrendChart
-        data={chartData}
-        theme="chart-2"
-        dataKey="value"
-        xAxisKey="label"
-        valueFormatter={formatRevenueTooltip}
-      />
-    </ChartCard>
-  );
+	return (
+		<ChartCard
+			title={t("revenue_chart_title")}
+			description={t("revenue_chart_desc")}
+			periods={revenuePeriods}
+			activePeriod={activePeriod}
+			onPeriodChange={setActivePeriod}
+			height={300}
+			isLoading={isLoading}
+			isEmpty={!data?.length}
+			className="col-span-full lg:col-span-4"
+		>
+			<LazyAreaTrendChart
+				data={chartData}
+				theme="chart-2"
+				dataKey="value"
+				xAxisKey="label"
+				valueFormatter={formatRevenueTooltip}
+			/>
+		</ChartCard>
+	);
 }

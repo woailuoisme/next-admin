@@ -3,8 +3,13 @@ import type { LucideIcon } from "lucide-react";
 import type { ComponentType } from "react";
 import type { z } from "zod";
 
-import type { ModalKeyMapping } from "@/components/dialogs/hooks/useResourceModalState";
 import type { ResourcePresentation } from "@/components/resource/types";
+
+export interface ModalKeyMapping {
+  createKey?: string;
+  editKey?: string;
+  viewKey?: string;
+}
 
 export type ResourceActionName = "list" | "view" | "create" | "edit" | "delete" | (string & {});
 

@@ -1,5 +1,5 @@
 import { useLatest, useMemoizedFn } from "ahooks";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import type { DataTableFilterItem, DataTableFilterModel } from "../../../core/types";
 import { isActiveFilterItem, isQueryBuilderRule } from "../utils";
@@ -53,7 +53,7 @@ export function useFilterPanelState({
 
   const currentItems = deferFilters ? draftItems : filterModel.items || [];
 
-  const activeCount = useMemo(() => (filterModel.items || []).filter(isActiveFilterItem).length, [filterModel.items]);
+  const activeCount = (filterModel.items || []).filter(isActiveFilterItem).length;
 
   const updateItems = useMemoizedFn((nextItems: DataTableFilterItem[]) => {
     if (deferFilters) {

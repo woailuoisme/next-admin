@@ -12,12 +12,7 @@ export { MapFullscreenDialog, type MapFullscreenDialogProps } from "./card/MapFu
 
 export { MapFrame, useMapBasemapState, type MapFrameProps } from "./frame/MapFrame";
 
-export {
-  CHINA_MAP_CENTER,
-  DEFAULT_BEIJING_CENTER,
-  MAP_ATTRIBUTION_PROPS,
-  MAP_NO_ATTRIBUTION,
-} from "./shared/constants";
+export { CHINA_MAP_CENTER, DEFAULT_BEIJING_CENTER, MAP_ATTRIBUTION_PROPS } from "./shared/constants";
 export { MapSkeleton, type MapSkeletonProps } from "./shared/MapSkeleton";
 export { MapEmptyState, type MapEmptyStateProps } from "./shared/MapEmptyState";
 export { MapAutoResizer, type MapAutoResizerProps } from "./shared/MapAutoResizer";

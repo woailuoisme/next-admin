@@ -2,6 +2,10 @@
 
 import { useSyncExternalStore } from "react";
 
+import { buildRampFromBase, clearColorNormalizationCache, resolveCssColorToHex } from "./colorConversion";
+
+export { resolveCssColorToHex };
+
 export interface MapThemeTokens {
   primary: string;
   primarySoft: string;
@@ -50,103 +54,17 @@ const FALLBACK_DARK_TOKENS: MapThemeTokens = {
   isDark: true,
 };
 
-let cachedCanvasCtx: CanvasRenderingContext2D | null = null;
-const colorCache = new Map<string, string>();
-
-function getColorNormalizerCtx(): CanvasRenderingContext2D | null {
-  if (typeof document === "undefined") return null;
-  if (!cachedCanvasCtx) {
-    const canvas = document.createElement("canvas");
-    canvas.width = 1;
-    canvas.height = 1;
-    cachedCanvasCtx = canvas.getContext("2d", { willReadFrequently: true });
-  }
-  return cachedCanvasCtx;
-}
-
-/**
- * 将任意浏览器支持的 CSS 颜色（含 oklch / color-mix / hsl）通过 Canvas 2D
- * 实时归一化为 MapLibre Style Spec 可识别的 #rrggbb / rgba(...) 格式。
- */
-export function resolveCssColorToHex(cssColor: string, fallback: string): string {
-  const trimmed = cssColor.trim();
-  if (!trimmed) return fallback;
-
-  const hit = colorCache.get(trimmed);
-  if (hit) return hit;
-
-  const ctx = getColorNormalizerCtx();
-  if (!ctx) return fallback;
-
-  ctx.clearRect(0, 0, 1, 1);
-  ctx.fillStyle = "rgba(0, 0, 0, 0)";
-  ctx.fillStyle = trimmed;
-  const serialized = ctx.fillStyle;
-
-  let resolved = fallback;
-  if (typeof serialized === "string" && /^#[0-9a-f]{6}$/i.test(serialized)) {
-    resolved = serialized;
-  } else {
-    ctx.fillRect(0, 0, 1, 1);
-    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
-    if (a > 0) {
-      resolved =
-        a === 255
-          ? `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
-          : `rgba(${r}, ${g}, ${b}, ${Number((a / 255).toFixed(2))})`;
-    }
-  }
-
-  colorCache.set(trimmed, resolved);
-  return resolved;
-}
-
-function hexToRgb(hex: string): [number, number, number] | null {
-  const match = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex.trim());
-  if (!match) return null;
-  return [Number.parseInt(match[1], 16), Number.parseInt(match[2], 16), Number.parseInt(match[3], 16)];
-}
-
-function mixHex(aHex: string, bHex: string, ratioB: number): string {
-  const a = hexToRgb(aHex);
-  const b = hexToRgb(bHex);
-  if (!a || !b) return bHex;
-  const mix = (x: number, y: number) => Math.round(x + (y - x) * ratioB);
-  const r = mix(a[0], b[0]);
-  const g = mix(a[1], b[1]);
-  const bl = mix(a[2], b[2]);
-  return `#${((1 << 24) + (r << 16) + (g << 8) + bl).toString(16).slice(1)}`;
-}
-
-function buildRampFromBase(
-  baseHex: string,
-  backgroundHex: string,
-  mutedHex: string,
-  foregroundHex: string,
-  isDark: boolean,
-): readonly string[] {
-  const anchor = isDark ? mixHex(backgroundHex, foregroundHex, 0.1) : mixHex(backgroundHex, mutedHex, 0.65);
-  return [
-    mixHex(anchor, baseHex, 0.2),
-    mixHex(anchor, baseHex, 0.4),
-    mixHex(anchor, baseHex, 0.62),
-    mixHex(anchor, baseHex, 0.82),
-    baseHex,
-  ];
-}
-
 /** 构建面向浅色与深色底图可读性优化的语义色阶（全量派生自当前主题 CSS 变量） */
 export function buildAdaptiveSchemeRamp(
   scheme: "primary" | "emerald" | "amber" | "rose" | "violet",
   tokens: MapThemeTokens,
 ): readonly string[] {
   if (scheme === "primary") return tokens.primaryRamp;
-  const chartColors = tokens.chartColors;
   const targets = {
-    emerald: chartColors[1],
-    amber: chartColors[0],
+    emerald: tokens.chartColors[1],
+    amber: tokens.chartColors[0],
     rose: tokens.destructive,
-    violet: chartColors[4],
+    violet: tokens.chartColors[4],
   } as const;
   return buildRampFromBase(targets[scheme], tokens.background, tokens.muted, tokens.foreground, tokens.isDark);
 }
@@ -222,7 +140,7 @@ function tokensEqual(a: MapThemeTokens, b: MapThemeTokens): boolean {
 }
 
 function refreshTokens(): void {
-  colorCache.clear();
+  clearColorNormalizationCache();
   const next = readDomThemeTokens();
   if (!tokensEqual(snapshotTokens, next)) {
     snapshotTokens = next;
@@ -236,9 +154,7 @@ function ensureObserver(): void {
   snapshotTokens = readDomThemeTokens();
 
   if (typeof MutationObserver !== "undefined") {
-    const observer = new MutationObserver(() => {
-      refreshTokens();
-    });
+    const observer = new MutationObserver(refreshTokens);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class", "style", "data-theme"],
@@ -249,9 +165,7 @@ function ensureObserver(): void {
 function subscribe(cb: () => void): () => void {
   ensureObserver();
   listeners.add(cb);
-  return () => {
-    listeners.delete(cb);
-  };
+  return () => listeners.delete(cb);
 }
 
 function getSnapshot(): MapThemeTokens {
@@ -259,13 +173,9 @@ function getSnapshot(): MapThemeTokens {
   return snapshotTokens;
 }
 
-function getServerSnapshot(): MapThemeTokens {
-  return FALLBACK_LIGHT_TOKENS;
-}
+const getServerSnapshot = (): MapThemeTokens => FALLBACK_LIGHT_TOKENS;
 
-/**
- * 订阅全站主题（light/dark + 5 套主题切换）并获取 WebGL 兼容的精确 HEX/RGBA 令牌。
- */
+/** 订阅全站主题（light/dark + 5 套主题切换）并获取 WebGL 兼容的精确 HEX/RGBA 令牌。 */
 export function useMapThemeTokens(): MapThemeTokens {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

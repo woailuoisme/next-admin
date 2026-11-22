@@ -3,20 +3,20 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import DashboardLoading from "@/app/(app)/loading";
-import { FormShowcasePage } from "@/features/showcase/pages/FormShowcasePage";
+import { FormShowcasePage } from "@/features/showcase/pages/forms/FormShowcasePage";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("showcase");
-  return {
-    title: t("forms_title"),
-    description: t("forms_description"),
-  };
+	const t = await getTranslations("showcase");
+	return {
+		title: t("forms_title"),
+		description: t("forms_description"),
+	};
 }
 
 export default function Page() {
-  return (
-    <Suspense fallback={<DashboardLoading />}>
-      <FormShowcasePage />
-    </Suspense>
-  );
+	return (
+		<Suspense fallback={<DashboardLoading />}>
+			<FormShowcasePage />
+		</Suspense>
+	);
 }

@@ -15,21 +15,15 @@ export interface ArcFlightItem {
   color?: string;
 }
 
-export type FlightArcItem = ArcFlightItem;
-
 export interface ArcFlightMapProps extends MapCommonProps, MapFeedbackProps {
   /** 输入数据坐标系（默认 WGS84） */
   coordinateSystem?: CoordinateSystem;
   /** 流向弧线数据 */
-  data?: ArcFlightItem[];
-  /** 流向弧线数据别名 */
-  arcs?: ArcFlightItem[];
+  data: ArcFlightItem[];
   /** 弧线默认颜色 */
   arcColor?: string;
   /** 悬浮高亮颜色 */
   arcHoverColor?: string;
-  /** @deprecated 兼容别名，同 `arcHoverColor` */
-  hoverArcColor?: string;
   /** 弧线基础线宽 */
   arcWidth?: number;
   /** 悬浮高亮线宽（默认为 arcWidth + 2） */
@@ -42,8 +36,6 @@ export interface ArcFlightMapProps extends MapCommonProps, MapFeedbackProps {
   samples?: number;
   /** 是否显示端节点呼吸标记 */
   showNodes?: boolean;
-  /** 是否显示端节点呼吸标记别名 */
-  showNodeMarkers?: boolean;
   /** 端节点尺寸 */
   nodeSize?: number;
   /** 弧线悬浮回调 */

@@ -4,9 +4,9 @@ import { ProfileSkeleton } from "@/features/auth/components/profile/ProfileSkele
 import { ProfilePage } from "@/features/auth/pages/ProfilePage";
 
 export default function Page() {
-  return (
-    <Suspense fallback={<ProfileSkeleton />}>
-      <ProfilePage />
-    </Suspense>
-  );
+	return (
+		<Suspense fallback={<ProfileSkeleton />}>
+			<ProfilePage />
+		</Suspense>
+	);
 }

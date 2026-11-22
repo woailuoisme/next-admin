@@ -12,13 +12,13 @@ import { subscribeAuthStorageSync, useAuthRole, useAuthStore } from "../store";
  * 会话校验器（SessionValidator）通过 AppProviders 的 guardSlot 单独注入。
  */
 export function AuthAppBridge({ children }: { children: ReactNode }) {
-  const role = useAuthRole();
-  const evaluator = createRoleAccessEvaluator(role);
+	const role = useAuthRole();
+	const evaluator = createRoleAccessEvaluator(role);
 
-  useEffect(() => {
-    void useAuthStore.persist.rehydrate();
-    return subscribeAuthStorageSync();
-  }, []);
+	useEffect(() => {
+		void useAuthStore.persist.rehydrate();
+		return subscribeAuthStorageSync();
+	}, []);
 
-  return <AccessControlProvider evaluator={evaluator}>{children}</AccessControlProvider>;
+	return <AccessControlProvider evaluator={evaluator}>{children}</AccessControlProvider>;
 }

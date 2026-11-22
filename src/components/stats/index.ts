@@ -19,12 +19,6 @@ export { MiniSparkline, Sparkline } from "./sparkline/MiniSparkline";
 export type { StatCardProps, StatCardTrendData, TrendDirection } from "./stat-card/types";
 export { StatCard } from "./stat-card/StatCard";
 
-export { StatCardHeadline } from "./primitives/StatCardHeadline";
-export { StatCardHelpTooltip } from "./primitives/StatCardHelpTooltip";
-export { StatCardIcon } from "./primitives/StatCardIcon";
-export { StatCardProgress } from "./primitives/StatCardProgress";
-export { StatCardRoot } from "./primitives/StatCardRoot";
+export { StatCardProgress, StatCardSparkline, StatCardTrend, StatCardValue } from "./primitives/StatCardMetrics";
+export { StatCardHeadline, StatCardHelpTooltip, StatCardIcon, StatCardRoot } from "./primitives/StatCardRoot";
 export { StatCardSkeleton, type StatCardSkeletonProps, type StatSkeletonVariant } from "./primitives/StatCardSkeleton";
-export { StatCardSparkline } from "./primitives/StatCardSparkline";
-export { StatCardTrend } from "./primitives/StatCardTrend";
-export { StatCardValue } from "./primitives/StatCardValue";

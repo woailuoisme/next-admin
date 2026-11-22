@@ -8,7 +8,7 @@ export { RecentOrdersTable } from "./components/RecentOrdersTable";
 export { RevenueChart } from "./components/RevenueChart";
 export { useDashboardSummary } from "./hooks";
 export { DashboardPage, type DashboardPageProps } from "./pages/DashboardPage";
-export { dashboardKeys, dashboardQueries, dashboardResource, fetchDashboardSummary } from "./resource";
+export { dashboardResource, fetchDashboardSummary } from "./resource";
 export {
   DASHBOARD_TIME_RANGE_OPTIONS,
   DASHBOARD_TIME_RANGES,

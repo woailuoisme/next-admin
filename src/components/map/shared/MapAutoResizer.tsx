@@ -7,14 +7,14 @@ import { memo, useEffect } from "react";
 import { useMap } from "@/components/ui/map";
 
 export interface MapAutoResizerProps {
-  /** Debounce delay in ms before triggering map.resize (default: 50) */
-  debounceMs?: number;
+	/** Debounce delay in ms before triggering map.resize (default: 50) */
+	debounceMs?: number;
 }
 
 const FALLBACK_EMPTY_IMAGE = {
-  width: 1,
-  height: 1,
-  data: new Uint8Array([0, 0, 0, 0]),
+	width: 1,
+	height: 1,
+	data: new Uint8Array([0, 0, 0, 0]),
 };
 
 /**
@@ -22,13 +22,13 @@ const FALLBACK_EMPTY_IMAGE = {
  * 按需注册 1x1 透明占位图像，消除 MapLibre `Image "..." could not be loaded` 控制台告警。
  */
 export function ensureFallbackStyleImage(map: MapLibreGL.Map, id: string): void {
-  if (!id || typeof map.addImage !== "function") return;
-  try {
-    if (typeof map.hasImage === "function" && map.hasImage(id)) return;
-    map.addImage(id, FALLBACK_EMPTY_IMAGE);
-  } catch {
-    // 忽略并发或样式切换期间的重复注册异常
-  }
+	if (!id || typeof map.addImage !== "function") return;
+	try {
+		if (typeof map.hasImage === "function" && map.hasImage(id)) return;
+		map.addImage(id, FALLBACK_EMPTY_IMAGE);
+	} catch {
+		// 忽略并发或样式切换期间的重复注册异常
+	}
 }
 
 /**
@@ -36,74 +36,74 @@ export function ensureFallbackStyleImage(map: MapLibreGL.Map, id: string): void 
  * 同时统一托管缺失 Sprite 图标的兜底解析器（覆盖 MapFrame 与 LocationPicker）。
  */
 export const MapAutoResizer = memo(function MapAutoResizer({ debounceMs = 50 }: MapAutoResizerProps) {
-  const { map, isLoaded } = useMap();
+	const { map, isLoaded } = useMap();
 
-  useEffect(() => {
-    if (!map) return;
+	useEffect(() => {
+		if (!map) return;
 
-    const handleMissingImage = (id: string) => {
-      ensureFallbackStyleImage(map, id);
-    };
-    const handleStyleImageMissingEvent = (event: { id?: string }) => {
-      if (event?.id) {
-        ensureFallbackStyleImage(map, event.id);
-      }
-    };
+		const handleMissingImage = (id: string) => {
+			ensureFallbackStyleImage(map, id);
+		};
+		const handleStyleImageMissingEvent = (event: { id?: string }) => {
+			if (event?.id) {
+				ensureFallbackStyleImage(map, event.id);
+			}
+		};
 
-    if (typeof map.setMissingStyleImageResolver === "function") {
-      map.setMissingStyleImageResolver(handleMissingImage);
-    }
-    map.on?.("styleimagemissing", handleStyleImageMissingEvent);
+		if (typeof map.setMissingStyleImageResolver === "function") {
+			map.setMissingStyleImageResolver(handleMissingImage);
+		}
+		map.on?.("styleimagemissing", handleStyleImageMissingEvent);
 
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+		let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const handleResize = () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        if (map && typeof map.resize === "function") {
-          map.resize();
-        }
-      }, debounceMs);
-    };
+		const handleResize = () => {
+			if (timeoutId) clearTimeout(timeoutId);
+			timeoutId = setTimeout(() => {
+				if (map && typeof map.resize === "function") {
+					map.resize();
+				}
+			}, debounceMs);
+		};
 
-    let observer: ResizeObserver | null = null;
-    const container = map.getContainer?.();
-    if (container && typeof ResizeObserver !== "undefined") {
-      observer = new ResizeObserver(() => {
-        handleResize();
-      });
-      observer.observe(container);
-    }
+		let observer: ResizeObserver | null = null;
+		const container = map.getContainer?.();
+		if (container && typeof ResizeObserver !== "undefined") {
+			observer = new ResizeObserver(() => {
+				handleResize();
+			});
+			observer.observe(container);
+		}
 
-    window.addEventListener("resize", handleResize, { passive: true });
+		window.addEventListener("resize", handleResize, { passive: true });
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        handleResize();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === "visible") {
+				handleResize();
+			}
+		};
+		document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    return () => {
-      if (typeof map.setMissingStyleImageResolver === "function") {
-        map.setMissingStyleImageResolver(null);
-      }
-      map.off?.("styleimagemissing", handleStyleImageMissingEvent);
-      if (timeoutId) clearTimeout(timeoutId);
-      if (observer && container) {
-        observer.unobserve(container);
-        observer.disconnect();
-      }
-      window.removeEventListener("resize", handleResize);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [map, debounceMs]);
+		return () => {
+			if (typeof map.setMissingStyleImageResolver === "function") {
+				map.setMissingStyleImageResolver(null);
+			}
+			map.off?.("styleimagemissing", handleStyleImageMissingEvent);
+			if (timeoutId) clearTimeout(timeoutId);
+			if (observer && container) {
+				observer.unobserve(container);
+				observer.disconnect();
+			}
+			window.removeEventListener("resize", handleResize);
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+		};
+	}, [map, debounceMs]);
 
-  useEffect(() => {
-    if (map && isLoaded && typeof map.resize === "function") {
-      map.resize();
-    }
-  }, [map, isLoaded]);
+	useEffect(() => {
+		if (map && isLoaded && typeof map.resize === "function") {
+			map.resize();
+		}
+	}, [map, isLoaded]);
 
-  return null;
+	return null;
 });

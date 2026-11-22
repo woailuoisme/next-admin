@@ -80,13 +80,11 @@ export const notificationsEndpoint = defineEndpoint({
       refetchIntervalInBackground: false,
     },
   },
+  actions: {
+    markAsRead: { mutationFn: markNotificationAsRead },
+    markAllAsRead: { mutationFn: markAllNotificationsAsRead },
+    remove: { mutationFn: deleteNotification },
+  },
 });
 
-export const notificationKeys = {
-  all: notificationsEndpoint.keys.all,
-  lists: () => [...notificationsEndpoint.keys.all, "list"] as const,
-  list: (filters: NotificationFilters = EMPTY_NOTIFICATION_FILTERS) =>
-    [...notificationsEndpoint.keys.all, "list", normalizeNotificationFilters(filters)] as const,
-};
-
-export const notificationQueries = notificationsEndpoint.queries;
+export const NOTIFICATION_LIST_KEY_PREFIX = [...notificationsEndpoint.keys.all, "list"] as const;

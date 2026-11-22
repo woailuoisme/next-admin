@@ -18,94 +18,94 @@ import type { AdminRole } from "../types";
 type ProfileTab = "general" | "security" | "preferences";
 
 function resolveTabParam(value: string | null): ProfileTab {
-  if (value === "security" || value === "preferences") return value;
-  return "general";
+	if (value === "security" || value === "preferences") return value;
+	return "general";
 }
 
 export function ProfilePage() {
-  const t = useTranslations("profile");
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+	const t = useTranslations("profile");
+	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
 
-  const admin = useAuthAdmin();
-  const urlTabParam = searchParams.get("tab");
-  const [localTabState, setLocalTabState] = useState<{ urlTab: string | null; tab: ProfileTab } | null>(null);
-  const activeTab =
-    localTabState && localTabState.urlTab === urlTabParam ? localTabState.tab : resolveTabParam(urlTabParam);
+	const admin = useAuthAdmin();
+	const urlTabParam = searchParams.get("tab");
+	const [localTabState, setLocalTabState] = useState<{ urlTab: string | null; tab: ProfileTab } | null>(null);
+	const activeTab =
+		localTabState && localTabState.urlTab === urlTabParam ? localTabState.tab : resolveTabParam(urlTabParam);
 
-  const handleTabChange = (nextTab: ProfileTab) => {
-    setLocalTabState({ urlTab: urlTabParam, tab: nextTab });
-    const params = new URLSearchParams(searchParams.toString());
-    if (nextTab === "general") {
-      params.delete("tab");
-    } else {
-      params.set("tab", nextTab);
-    }
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  };
+	const handleTabChange = (nextTab: ProfileTab) => {
+		setLocalTabState({ urlTab: urlTabParam, tab: nextTab });
+		const params = new URLSearchParams(searchParams.toString());
+		if (nextTab === "general") {
+			params.delete("tab");
+		} else {
+			params.set("tab", nextTab);
+		}
+		const query = params.toString();
+		router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+	};
 
-  if (!admin) {
-    return <ProfileSkeleton />;
-  }
+	if (!admin) {
+		return <ProfileSkeleton />;
+	}
 
-  const roleLabels: Record<AdminRole, string> = {
-    superadmin: t("role_superadmin"),
-    admin: t("role_admin"),
-    manager: t("role_manager"),
-    auditor: t("role_auditor"),
-    operator: t("role_operator"),
-    viewer: t("role_viewer"),
-  };
+	const roleLabels: Record<AdminRole, string> = {
+		superadmin: t("role_superadmin"),
+		admin: t("role_admin"),
+		manager: t("role_manager"),
+		auditor: t("role_auditor"),
+		operator: t("role_operator"),
+		viewer: t("role_viewer"),
+	};
 
-  return (
-    <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-foreground text-2xl font-semibold tracking-tight">{t("page_title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("page_subtitle")}</p>
-      </div>
+	return (
+		<div className="space-y-6">
+			<div className="space-y-1">
+				<h1 className="text-foreground text-2xl font-semibold tracking-tight">{t("page_title")}</h1>
+				<p className="text-muted-foreground text-sm">{t("page_subtitle")}</p>
+			</div>
 
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-        <div className="space-y-6 lg:col-span-4">
-          <ProfileIdentityCard
-            admin={admin}
-            roleLabels={roleLabels}
-            onJumpToSecurity={() => handleTabChange("security")}
-          />
-        </div>
+			<div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+				<div className="space-y-6 lg:col-span-4">
+					<ProfileIdentityCard
+						admin={admin}
+						roleLabels={roleLabels}
+						onJumpToSecurity={() => handleTabChange("security")}
+					/>
+				</div>
 
-        <div className="lg:col-span-8">
-          <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as ProfileTab)}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="general" className="gap-1.5">
-                <UserIcon className="size-3.5" />
-                {t("tab_general")}
-              </TabsTrigger>
-              <TabsTrigger value="security" className="gap-1.5">
-                <Lock className="size-3.5" />
-                {t("tab_security")}
-              </TabsTrigger>
-              <TabsTrigger value="preferences" className="gap-1.5">
-                <Palette className="size-3.5" />
-                {t("tab_preferences")}
-              </TabsTrigger>
-            </TabsList>
+				<div className="lg:col-span-8">
+					<Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as ProfileTab)}>
+						<TabsList className="grid w-full grid-cols-3">
+							<TabsTrigger value="general" className="gap-1.5">
+								<UserIcon className="size-3.5" />
+								{t("tab_general")}
+							</TabsTrigger>
+							<TabsTrigger value="security" className="gap-1.5">
+								<Lock className="size-3.5" />
+								{t("tab_security")}
+							</TabsTrigger>
+							<TabsTrigger value="preferences" className="gap-1.5">
+								<Palette className="size-3.5" />
+								{t("tab_preferences")}
+							</TabsTrigger>
+						</TabsList>
 
-            <TabsContent value="general" className="mt-4">
-              <ProfileGeneralTab key={admin.id} admin={admin} roleLabels={roleLabels} />
-            </TabsContent>
+						<TabsContent value="general" className="mt-4">
+							<ProfileGeneralTab key={admin.id} admin={admin} roleLabels={roleLabels} />
+						</TabsContent>
 
-            <TabsContent value="security" className="mt-4">
-              <ProfileSecurityTab admin={admin} />
-            </TabsContent>
+						<TabsContent value="security" className="mt-4">
+							<ProfileSecurityTab admin={admin} />
+						</TabsContent>
 
-            <TabsContent value="preferences" className="mt-4">
-              <ProfilePreferencesTab />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </div>
-  );
+						<TabsContent value="preferences" className="mt-4">
+							<ProfilePreferencesTab />
+						</TabsContent>
+					</Tabs>
+				</div>
+			</div>
+		</div>
+	);
 }

@@ -1,5 +1,4 @@
 // Public API seam for products feature
-export { ProductForm, type ProductFormProps } from "./components/ProductForm";
 export {
   computeProductStats,
   DEFAULT_PRODUCT_IMAGE,
