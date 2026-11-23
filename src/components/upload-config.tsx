@@ -1,9 +1,7 @@
 "use client";
 
-import { localAdapter, s3Adapter } from "@uploadcn/core";
+import { localAdapter } from "@uploadcn/core";
 import { UploadConfigProvider } from "@uploadcn/react";
-
-import { env } from "@/env";
 
 /**
  * Where every upload in your app goes. Swap the adapter to change storage
@@ -13,7 +11,7 @@ import { env } from "@/env";
  *   localAdapter()                                  keep files in the browser
  *   createAdapter(async ({ file }) => …)            your own API or SDK
  */
-const adapter = env.ENABLE_MOCK ? localAdapter() : s3Adapter({ endpoint: "/api/upload" });
+const adapter = localAdapter();
 
 export function UploadConfig({ children }: { children: React.ReactNode }) {
 	return (

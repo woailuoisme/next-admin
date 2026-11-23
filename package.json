@@ -50,7 +50,6 @@
     "@udecode/cn": "^52.3.4",
     "@uploadcn/core": "^0.1.5",
     "@uploadcn/react": "^0.1.5",
-    "@uploadcn/server": "^0.1.5",
     "ahooks": "^3.11.0",
     "centrifuge": "^5.8.0",
     "class-variance-authority": "^0.7.1",
