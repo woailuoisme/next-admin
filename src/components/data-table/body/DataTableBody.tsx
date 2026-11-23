@@ -120,6 +120,7 @@ function DataTableBodyInner<TData extends Record<string, any> = Record<string, a
 	);
 }
 
+// Whitelist AGENTS.md §5.2: 与 DataTableRow 配合隔离表体渲染边界，避免外层工具栏/分页交互触发无效全表 Diff
 export const DataTableBody = memo(DataTableBodyInner) as <TData extends Record<string, any> = Record<string, any>>(
 	props: DataTableBodyProps<TData>,
 ) => ReactElement | null;

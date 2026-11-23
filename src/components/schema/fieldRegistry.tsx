@@ -282,7 +282,6 @@ export const FIELD_REGISTRY: Record<SchemaFieldType, FieldRenderer> = {
 			maxSize={args.spec.maxSize}
 			endpoint={args.spec.endpoint}
 			paste={args.spec.paste}
-			crop={args.spec.crop}
 			showDownload={args.spec.showDownload}
 			showRemove={args.spec.showRemove}
 		/>

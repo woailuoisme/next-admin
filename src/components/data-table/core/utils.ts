@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import type { DataTableColDef } from "./types";
 
 /**
@@ -32,4 +34,45 @@ export function isColumnVisible<TData>(
     return explicit;
   }
   return !col.hidden;
+}
+
+/**
+ * 统一解析展开列的逻辑起始粘性偏移（存在勾选列时紧随 44px 勾选列之后）
+ */
+export function resolveExpandColumnLeft(checkboxSelection: boolean, hasPinnedStart: boolean): string | undefined {
+  if (checkboxSelection) return "44px";
+  return hasPinnedStart ? "0px" : undefined;
+}
+
+export interface BuildColumnPinStylesOptions {
+  varKey: string;
+  width?: number;
+  minWidth?: number;
+  maxWidth?: number;
+  isLeftPinned: boolean;
+  isRightPinned: boolean;
+  leftFallback?: string;
+  rightFallback?: string;
+}
+
+/**
+ * 统一构造表头、数据行、汇总行与骨架屏单元格的宽度及逻辑起止（insetInlineStart/End）粘性定位样式
+ */
+export function buildColumnPinStyles({
+  varKey,
+  width,
+  minWidth,
+  maxWidth,
+  isLeftPinned,
+  isRightPinned,
+  leftFallback = "0px",
+  rightFallback = "0px",
+}: BuildColumnPinStylesOptions): CSSProperties {
+  return {
+    width: `var(--col-w-${varKey}, ${width ? `${width}px` : "auto"})`,
+    minWidth: minWidth ? `${minWidth}px` : undefined,
+    maxWidth: maxWidth ? `${maxWidth}px` : undefined,
+    insetInlineStart: isLeftPinned ? `var(--col-left-${varKey}, ${leftFallback})` : undefined,
+    insetInlineEnd: isRightPinned ? `var(--col-right-${varKey}, ${rightFallback})` : undefined,
+  };
 }

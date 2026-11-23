@@ -67,7 +67,7 @@ export function useDataTableSetup<TData extends Record<string, any> = Record<str
   const resolvedNoResultsMessage = noResultsMessage ?? t("no_results_heading");
   const resolvedResetFiltersText = resetFiltersText ?? t("reset_filters_action");
 
-  const rows = state?.data ?? propData ?? (EMPTY_ARRAY as unknown as TData[]);
+  const rows: TData[] = state?.data ?? propData ?? EMPTY_ARRAY;
   const loading = state?.loading ?? propLoading;
   const paginationMode = state?.paginationMode ?? propPaginationMode;
   const sortingMode = state?.paginationMode === "server" ? "server" : propSortingMode;
@@ -122,6 +122,7 @@ export function useDataTableSetup<TData extends Record<string, any> = Record<str
     containerRef: tableContainerRef,
   });
 
+  // Whitelist AGENTS.md §5.2: 保持传入 DataTableConfigContextValue 的列查找表引用稳定，配合 DataTableRow memo 隔离
   const columnByField = useMemo(
     () => new Map(engine.normalizedColumns.map((col) => [col.field, col])),
     [engine.normalizedColumns],
@@ -141,7 +142,6 @@ export function useDataTableSetup<TData extends Record<string, any> = Record<str
   // 锁定 DataTableProvider 静态配置引用稳定性，保障行级 React.memo(DataTableRow) 在选行/展开时不误重渲染
   const contextValue = useMemo<DataTableConfigContextValue<TData>>(
     () => ({
-      table: engine.table,
       columns: engine.normalizedColumns,
       columnByField,
       visibleColumns: engine.visibleColumns,
@@ -172,7 +172,6 @@ export function useDataTableSetup<TData extends Record<string, any> = Record<str
       handleSortClick: engine.handleSortClick,
     }),
     [
-      engine.table,
       engine.normalizedColumns,
       columnByField,
       engine.visibleColumns,

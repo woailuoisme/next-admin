@@ -461,7 +461,7 @@ describe("TanStack Form v1 useAppForm & Unified FormSchemaRenderer", () => {
 		expect(screen.getByText("40")).toBeInTheDocument();
 		await user.click(screen.getByText("Center"));
 		await user.click(screen.getByRole("checkbox", { name: "Safe" }));
-		expect(screen.getByDisplayValue("MODE")).toBeInTheDocument();
+		expect(await screen.findByDisplayValue("MODE")).toBeInTheDocument();
 		expect(screen.getByDisplayValue("prod")).toBeInTheDocument();
 		expect(screen.getByText("Alpha")).toBeInTheDocument();
 

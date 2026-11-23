@@ -12,7 +12,7 @@ import { cn } from "cn";
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
 import { useDataTableContext } from "../core/DataTableContext";
 import type { DataTableRowId } from "../core/types";
-import { readCellValue, toColumnCssVarKey } from "../core/utils";
+import { buildColumnPinStyles, readCellValue, resolveExpandColumnLeft, toColumnCssVarKey } from "../core/utils";
 
 export interface DataTableRowProps<
 	TData extends Record<string, any> = Record<string, any>,
@@ -104,7 +104,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
 				{...divRest}
 			>
 				{checkboxSelection && (
-					<TableCell onClick={(e) => e.stopPropagation()} className="bg-card sticky left-0 z-15 w-11 px-3 text-center">
+					<TableCell onClick={(e) => e.stopPropagation()} className="bg-card sticky start-0 z-15 w-11 px-3 text-center">
 						<Checkbox
 							checked={isSelected}
 							disabled={isRowSelectable && !isRowSelectable(row)}
@@ -116,7 +116,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
 
 				{renderExpandedRow && (
 					<TableCell
-						style={{ left: checkboxSelection ? "44px" : pinnedLeftFields.length > 0 ? "0px" : undefined }}
+						style={{ insetInlineStart: resolveExpandColumnLeft(checkboxSelection, pinnedLeftFields.length > 0) }}
 						className={cn(
 							"w-9 px-1 text-center align-middle",
 							(checkboxSelection || pinnedLeftFields.length > 0) &&
@@ -158,13 +158,14 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
 					return (
 						<TableCell
 							key={col.id ?? `${field}_${idx}`}
-							style={{
-								width: `var(--col-w-${varKey}, ${width ? `${width}px` : "auto"})`,
-								minWidth: minWidth ? `${minWidth}px` : undefined,
-								maxWidth: maxWidth ? `${maxWidth}px` : undefined,
-								left: isLeftPinned ? `var(--col-left-${varKey}, 0px)` : undefined,
-								right: isRightPinned ? `var(--col-right-${varKey}, 0px)` : undefined,
-							}}
+							style={buildColumnPinStyles({
+								varKey,
+								width,
+								minWidth,
+								maxWidth,
+								isLeftPinned,
+								isRightPinned,
+							})}
 							className={cn(
 								densityRowClass,
 								isLeftPinned && "sticky z-15 border-r border-border/70 bg-card shadow-pin-left",

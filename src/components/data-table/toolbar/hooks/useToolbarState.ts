@@ -8,7 +8,9 @@ const EMPTY_FILTER_MODEL = { items: EMPTY_ARRAY };
 /**
  * 解析工具栏的受控 / 非受控状态，统一收敛 props → context 的兜底与默认引用
  */
-export function useToolbarState<TData = any>(props: InternalDataTableToolbarProps<TData>) {
+export function useToolbarState<TData extends Record<string, any> = Record<string, any>>(
+  props: InternalDataTableToolbarProps<TData>,
+) {
   const ctx = useOptionalDataTableContext<TData>();
 
   const columns = props.columns ?? ctx?.columns ?? EMPTY_ARRAY;

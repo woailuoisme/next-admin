@@ -3,7 +3,6 @@ import { act, fireEvent } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { AvatarUpload } from "@/components/form/media/file-upload/AvatarUpload";
 import { KeyValueInput } from "@/components/form/composite/key-value/KeyValueInput";
 import { Repeater } from "@/components/form/composite/repeater/Repeater";
 import { ColorPickerContent } from "@/components/form/media/color-picker/ColorPickerContent";
@@ -214,7 +213,7 @@ describe("UploadCN FileUploadCore & AvatarUpload behavior", () => {
 		await waitFor(() => expect(abortedNames).toContain("one.png"));
 	});
 
-	it("renders error fallback without broken img when avatar upload fails and supports retry", async () => {
+	it("handles official AvatarUpload crop skip, transient upload error, re-upload, and removal", async () => {
 		let shouldFailOnce = true;
 		const onChange = vi.fn();
 
@@ -227,7 +226,7 @@ describe("UploadCN FileUploadCore & AvatarUpload behavior", () => {
 		});
 
 		const { container, user } = renderWithProviders(
-			<FileUploadCore id="avatar" mode="avatar" crop={false} value="" onChange={onChange} adapter={adapter} />,
+			<FileUploadCore id="avatar" mode="avatar" value="" onChange={onChange} adapter={adapter} />,
 			{ locale: "en" },
 		);
 
@@ -235,12 +234,17 @@ describe("UploadCN FileUploadCore & AvatarUpload behavior", () => {
 		const avatarFile = new File(["a"], "fail.png", { type: "image/png" });
 		fireEvent.change(fileInput, { target: { files: [avatarFile] } });
 
-		const alert = await screen.findByRole("alert");
-		expect(alert).toHaveTextContent("Transient failure");
-		expect(container.querySelector("img")).not.toBeInTheDocument();
+		// Official AvatarUpload opens ImageCropper first; Cancel skips cropping and triggers upload
+		await user.click(await screen.findByRole("button", { name: "Cancel" }));
+		expect(await screen.findByText("Transient failure")).toBeInTheDocument();
 
-		await user.click(screen.getByRole("button", { name: "Retry" }));
+		// Re-picking uploads again and succeeds cleanly
+		fireEvent.change(fileInput, { target: { files: [new File(["b"], "ok.png", { type: "image/png" })] } });
+		await user.click(await screen.findByRole("button", { name: "Cancel" }));
 		await waitFor(() => expect(onChange).toHaveBeenCalledWith("/cdn/retried.png"));
+
+		await user.click(screen.getByRole("button", { name: "Remove" }));
+		expect(onChange).toHaveBeenLastCalledWith("");
 	});
 
 	it("uploads with default localAdapter and removes persisted URLs cleanly", async () => {
@@ -344,7 +348,7 @@ describe("UploadCN FileUploadCore & AvatarUpload behavior", () => {
 		expect(onKvBlur).toHaveBeenCalledTimes(1);
 	});
 
-	it("blocks unsafe javascript: and HTML data: URLs in FileUploadCore and AvatarUpload", () => {
+	it("blocks unsafe javascript: and HTML data: URLs in grid and avatar FileUploadCore modes", () => {
 		const { container } = renderWithProviders(
 			<>
 				<FileUploadCore
@@ -354,7 +358,12 @@ describe("UploadCN FileUploadCore & AvatarUpload behavior", () => {
 					showDownload
 					showRemove={false}
 				/>
-				<AvatarUpload src="data:text/html,<script>alert(1)</script>" />
+				<FileUploadCore
+					id="sec-avatar"
+					mode="avatar"
+					value="data:text/html,<script>alert(1)</script>"
+					onChange={vi.fn()}
+				/>
 			</>,
 			{ locale: "en" },
 		);

@@ -1,5 +1,3 @@
-import type { CSSProperties, ReactElement } from "react";
-
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "cn";
@@ -7,9 +5,9 @@ import { cn } from "cn";
 import { EMPTY_ARRAY } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
 import type { DataTableColDef } from "../core/types";
-import { toColumnCssVarKey } from "../core/utils";
+import { buildColumnPinStyles, resolveExpandColumnLeft, toColumnCssVarKey } from "../core/utils";
 
-export interface DataTableSkeletonRowsProps<TData = any> {
+export interface DataTableSkeletonRowsProps<TData extends Record<string, any> = Record<string, any>> {
 	count: number;
 	visibleColumns?: DataTableColDef<TData>[];
 	checkboxSelection?: boolean;
@@ -24,7 +22,7 @@ export interface DataTableSkeletonRowsProps<TData = any> {
 
 const WIDTH_CLASSES = ["w-4/5", "w-2/3", "w-1/2", "w-3/5", "w-3/4"];
 
-export const DataTableSkeletonRows = function DataTableSkeletonRows<TData = any>({
+export function DataTableSkeletonRows<TData extends Record<string, any> = Record<string, any>>({
 	count,
 	visibleColumns: propVisibleColumns,
 	checkboxSelection: propCheckboxSelection,
@@ -59,14 +57,14 @@ export const DataTableSkeletonRows = function DataTableSkeletonRows<TData = any>
 					aria-hidden="true"
 				>
 					{checkboxSelection && (
-						<TableCell className="bg-card sticky left-0 z-15 w-11 px-3 py-2 text-center">
+						<TableCell className="bg-card sticky start-0 z-15 w-11 px-3 py-2 text-center">
 							<Skeleton className="mx-auto size-4 rounded-xs" />
 						</TableCell>
 					)}
 
 					{hasExpandColumn && (
 						<TableCell
-							style={{ left: checkboxSelection ? "44px" : pinnedLeftFields.length > 0 ? "0px" : undefined }}
+							style={{ insetInlineStart: resolveExpandColumnLeft(checkboxSelection, pinnedLeftFields.length > 0) }}
 							className={cn(
 								"w-9 px-1 text-center",
 								(checkboxSelection || pinnedLeftFields.length > 0) &&
@@ -82,13 +80,16 @@ export const DataTableSkeletonRows = function DataTableSkeletonRows<TData = any>
 						const isPinnedRight = pinnedRightSet.has(col.field);
 						const varKey = toColumnCssVarKey(col.field);
 						const actualWidth = columnWidths?.[col.field] ?? col.width;
-						const style: CSSProperties = {
-							width: `var(--col-w-${varKey}, ${actualWidth ? `${actualWidth}px` : "auto"})`,
-							minWidth: col.minWidth ? `${col.minWidth}px` : undefined,
-							maxWidth: col.maxWidth ? `${col.maxWidth}px` : undefined,
-							...(isPinnedLeft ? { left: `var(--col-left-${varKey}, ${leftOffsets?.[col.field] ?? 0}px)` } : {}),
-							...(isPinnedRight ? { right: `var(--col-right-${varKey}, ${rightOffsets?.[col.field] ?? 0}px)` } : {}),
-						};
+						const style = buildColumnPinStyles({
+							varKey,
+							width: actualWidth,
+							minWidth: col.minWidth,
+							maxWidth: col.maxWidth,
+							isLeftPinned: isPinnedLeft,
+							isRightPinned: isPinnedRight,
+							leftFallback: `${leftOffsets?.[col.field] ?? 0}px`,
+							rightFallback: `${rightOffsets?.[col.field] ?? 0}px`,
+						});
 
 						return (
 							<TableCell
@@ -119,4 +120,4 @@ export const DataTableSkeletonRows = function DataTableSkeletonRows<TData = any>
 			))}
 		</>
 	);
-} as <TData = any>(props: DataTableSkeletonRowsProps<TData>) => ReactElement | null;
+}

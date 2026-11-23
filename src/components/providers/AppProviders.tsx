@@ -9,6 +9,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { ThemeInitializer } from "@/components/layout/ThemeInitializer";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { UploadConfig } from "@/components/upload-config";
 import { env } from "@/env";
 import { getQueryClient } from "@/lib/queryClient";
 import { useResolvedThemeMode } from "@/stores/preferences";
@@ -65,12 +66,14 @@ export function AppProviders({ children, guardSlot }: AppProvidersProps) {
 			<ThemeInitializer />
 			<NuqsAdapter>
 				<QueryClientProvider client={queryClient}>
-					<TooltipProvider delayDuration={0}>
-						{/* 始终渲染 children 以保留 SSR HTML 与 HydrationBoundary 水合；仅延迟挂载 guardSlot 等待 MSW 就绪 */}
-						{isMockReady ? guardSlot : null}
-						{children}
-						<AppToaster />
-					</TooltipProvider>
+					<UploadConfig>
+						<TooltipProvider delayDuration={0}>
+							{/* 始终渲染 children 以保留 SSR HTML 与 HydrationBoundary 水合；仅延迟挂载 guardSlot 等待 MSW 就绪 */}
+							{isMockReady ? guardSlot : null}
+							{children}
+							<AppToaster />
+						</TooltipProvider>
+					</UploadConfig>
 				</QueryClientProvider>
 			</NuqsAdapter>
 		</ThemeProvider>

@@ -36,7 +36,7 @@ const rows: ProductRow[] = [
   { id: "r4", title: "Desk Mat", category: "hardware", stock: 5, featured: false, note: "Wool" },
 ];
 
-describe("useDataTableEngine (@tanstack/react-table v8)", () => {
+describe("useDataTableEngine (@tanstack/react-table v9)", () => {
   beforeEach(() => {
     window.localStorage.clear();
   });
@@ -134,7 +134,7 @@ describe("useDataTableEngine (@tanstack/react-table v8)", () => {
       ]);
     });
     expect(sorting.current.processedRows.map((r) => r.id)).toEqual(["r1", "r2", "r3"]);
-    expect(sorting.current.table.getState().sorting).toEqual([
+    expect(sorting.current.table.state.sorting).toEqual([
       { id: "category", desc: false },
       { id: "stock", desc: true },
     ]);

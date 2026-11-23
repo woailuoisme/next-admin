@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, type RenderOptions } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { localAdapter } from "@uploadcn/core";
+import { UploadConfigProvider } from "@uploadcn/react";
 import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "next-themes";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
@@ -44,7 +46,9 @@ export function renderWithProviders(
 				<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
 					<NuqsTestingAdapter hasMemory>
 						<QueryClientProvider client={queryClient}>
-							<TooltipProvider delayDuration={0}>{children}</TooltipProvider>
+							<UploadConfigProvider adapter={localAdapter()} maxSize={50 * 1000 * 1000}>
+								<TooltipProvider delayDuration={0}>{children}</TooltipProvider>
+							</UploadConfigProvider>
 						</QueryClientProvider>
 					</NuqsTestingAdapter>
 				</ThemeProvider>

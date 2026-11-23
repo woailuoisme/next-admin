@@ -1,3 +1,4 @@
+import type { ReactTable } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactElement } from "react";
@@ -9,26 +10,28 @@ import { cn } from "cn";
 import { JUSTIFY_ALIGN_CLASSES } from "../cells/base";
 import { useDataTableContext } from "../core/DataTableContext";
 import type { DataTableSortModel } from "../core/types";
-import { toColumnCssVarKey } from "../core/utils";
+import type { DataTableFeatures, DataTableSelectedState } from "../core/useDataTableEngine";
+import { buildColumnPinStyles, resolveExpandColumnLeft, toColumnCssVarKey } from "../core/utils";
 
-export interface DataTableHeaderProps {
+export interface DataTableHeaderProps<TData extends Record<string, any> = Record<string, any>> {
+	table: ReactTable<DataTableFeatures, TData, DataTableSelectedState>;
 	isAllPageSelected: boolean;
 	isSomePageSelected: boolean;
 	onSelectAll: (checked: boolean) => void;
 	sortModel: DataTableSortModel;
 }
 
-function DataTableHeaderInner<TData = unknown>({
+export function DataTableHeader<TData extends Record<string, any> = Record<string, any>>({
+	table,
 	isAllPageSelected,
 	isSomePageSelected,
 	onSelectAll,
 	sortModel,
-}: DataTableHeaderProps) {
+}: DataTableHeaderProps<TData>): ReactElement | null {
 	const ctx = useDataTableContext<TData>();
 	const t = useTranslations("table");
 
 	const {
-		table,
 		columnByField,
 		checkboxSelection,
 		renderExpandedRow,
@@ -50,7 +53,7 @@ function DataTableHeaderInner<TData = unknown>({
 			{table.getHeaderGroups().map((headerGroup) => (
 				<TableRow key={headerGroup.id} className="border-border/60 border-b hover:bg-transparent">
 					{checkboxSelection && (
-						<TableHead className="bg-muted sticky left-0 z-30 w-11 px-3 text-center">
+						<TableHead className="bg-muted sticky start-0 z-30 w-11 px-3 text-center">
 							<Checkbox
 								checked={isAllPageSelected ? true : isSomePageSelected ? "indeterminate" : false}
 								onCheckedChange={(checked) => onSelectAll(Boolean(checked))}
@@ -61,7 +64,7 @@ function DataTableHeaderInner<TData = unknown>({
 
 					{hasExpandColumn && (
 						<TableHead
-							style={{ left: checkboxSelection ? "44px" : pinnedLeftFields.length > 0 ? "0px" : undefined }}
+							style={{ insetInlineStart: resolveExpandColumnLeft(checkboxSelection, pinnedLeftFields.length > 0) }}
 							className={cn(
 								"w-9 px-1 text-center select-none",
 								(checkboxSelection || pinnedLeftFields.length > 0) &&
@@ -107,13 +110,14 @@ function DataTableHeaderInner<TData = unknown>({
 												? "none"
 												: undefined
 								}
-								style={{
-									width: `var(--col-w-${varKey}, ${width ? `${width}px` : "auto"})`,
-									minWidth: `${minWidth}px`,
-									maxWidth: maxWidth ? `${maxWidth}px` : undefined,
-									left: isLeftPinned ? `var(--col-left-${varKey}, 0px)` : undefined,
-									right: isRightPinned ? `var(--col-right-${varKey}, 0px)` : undefined,
-								}}
+								style={buildColumnPinStyles({
+									varKey,
+									width,
+									minWidth,
+									maxWidth,
+									isLeftPinned,
+									isRightPinned,
+								})}
 								className={cn(
 									"group/header relative text-xs font-semibold whitespace-nowrap text-foreground transition-colors select-none",
 									isLeftPinned && "sticky z-25 border-r border-border/70 bg-muted shadow-pin-left",
@@ -194,5 +198,3 @@ function DataTableHeaderInner<TData = unknown>({
 		</TableHeader>
 	);
 }
-
-export const DataTableHeader = DataTableHeaderInner as (props: DataTableHeaderProps) => ReactElement | null;

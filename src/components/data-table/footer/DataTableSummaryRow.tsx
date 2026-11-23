@@ -10,10 +10,10 @@ import type { DataTableColDef } from "../core/types";
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
 import { EMPTY_ARRAY } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
-import { readCellValue, toColumnCssVarKey } from "../core/utils";
+import { buildColumnPinStyles, readCellValue, resolveExpandColumnLeft, toColumnCssVarKey } from "../core/utils";
 import type { MessageKeyOf } from "@/types/i18n";
 
-export interface DataTableSummaryRowProps<TData = unknown> {
+export interface DataTableSummaryRowProps<TData extends Record<string, any> = Record<string, any>> {
 	columns?: DataTableColDef<TData>[];
 	rows: TData[];
 	checkboxSelection?: boolean;
@@ -76,13 +76,13 @@ function computeAggregationValue<TData>(
 	}
 }
 
-function DataTableSummaryRowInner<TData = unknown>({
+export function DataTableSummaryRow<TData extends Record<string, any> = Record<string, any>>({
 	columns: propColumns,
 	rows,
 	checkboxSelection: propCheckboxSelection,
 	hasExpandColumn: propHasExpandColumn,
 	summaryLabel,
-}: DataTableSummaryRowProps<TData>) {
+}: DataTableSummaryRowProps<TData>): ReactElement | null {
 	const ctx = useOptionalDataTableContext<TData>();
 	const t = useTranslations("table");
 	const columns = propColumns ?? ctx?.visibleColumns ?? EMPTY_ARRAY;
@@ -95,14 +95,14 @@ function DataTableSummaryRowInner<TData = unknown>({
 	return (
 		<TableRow className="hover:bg-muted/30 border-0 bg-transparent font-semibold">
 			{checkboxSelection && (
-				<TableCell className="bg-muted text-muted-foreground sticky left-0 z-15 w-11 text-center font-mono text-[10px]">
+				<TableCell className="bg-muted text-muted-foreground sticky start-0 z-15 w-11 text-center font-mono text-[10px]">
 					Σ
 				</TableCell>
 			)}
 			{hasExpandColumn && (
 				<TableCell
 					style={{
-						left: checkboxSelection ? "44px" : pinnedLeftSet.size > 0 ? "0px" : undefined,
+						insetInlineStart: resolveExpandColumnLeft(checkboxSelection, pinnedLeftSet.size > 0),
 					}}
 					className={cn(
 						"w-9 p-0",
@@ -119,13 +119,14 @@ function DataTableSummaryRowInner<TData = unknown>({
 				const isLeftPinned = pinnedLeftSet.has(field);
 				const isRightPinned = pinnedRightSet.has(field);
 
-				const cellStyle = {
-					width: `var(--col-w-${varKey}, ${width ? `${width}px` : "auto"})`,
-					minWidth: minWidth ? `${minWidth}px` : undefined,
-					maxWidth: maxWidth ? `${maxWidth}px` : undefined,
-					left: isLeftPinned ? `var(--col-left-${varKey}, 0px)` : undefined,
-					right: isRightPinned ? `var(--col-right-${varKey}, 0px)` : undefined,
-				};
+				const cellStyle = buildColumnPinStyles({
+					varKey,
+					width,
+					minWidth,
+					maxWidth,
+					isLeftPinned,
+					isRightPinned,
+				});
 				const pinClass = cn(
 					isLeftPinned && "sticky z-15 border-r border-border/70 bg-muted shadow-pin-left",
 					isRightPinned && "sticky z-15 border-l border-border/70 bg-muted shadow-pin-right",
@@ -165,7 +166,3 @@ function DataTableSummaryRowInner<TData = unknown>({
 		</TableRow>
 	);
 }
-
-export const DataTableSummaryRow = DataTableSummaryRowInner as <TData = unknown>(
-	props: DataTableSummaryRowProps<TData>,
-) => ReactElement | null;

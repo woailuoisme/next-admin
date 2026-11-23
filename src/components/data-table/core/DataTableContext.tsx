@@ -1,4 +1,3 @@
-import type { Table as TanStackTable } from "@tanstack/react-table";
 import type React from "react";
 import { createContext, useContext } from "react";
 
@@ -14,8 +13,7 @@ import type {
 	TableEmptyStateContext,
 } from "./types";
 
-export interface DataTableConfigContextValue<TData = unknown> {
-	table: TanStackTable<TData>;
+export interface DataTableConfigContextValue<TData = any> {
 	columns: DataTableColDef<TData>[];
 	columnByField: Map<string, DataTableColDef<TData>>;
 	visibleColumns: DataTableColDef<TData>[];
@@ -62,7 +60,7 @@ export function DataTableProvider<TData = any>({ value, children }: DataTablePro
 	return <DataTableConfigContext value={value}>{children}</DataTableConfigContext>;
 }
 
-export function useDataTableContext<TData = unknown>(): DataTableConfigContextValue<TData> {
+export function useDataTableContext<TData = any>(): DataTableConfigContextValue<TData> {
 	const context = useContext(DataTableConfigContext);
 	if (!context) {
 		throw new Error("useDataTableContext must be used within a DataTable component or DataTableProvider.");
@@ -70,6 +68,6 @@ export function useDataTableContext<TData = unknown>(): DataTableConfigContextVa
 	return context as DataTableConfigContextValue<TData>;
 }
 
-export function useOptionalDataTableContext<TData = unknown>(): DataTableConfigContextValue<TData> | null {
+export function useOptionalDataTableContext<TData = any>(): DataTableConfigContextValue<TData> | null {
 	return useContext(DataTableConfigContext) as DataTableConfigContextValue<TData> | null;
 }

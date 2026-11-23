@@ -98,7 +98,7 @@ export function useTableSortAndFilter<TData>({
     const trimmed = val.trim();
     const newModel: DataTableFilterModel = {
       ...cur,
-      quickFilterValues: trimmed ? trimmed.toLowerCase().split(/\s+/) : (EMPTY_ARRAY as unknown as string[]),
+      quickFilterValues: trimmed ? trimmed.toLowerCase().split(/\s+/) : EMPTY_ARRAY,
     };
     if (controlled === undefined) {
       setInternalQuickFilterText(val);
@@ -116,8 +116,8 @@ export function useTableSortAndFilter<TData>({
       onSearchChange: notifySearch,
     } = latestFilterRef.current;
     const emptyModel: DataTableFilterModel = {
-      items: EMPTY_ARRAY as unknown as DataTableFilterModel["items"],
-      quickFilterValues: EMPTY_ARRAY as unknown as string[],
+      items: EMPTY_ARRAY,
+      quickFilterValues: EMPTY_ARRAY,
     };
     if (controlled === undefined) {
       setInternalQuickFilterText("");

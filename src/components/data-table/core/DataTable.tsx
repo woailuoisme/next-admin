@@ -17,9 +17,11 @@ import { DataTableTopChrome } from "./DataTableTopBar";
 import type { DataTableProps } from "./types";
 import { useDataTableSetup } from "./useDataTableSetup";
 
-const LazySummaryRow = dynamic(() =>
+const LazySummaryRow = dynamic<DataTableSummaryRowProps<Record<string, any>>>(() =>
 	import("../footer/DataTableSummaryRow").then((mod) => mod.DataTableSummaryRow),
-) as <TData = unknown>(props: DataTableSummaryRowProps<TData>) => React.ReactNode;
+) as <TData extends Record<string, any> = Record<string, any>>(
+	props: DataTableSummaryRowProps<TData>,
+) => React.ReactNode;
 
 export function DataTable<TData extends Record<string, any> = Record<string, any>>(props: DataTableProps<TData>) {
 	const {
@@ -122,6 +124,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
 						inert={loading && engine.pagedRows.length > 0}
 					>
 						<DataTableHeader
+							table={engine.table}
 							isAllPageSelected={engine.isAllPageSelected}
 							isSomePageSelected={engine.isSomePageSelected}
 							onSelectAll={onSelectAllOnPage}

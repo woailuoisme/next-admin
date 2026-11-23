@@ -9,7 +9,7 @@ export interface FileUploadInputProps extends BaseInputProps {
   defaultValue?: FileUploadValue | null;
   onChange?: (value: FileUploadValue | null) => void;
   onBlur?: () => void;
-  /** 呈现模式：grid (多图/多文件网格卡片) 或 avatar (单图圆形头像) */
+  /** 呈现模式：grid (标准文件队列) 或 avatar (单图圆形头像裁剪) */
   mode?: "grid" | "avatar";
   /** 允许的文件类型 MIME 或后缀，例如 "image/*" 或 ".pdf,.png" */
   accept?: string;
@@ -19,21 +19,19 @@ export interface FileUploadInputProps extends BaseInputProps {
   maxFiles?: number;
   /** 单文件最大大小限制 (字节 Bytes)，默认 10MB */
   maxSize?: number;
-  /** 自定义 UploadCN 适配器（如 s3Adapter / cloudinaryAdapter / createAdapter），优先于 endpoint 与默认 localAdapter */
+  /** 自定义 UploadCN 适配器（如 s3Adapter / cloudinaryAdapter / createAdapter），优先于 endpoint 与全局 UploadConfig */
   adapter?: UploadAdapter<unknown>;
-  /** HTTP 上传接口（自动封装为 UploadCN httpAdapter）；不传时默认使用官方 localAdapter() */
+  /** HTTP 上传接口（自动封装为 UploadCN httpAdapter）；不传时使用全局 UploadConfig */
   endpoint?: string;
   /** HTTP 上传附加请求头 */
   headers?: Record<string, string>;
   /** 是否启用粘贴上传（Ctrl/⌘+V），默认 true */
   paste?: boolean | "global";
-  /** 头像模式是否开启圆形裁剪弹窗，默认 true */
-  crop?: boolean;
-  /** 是否在卡片中提供文件下载按钮 */
+  /** 是否在已持久化文件条中提供下载按钮 */
   showDownload?: boolean;
-  /** 是否在卡片中提供移除/删除按钮 */
+  /** 是否在已持久化文件条中提供移除按钮 */
   showRemove?: boolean;
-  /** 额外的容器类名 */
+  /** 额外的上传器容器类名 */
   dropzoneClassName?: string;
   readOnly?: boolean;
 }
@@ -50,7 +48,6 @@ export type FileUploadCoreProps = Pick<
   | "endpoint"
   | "headers"
   | "paste"
-  | "crop"
   | "showDownload"
   | "showRemove"
   | "readOnly"

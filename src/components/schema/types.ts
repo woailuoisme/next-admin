@@ -161,7 +161,6 @@ export interface SchemaFieldSpec<TValues = Record<string, any>> {
   maxSize?: number;
   endpoint?: string;
   paste?: boolean | "global";
-  crop?: boolean;
   showDownload?: boolean;
   showRemove?: boolean;
   minHeight?: string | number;

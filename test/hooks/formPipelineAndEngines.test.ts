@@ -207,11 +207,11 @@ describe("choice/treeEngine", () => {
     ]);
   });
 
-  it("formats zero, negative, NaN, and TB byte counts safely in formatBytes", () => {
+  it("formats zero, negative, NaN, and TB byte counts safely via @uploadcn/core formatBytes", () => {
     expect(formatBytes(0)).toBe("0 B");
     expect(formatBytes(-10)).toBe("0 B");
     expect(formatBytes(Number.NaN)).toBe("0 B");
-    expect(formatBytes(1024 ** 4)).toBe("1.0 TB");
-    expect(formatBytes(1024 ** 5)).toBe("1024.0 TB");
+    expect(formatBytes(1000 ** 4)).toBe("1 TB");
+    expect(formatBytes(1024 ** 4)).toBe("1.1 TB");
   });
 });

@@ -14,7 +14,9 @@ import { DataTableStatusTabs } from "./items/DataTableStatusTabs";
 
 export type { InternalDataTableToolbarProps };
 
-function DataTableToolbarInner<TData = unknown>(props: InternalDataTableToolbarProps<TData>) {
+function DataTableToolbarBase<TData extends Record<string, any> = Record<string, any>>(
+	props: InternalDataTableToolbarProps<TData>,
+) {
 	const {
 		columns,
 		columnVisibility,
@@ -134,10 +136,10 @@ function DataTableToolbarInner<TData = unknown>(props: InternalDataTableToolbarP
 	);
 }
 
-const MemoizedDataTableToolbar = DataTableToolbarInner;
-
 export interface DataTableToolbarComponent {
-	<TData = unknown>(props: InternalDataTableToolbarProps<TData>): ReactElement | null;
+	<TData extends Record<string, any> = Record<string, any>>(
+		props: InternalDataTableToolbarProps<TData>,
+	): ReactElement | null;
 	QuickFilter: typeof DataTableQuickFilter;
 	DensityMenu: typeof DataTableDensityMenu;
 	ExportMenu: typeof DataTableExportMenu;
@@ -147,12 +149,12 @@ export interface DataTableToolbarComponent {
 	SavedViews: typeof DataTableSavedViews;
 }
 
-export const DataTableToolbar = MemoizedDataTableToolbar as unknown as DataTableToolbarComponent;
-
-DataTableToolbar.QuickFilter = DataTableQuickFilter;
-DataTableToolbar.DensityMenu = DataTableDensityMenu;
-DataTableToolbar.ExportMenu = DataTableExportMenu;
-DataTableToolbar.ColumnsPanel = DataTableColumnsPanel;
-DataTableToolbar.FilterPanel = DataTableFilterPanel;
-DataTableToolbar.StatusTabs = DataTableStatusTabs;
-DataTableToolbar.SavedViews = DataTableSavedViews;
+export const DataTableToolbar: DataTableToolbarComponent = Object.assign(DataTableToolbarBase, {
+	QuickFilter: DataTableQuickFilter,
+	DensityMenu: DataTableDensityMenu,
+	ExportMenu: DataTableExportMenu,
+	ColumnsPanel: DataTableColumnsPanel,
+	FilterPanel: DataTableFilterPanel,
+	StatusTabs: DataTableStatusTabs,
+	SavedViews: DataTableSavedViews,
+});

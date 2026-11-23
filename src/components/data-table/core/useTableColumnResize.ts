@@ -80,10 +80,12 @@ export function useTableColumnResize<TData extends Record<string, any>>({
     }
   });
 
+  // Whitelist AGENTS.md §5.2: 向 DataTableConfigContextValue 与 rAF resize 回调提供稳定的固定列数组引用
   const { pinnedLeftFields, pinnedRightFields } = useMemo(
     () => resolvePinnedFields(visibleColumns, pinnedColumns),
     [visibleColumns, pinnedColumns],
   );
+  // Whitelist AGENTS.md §5.2: O(N) 固定列偏移计算结果供表体/骨架屏引用稳定复用
   const { leftOffsets, rightOffsets } = useMemo(
     () =>
       computePinningOffsets({
