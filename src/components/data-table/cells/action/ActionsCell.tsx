@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { useTranslations } from "next-intl";
 import type React from "react";
 
@@ -32,9 +31,9 @@ export function ActionsCell<TData = unknown>({
 }: ActionsCellProps<TData>) {
 	const t = useTranslations("table");
 
-	const handleStopPropagation = useMemoizedFn((e: React.MouseEvent) => {
+	const handleStopPropagation = (e: React.MouseEvent) => {
 		e.stopPropagation();
-	});
+	};
 
 	return (
 		<div className={cn("flex items-center", JUSTIFY_ALIGN_CLASSES[align], className)} onClick={handleStopPropagation}>

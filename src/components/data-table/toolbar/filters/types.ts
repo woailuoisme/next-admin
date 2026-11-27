@@ -13,11 +13,3 @@ export interface DataTableFilterPanelProps<TData = any> {
   filters?: DataTableFilterDefinition[];
   data?: TData[];
 }
-
-export interface BaseFilterControlProps<TDef extends DataTableFilterDefinition = DataTableFilterDefinition> {
-  definition: TDef;
-  field: string;
-  label: string;
-  value: any;
-  onChange: (value: any) => void;
-}

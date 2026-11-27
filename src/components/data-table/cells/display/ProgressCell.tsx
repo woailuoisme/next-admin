@@ -47,16 +47,19 @@ export function ProgressCell({
 	className,
 }: ProgressCellProps) {
 	const t = useTranslations("table");
+	const safeMax = typeof max === "number" && Number.isFinite(max) && max > 0 ? max : 100;
 	const shouldShowLabel = showPercentage ?? showValue ?? showLabel;
 
 	// 1. 多段堆叠进度条模式
 	if (segments && segments.length > 0) {
-		const totalVal = segments.reduce((sum, s) => sum + Math.max(0, s.value), 0);
-		const effectiveMax = max || totalVal || 100;
+		const totalVal = segments.reduce((sum, s) => sum + Math.max(0, Number.isFinite(s.value) ? s.value : 0), 0);
+		const effectiveMax = safeMax;
 		const totalPercentage = Math.min(100, Math.round((totalVal / effectiveMax) * 100));
 
 		const targetPct =
-			typeof target === "number" ? Math.min(100, Math.max(0, (target / effectiveMax) * 100)) : undefined;
+			typeof target === "number" && Number.isFinite(target)
+				? Math.min(100, Math.max(0, (target / effectiveMax) * 100))
+				: undefined;
 
 		const stackedContent = (
 			<div
@@ -67,7 +70,14 @@ export function ProgressCell({
 				)}
 			>
 				<div className="relative min-w-[50px] flex-1">
-					<div className={cn("relative flex w-full overflow-hidden rounded-full bg-muted/80", heightClasses[size])}>
+					<div
+						role="progressbar"
+						aria-label={t("aria_progress")}
+						aria-valuenow={totalPercentage}
+						aria-valuemin={0}
+						aria-valuemax={100}
+						className={cn("relative flex w-full overflow-hidden rounded-full bg-muted/80", heightClasses[size])}
+					>
 						{segments.map((seg, idx) => {
 							const segPct = effectiveMax > 0 ? (Math.max(0, seg.value) / effectiveMax) * 100 : 0;
 							if (segPct <= 0) return null;
@@ -85,24 +95,24 @@ export function ProgressCell({
 					<TargetMarker percentage={targetPct} />
 				</div>
 
-				{shouldShowLabel && (
+				{shouldShowLabel ? (
 					<span className="text-muted-foreground w-8 shrink-0 text-right font-mono text-[11px] tabular-nums">
 						{totalPercentage}%
 					</span>
-				)}
+				) : null}
 			</div>
 		);
 
 		return (
 			<Tooltip>
 				<TooltipTrigger asChild>
-					<div className="inline-flex w-full cursor-default">{stackedContent}</div>
+					<div className="w-full cursor-default">{stackedContent}</div>
 				</TooltipTrigger>
-				<TooltipContent side="top" className="space-y-1 text-xs">
+				<TooltipContent side="top" className="flex flex-col gap-1 text-xs">
 					<div className="font-mono text-[11px] font-medium">
 						{t("progress_total", { total: totalVal, max: effectiveMax, percent: totalPercentage })}
 					</div>
-					<div className="space-y-0.5 pt-0.5">
+					<div className="flex flex-col gap-0.5 pt-0.5">
 						{segments.map((seg, idx) => {
 							const pct = Math.round((seg.value / (effectiveMax || 1)) * 100);
 							return (
@@ -115,11 +125,11 @@ export function ProgressCell({
 								</div>
 							);
 						})}
-						{typeof target === "number" && (
+						{typeof target === "number" && Number.isFinite(target) ? (
 							<div className="border-border/50 text-primary border-t pt-0.5 text-[10px]">
 								{targetLabel || t("progress_target", { target, percent: Math.round(targetPct ?? 0) })}
 							</div>
-						)}
+						) : null}
 					</div>
 				</TooltipContent>
 			</Tooltip>
@@ -127,16 +137,19 @@ export function ProgressCell({
 	}
 
 	// 2. 单一进度条模式
-	if (isNil(value) || Number.isNaN(value)) {
+	if (isNil(value) || !Number.isFinite(value)) {
 		return <span className="text-muted-foreground/40 text-xs italic">-</span>;
 	}
 
-	const safeValue = clamp(value, 0, max);
-	const percentage = Math.round((safeValue / max) * 100);
+	const safeValue = clamp(value, 0, safeMax);
+	const percentage = Math.round((safeValue / safeMax) * 100);
 
 	const indicatorColorClass = getIndicatorColorClass(colorByValue, percentage);
 
-	const targetPct = typeof target === "number" ? Math.min(100, Math.max(0, (target / max) * 100)) : undefined;
+	const targetPct =
+		typeof target === "number" && Number.isFinite(target)
+			? Math.min(100, Math.max(0, (target / safeMax) * 100))
+			: undefined;
 
 	const content = (
 		<div
@@ -154,26 +167,28 @@ export function ProgressCell({
 				<TargetMarker percentage={targetPct} />
 			</div>
 
-			{shouldShowLabel && (
+			{shouldShowLabel ? (
 				<span className="text-muted-foreground w-8 shrink-0 text-right font-mono text-[11px] tabular-nums">
 					{percentage}%
 				</span>
-			)}
+			) : null}
 		</div>
 	);
 
 	return (
 		<Tooltip>
 			<TooltipTrigger asChild>
-				<div className="inline-flex w-full cursor-default">{content}</div>
+				<div className="w-full cursor-default">{content}</div>
 			</TooltipTrigger>
 			<TooltipContent side="top" className="font-mono text-xs">
 				<p>
-					{safeValue} / {max} ({percentage}%)
+					{safeValue} / {safeMax} ({percentage}%)
 				</p>
-				{typeof target === "number" && (
-					<p className="text-muted-foreground mt-0.5 text-[10px]">{targetLabel || `目标线: ${target}%`}</p>
-				)}
+				{typeof target === "number" && Number.isFinite(target) ? (
+					<p className="text-muted-foreground mt-0.5 text-[10px]">
+						{targetLabel || t("progress_target", { target, percent: Math.round(targetPct ?? 0) })}
+					</p>
+				) : null}
 			</TooltipContent>
 		</Tooltip>
 	);

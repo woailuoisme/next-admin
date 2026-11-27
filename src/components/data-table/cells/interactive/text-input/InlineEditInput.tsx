@@ -1,6 +1,9 @@
+"use client";
+
 import type React from "react";
 
 import { Check, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -37,6 +40,7 @@ export function InlineEditInput({
 	onCancel,
 	className,
 }: InlineEditInputProps) {
+	const t = useTranslations("table");
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
@@ -70,6 +74,8 @@ export function InlineEditInput({
 					onBlur={() => {
 						if (!error) {
 							onCommit();
+						} else {
+							onCancel();
 						}
 					}}
 					onKeyDown={handleKeyDown}
@@ -82,47 +88,47 @@ export function InlineEditInput({
 					aria-label={ariaLabel}
 					aria-invalid={Boolean(error)}
 				/>
-				{error && (
+				{error ? (
 					<div
 						role="alert"
-						className="animate-in border-destructive/20 bg-destructive text-destructive-foreground fade-in-0 zoom-in-95 pointer-events-none absolute top-full left-0 z-50 mt-1 rounded border px-1.5 py-0.5 text-[10px] whitespace-nowrap shadow-md"
+						className="animate-in border-destructive/20 bg-destructive text-destructive-foreground fade-in-0 zoom-in-95 pointer-events-none absolute top-full left-0 z-20 mt-1 rounded border px-1.5 py-0.5 text-[10px] whitespace-nowrap shadow-md"
 					>
 						{error}
 					</div>
-				)}
+				) : null}
 			</div>
-			{suffix && <span className="text-muted-foreground flex shrink-0 items-center text-xs">{suffix}</span>}
+			{suffix ? <span className="text-muted-foreground flex shrink-0 items-center text-xs">{suffix}</span> : null}
 			<Button
 				type="button"
 				variant="ghost"
-				size="icon"
+				size="icon-xs"
 				onMouseDown={(e) => {
 					e.preventDefault();
 					onCommit();
 				}}
 				className={cn(
-					"size-6 cursor-pointer p-0 transition-colors",
+					"cursor-pointer transition-colors",
 					error ? "cursor-not-allowed text-muted-foreground/40" : "text-primary hover:text-primary/80",
 				)}
 				disabled={Boolean(error)}
-				title="确认 (Enter)"
-				aria-label="确认修改"
+				title={t("cell_edit_confirm_title")}
+				aria-label={t("cell_edit_confirm")}
 			>
-				<Check aria-hidden="true" className="size-3" />
+				<Check aria-hidden="true" />
 			</Button>
 			<Button
 				type="button"
 				variant="ghost"
-				size="icon"
+				size="icon-xs"
 				onMouseDown={(e) => {
 					e.preventDefault();
 					onCancel();
 				}}
-				className="text-muted-foreground hover:text-foreground size-6 cursor-pointer p-0 transition-colors"
-				title="取消 (Esc)"
-				aria-label="取消修改"
+				className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+				title={t("cell_edit_cancel_title")}
+				aria-label={t("cell_edit_cancel")}
 			>
-				<X aria-hidden="true" className="size-3" />
+				<X aria-hidden="true" />
 			</Button>
 		</div>
 	);

@@ -1,14 +1,15 @@
-import { useMemoizedFn } from "ahooks";
-import { Loader2 } from "lucide-react";
-import { startTransition, useOptimistic, useState } from "react";
-import { toast } from "sonner";
+"use client";
+
+import { useTranslations } from "next-intl";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "cn";
 
 import type { CheckboxCellProps } from "./types";
 
 import { JUSTIFY_ALIGN_CLASSES } from "../base";
+import { useOptimisticCellMutation } from "./useOptimisticCellMutation";
 
 function CheckboxCellInner<TData = unknown>({
 	checked = false,
@@ -20,36 +21,24 @@ function CheckboxCellInner<TData = unknown>({
 	align = "center",
 	className,
 }: CheckboxCellProps<TData>) {
-	const [optimisticChecked, setOptimistic] = useOptimistic(checked, (_curr, next: boolean) => next);
-	const [loading, setLoading] = useState(false);
-
-	const handleCheckedChange = useMemoizedFn((val: boolean | "indeterminate") => {
-		if (disabled || loading) return;
-		const nextChecked = val === true;
-
-		startTransition(async () => {
-			setOptimistic(nextChecked);
-			if (onCellChange) {
-				try {
-					setLoading(true);
-					const result = onCellChange(row, nextChecked);
-					if (result instanceof Promise) {
-						await result;
-					}
-				} catch (err) {
-					if (showErrorToast) {
-						const msg =
-							typeof errorToastMessage === "function"
-								? errorToastMessage(err)
-								: errorToastMessage || "更新勾选失败，已回滚";
-						toast.error(msg);
-					}
-				} finally {
-					setLoading(false);
-				}
-			}
-		});
+	const t = useTranslations("table");
+	const {
+		optimisticValue: optimisticChecked,
+		isPending,
+		triggerMutation,
+	} = useOptimisticCellMutation({
+		value: checked,
+		row,
+		onMutate: onCellChange,
+		showErrorToast,
+		errorToastMessage,
+		defaultErrorMessage: t("cell_checkbox_save_error"),
+		disabled,
 	});
+
+	const handleCheckedChange = (val: boolean | "indeterminate") => {
+		triggerMutation(val === true);
+	};
 
 	return (
 		<div
@@ -59,10 +48,10 @@ function CheckboxCellInner<TData = unknown>({
 			<Checkbox
 				checked={optimisticChecked}
 				onCheckedChange={handleCheckedChange}
-				disabled={disabled || loading}
-				aria-label="选择行"
+				disabled={disabled || isPending}
+				aria-label={t("aria_select_row_generic")}
 			/>
-			{loading && <Loader2 className="text-muted-foreground size-3 shrink-0 animate-spin" />}
+			{isPending ? <Spinner className="text-muted-foreground size-3 shrink-0" /> : null}
 		</div>
 	);
 }

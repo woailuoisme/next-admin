@@ -13,7 +13,9 @@
     "loading_page_aria": "Loading page content",
     "previous_image": "Previous image",
     "next_image": "Next image",
-    "image_load_error": "Failed to load image"
+    "image_load_error": "Failed to load image",
+    "date_format_label": "Formatted:",
+    "date_timezone_label": "Timezone:"
   },
   "menu": {
     "navigation": "Navigation",
@@ -147,6 +149,7 @@
     "aria_rule_boolean_value": "Rule boolean value",
     "aria_rule_value": "Rule value",
     "aria_page_size": "Rows per page",
+    "aria_pagination": "Pagination Navigation",
     "aria_delete_view": "Delete view {name}",
     "views_delete_title": "Delete view",
     "aria_select_value": "Select value",
@@ -167,6 +170,13 @@
     "cell_toggle_save_error": "Failed to update status, reverted",
     "cell_checkbox_save_error": "Failed to update selection, reverted",
     "cell_copy_title": "Copy to clipboard",
+    "masked_auto_hide": "Auto-hides in {seconds}s",
+    "avatar_anonymous": "Anonymous",
+    "avatar_all_members": "All members",
+    "avatar_member_count": "{count}",
+    "avatar_view_more": "View {count} more members",
+    "image_all_count": "All {count} images",
+    "image_load_retry": "Failed to load image, click to retry",
     "sparkline_point": "Point #{index}:",
     "sparkline_latest": "Latest:",
     "sparkline_range": "Range: {min} - {max} ({trend})",

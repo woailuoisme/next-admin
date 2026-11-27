@@ -56,6 +56,21 @@ export interface BuildColumnPinStylesOptions {
 }
 
 /**
+ * 统一构造表头、数据行、汇总行与骨架屏单元格的固定列 sticky 类名，避免各层 z-index 与边框语义漂移。
+ */
+export function getColumnPinClass(
+  isLeftPinned: boolean,
+  isRightPinned: boolean,
+  surface: "card" | "muted" = "card",
+  zIndexClass: "z-15" | "z-25" = "z-15",
+): string {
+  const bgClass = surface === "muted" ? "bg-muted" : "bg-card";
+  if (isLeftPinned) return `sticky ${zIndexClass} border-r border-border/70 ${bgClass} shadow-pin-left`;
+  if (isRightPinned) return `sticky ${zIndexClass} border-l border-border/70 ${bgClass} shadow-pin-right`;
+  return "";
+}
+
+/**
  * 统一构造表头、数据行、汇总行与骨架屏单元格的宽度及逻辑起止（insetInlineStart/End）粘性定位样式
  */
 export function buildColumnPinStyles({

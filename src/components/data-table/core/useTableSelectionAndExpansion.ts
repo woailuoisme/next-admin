@@ -38,18 +38,32 @@ export function useTableSelectionAndExpansion<TData>({
   singleExpand = false,
 }: UseTableSelectionAndExpansionOptions<TData>) {
   const [internalSelection, setInternalSelection] = useState<DataTableRowSelectionModel>(EMPTY_ARRAY);
+  const [selectedRowCache, setSelectedRowCache] = useState<Map<DataTableRowId, TData>>(() => new Map());
   const selection = controlledSelectionModel ?? internalSelection;
   const selectionSet = new Set(selection);
   const rowMap = new Map<DataTableRowId, TData>(rows.map((r) => [getRowId(r), r]));
+
   const rowSelectionState: RowSelectionState = Object.fromEntries(selection.map((id) => [String(id), true]));
 
-  const resolveSelectedRows = (ids: DataTableRowSelectionModel): TData[] =>
-    ids.length === 0 ? (EMPTY_ARRAY as TData[]) : ids.map((id) => rowMap.get(id)).filter((r): r is TData => Boolean(r));
+  const resolveSelectedRows = (ids: DataTableRowId[], cache: Map<DataTableRowId, TData> = selectedRowCache): TData[] =>
+    ids.length === 0
+      ? (EMPTY_ARRAY as TData[])
+      : ids.map((id) => rowMap.get(id) ?? cache.get(id)).filter((r): r is TData => Boolean(r));
   const selectedFullRows = resolveSelectedRows(selection);
 
   const commitSelection = useMemoizedFn((nextIds: DataTableRowSelectionModel) => {
-    setInternalSelection(nextIds);
-    const nextRows = resolveSelectedRows(nextIds);
+    const nextCache = new Map<DataTableRowId, TData>();
+    for (const id of nextIds) {
+      const currentRow = rowMap.get(id) ?? selectedRowCache.get(id);
+      if (currentRow) {
+        nextCache.set(id, currentRow);
+      }
+    }
+    setSelectedRowCache(nextCache);
+    if (controlledSelectionModel === undefined) {
+      setInternalSelection(nextIds);
+    }
+    const nextRows = resolveSelectedRows(nextIds, nextCache);
     onRowSelectionModelChange?.(nextIds, nextRows);
     onSelectedRowsChange?.(nextRows);
   });

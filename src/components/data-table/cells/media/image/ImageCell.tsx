@@ -1,6 +1,8 @@
-import { useMemoizedFn } from "ahooks";
+"use client";
+
 import { FileText, ImageIcon, Package, User } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -51,31 +53,32 @@ function ImageCellInner({
 	align = "left",
 	className,
 }: ImageCellProps) {
+	const t = useTranslations("table");
 	const [activePreviewUrl, setActivePreviewUrl] = useState<string | null>(null);
 	const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
 	// Normalize src to an array of URLs
 	const images = Array.isArray(src) ? src.filter(Boolean) : src ? [src] : EMPTY_IMAGES;
 
-	const handleImageError = useMemoizedFn((imgSrc: string) => {
+	const handleImageError = (imgSrc: string) => {
 		setFailedImages((prev) => ({ ...prev, [imgSrc]: true }));
-	});
+	};
 
-	const handleImageRetry = useMemoizedFn((imgSrc: string) => {
+	const handleImageRetry = (imgSrc: string) => {
 		setFailedImages((prev) => {
 			const updated = { ...prev };
 			delete updated[imgSrc];
 			return updated;
 		});
-	});
+	};
 
-	const handleOpenPreview = useMemoizedFn((imgUrl: string) => {
+	const handleOpenPreview = (imgUrl: string) => {
 		setActivePreviewUrl(imgUrl);
-	});
+	};
 
-	const handleClosePreview = useMemoizedFn(() => {
+	const handleClosePreview = () => {
 		setActivePreviewUrl(null);
-	});
+	};
 
 	// Fallback empty view when no images provided
 	if (images.length === 0) {
@@ -124,20 +127,25 @@ function ImageCellInner({
 				))}
 				{remainingCount > 0 ? (
 					<Badge
+						asChild
 						variant="secondary"
-						onClick={(e) => {
-							e.stopPropagation();
-							if (preview) {
-								setActivePreviewUrl(images[maxStacked]);
-							}
-						}}
 						className={cn(
 							"z-10 -ml-2.5 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground shadow-xs select-none",
 							preview && "cursor-pointer transition-transform hover:scale-105 hover:bg-muted",
 						)}
-						title={`全部 ${images.length} 张图片`}
 					>
-						+{remainingCount}
+						<button
+							type="button"
+							onClick={(e) => {
+								e.stopPropagation();
+								if (preview) {
+									setActivePreviewUrl(images[maxStacked]);
+								}
+							}}
+							title={t("image_all_count", { count: images.length })}
+						>
+							+{remainingCount}
+						</button>
 					</Badge>
 				) : null}
 			</div>
@@ -149,7 +157,7 @@ function ImageCellInner({
 			{tooltip ? (
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<div className="inline-flex max-w-full">{content}</div>
+						<div className="w-full">{content}</div>
 					</TooltipTrigger>
 					<TooltipContent side="top" className="text-xs">
 						{tooltip}

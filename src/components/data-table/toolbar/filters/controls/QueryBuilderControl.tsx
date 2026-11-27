@@ -1,10 +1,14 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
 import React from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 import type {
 	DataTableColDef,
@@ -91,31 +95,37 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
 		if (availableColumns.length === 0) return;
 		const firstCol = availableColumns[0];
 		const defaultOp: DataTableFilterOperator =
-			firstCol.type === "number" || firstCol.type === "boolean" ? "equals" : "contains";
+			firstCol.type === "number" ||
+			firstCol.type === "boolean" ||
+			firstCol.type === "date" ||
+			firstCol.type === "dateTime"
+				? "equals"
+				: "contains";
 		onAddRule(firstCol.field, defaultOp, "");
 	};
 
 	return (
-		<div className="space-y-3 pt-2" data-testid="query-builder-control">
-			<div className="flex items-center justify-between border-t pt-3">
+		<div className="flex flex-col gap-3 pt-2" data-testid="query-builder-control">
+			<Separator />
+			<div className="flex items-center justify-between">
 				<div className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold">
 					<span>{t("query_builder_title")}</span>
-					{rules.length > 0 && (
-						<span className="py-0.2 bg-primary/10 text-primary rounded-full px-1.5 font-mono text-[10px]">
+					{rules.length > 0 ? (
+						<Badge variant="secondary" className="bg-primary/10 text-primary h-4 px-1.5 py-0 font-mono text-[10px]">
 							{rules.length}
-						</span>
-					)}
+						</Badge>
+					) : null}
 				</div>
 				<Button
 					type="button"
 					variant="outline"
 					size="sm"
-					className="h-7 gap-1 px-2 text-xs"
+					className="h-7 px-2 text-xs"
 					onClick={handleAddClick}
 					disabled={availableColumns.length === 0}
 					data-testid="query-builder-add-rule-btn"
 				>
-					<Plus className="h-3.5 w-3.5" />
+					<Plus aria-hidden="true" data-icon="inline-start" />
 					<span>{t("query_builder_add_condition")}</span>
 				</Button>
 			</div>
@@ -123,7 +133,7 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
 			{rules.length === 0 ? (
 				<p className="text-muted-foreground py-1 text-xs italic">{t("query_builder_empty")}</p>
 			) : (
-				<div className="space-y-2">
+				<div className="flex flex-col gap-2">
 					{rules.map((rule) => {
 						const currentCol = columnByField.get(rule.field);
 						const operators = getOperatorsForColumn(currentCol?.type, t);
@@ -146,18 +156,21 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
 											onUpdateRule(rule.id, {
 												field: newField,
 												operator: newOp,
+												value: targetCol?.type === currentCol?.type ? rule.value : "",
 											});
 										}}
 									>
-										<SelectTrigger className="bg-background h-8 text-xs" aria-label="Rule column">
+										<SelectTrigger className="bg-background h-8 text-xs" aria-label={t("aria_rule_column")}>
 											<SelectValue placeholder={t("query_builder_column_placeholder")} />
 										</SelectTrigger>
 										<SelectContent>
-											{availableColumns.map((col) => (
-												<SelectItem key={col.field} value={col.field} className="text-xs">
-													{col.headerName || col.field}
-												</SelectItem>
-											))}
+											<SelectGroup>
+												{availableColumns.map((col) => (
+													<SelectItem key={col.field} value={col.field} className="text-xs">
+														{col.headerName || col.field}
+													</SelectItem>
+												))}
+											</SelectGroup>
 										</SelectContent>
 									</Select>
 								</div>
@@ -172,15 +185,17 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
 											})
 										}
 									>
-										<SelectTrigger className="bg-background h-8 text-xs" aria-label="Rule operator">
+										<SelectTrigger className="bg-background h-8 text-xs" aria-label={t("aria_rule_operator")}>
 											<SelectValue placeholder={t("query_builder_operator_placeholder")} />
 										</SelectTrigger>
 										<SelectContent>
-											{operators.map((op) => (
-												<SelectItem key={op.value} value={op.value} className="text-xs">
-													{op.label}
-												</SelectItem>
-											))}
+											<SelectGroup>
+												{operators.map((op) => (
+													<SelectItem key={op.value} value={op.value} className="text-xs">
+														{op.label}
+													</SelectItem>
+												))}
+											</SelectGroup>
 										</SelectContent>
 									</Select>
 								</div>
@@ -196,16 +211,18 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
 											value={rule.value === undefined ? "" : String(rule.value)}
 											onValueChange={(val) => onUpdateRule(rule.id, { value: val === "true" })}
 										>
-											<SelectTrigger className="bg-background h-8 text-xs" aria-label="Rule boolean value">
+											<SelectTrigger className="bg-background h-8 text-xs" aria-label={t("aria_rule_boolean_value")}>
 												<SelectValue placeholder={t("query_builder_select_placeholder")} />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="true" className="text-xs">
-													{t("op_true")}
-												</SelectItem>
-												<SelectItem value="false" className="text-xs">
-													{t("op_false")}
-												</SelectItem>
+												<SelectGroup>
+													<SelectItem value="true" className="text-xs">
+														{t("op_true")}
+													</SelectItem>
+													<SelectItem value="false" className="text-xs">
+														{t("op_false")}
+													</SelectItem>
+												</SelectGroup>
 											</SelectContent>
 										</Select>
 									) : (
@@ -224,7 +241,7 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
 															: e.target.value,
 												})
 											}
-											aria-label="Rule value"
+											aria-label={t("aria_rule_value")}
 										/>
 									)}
 								</div>
@@ -234,12 +251,12 @@ export const QueryBuilderControl: React.FC<QueryBuilderControlProps> = ({
 									type="button"
 									variant="ghost"
 									size="icon"
-									className="text-muted-foreground hover:text-destructive h-8 w-8 shrink-0 cursor-pointer"
+									className="text-muted-foreground hover:text-destructive shrink-0 cursor-pointer"
 									onClick={() => onRemoveRule(rule.id)}
 									aria-label={t("query_builder_remove_rule")}
 									data-testid={`query-builder-remove-rule-${rule.id}`}
 								>
-									<Trash2 className="h-4 w-4" />
+									<Trash2 aria-hidden="true" />
 								</Button>
 							</div>
 						);

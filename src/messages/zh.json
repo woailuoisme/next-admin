@@ -13,7 +13,9 @@
     "loading_page_aria": "正在加载页面内容",
     "previous_image": "上一张图片",
     "next_image": "下一张图片",
-    "image_load_error": "图片加载失败"
+    "image_load_error": "图片加载失败",
+    "date_format_label": "格式化:",
+    "date_timezone_label": "时区:"
   },
   "menu": {
     "navigation": "导航",
@@ -147,6 +149,7 @@
     "aria_rule_boolean_value": "规则布尔值",
     "aria_rule_value": "规则值",
     "aria_page_size": "每页显示条数",
+    "aria_pagination": "分页导航",
     "aria_delete_view": "删除视图 {name}",
     "views_delete_title": "删除视图",
     "aria_select_value": "选择值",
@@ -167,6 +170,13 @@
     "cell_toggle_save_error": "更新状态失败，已回滚",
     "cell_checkbox_save_error": "更新勾选失败，已回滚",
     "cell_copy_title": "复制到剪贴板",
+    "masked_auto_hide": "将在 {seconds} 秒后自动隐藏",
+    "avatar_anonymous": "匿名用户",
+    "avatar_all_members": "全部成员",
+    "avatar_member_count": "{count} 人",
+    "avatar_view_more": "查看剩余 {count} 位成员",
+    "image_all_count": "全部 {count} 张图片",
+    "image_load_retry": "图片加载失败，点击重试",
     "sparkline_point": "点位 #{index}:",
     "sparkline_latest": "最新:",
     "sparkline_range": "区间: {min} - {max} ({trend})",

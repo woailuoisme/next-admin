@@ -1,2 +1,9 @@
-export * from "./TableEmptyState";
-export type * from "./types";
+export { TableEmptyState } from "./TableEmptyState";
+export type {
+  TableEmptyStateAction,
+  TableEmptyStateConfig,
+  TableEmptyStateContext,
+  TableEmptyStateIconColor,
+  TableEmptyStateProps,
+  TableEmptyStateSize,
+} from "./types";

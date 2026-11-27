@@ -255,4 +255,11 @@ export interface DataTableProps<TData = any> extends DataTableExpansionProps<TDa
   loadingText?: string;
 }
 
-export type * from "../empty-state/types";
+export type {
+  TableEmptyStateAction,
+  TableEmptyStateConfig,
+  TableEmptyStateContext,
+  TableEmptyStateIconColor,
+  TableEmptyStateProps,
+  TableEmptyStateSize,
+} from "../empty-state/types";

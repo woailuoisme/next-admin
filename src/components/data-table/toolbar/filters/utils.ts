@@ -15,7 +15,11 @@ export function isActiveFilterItem(item: DataTableFilterItem): boolean {
   return (
     item.operator === "isEmpty" ||
     item.operator === "isNotEmpty" ||
-    (item.value !== undefined && item.value !== "" && item.value !== "__all__")
+    (item.value !== undefined &&
+      item.value !== null &&
+      item.value !== "" &&
+      item.value !== "__all__" &&
+      !(typeof item.value === "number" && Number.isNaN(item.value)))
   );
 }
 

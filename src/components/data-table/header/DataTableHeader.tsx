@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactElement } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "cn";
@@ -11,7 +12,7 @@ import { JUSTIFY_ALIGN_CLASSES } from "../cells/base";
 import { useDataTableContext } from "../core/DataTableContext";
 import type { DataTableSortModel } from "../core/types";
 import type { DataTableFeatures, DataTableSelectedState } from "../core/useDataTableEngine";
-import { buildColumnPinStyles, resolveExpandColumnLeft, toColumnCssVarKey } from "../core/utils";
+import { buildColumnPinStyles, getColumnPinClass, resolveExpandColumnLeft, toColumnCssVarKey } from "../core/utils";
 
 export interface DataTableHeaderProps<TData extends Record<string, any> = Record<string, any>> {
 	table: ReactTable<DataTableFeatures, TData, DataTableSelectedState>;
@@ -36,7 +37,8 @@ export function DataTableHeader<TData extends Record<string, any> = Record<strin
 		checkboxSelection,
 		renderExpandedRow,
 		pinnedLeftFields,
-		pinnedRightFields,
+		pinnedLeftSet,
+		pinnedRightSet,
 		getColumnWidth,
 		handleSortClick,
 		handleResizeStart,
@@ -44,8 +46,6 @@ export function DataTableHeader<TData extends Record<string, any> = Record<strin
 	} = ctx;
 
 	const hasExpandColumn = Boolean(renderExpandedRow);
-	const pinnedLeftSet = new Set(pinnedLeftFields);
-	const pinnedRightSet = new Set(pinnedRightFields);
 	const sortDirectionByField = new Map(sortModel.map((s) => [s.field, s.sort]));
 
 	return (
@@ -120,33 +120,26 @@ export function DataTableHeader<TData extends Record<string, any> = Record<strin
 								})}
 								className={cn(
 									"group/header relative text-xs font-semibold whitespace-nowrap text-foreground transition-colors select-none",
-									isLeftPinned && "sticky z-25 border-r border-border/70 bg-muted shadow-pin-left",
-									isRightPinned && "sticky z-25 border-l border-border/70 bg-muted shadow-pin-right",
+									getColumnPinClass(isLeftPinned, isRightPinned, "muted", "z-25"),
 									headerClassName,
 								)}
 							>
-								<div
-									role={sortable ? "button" : undefined}
-									tabIndex={sortable ? 0 : undefined}
-									onKeyDown={(e) => {
-										if (sortable && (e.key === "Enter" || e.key === " ")) {
-											e.preventDefault();
-											handleSortClick(field);
-										}
-									}}
-									className={cn(
-										"flex items-center gap-1.5 rounded-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden",
-										JUSTIFY_ALIGN_CLASSES[headerAlign],
-										sortable && "cursor-pointer",
-									)}
-									onClick={() => sortable && handleSortClick(field)}
-								>
-									{renderHeader ? renderHeader({ colDef: col, headerName }) : <span>{headerName}</span>}
-
-									{sortable && (
+								{sortable ? (
+									<Button
+										type="button"
+										variant="ghost"
+										size="xs"
+										onClick={() => handleSortClick(field)}
+										className={cn(
+											"-mx-1 h-auto w-[calc(100%+0.5rem)] px-1 py-0.5 text-xs font-semibold text-foreground hover:bg-muted/60",
+											JUSTIFY_ALIGN_CLASSES[headerAlign],
+										)}
+									>
+										{renderHeader ? renderHeader({ colDef: col, headerName }) : <span>{headerName}</span>}
 										<span
 											aria-hidden="true"
-											className="text-muted-foreground group-hover/header:text-foreground transition-colors"
+											data-icon="inline-end"
+											className="text-muted-foreground group-hover/header:text-foreground inline-flex items-center transition-colors"
 										>
 											{sortDirection === "asc" ? (
 												<ArrowUp className="text-primary size-3" />
@@ -156,8 +149,12 @@ export function DataTableHeader<TData extends Record<string, any> = Record<strin
 												<ArrowUpDown className="size-3 opacity-0 transition-opacity group-hover/header:opacity-60" />
 											)}
 										</span>
-									)}
-								</div>
+									</Button>
+								) : (
+									<div className={cn("flex items-center gap-1.5", JUSTIFY_ALIGN_CLASSES[headerAlign])}>
+										{renderHeader ? renderHeader({ colDef: col, headerName }) : <span>{headerName}</span>}
+									</div>
+								)}
 
 								{resizable && (
 									<div
@@ -169,7 +166,9 @@ export function DataTableHeader<TData extends Record<string, any> = Record<strin
 										aria-valuemin={minWidth}
 										aria-valuemax={maxWidth}
 										onKeyDown={(e) => {
-											const step = e.shiftKey ? 64 : 16;
+											const isRtl =
+												typeof window !== "undefined" && window.getComputedStyle(e.currentTarget).direction === "rtl";
+											const step = (e.shiftKey ? 64 : 16) * (isRtl ? -1 : 1);
 											if (e.key === "ArrowLeft") {
 												e.preventDefault();
 												e.stopPropagation();

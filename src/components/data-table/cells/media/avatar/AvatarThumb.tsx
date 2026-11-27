@@ -1,5 +1,6 @@
 import { User } from "lucide-react";
 
+import { sanitizeMediaUrl } from "@/components/shared/url";
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "cn";
 
@@ -49,17 +50,18 @@ function AvatarThumbInner({
 				: undefined);
 
 	const palette = autoColor && seed ? getAvatarPalette(seed) : null;
+	const safeSrc = sanitizeMediaUrl(src ?? undefined, { allowDataImage: true });
 
 	return (
 		<Avatar
 			size={mapSizeToAvatarProp(size)}
 			className={cn(avatarSizeClasses[size], avatarShapeClasses[shape], "shrink-0", className)}
 		>
-			{src && <AvatarImage src={src} alt={typeof name === "string" ? name : "Avatar"} />}
+			{safeSrc ? <AvatarImage src={safeSrc} alt={typeof name === "string" ? name : "Avatar"} /> : null}
 			<AvatarFallback
 				className={cn(
 					"font-medium uppercase",
-					palette ? `${palette.bg} ${palette.text} ${palette.border} border` : "bg-muted text-muted-foreground",
+					palette ? [palette.bg, palette.text, palette.border, "border"] : "bg-muted text-muted-foreground",
 				)}
 			>
 				{resolvedFallback || <User className="size-3.5" />}

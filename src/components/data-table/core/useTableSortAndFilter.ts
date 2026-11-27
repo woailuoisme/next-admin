@@ -54,9 +54,11 @@ export function useTableSortAndFilter<TData>({
     quickFilterText.trim() || quickFilterTokens.length > 0 || (filterModel.items && filterModel.items.length > 0),
   );
 
-  const latestSortRef = useLatest({ sortModel, columnByField, onSortModelChange, onSortChange });
+  const latestSortRef = useLatest({ sortModel, controlledSortModel, columnByField, onSortModelChange, onSortChange });
   const handleSortModelChange = useMemoizedFn((next: DataTableSortModel) => {
-    setInternalSortModel(next);
+    if (latestSortRef.current.controlledSortModel === undefined) {
+      setInternalSortModel(next);
+    }
     latestSortRef.current.onSortModelChange?.(next);
     onResetClientPage();
   });
@@ -65,13 +67,16 @@ export function useTableSortAndFilter<TData>({
     const {
       columnByField: colMap,
       sortModel: cur,
+      controlledSortModel: controlledSort,
       onSortModelChange: notify,
       onSortChange: notifySingle,
     } = latestSortRef.current;
     if (colMap.get(field)?.sortable === false) return;
     const direction = resolveNextSortDirection(cur, field);
     const next: DataTableSortModel = direction ? [{ field, sort: direction }] : EMPTY_ARRAY;
-    setInternalSortModel(next);
+    if (controlledSort === undefined) {
+      setInternalSortModel(next);
+    }
     notify?.(next);
     if (!hasAdapterSortModelHandler && notifySingle) notifySingle(field, direction);
     onResetClientPage();

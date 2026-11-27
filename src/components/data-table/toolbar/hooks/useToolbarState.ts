@@ -46,7 +46,7 @@ export function useToolbarState<TData extends Record<string, any> = Record<strin
   const showExport = props.showExport ?? toolbarProps.showExport ?? true;
   const quickFilterPlaceholder = props.quickFilterPlaceholder ?? toolbarProps.quickFilterPlaceholder;
   const quickFilterEntity = props.quickFilterEntity ?? toolbarProps.quickFilterEntity;
-  const customActions = props.customActions;
+  const customActions = props.customActions ?? toolbarProps.customActions;
   const filterConfig = props.filterConfig ?? toolbarProps.filterConfig;
   const filters = props.filters ?? toolbarProps.filters;
 

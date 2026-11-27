@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import React from "react";
@@ -96,11 +98,11 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
 			if (opt) {
 				displayVal = opt.label;
 			}
-		} else if (filterDef?.type === "ternary") {
+		} else if (filterDef?.type === "ternary" || col?.type === "boolean") {
 			if (item.value === true || item.value === "true") {
-				displayVal = filterDef.trueLabel ?? t("op_true");
+				displayVal = filterDef?.type === "ternary" ? (filterDef.trueLabel ?? t("op_true")) : t("op_true");
 			} else if (item.value === false || item.value === "false") {
-				displayVal = filterDef.falseLabel ?? t("op_false");
+				displayVal = filterDef?.type === "ternary" ? (filterDef.falseLabel ?? t("op_false")) : t("op_false");
 			}
 		}
 
@@ -108,6 +110,7 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
 			contains: t("op_contains"),
 			notContains: t("op_not_contains"),
 			equals: "=",
+			is: "=",
 			notEquals: "!=",
 			startsWith: t("op_starts_with"),
 			endsWith: t("op_ends_with"),
@@ -139,37 +142,40 @@ export const ActiveFilterPills: React.FC<ActiveFilterPillsProps> = ({
 					<Button
 						type="button"
 						variant="ghost"
-						size="icon"
-						className="hover:bg-primary/20 size-3.5 cursor-pointer rounded-full p-0 transition-colors"
+						size="icon-xs"
+						className="hover:bg-primary/20 size-4 cursor-pointer rounded-full transition-colors"
 						onClick={handleRemoveQuickFilter}
 						aria-label={t("quick_filter_clear")}
 					>
-						<X className="size-3" />
+						<X aria-hidden="true" />
 					</Button>
 				</Badge>
 			) : null}
 
 			{/* Filter items pills */}
-			{activeItems.map((item, idx) => (
-				<Badge
-					key={item.id ?? `${item.field}_${item.operator}_${idx}`}
-					variant="outline"
-					className="border-primary/20 bg-primary/10 text-primary inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium"
-					data-testid={`active-filter-pill-${item.id ?? idx}`}
-				>
-					<span>{getPillText(item)}</span>
-					<Button
-						type="button"
-						variant="ghost"
-						size="icon"
-						className="hover:bg-primary/20 size-3.5 cursor-pointer rounded-full p-0 transition-colors"
-						onClick={() => handleRemoveItem(item)}
-						aria-label={`${t("filter_remove_rule")} ${item.field}`}
+			{activeItems.map((item, idx) => {
+				const fieldName = columnByField.get(item.field)?.headerName || item.field;
+				return (
+					<Badge
+						key={item.id ?? `${item.field}_${item.operator}_${idx}`}
+						variant="outline"
+						className="border-primary/20 bg-primary/10 text-primary inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium"
+						data-testid={`active-filter-pill-${item.id ?? idx}`}
 					>
-						<X className="size-3" />
-					</Button>
-				</Badge>
-			))}
+						<span>{getPillText(item)}</span>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon-xs"
+							className="hover:bg-primary/20 size-4 cursor-pointer rounded-full transition-colors"
+							onClick={() => handleRemoveItem(item)}
+							aria-label={`${t("filter_remove_rule")} ${fieldName}`}
+						>
+							<X aria-hidden="true" />
+						</Button>
+					</Badge>
+				);
+			})}
 
 			{/* Clear All button */}
 			{totalActive >= 2 ? (

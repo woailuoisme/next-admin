@@ -10,15 +10,25 @@ import { STACK_ALIGN_CLASSES, TEXT_ALIGN_CLASSES } from "../base";
 
 type NumberFormatter = ReturnType<typeof useFormatter>;
 
-function formatValue(
-	format: NumberFormatter,
-	value: number,
-	mode: "number" | "currency" | "percent",
-	precision: number,
-	compact: boolean,
-	accounting: boolean,
-	currencyCode?: string,
-): string {
+interface FormatValueOptions {
+	format: NumberFormatter;
+	value: number;
+	mode: "number" | "currency" | "percent";
+	precision: number;
+	compact: boolean;
+	accounting: boolean;
+	currencyCode?: string;
+}
+
+function formatValue({
+	format,
+	value,
+	mode,
+	precision,
+	compact,
+	accounting,
+	currencyCode,
+}: FormatValueOptions): string {
 	const isNegative = value < 0;
 	const absValue = accounting && isNegative ? Math.abs(value) : value;
 	const notation = compact ? "compact" : "standard";
@@ -106,7 +116,7 @@ export function NumberCell({
 }: NumberCellProps) {
 	const format = useFormatter();
 
-	if (isNil(value) || Number.isNaN(value)) {
+	if (isNil(value) || !Number.isFinite(value)) {
 		return <span className="text-muted-foreground/40 text-xs italic">-</span>;
 	}
 
@@ -114,7 +124,15 @@ export function NumberCell({
 	const effectiveTrend = colorize ?? trend;
 	const isPositive = value > 0;
 	const isNegative = value < 0;
-	const formattedNumber = formatValue(format, value, mode, effectivePrecision, compact, accounting, currencyCode);
+	const formattedNumber = formatValue({
+		format,
+		value,
+		mode,
+		precision: effectivePrecision,
+		compact,
+		accounting,
+		currencyCode,
+	});
 	const trendColor = getTrendColor(effectiveTrend, isPositive, isNegative);
 	const resolvedDeltaType = resolveDeltaType(delta, deltaType);
 
@@ -126,26 +144,30 @@ export function NumberCell({
 				trendColor,
 			)}
 		>
-			{effectiveTrend && isPositive && (
-				<ArrowUpRight className={`size-3.5 shrink-0 stroke-[2.5] ${TREND_ICON_CLASSES.up}`} />
-			)}
-			{effectiveTrend && isNegative && (
-				<ArrowDownRight className={`size-3.5 shrink-0 stroke-[2.5] ${TREND_ICON_CLASSES.down}`} />
-			)}
+			{effectiveTrend && isPositive ? (
+				<ArrowUpRight className={cn("size-3.5 shrink-0 stroke-[2.5]", TREND_ICON_CLASSES.up)} />
+			) : null}
+			{effectiveTrend && isNegative ? (
+				<ArrowDownRight className={cn("size-3.5 shrink-0 stroke-[2.5]", TREND_ICON_CLASSES.down)} />
+			) : null}
 
-			{!currencyCode && mode === "currency" && (
+			{!currencyCode && mode === "currency" ? (
 				<span className="text-muted-foreground/70 shrink-0 font-sans text-[11px]">{currency}</span>
-			)}
+			) : null}
 
-			{prefix && <span className="text-muted-foreground/80 shrink-0">{prefix}</span>}
+			{!isNil(prefix) && prefix !== "" ? <span className="text-muted-foreground/80 shrink-0">{prefix}</span> : null}
 
 			<span>{formattedNumber}</span>
 
-			{suffix && <span className="text-muted-foreground/80 shrink-0 font-sans text-[11px]">{suffix}</span>}
+			{!isNil(suffix) && suffix !== "" ? (
+				<span className="text-muted-foreground/80 shrink-0 font-sans text-[11px]">{suffix}</span>
+			) : null}
 		</div>
 	);
 
-	if (delta !== undefined && delta !== null) {
+	const hasValidDelta = delta !== undefined && delta !== null && (typeof delta !== "number" || Number.isFinite(delta));
+
+	if (hasValidDelta) {
 		const resolvedDeltaPrefix =
 			deltaPrefix !== undefined ? deltaPrefix : typeof delta === "number" && delta > 0 ? "+" : "";
 		const deltaText = typeof delta === "number" ? `${resolvedDeltaPrefix}${delta}%` : `${resolvedDeltaPrefix}${delta}`;
@@ -159,13 +181,13 @@ export function NumberCell({
 						TREND_TEXT_CLASSES[resolvedDeltaType],
 					)}
 				>
-					{resolvedDeltaType === "increase" && <ArrowUpRight className="size-3 shrink-0 stroke-[2.5]" />}
-					{resolvedDeltaType === "decrease" && <ArrowDownRight className="size-3 shrink-0 stroke-[2.5]" />}
-					{resolvedDeltaType === "neutral" && <Minus className="size-2.5 shrink-0 stroke-[2]" />}
+					{resolvedDeltaType === "increase" ? <ArrowUpRight className="size-3 shrink-0 stroke-[2.5]" /> : null}
+					{resolvedDeltaType === "decrease" ? <ArrowDownRight className="size-3 shrink-0 stroke-[2.5]" /> : null}
+					{resolvedDeltaType === "neutral" ? <Minus className="size-2.5 shrink-0 stroke-[2]" /> : null}
 					<span>{deltaText}</span>
-					{deltaDescription && (
+					{!isNil(deltaDescription) && deltaDescription !== "" ? (
 						<span className="text-muted-foreground/70 ml-0.5 font-sans font-normal">{deltaDescription}</span>
-					)}
+					) : null}
 				</div>
 			</div>
 		);

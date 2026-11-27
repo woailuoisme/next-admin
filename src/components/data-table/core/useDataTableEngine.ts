@@ -25,7 +25,7 @@ import {
   tableFeatures,
   useTable,
 } from "@tanstack/react-table";
-import { useMemoizedFn } from "ahooks";
+import { useLatest, useMemoizedFn } from "ahooks";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { DEFAULT_PAGE_SIZE, defaultGetRowId, EMPTY_ARRAY, EMPTY_RECORD, NOOP } from "./constants";
@@ -182,29 +182,39 @@ export function useDataTableEngine<TData extends Record<string, any> = Record<st
   });
 
   // ==================== TanStack Table v9 Core Instance ====================
-  const tanstackColumns: ColumnDef<DataTableFeatures, TData, unknown>[] = normalizedColumns.map((col) => ({
-    id: col.field,
-    accessorFn: (row) => readCellValue(row, col),
-    enableSorting: col.sortable,
-    enableColumnFilter: col.filterable,
-    enableGlobalFilter: true,
-    enableHiding: true,
-    enableResizing: col.resizable ?? true,
-    enablePinning: true,
-    size: col.width,
-    minSize: col.minWidth ?? 50,
-    maxSize: col.maxWidth ?? 9999,
-    filterFn: (row, columnId, filterValue) => {
-      const rules = filterValue as DataTableFilterItem[];
-      return !Array.isArray(rules) || rules.every((rule) => matchesFilterOperator(row.getValue(columnId), rule));
-    },
-  }));
+  // Whitelist AGENTS.md §5.2: "use no memo" 边界内稳定 TanStack 列定义引用，避免每次渲染重建内部列模型
+  const tanstackColumns = useMemo<ColumnDef<DataTableFeatures, TData, unknown>[]>(
+    () =>
+      normalizedColumns.map((col) => ({
+        id: col.id ?? col.field,
+        accessorFn: (row) => readCellValue(row, col),
+        enableSorting: col.sortable,
+        enableColumnFilter: col.filterable,
+        enableGlobalFilter: true,
+        enableHiding: true,
+        enableResizing: col.resizable ?? true,
+        enablePinning: true,
+        size: col.width,
+        minSize: col.minWidth ?? 50,
+        maxSize: col.maxWidth ?? 9999,
+        filterFn: (row, columnId, filterValue) => {
+          const rules = filterValue as DataTableFilterItem[];
+          return !Array.isArray(rules) || rules.every((rule) => matchesFilterOperator(row.getValue(columnId), rule));
+        },
+      })),
+    [normalizedColumns],
+  );
 
-  const unmatchedFilterItems = (sortAndFilter.filterModel.items ?? []).filter((item) => !columnByField.has(item.field));
-  const tableData =
-    filterMode === "client" && unmatchedFilterItems.length > 0
-      ? rows.filter((row) => unmatchedFilterItems.every((item) => matchesFilterOperator(row[item.field], item)))
-      : rows;
+  // Whitelist AGENTS.md §5.2: "use no memo" 边界内缓存列外兜底筛选行集合，保持 useTable data 引用稳定
+  const tableData = useMemo(() => {
+    const unmatchedFilterItems = (sortAndFilter.filterModel.items ?? []).filter(
+      (item) => !columnByField.has(item.field),
+    );
+    if (filterMode === "client" && unmatchedFilterItems.length > 0) {
+      return rows.filter((row) => unmatchedFilterItems.every((item) => matchesFilterOperator(row[item.field], item)));
+    }
+    return rows;
+  }, [filterMode, sortAndFilter.filterModel.items, columnByField, rows]);
 
   const rawPage = statePage ?? controlledPaginationModel?.page ?? internalPagination.page;
   const effectivePageSize = Math.max(
@@ -216,10 +226,20 @@ export function useDataTableEngine<TData extends Record<string, any> = Record<st
   );
   const firstGlobalColumnId = visibleColumns[0]?.field;
 
+  const paginationLatestRef = useLatest({
+    page: rawPage,
+    pageSize: effectivePageSize,
+    isUncontrolledClient:
+      paginationMode === "client" && statePage === undefined && controlledPaginationModel === undefined,
+  });
+
   const handlePaginationModelChange = useMemoizedFn((model: DataTablePaginationModel) => {
-    setInternalPagination(model);
-    if (model.page !== effectivePage) onPageChange?.(model.page);
-    if (model.pageSize !== effectivePageSize) onPageSizeChange?.(model.pageSize);
+    const { page: curPage, pageSize: curPageSize, isUncontrolledClient } = paginationLatestRef.current;
+    if (isUncontrolledClient) {
+      setInternalPagination(model);
+    }
+    if (model.page !== curPage) onPageChange?.(model.page);
+    if (model.pageSize !== curPageSize) onPageSizeChange?.(model.pageSize);
     onPaginationModelChange?.(model);
   });
 
@@ -229,7 +249,11 @@ export function useDataTableEngine<TData extends Record<string, any> = Record<st
   const tanstackGlobalFilter =
     filterMode === "client" && sortAndFilter.quickFilterTokens.length > 0 ? sortAndFilter.quickFilterTokens : undefined;
   const tanstackPagination = { pageIndex: Math.max(0, rawPage - 1), pageSize: effectivePageSize };
-  const rowIdByKey = new Map(rows.map((row) => [String(getRowId(row)), getRowId(row)]));
+  // Whitelist AGENTS.md §5.2: "use no memo" 边界内缓存行主键映射表，避免在无关状态变更时重复构造 Map
+  const rowIdByKey = useMemo(
+    () => new Map(rows.map((row) => [String(getRowId(row)), getRowId(row)])),
+    [rows, getRowId],
+  );
 
   // eslint-disable-next-line react/incompatible-library -- TanStack Table v9 useTable 返回可变实例，已由 "use no memo" 隔离
   const table = useTable(

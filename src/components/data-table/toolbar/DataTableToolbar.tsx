@@ -1,8 +1,11 @@
+"use client";
+
 import { type ReactElement } from "react";
 
 import type { InternalDataTableToolbarProps } from "./types";
 
 import { DataTableFilterPanel } from "./filters";
+import { useFilterInference } from "./filters/hooks/useFilterInference";
 import { ActiveFilterPills } from "./filters/layouts/ActiveFilterPills";
 import { useToolbarState } from "./hooks/useToolbarState";
 import { DataTableColumnsPanel } from "./items/DataTableColumnsPanel";
@@ -54,6 +57,12 @@ function DataTableToolbarBase<TData extends Record<string, any> = Record<string,
 	} = useToolbarState(props);
 
 	const showActiveFiltersPills = filterConfig?.showActiveFiltersPills ?? true;
+	const { resolvedFilters: pillFilters } = useFilterInference({
+		columns,
+		filters,
+		filterConfig,
+		data,
+	});
 
 	return (
 		<div className="border-border/50 flex flex-col border-b">
@@ -129,7 +138,7 @@ function DataTableToolbarBase<TData extends Record<string, any> = Record<string,
 					filterModel={filterModel}
 					onFilterModelChange={onFilterModelChange}
 					columns={columns}
-					filters={filters}
+					filters={pillFilters}
 				/>
 			) : null}
 		</div>

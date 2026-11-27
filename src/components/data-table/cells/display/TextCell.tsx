@@ -1,8 +1,11 @@
 import { isNil } from "es-toolkit";
 import { ExternalLink } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { CopyButton } from "@/components/shared/CopyButton";
 import { handleActivationKey } from "@/components/shared/activationKey";
+import { sanitizeUrl } from "@/components/shared/url";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 
@@ -29,12 +32,12 @@ const clampClasses = {
 	3: "line-clamp-3",
 };
 
-const tagVariantClasses = {
-	outline: "border border-border text-muted-foreground bg-transparent",
-	secondary: "border border-transparent bg-secondary text-secondary-foreground",
-	primary: "border border-primary/20 bg-primary/10 text-primary",
-	muted: "border border-border/50 bg-muted/60 text-muted-foreground",
-};
+const tagVariantMap = {
+	outline: "outline",
+	secondary: "secondary",
+	primary: "default",
+	muted: "secondary",
+} as const;
 
 const REGEXP_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g;
 
@@ -64,7 +67,7 @@ function highlightString(text: string, matcher: HighlightMatcher | null): React.
 		<>
 			{parts.map((part, i) =>
 				part.toLowerCase() === matcher.lowerQuery ? (
-					<mark key={i} className="bg-primary/20 text-primary dark:bg-primary/30 rounded-xs px-0.5 font-medium">
+					<mark key={i} className="bg-primary/20 text-primary rounded-xs px-0.5 font-medium">
 						{part}
 					</mark>
 				) : (
@@ -79,23 +82,8 @@ function sanitizeSafeHref(href?: string): string | undefined {
 	if (!href) return undefined;
 	const trimmed = href.trim();
 	if (!trimmed) return undefined;
-	if (trimmed.startsWith("/") || trimmed.startsWith("#") || trimmed.startsWith("?")) {
-		return trimmed;
-	}
-	try {
-		const parsed = new URL(trimmed, "http://localhost");
-		if (
-			parsed.protocol === "http:" ||
-			parsed.protocol === "https:" ||
-			parsed.protocol === "mailto:" ||
-			parsed.protocol === "tel:"
-		) {
-			return trimmed;
-		}
-	} catch {
-		return undefined;
-	}
-	return undefined;
+	if (trimmed.startsWith("?")) return trimmed;
+	return sanitizeUrl(trimmed, { allowMailtoTel: true, allowRelative: true, allowBareDomain: false }) ?? undefined;
 }
 
 export function TextCell({
@@ -121,6 +109,7 @@ export function TextCell({
 	onClick,
 	className,
 }: TextCellProps) {
+	const t = useTranslations("table");
 	const highlightMatcher = buildHighlightMatcher(highlightText);
 
 	const resolvedTitle = title !== undefined ? title : value;
@@ -169,8 +158,18 @@ export function TextCell({
 			}}
 		>
 			{titleElement}
-			{isExternal && <ExternalLink aria-hidden="true" className="h-3 w-3 shrink-0 opacity-70" />}
+			{isExternal ? <ExternalLink aria-hidden="true" className="size-3 shrink-0 opacity-70" /> : null}
 		</a>
+	) : onClick ? (
+		<span
+			role="button"
+			tabIndex={0}
+			onClick={onClick}
+			onKeyDown={(e) => handleActivationKey(e, onClick)}
+			className="focus-visible:ring-ring cursor-pointer rounded-xs hover:underline focus-visible:ring-1 focus-visible:outline-hidden"
+		>
+			{titleElement}
+		</span>
 	) : (
 		titleElement
 	);
@@ -178,55 +177,44 @@ export function TextCell({
 	const renderedDescription =
 		typeof description === "string" && highlightMatcher ? highlightString(description, highlightMatcher) : description;
 
-	const isInteractiveContainer = Boolean(onClick);
-
 	const content = (
-		<div
-			role={isInteractiveContainer ? "button" : undefined}
-			tabIndex={isInteractiveContainer ? 0 : undefined}
-			onKeyDown={isInteractiveContainer && onClick ? (e) => handleActivationKey(e, onClick) : undefined}
-			className={cn(
-				"group/text-cell flex max-w-full min-w-0 flex-col focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden",
-				STACK_ALIGN_CLASSES[align],
-				onClick && "cursor-pointer hover:underline",
-				className,
-			)}
-			onClick={onClick}
-		>
+		<div className={cn("group/text-cell flex max-w-full min-w-0 flex-col", STACK_ALIGN_CLASSES[align], className)}>
 			<div className="flex max-w-full min-w-0 items-center gap-1.5">
-				{prefix && <span className="text-muted-foreground shrink-0">{prefix}</span>}
+				{!isNil(prefix) && prefix !== "" ? <span className="text-muted-foreground shrink-0">{prefix}</span> : null}
 
 				{linkedTitle}
 
-				{tag && (
-					<span
+				{!isNil(tag) && tag !== "" ? (
+					<Badge
+						variant={tagVariantMap[tagVariant]}
 						className={cn(
-							"py-0.2 inline-flex shrink-0 items-center rounded px-1.5 text-[10px] leading-none font-medium tracking-tight",
-							tagVariantClasses[tagVariant],
+							"h-4 px-1.5 py-0 text-[10px] leading-none font-medium tracking-tight",
+							tagVariant === "primary" && "border-primary/20 bg-primary/10 text-primary",
+							tagVariant === "muted" && "border-border/50 bg-muted/60 text-muted-foreground",
 						)}
 					>
 						{tag}
-					</span>
-				)}
+					</Badge>
+				) : null}
 
-				{kbd && (
-					<kbd className="py-0.2 border-border bg-muted/80 text-muted-foreground inline-flex shrink-0 items-center rounded border px-1 font-mono text-[9px] font-semibold shadow-2xs">
+				{kbd ? (
+					<kbd className="border-border bg-muted/80 text-muted-foreground inline-flex shrink-0 items-center rounded border px-1 py-0.5 font-mono text-[9px] font-semibold shadow-2xs">
 						{kbd}
 					</kbd>
-				)}
+				) : null}
 
-				{suffix && <span className="text-muted-foreground shrink-0">{suffix}</span>}
+				{!isNil(suffix) && suffix !== "" ? <span className="text-muted-foreground shrink-0">{suffix}</span> : null}
 
-				{copyable && copyText && (
+				{copyable && copyText ? (
 					<CopyButton
 						text={copyText}
 						className="ml-0.5 shrink-0 opacity-0 transition-opacity group-hover/text-cell:opacity-100"
-						title="复制到剪贴板"
+						title={t("cell_copy_title")}
 					/>
-				)}
+				) : null}
 			</div>
 
-			{description && (
+			{!isNil(description) && description !== "" ? (
 				<span
 					className={cn(
 						"mt-0.5 text-[11px] leading-normal text-muted-foreground/80",
@@ -236,7 +224,7 @@ export function TextCell({
 				>
 					{renderedDescription}
 				</span>
-			)}
+			) : null}
 		</div>
 	);
 
@@ -244,7 +232,7 @@ export function TextCell({
 		return (
 			<Tooltip>
 				<TooltipTrigger asChild>
-					<div className="inline-flex max-w-full">{content}</div>
+					<div className="w-full">{content}</div>
 				</TooltipTrigger>
 				<TooltipContent side="top" className="text-xs">
 					{tooltip}

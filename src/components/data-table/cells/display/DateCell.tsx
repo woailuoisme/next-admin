@@ -72,26 +72,35 @@ export function DateCell({
 					)}
 				>
 					{isOverdue ? (
-						<AlertCircle className="text-destructive size-3 shrink-0 animate-pulse" />
+						<span className="inline-flex shrink-0 animate-pulse" aria-hidden="true">
+							<AlertCircle className="text-destructive size-3" />
+						</span>
 					) : (
 						showIcon && <Calendar className="text-muted-foreground/60 size-3 shrink-0" />
 					)}
 					<span className="truncate">{primaryText}</span>
-					{isOverdue && (
+					{isOverdue ? (
 						<span className="bg-destructive/10 text-destructive rounded-xs px-1 font-sans text-[9px]">
 							{t("overdue")}
 						</span>
-					)}
-					{countdown && !dateIsPast && (
-						<span className="bg-primary/10 text-primary rounded-xs px-1 font-sans text-[9px]">{countdownString}</span>
-					)}
+					) : null}
+					{countdown && !(isOverdue && dateIsPast) ? (
+						<span
+							className={cn(
+								"rounded-xs px-1 font-sans text-[9px]",
+								dateIsPast ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary",
+							)}
+						>
+							{countdownString}
+						</span>
+					) : null}
 				</div>
 
 				<div className="text-muted-foreground/80 mt-0.5 flex items-center gap-1 font-mono text-[10px]">
 					<span className="truncate">{secondaryText}</span>
-					{timezone && (
+					{timezone ? (
 						<span className="bg-muted/60 text-muted-foreground/60 rounded-xs px-0.5 text-[9px]">{timezone}</span>
-					)}
+					) : null}
 				</div>
 			</div>
 		);
@@ -110,19 +119,21 @@ export function DateCell({
 			)}
 		>
 			{isOverdue ? (
-				<AlertCircle className="text-destructive size-3 shrink-0 animate-pulse" />
+				<span className="inline-flex shrink-0 animate-pulse" aria-hidden="true">
+					<AlertCircle className="text-destructive size-3" />
+				</span>
 			) : countdown ? (
 				<Clock className="text-muted-foreground/60 size-3 shrink-0" />
 			) : (
 				showIcon && <Calendar className="text-muted-foreground/60 size-3 shrink-0" />
 			)}
 			<span className="truncate">{countdown ? countdownString : displayString}</span>
-			{timezone && !countdown && (
+			{timezone && !countdown ? (
 				<span className="bg-muted/60 text-muted-foreground/70 rounded-xs px-1 font-sans text-[10px]">{timezone}</span>
-			)}
-			{isOverdue && (
+			) : null}
+			{isOverdue ? (
 				<span className="bg-destructive/10 text-destructive rounded-xs px-1 font-sans text-[10px]">{t("overdue")}</span>
-			)}
+			) : null}
 		</div>
 	);
 
@@ -133,13 +144,21 @@ export function DateCell({
 	return (
 		<Tooltip>
 			<TooltipTrigger asChild>
-				<div className="inline-flex max-w-full cursor-default">{content}</div>
+				<div className="w-full cursor-default">{content}</div>
 			</TooltipTrigger>
 			<TooltipContent side="top" className="font-mono text-xs">
 				<p>{exactFormatted}</p>
-				{relative && <p className="text-muted-foreground mt-0.5 text-[10px]">格式化: {customFormatted}</p>}
-				{timezone && <p className="text-muted-foreground mt-0.5 text-[10px]">时区: {timezone}</p>}
-				{isOverdue && <p className="text-destructive mt-0.5 text-[10px] font-semibold">{t("overdue_hint")}</p>}
+				{relative ? (
+					<p className="text-muted-foreground mt-0.5 text-[10px]">
+						{t("date_format_label")} {customFormatted}
+					</p>
+				) : null}
+				{timezone ? (
+					<p className="text-muted-foreground mt-0.5 text-[10px]">
+						{t("date_timezone_label")} {timezone}
+					</p>
+				) : null}
+				{isOverdue ? <p className="text-destructive mt-0.5 text-[10px] font-semibold">{t("overdue_hint")}</p> : null}
 			</TooltipContent>
 		</Tooltip>
 	);

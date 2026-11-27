@@ -102,7 +102,9 @@ export function IconCell({
 			)}
 		>
 			{wrappedIcon}
-			{extractedLabel && <span className="text-foreground/80 text-xs font-medium">{extractedLabel}</span>}
+			{!isNil(extractedLabel) && extractedLabel !== "" ? (
+				<span className="text-foreground/80 text-xs font-medium">{extractedLabel}</span>
+			) : null}
 		</div>
 	);
 
@@ -110,7 +112,7 @@ export function IconCell({
 		return (
 			<Tooltip>
 				<TooltipTrigger asChild>
-					<div className="inline-flex max-w-full cursor-default">{content}</div>
+					<div className="w-full cursor-default">{content}</div>
 				</TooltipTrigger>
 				<TooltipContent side="top" className="text-xs">
 					{resolvedTooltip}

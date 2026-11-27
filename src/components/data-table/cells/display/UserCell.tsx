@@ -76,7 +76,9 @@ export function UserCell({
 				</div>
 				<div className="flex min-w-0 flex-col leading-tight">
 					<span className="text-muted-foreground/60 truncate text-xs italic">{resolvedUnassignedText}</span>
-					{subtitle && <span className="text-muted-foreground/50 mt-0.5 truncate text-[11px]">{subtitle}</span>}
+					{!isNil(subtitle) && subtitle !== "" ? (
+						<span className="text-muted-foreground/50 mt-0.5 truncate text-[11px]">{subtitle}</span>
+					) : null}
 				</div>
 			</div>
 		);
@@ -91,29 +93,42 @@ export function UserCell({
 
 	return (
 		<div
-			{...interactiveProps}
 			className={cn(
-				"group/user-cell flex max-w-full min-w-0 items-center gap-2.5 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden",
+				"group/user-cell flex max-w-full min-w-0 items-center gap-2.5",
 				TEXT_ALIGN_CLASSES[align],
-				onClick && "cursor-pointer hover:opacity-85",
 				className,
 			)}
-			onClick={onClick}
 			data-testid="user-cell"
 		>
-			<AvatarThumb
-				src={resolvedSrc}
-				name={name}
-				fallback={resolvedFallback}
-				size={size}
-				shape={shape}
-				status={status}
-				autoColor={autoColor}
-			/>
+			<div
+				{...interactiveProps}
+				onClick={onClick}
+				className={cn(
+					"flex shrink-0 items-center rounded-full focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden",
+					onClick && "cursor-pointer hover:opacity-85",
+				)}
+			>
+				<AvatarThumb
+					src={resolvedSrc}
+					name={name}
+					fallback={resolvedFallback}
+					size={size}
+					shape={shape}
+					status={status}
+					autoColor={autoColor}
+				/>
+			</div>
 
 			<div className="flex min-w-0 flex-col leading-tight">
-				<div className="flex min-w-0 items-center gap-1.5">
-					{name && (
+				<div
+					{...interactiveProps}
+					onClick={onClick}
+					className={cn(
+						"flex min-w-0 items-center gap-1.5 rounded-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden",
+						onClick && "cursor-pointer hover:opacity-85",
+					)}
+				>
+					{!isNil(name) && name !== "" ? (
 						<span
 							className={cn(
 								"truncate text-xs font-medium tracking-tight text-foreground",
@@ -122,11 +137,11 @@ export function UserCell({
 						>
 							{name}
 						</span>
-					)}
-					{verified && <BadgeCheck className="text-primary size-3.5 shrink-0" aria-label={t("aria_verified")} />}
+					) : null}
+					{verified ? <BadgeCheck className="text-primary size-3.5 shrink-0" aria-label={t("aria_verified")} /> : null}
 					{badge}
 				</div>
-				{subtitle && (
+				{!isNil(subtitle) && subtitle !== "" ? (
 					<div className="group/sub mt-0.5 flex min-w-0 items-center gap-1">
 						<span className="text-muted-foreground/80 truncate text-[11px]">{subtitle}</span>
 						{copyableSubtitle && typeof subtitle === "string" ? (
@@ -136,7 +151,7 @@ export function UserCell({
 							/>
 						) : null}
 					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	);

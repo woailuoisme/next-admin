@@ -5,13 +5,14 @@ import type { ReactNode } from "react";
 
 import type { DataTableBatchActionBarProps } from "../footer/DataTableBatchActionBar";
 import { DataTablePagination } from "../footer/DataTablePagination";
-import type { DataTablePaginationModel } from "./types";
+import type { DataTablePaginationModel, DataTableSlots } from "./types";
 
 const LazyBatchActionBar = dynamic(() =>
 	import("../footer/DataTableBatchActionBar").then((mod) => mod.DataTableBatchActionBar),
 ) as <TData = unknown>(props: DataTableBatchActionBarProps<TData>) => ReactNode;
 
 export interface DataTableBottomChromeProps<TData> {
+	slots?: DataTableSlots;
 	hidePagination: boolean;
 	paginationModel: DataTablePaginationModel;
 	onPaginationModelChange: (model: DataTablePaginationModel) => void;
@@ -29,6 +30,7 @@ export interface DataTableBottomChromeProps<TData> {
  * DataTable 底部分页条、批量操作栏与无障碍状态播报切片。
  */
 export function DataTableBottomChrome<TData>({
+	slots,
 	hidePagination,
 	paginationModel,
 	onPaginationModelChange,
@@ -41,10 +43,12 @@ export function DataTableBottomChrome<TData>({
 	batchActions,
 	statusText,
 }: DataTableBottomChromeProps<TData>) {
+	const PaginationComponent = slots?.pagination ?? DataTablePagination;
+
 	return (
 		<>
 			{!hidePagination ? (
-				<DataTablePagination
+				<PaginationComponent
 					paginationModel={paginationModel}
 					onPaginationModelChange={onPaginationModelChange}
 					rowCount={totalRowCount}

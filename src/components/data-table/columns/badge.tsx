@@ -55,6 +55,7 @@ export function badgeCol<TData = any>(
 				dot={resolveProp(dot, row)}
 				pulse={resolveProp(pulse, row)}
 				density={density}
+				align={colDef.align}
 				onBadgeClick={onBadgeClick ? (val) => onBadgeClick(row, val) : undefined}
 			/>
 		),

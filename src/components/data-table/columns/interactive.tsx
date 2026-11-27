@@ -1,4 +1,29 @@
+import { useTranslations } from "next-intl";
+
 import { Checkbox } from "@/components/ui/checkbox";
+
+function HeaderSelectAllCheckbox({
+	label,
+	isAllChecked,
+	isIndeterminate,
+	onHeaderCheckboxChange,
+}: {
+	label?: string;
+	isAllChecked?: boolean;
+	isIndeterminate?: boolean;
+	onHeaderCheckboxChange?: (checked: boolean) => void;
+}) {
+	const t = useTranslations("table");
+	return (
+		<div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+			<Checkbox
+				checked={isAllChecked ? true : isIndeterminate ? "indeterminate" : false}
+				onCheckedChange={(checked) => onHeaderCheckboxChange?.(Boolean(checked))}
+				aria-label={label || t("aria_select_all")}
+			/>
+		</div>
+	);
+}
 
 import type {
 	CheckboxCellProps,
@@ -223,13 +248,12 @@ export function checkboxCol<TData = any>(
 			(headerCheckbox
 				? () =>
 						typeof headerCheckbox === "boolean" ? (
-							<div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-								<Checkbox
-									checked={isAllChecked ? true : isIndeterminate ? "indeterminate" : false}
-									onCheckedChange={(checked) => onHeaderCheckboxChange?.(Boolean(checked))}
-									aria-label={headerName || "全选"}
-								/>
-							</div>
+							<HeaderSelectAllCheckbox
+								label={headerName}
+								isAllChecked={isAllChecked}
+								isIndeterminate={isIndeterminate}
+								onHeaderCheckboxChange={onHeaderCheckboxChange}
+							/>
 						) : (
 							headerCheckbox
 						)

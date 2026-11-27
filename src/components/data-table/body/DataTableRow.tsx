@@ -1,4 +1,3 @@
-import { useMemoizedFn } from "ahooks";
 import { ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type HTMLAttributes, memo, type MouseEvent, type ReactNode, type Ref } from "react";
@@ -11,8 +10,14 @@ import { cn } from "cn";
 
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
 import { useDataTableContext } from "../core/DataTableContext";
-import type { DataTableRowId } from "../core/types";
-import { buildColumnPinStyles, readCellValue, resolveExpandColumnLeft, toColumnCssVarKey } from "../core/utils";
+import type { DataTableRowId, RowActivationEvent } from "../core/types";
+import {
+	buildColumnPinStyles,
+	getColumnPinClass,
+	readCellValue,
+	resolveExpandColumnLeft,
+	toColumnCssVarKey,
+} from "../core/utils";
 
 export interface DataTableRowProps<
 	TData extends Record<string, any> = Record<string, any>,
@@ -46,7 +51,8 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
 		checkboxSelection,
 		isRowSelectable,
 		pinnedLeftFields,
-		pinnedRightFields,
+		pinnedLeftSet,
+		pinnedRightSet,
 		densityRowClass,
 		onSelectRow,
 		onRowClick,
@@ -56,34 +62,29 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
 		toggleRowExpanded,
 	} = ctx;
 
-	const pinnedLeftSet = new Set(pinnedLeftFields);
-	const pinnedRightSet = new Set(pinnedRightFields);
 	const canExpand = Boolean(renderExpandedRow && (isRowExpandable ? isRowExpandable(row) : true));
 	const totalColSpan = visibleColumns.length + (checkboxSelection ? 1 : 0) + (renderExpandedRow ? 1 : 0);
 	const isRowInteractive = Boolean(onRowClick || (expandOnRowClick && canExpand));
 
+	const activateRow = (event: RowActivationEvent) => {
+		if (expandOnRowClick && canExpand) toggleRowExpanded?.(rowId);
+		onRowClick?.(row, event);
+	};
+
 	const handleRowClick = (e: MouseEvent<HTMLTableRowElement>) => {
 		if (e.target !== e.currentTarget && (e.target as HTMLElement).closest(ROW_ACTIVATION_IGNORE_SELECTOR)) return;
-		if (expandOnRowClick && canExpand) toggleRowExpanded?.(rowId);
-		onRowClick?.(row, e);
+		activateRow(e);
 	};
 
 	const handleRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>) => {
 		propOnKeyDown?.(e);
 		if (e.defaultPrevented || !isRowInteractive) return;
-		handleActivationKey(
-			e,
-			() => {
-				if (expandOnRowClick && canExpand) toggleRowExpanded?.(rowId);
-				onRowClick?.(row, e);
-			},
-			ROW_ACTIVATION_IGNORE_SELECTOR,
-		);
+		handleActivationKey(e, () => activateRow(e), ROW_ACTIVATION_IGNORE_SELECTOR);
 	};
 
-	const handleCollapse = useMemoizedFn(() => {
+	const handleCollapse = () => {
 		toggleRowExpanded?.(rowId);
-	});
+	};
 
 	return (
 		<>
@@ -127,18 +128,18 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
 							<Button
 								type="button"
 								variant="ghost"
-								size="icon"
+								size="icon-xs"
 								onClick={(e) => {
 									e.stopPropagation();
 									toggleRowExpanded?.(rowId);
 								}}
-								className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer rounded-xs transition-colors"
+								className="text-muted-foreground hover:text-foreground cursor-pointer rounded-xs transition-colors"
 								aria-expanded={isExpanded}
 								aria-label={isExpanded ? t("aria_collapse_detail") : t("aria_expand_detail")}
 							>
 								<ChevronRight
 									aria-hidden="true"
-									className={cn("size-3.5 transition-transform duration-200", isExpanded && "rotate-90 text-primary")}
+									className={cn("transition-transform duration-200", isExpanded && "rotate-90 text-primary")}
 								/>
 							</Button>
 						) : (
@@ -168,8 +169,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
 							})}
 							className={cn(
 								densityRowClass,
-								isLeftPinned && "sticky z-15 border-r border-border/70 bg-card shadow-pin-left",
-								isRightPinned && "sticky z-15 border-l border-border/70 bg-card shadow-pin-right",
+								getColumnPinClass(isLeftPinned, isRightPinned, "card", "z-15"),
 								TEXT_ALIGN_CLASSES[align ?? "left"],
 								typeof cellClassName === "function"
 									? cellClassName({ value: rawValue, row, field, colDef: col, index })
@@ -202,6 +202,7 @@ function DataTableRowComponent<TData extends Record<string, any> = Record<string
 	);
 }
 
+// Whitelist AGENTS.md §5.2: 与 DataTableBody 及单元测试锁定行级渲染隔离边界，防止选行/展开波及未变更兄弟行
 export const DataTableRow = memo(DataTableRowComponent) as (<TData extends Record<string, any> = Record<string, any>>(
 	props: DataTableRowProps<TData>,
 ) => ReactNode) & { displayName?: string };

@@ -1,3 +1,5 @@
+"use client";
+
 import { isNil } from "es-toolkit";
 import { Eye, EyeOff } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -38,6 +40,9 @@ export function formatMaskedValue(
 		case "email": {
 			const [user, domain] = val.split("@");
 			if (!domain) return starGroup(6);
+			if (!user) {
+				return `${maskChar ?? "*"}@${domain}`;
+			}
 			if (user.length <= 2) {
 				return `${user[0]}${maskChar ?? "*"}@${domain}`;
 			}
@@ -47,7 +52,8 @@ export function formatMaskedValue(
 		}
 		case "apiKey": {
 			if (val.length <= 8) return dotGroup(8);
-			const prefix = val.includes("_") ? val.split("_")[0] + "_" : val.slice(0, 4);
+			const underscoreIdx = val.indexOf("_");
+			const prefix = underscoreIdx > 0 && underscoreIdx <= 6 ? val.slice(0, underscoreIdx + 1) : val.slice(0, 4);
 			const suffix = val.slice(-4);
 			return `${prefix}${dotGroup(8)}${suffix}`;
 		}
@@ -155,8 +161,8 @@ export function MaskedCell({
 						<Button
 							type="button"
 							variant="ghost"
-							size="icon"
-							className="text-muted-foreground hover:text-foreground h-6 w-6"
+							size="icon-xs"
+							className="text-muted-foreground hover:text-foreground"
 							onClick={(e) => {
 								e.stopPropagation();
 								handleToggleReveal();
@@ -164,31 +170,27 @@ export function MaskedCell({
 							aria-label={revealed ? t("aria_hide_value") : t("aria_reveal_value")}
 							title={revealed ? t("aria_hide_value") : t("aria_reveal_value")}
 						>
-							{revealed ? (
-								<EyeOff aria-hidden="true" className="size-3.5" />
-							) : (
-								<Eye aria-hidden="true" className="size-3.5" />
-							)}
+							{revealed ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
 						</Button>
 
-						{revealed && autoHideDuration && remainingSeconds > 0 && (
+						{revealed && Boolean(autoHideDuration) && remainingSeconds > 0 ? (
 							<span
 								className="bg-muted text-muted-foreground rounded-xs px-1 font-mono text-[9px]"
-								title={`将在 ${remainingSeconds} 秒后自动隐藏`}
+								title={t("masked_auto_hide", { seconds: remainingSeconds })}
 							>
 								{remainingSeconds}s
 							</span>
-						)}
+						) : null}
 					</div>
 				)}
 
-				{isCopyable && (
+				{isCopyable ? (
 					<CopyButton
 						text={stringVal}
-						className="text-muted-foreground hover:text-foreground h-6 w-6"
-						title="复制真实值"
+						className="text-muted-foreground hover:text-foreground size-6"
+						title={t("cell_copy_title")}
 					/>
-				)}
+				) : null}
 			</div>
 		</div>
 	);

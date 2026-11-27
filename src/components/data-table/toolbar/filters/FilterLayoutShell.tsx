@@ -7,6 +7,7 @@ import { forwardRef, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import {
 	Sheet,
 	SheetClose,
@@ -41,10 +42,10 @@ const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerButtonPro
 				ref={ref}
 				variant="outline"
 				size="sm"
-				className={cn("h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground", className)}
+				className={cn("h-8 text-xs text-muted-foreground hover:text-foreground", className)}
 				{...props}
 			>
-				<Filter className="size-3.5" />
+				<Filter aria-hidden="true" data-icon="inline-start" />
 				<span>{t("filter_trigger")}</span>
 				{activeCount > 0 ? (
 					<Badge
@@ -101,8 +102,8 @@ export function FilterLayoutShell({
 				<SheetTrigger asChild>
 					<FilterTriggerButton activeCount={activeCount} />
 				</SheetTrigger>
-				<SheetContent side="right" className="flex w-full flex-col overflow-y-auto p-6 sm:max-w-md">
-					<SheetHeader className="border-b pb-4">
+				<SheetContent side="right" className="flex w-full flex-col overflow-y-auto sm:max-w-md">
+					<SheetHeader>
 						<div className="flex items-center justify-between pr-6">
 							<div className="flex items-center gap-2">
 								<SheetTitle className="text-base font-semibold">{sheetTitle}</SheetTitle>
@@ -115,9 +116,9 @@ export function FilterLayoutShell({
 							{showReset ? (
 								<Button
 									variant="ghost"
-									size="sm"
+									size="xs"
 									onClick={onReset}
-									className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive h-6 px-2 text-xs"
+									className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 								>
 									{t("filter_reset")}
 								</Button>
@@ -126,9 +127,13 @@ export function FilterLayoutShell({
 						<SheetDescription className="text-muted-foreground text-xs">{sheetDescription}</SheetDescription>
 					</SheetHeader>
 
-					<div className="flex-1 py-4">{open ? children : null}</div>
+					<Separator />
 
-					<SheetFooter className="flex flex-row items-center justify-end gap-2 border-t pt-4">
+					<div className="flex-1 p-4">{open ? children : null}</div>
+
+					<Separator />
+
+					<SheetFooter className="flex flex-row items-center justify-end gap-2">
 						<SheetClose asChild>
 							<Button variant="outline" size="sm" className="h-8 text-xs">
 								{t("filter_close")}

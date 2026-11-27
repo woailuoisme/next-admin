@@ -87,7 +87,14 @@ export function colorCol<TData = any>(
 		filterable: true,
 		align: "left",
 		renderCell: ({ value }: DataTableRenderCellParams<TData>) => (
-			<ColorCell value={value} showHex={showHex} copyable={copyable} shape={shape} checkerboard={checkerboard} />
+			<ColorCell
+				value={value}
+				showHex={showHex}
+				copyable={copyable}
+				shape={shape}
+				checkerboard={checkerboard}
+				align={colDef.align}
+			/>
 		),
 		...colDef,
 	};
@@ -129,6 +136,7 @@ export function iconCol<TData = any>(
 				container={container}
 				label={resolveProp(label, row)}
 				labelPosition={labelPosition}
+				align={colDef.align ?? "center"}
 			/>
 		),
 		...colDef,

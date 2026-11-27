@@ -74,6 +74,7 @@ export function textCol<TData = any>(
 				tag={resolveProp(tag, row)}
 				tagVariant={tagVariant}
 				kbd={resolveProp(kbd, row)}
+				align={colDef.align}
 			/>
 		),
 		...colDef,

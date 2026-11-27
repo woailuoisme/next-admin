@@ -10,7 +10,13 @@ import type { DataTableColDef } from "../core/types";
 import { TEXT_ALIGN_CLASSES } from "../cells/base";
 import { EMPTY_ARRAY } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
-import { buildColumnPinStyles, readCellValue, resolveExpandColumnLeft, toColumnCssVarKey } from "../core/utils";
+import {
+	buildColumnPinStyles,
+	getColumnPinClass,
+	readCellValue,
+	resolveExpandColumnLeft,
+	toColumnCssVarKey,
+} from "../core/utils";
 import type { MessageKeyOf } from "@/types/i18n";
 
 export interface DataTableSummaryRowProps<TData extends Record<string, any> = Record<string, any>> {
@@ -88,8 +94,8 @@ export function DataTableSummaryRow<TData extends Record<string, any> = Record<s
 	const columns = propColumns ?? ctx?.visibleColumns ?? EMPTY_ARRAY;
 	const checkboxSelection = propCheckboxSelection ?? ctx?.checkboxSelection ?? false;
 	const hasExpandColumn = propHasExpandColumn ?? Boolean(ctx?.renderExpandedRow);
-	const pinnedLeftSet = new Set(ctx?.pinnedLeftFields ?? EMPTY_ARRAY);
-	const pinnedRightSet = new Set(ctx?.pinnedRightFields ?? EMPTY_ARRAY);
+	const pinnedLeftSet = ctx?.pinnedLeftSet ?? new Set<string>();
+	const pinnedRightSet = ctx?.pinnedRightSet ?? new Set<string>();
 	const resolvedSummaryLabel = summaryLabel ?? ctx?.summaryLabel ?? t("summary_label");
 
 	return (
@@ -127,10 +133,7 @@ export function DataTableSummaryRow<TData extends Record<string, any> = Record<s
 					isLeftPinned,
 					isRightPinned,
 				});
-				const pinClass = cn(
-					isLeftPinned && "sticky z-15 border-r border-border/70 bg-muted shadow-pin-left",
-					isRightPinned && "sticky z-15 border-l border-border/70 bg-muted shadow-pin-right",
-				);
+				const pinClass = getColumnPinClass(isLeftPinned, isRightPinned, "muted", "z-15");
 
 				if (idx === 0 && !aggregation) {
 					return (

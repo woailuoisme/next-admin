@@ -1,5 +1,4 @@
 import { useDebouncer } from "@tanstack/react-pacer";
-import { useMemoizedFn } from "ahooks";
 import { useState } from "react";
 
 export interface UseQuickFilterOptions {
@@ -12,9 +11,9 @@ export function useQuickFilter({ value = "", onChange, debounceWait = 250 }: Use
   const [draftState, setDraftState] = useState<{ baseValue: string; text: string } | null>(null);
   const search = draftState && draftState.baseValue === value ? draftState.text : value;
 
-  const setSearch = useMemoizedFn((text: string) => {
+  const setSearch = (text: string) => {
     setDraftState({ baseValue: value, text });
-  });
+  };
 
   const debouncer = useDebouncer(
     (val: string) => {
@@ -23,16 +22,16 @@ export function useQuickFilter({ value = "", onChange, debounceWait = 250 }: Use
     { wait: debounceWait },
   );
 
-  const handleSearchChange = useMemoizedFn((val: string) => {
+  const handleSearchChange = (val: string) => {
     setDraftState({ baseValue: value, text: val });
     debouncer.maybeExecute(val);
-  });
+  };
 
-  const handleClearSearch = useMemoizedFn(() => {
+  const handleClearSearch = () => {
     debouncer.cancel();
     setDraftState({ baseValue: value, text: "" });
     onChange?.("");
-  });
+  };
 
   return {
     search,

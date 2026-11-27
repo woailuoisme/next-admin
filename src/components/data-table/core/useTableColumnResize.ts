@@ -23,7 +23,18 @@ function readStoredColumnWidths(storageKey?: string): Record<string, number> {
   if (!storageKey || typeof window === "undefined") return EMPTY_RECORD;
   try {
     const saved = window.localStorage.getItem(storageKey);
-    return saved ? (JSON.parse(saved) as Record<string, number>) : EMPTY_RECORD;
+    if (!saved) return EMPTY_RECORD;
+    const parsed: unknown = JSON.parse(saved);
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      return EMPTY_RECORD;
+    }
+    const sanitized: Record<string, number> = {};
+    for (const [key, val] of Object.entries(parsed)) {
+      if (typeof val === "number" && Number.isFinite(val) && val > 0) {
+        sanitized[key] = val;
+      }
+    }
+    return sanitized;
   } catch {
     return EMPTY_RECORD;
   }
@@ -54,7 +65,11 @@ export function useTableColumnResize<TData extends Record<string, any>>({
   "use no memo";
 
   const isHydrated = useIsHydrated();
-  const storedWidths = isHydrated ? readStoredColumnWidths(storageKey) : EMPTY_RECORD;
+  // Whitelist AGENTS.md §5.2: "use no memo" 边界内缓存 localStorage 解析结果，避免每次渲染重复同步读取 IO
+  const storedWidths = useMemo(
+    () => (isHydrated ? readStoredColumnWidths(storageKey) : EMPTY_RECORD),
+    [isHydrated, storageKey],
+  );
   const [widthOverrideState, setWidthOverrideState] = useState<{
     key: string | undefined;
     widths: Record<string, number>;

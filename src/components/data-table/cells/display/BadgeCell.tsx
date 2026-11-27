@@ -12,23 +12,38 @@ import { JUSTIFY_ALIGN_CLASSES } from "../base";
 
 // 与 InfolistCallout 的状态色约定保持一致：info→chart-1 / success→chart-2 / warning→chart-4
 const semanticVariants: Record<string, string> = {
-	success: "border-chart-2/30 bg-chart-2/10 text-chart-2 dark:bg-chart-2/20",
-	warning: "border-chart-4/30 bg-chart-4/10 text-chart-4 dark:bg-chart-4/20",
-	info: "border-chart-1/30 bg-chart-1/10 text-chart-1 dark:bg-chart-1/20",
+	success: "border-chart-2/30 bg-chart-2/10 text-chart-2",
+	warning: "border-chart-4/30 bg-chart-4/10 text-chart-4",
+	info: "border-chart-1/30 bg-chart-1/10 text-chart-1",
 };
 
-function renderSingleBadge(
-	val: any,
-	labelMap?: Record<string, BadgeCellOption | ReactNode>,
-	variantMap?: Record<string, BadgeVariantType>,
-	defaultVariant: BadgeVariantType = "secondary",
-	dot = false,
-	pulse = false,
-	density: "default" | "compact" = "default",
-	DefaultIcon?: React.ComponentType<{ className?: string }>,
-	onBadgeClick?: (value: any, event: RowActivationEvent) => void,
-	className?: string,
-) {
+interface RenderSingleBadgeOptions {
+	val: any;
+	keyId: string;
+	labelMap?: Record<string, BadgeCellOption | ReactNode>;
+	variantMap?: Record<string, BadgeVariantType>;
+	defaultVariant: BadgeVariantType;
+	dot: boolean;
+	pulse: boolean;
+	density: "default" | "compact";
+	DefaultIcon?: React.ComponentType<{ className?: string }>;
+	onBadgeClick?: (value: any, event: RowActivationEvent) => void;
+	className?: string;
+}
+
+function renderSingleBadge({
+	val,
+	keyId,
+	labelMap,
+	variantMap,
+	defaultVariant,
+	dot,
+	pulse,
+	density,
+	DefaultIcon,
+	onBadgeClick,
+	className,
+}: RenderSingleBadgeOptions) {
 	const stringKey = String(val);
 	const mappedOption = labelMap?.[stringKey];
 	let labelText: ReactNode = val;
@@ -64,7 +79,7 @@ function renderSingleBadge(
 
 	return (
 		<Badge
-			key={stringKey}
+			key={keyId}
 			variant={baseBadgeVariant}
 			role={isClickable ? "button" : undefined}
 			tabIndex={isClickable ? 0 : undefined}
@@ -98,22 +113,22 @@ function renderSingleBadge(
 				className,
 			)}
 		>
-			{showDot && (
+			{showDot ? (
 				<span className="relative flex size-1.5 shrink-0 items-center justify-center">
-					{showPulse && (
+					{showPulse ? (
 						<span
 							className="absolute inline-flex size-full animate-ping rounded-full bg-current opacity-75"
 							aria-hidden="true"
 						/>
-					)}
+					) : null}
 					<span className="relative inline-flex size-1.5 rounded-full bg-current" aria-hidden="true" />
 				</span>
-			)}
-			{CellIcon && (
+			) : null}
+			{CellIcon ? (
 				<span className="flex shrink-0 items-center justify-center">
 					<CellIcon className="size-3" />
 				</span>
-			)}
+			) : null}
 			<span className="truncate">{labelText}</span>
 		</Badge>
 	);
@@ -130,11 +145,13 @@ export function BadgeCell({
 	density = "default",
 	icon: DefaultIcon,
 	variant = "secondary",
+	color,
 	tooltip,
 	onBadgeClick,
 	align = "left",
 	className,
 }: BadgeCellProps) {
+	const resolvedDefaultVariant = color ?? variant;
 	const resolvedValue = value !== undefined ? value : label;
 	if (isNil(resolvedValue)) {
 		return <span className="text-muted-foreground/40 text-xs italic">-</span>;
@@ -150,38 +167,52 @@ export function BadgeCell({
 
 	const content = (
 		<div className={cn("flex flex-wrap items-center gap-1.5", JUSTIFY_ALIGN_CLASSES[align])}>
-			{visibleItems.map((val) =>
-				renderSingleBadge(
+			{visibleItems.map((val, idx) =>
+				renderSingleBadge({
 					val,
+					keyId: `${String(val)}-${idx}`,
 					labelMap,
 					variantMap,
-					variant,
+					defaultVariant: resolvedDefaultVariant,
 					dot,
 					pulse,
 					density,
 					DefaultIcon,
 					onBadgeClick,
 					className,
-				),
+				}),
 			)}
 
-			{hiddenCount > 0 && (
+			{hiddenCount > 0 ? (
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Badge
+							asChild
 							variant="outline"
 							className="text-muted-foreground h-5.5 cursor-pointer px-1.5 font-mono text-[10px]"
 						>
-							+{hiddenCount}
+							<button type="button">+{hiddenCount}</button>
 						</Badge>
 					</TooltipTrigger>
 					<TooltipContent side="top" className="flex max-w-xs flex-wrap gap-1 p-2 text-xs">
-						{items.map((val) =>
-							renderSingleBadge(val, labelMap, variantMap, variant, dot, pulse, density, DefaultIcon, onBadgeClick),
+						{items.map((val, idx) =>
+							renderSingleBadge({
+								val,
+								keyId: `overflow-${String(val)}-${idx}`,
+								labelMap,
+								variantMap,
+								defaultVariant: resolvedDefaultVariant,
+								dot,
+								pulse,
+								density,
+								DefaultIcon,
+								onBadgeClick,
+								className,
+							}),
 						)}
 					</TooltipContent>
 				</Tooltip>
-			)}
+			) : null}
 		</div>
 	);
 
@@ -189,7 +220,7 @@ export function BadgeCell({
 		return (
 			<Tooltip>
 				<TooltipTrigger asChild>
-					<div className="inline-flex max-w-full">{content}</div>
+					<div className="w-full">{content}</div>
 				</TooltipTrigger>
 				<TooltipContent side="top" className="text-xs">
 					{tooltip}

@@ -19,6 +19,8 @@ export interface DataTableConfigContextValue<TData = any> {
 	visibleColumns: DataTableColDef<TData>[];
 	pinnedLeftFields: string[];
 	pinnedRightFields: string[];
+	pinnedLeftSet: Set<string>;
+	pinnedRightSet: Set<string>;
 	density: DataTableDensity;
 	densityRowClass: string;
 

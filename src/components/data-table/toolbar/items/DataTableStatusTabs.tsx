@@ -1,3 +1,5 @@
+"use client";
+
 import { type ReactElement } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -40,10 +42,11 @@ function DataTableStatusTabsInner<TData = any>({
 								<span>{tab.label}</span>
 								{tab.badge !== undefined ? (
 									<Badge
-										variant="secondary"
+										variant={tab.badgeVariant ?? "secondary"}
 										className={cn(
 											"px-1.5 py-0 font-mono text-[10px] leading-none transition-colors",
-											isActive ? "bg-primary/10 font-semibold text-primary" : "bg-muted text-muted-foreground",
+											!tab.badgeVariant &&
+												(isActive ? "bg-primary/10 font-semibold text-primary" : "bg-muted text-muted-foreground"),
 										)}
 									>
 										{tab.badge}

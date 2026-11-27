@@ -1,7 +1,8 @@
-import { ArrowUpDown, FilterX, Loader2, RotateCcw } from "lucide-react";
+import { ArrowUpDown, FilterX, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { isValidElement, type ReactNode } from "react";
 
+import { Spinner } from "@/components/ui/spinner";
 import { TableCell, TableRow } from "@/components/ui/table";
 
 import { useOptionalDataTableContext } from "../core/DataTableContext";
@@ -27,8 +28,9 @@ export interface DataTableBackdropLoaderProps {
 }
 
 export function DataTableBackdropLoader({ slots, loadingText }: DataTableBackdropLoaderProps) {
+	const ctx = useOptionalDataTableContext();
 	const resolvedLoadingText = useResolvedLoadingText(loadingText);
-	if (slots?.loadingOverlay) return <slots.loadingOverlay />;
+	if (slots?.loadingOverlay) return <slots.loadingOverlay {...(ctx?.slotProps?.loadingOverlay ?? {})} />;
 
 	return (
 		<div
@@ -38,7 +40,7 @@ export function DataTableBackdropLoader({ slots, loadingText }: DataTableBackdro
 			aria-busy="true"
 		>
 			<div className="border-border/60 bg-card/95 text-foreground flex items-center gap-3 rounded-xl border px-5 py-3 text-sm font-medium shadow-lg backdrop-blur-md">
-				<Loader2 aria-hidden="true" className="text-primary size-5 animate-spin" />
+				<Spinner aria-hidden="true" className="text-primary size-5" />
 				<span>{resolvedLoadingText}</span>
 			</div>
 		</div>
@@ -52,15 +54,16 @@ export interface DataTableLoadingOverlayProps {
 }
 
 export function DataTableLoadingOverlay({ colSpan, slots, loadingText }: DataTableLoadingOverlayProps) {
+	const ctx = useOptionalDataTableContext();
 	const resolvedLoadingText = useResolvedLoadingText(loadingText);
 	return (
 		<TableRow>
 			<TableCell colSpan={colSpan} className="h-64 text-center">
 				{slots?.loadingOverlay ? (
-					<slots.loadingOverlay />
+					<slots.loadingOverlay {...(ctx?.slotProps?.loadingOverlay ?? {})} />
 				) : (
 					<div className="text-muted-foreground flex flex-col items-center justify-center gap-3" role="status">
-						<Loader2 aria-hidden="true" className="text-primary size-8 animate-spin" />
+						<Spinner aria-hidden="true" className="text-primary size-8" />
 						<span className="text-xs font-medium tracking-wide">{resolvedLoadingText}</span>
 					</div>
 				)}

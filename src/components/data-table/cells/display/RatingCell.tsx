@@ -1,5 +1,6 @@
 import { isNil } from "es-toolkit";
 import { Flame, Heart, Star, ThumbsUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "cn";
 
@@ -41,19 +42,25 @@ export function RatingCell({
 	align = "left",
 	className,
 }: RatingCellProps) {
-	if (isNil(value) || Number.isNaN(value)) {
+	const t = useTranslations("table");
+	if (isNil(value) || !Number.isFinite(value)) {
 		return <span className="text-muted-foreground/40 text-xs italic">-</span>;
 	}
 
-	const clampedValue = Math.max(0, Math.min(value, max));
+	const safeMax = typeof max === "number" && Number.isFinite(max) && max > 0 ? Math.floor(max) : 5;
+	const clampedValue = Math.max(0, Math.min(value, safeMax));
 	const starSizeClass = starSizes[size];
 	const IconComp = iconComponents[iconType] || Star;
 	const resolvedActiveColor = color || activeColor || defaultIconColors[iconType] || defaultIconColors.star;
 
 	return (
 		<div className={cn("flex items-center gap-1.5", JUSTIFY_ALIGN_CLASSES[align], className)} data-testid="rating-cell">
-			<div className="flex items-center gap-0.5">
-				{Array.from({ length: max }, (_, index) => {
+			<div
+				className="flex items-center gap-0.5"
+				role="img"
+				aria-label={t("aria_rating", { value: Number(clampedValue.toFixed(precision)), max: safeMax })}
+			>
+				{Array.from({ length: safeMax }, (_, index) => {
 					const starNumber = index + 1;
 					const isFull = clampedValue >= starNumber;
 					const isHalf = allowHalf && clampedValue >= starNumber - 0.5 && clampedValue < starNumber;

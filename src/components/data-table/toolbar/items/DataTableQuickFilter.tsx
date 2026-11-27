@@ -1,8 +1,9 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { cn } from "cn";
 
 import type { DataTableQuickFilterProps } from "../types";
@@ -28,26 +29,31 @@ export function DataTableQuickFilter({
 	});
 
 	return (
-		<div className={cn("relative w-full sm:w-64", className)}>
-			<Search className="text-muted-foreground pointer-events-none absolute top-2.5 left-2.5 size-3.5" />
-			<Input
+		<InputGroup className={cn("w-full sm:w-64", className)}>
+			<InputGroupAddon align="inline-start">
+				<Search aria-hidden="true" />
+			</InputGroupAddon>
+			<InputGroupInput
 				placeholder={resolvedPlaceholder}
+				aria-label={resolvedPlaceholder}
 				value={search}
 				onChange={(e) => handleSearchChange(e.target.value)}
-				className="h-8 pr-7 pl-8 text-xs"
+				className="text-xs"
 			/>
 			{search ? (
-				<Button
-					type="button"
-					variant="ghost"
-					size="icon"
-					onClick={handleClearSearch}
-					className="text-muted-foreground hover:text-foreground absolute top-1 right-1 size-6 cursor-pointer"
-					aria-label={t("quick_filter_clear")}
-				>
-					<X className="size-3.5" />
-				</Button>
+				<InputGroupAddon align="inline-end">
+					<InputGroupButton
+						type="button"
+						variant="ghost"
+						size="icon-xs"
+						onClick={handleClearSearch}
+						className="text-muted-foreground hover:text-foreground cursor-pointer"
+						aria-label={t("quick_filter_clear")}
+					>
+						<X aria-hidden="true" />
+					</InputGroupButton>
+				</InputGroupAddon>
 			) : null}
-		</div>
+		</InputGroup>
 	);
 }

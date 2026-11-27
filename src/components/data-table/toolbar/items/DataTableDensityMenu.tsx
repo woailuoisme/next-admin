@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Check, SlidersHorizontal } from "lucide-react";
 
@@ -5,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -27,24 +30,26 @@ export function DataTableDensityMenu({ density = "standard", onDensityChange = N
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="outline" size="sm" className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs">
-					<SlidersHorizontal className="size-3.5" />
+				<Button variant="outline" size="sm" className="text-muted-foreground hover:text-foreground h-8 text-xs">
+					<SlidersHorizontal aria-hidden="true" data-icon="inline-start" />
 					<span>{t("density_button")}</span>
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start" className="w-36">
-				<DropdownMenuLabel className="text-xs">{t("density_title")}</DropdownMenuLabel>
-				<DropdownMenuSeparator />
-				{densityOptions.map((opt) => (
-					<DropdownMenuItem
-						key={opt.value}
-						onClick={() => onDensityChange(opt.value)}
-						className="flex items-center justify-between text-xs"
-					>
-						<span>{opt.label}</span>
-						{density === opt.value && <Check className="text-primary size-3.5" />}
-					</DropdownMenuItem>
-				))}
+				<DropdownMenuGroup>
+					<DropdownMenuLabel className="text-xs">{t("density_title")}</DropdownMenuLabel>
+					<DropdownMenuSeparator />
+					{densityOptions.map((opt) => (
+						<DropdownMenuItem
+							key={opt.value}
+							onClick={() => onDensityChange(opt.value)}
+							className="flex items-center justify-between text-xs"
+						>
+							<span>{opt.label}</span>
+							{density === opt.value ? <Check aria-hidden="true" className="text-primary" /> : null}
+						</DropdownMenuItem>
+					))}
+				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

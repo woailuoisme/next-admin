@@ -1,3 +1,4 @@
+import { isNil } from "es-toolkit";
 import { cn } from "cn";
 
 import type { AvatarCellProps } from "./types";
@@ -51,11 +52,13 @@ function AvatarCellInner({
 	return (
 		<div className={cn("flex max-w-full min-w-0 items-center gap-2.5", TEXT_ALIGN_CLASSES[align], className)}>
 			{avatarElement}
-			<div className="flex min-w-0 flex-col truncate">
-				{name && <span className="text-foreground truncate text-xs leading-tight font-medium">{name}</span>}
-				{subtext && (
+			<div className="flex min-w-0 flex-col">
+				{!isNil(name) && name !== "" ? (
+					<span className="text-foreground truncate text-xs leading-tight font-medium">{name}</span>
+				) : null}
+				{!isNil(subtext) && subtext !== "" ? (
 					<span className="text-muted-foreground/80 mt-0.5 truncate text-[11px] leading-normal">{subtext}</span>
-				)}
+				) : null}
 			</div>
 		</div>
 	);

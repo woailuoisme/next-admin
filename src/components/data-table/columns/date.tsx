@@ -58,6 +58,7 @@ export function dateCol<TData = any>(
 				countdown={countdown}
 				countdownPrefix={countdownPrefix}
 				timezone={timezone}
+				align={colDef.align}
 			/>
 		),
 		...colDef,

@@ -150,6 +150,7 @@ export function DataTable<TData extends Record<string, any> = Record<string, any
 				</div>
 
 				<DataTableBottomChrome
+					slots={slots}
 					hidePagination={hidePagination}
 					paginationModel={engine.paginationModel}
 					onPaginationModelChange={engine.handlePaginationModelChange}

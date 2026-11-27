@@ -1,4 +1,3 @@
-import { useLatest, useMemoizedFn } from "ahooks";
 import { useState } from "react";
 
 import type { DataTableFilterItem, DataTableFilterModel } from "../../../core/types";
@@ -14,11 +13,8 @@ export interface UseFilterPanelStateResult {
   open: boolean;
   setOpen: (val: boolean) => void;
   currentItems: DataTableFilterItem[];
-  draftItems: DataTableFilterItem[];
   activeCount: number;
-  handleSelectChange: (field: string, val: string) => void;
-  handleTernaryChange: (field: string, val: string) => void;
-  handleCustomChange: (field: string, val: any) => void;
+  handleValueChange: (field: string, val: any) => void;
   handleAddRule: (field: string, operator?: DataTableFilterItem["operator"], value?: any) => void;
   handleUpdateRule: (id: string, patch: Partial<DataTableFilterItem>) => void;
   handleRemoveRule: (id: string) => void;
@@ -39,117 +35,117 @@ export function useFilterPanelState({
 }: UseFilterPanelStateOptions): UseFilterPanelStateResult {
   const [open, setOpenState] = useState(false);
 
-  // Local draft state for deferred filter commits (synced on open transition without render-time setState)
-  const [draftItems, setDraftItems] = useState<DataTableFilterItem[]>(() => filterModel.items || []);
+  const externalItems = filterModel.items || [];
+  // Track the external items reference that draft edits are based on so external mutations
+  // (pills, status tabs, saved views) immediately reset stale drafts even in aboveContent mode.
+  const [draftState, setDraftState] = useState<{
+    baseItems: DataTableFilterItem[];
+    items: DataTableFilterItem[];
+  } | null>(null);
 
-  const latestItemsRef = useLatest(filterModel.items || []);
-
-  const setOpen = useMemoizedFn((nextOpen: boolean) => {
+  const setOpen = (nextOpen: boolean) => {
     if (nextOpen) {
-      setDraftItems(latestItemsRef.current);
+      setDraftState(null);
     }
     setOpenState(nextOpen);
-  });
+  };
 
-  const currentItems = deferFilters ? draftItems : filterModel.items || [];
+  const currentItems = deferFilters
+    ? draftState && draftState.baseItems === externalItems
+      ? draftState.items
+      : externalItems
+    : externalItems;
 
-  const activeCount = (filterModel.items || []).filter(isActiveFilterItem).length;
+  const activeCount = externalItems.filter(isActiveFilterItem).length;
 
-  const updateItems = useMemoizedFn((nextItems: DataTableFilterItem[]) => {
+  const updateItems = (updater: (prevItems: DataTableFilterItem[]) => DataTableFilterItem[]) => {
     if (deferFilters) {
-      setDraftItems(nextItems);
+      setDraftState((prev) => {
+        const base = prev && prev.baseItems === externalItems ? prev.items : externalItems;
+        return { baseItems: externalItems, items: updater(base) };
+      });
     } else {
       onFilterModelChange({
         ...filterModel,
-        items: nextItems,
+        items: updater(externalItems),
       });
     }
-  });
+  };
 
-  const setFieldFilter = useMemoizedFn(
-    (field: string, val: unknown, operator: DataTableFilterItem["operator"] = "equals") => {
+  const handleValueChange = (field: string, val: any) => {
+    updateItems((prevItems) => {
       if (val === undefined || val === null || val === "" || val === "__all__") {
-        updateItems(currentItems.filter((i) => !(!isQueryBuilderRule(i) && i.field === field)));
-      } else {
-        const existingIndex = currentItems.findIndex(
-          (i) => !isQueryBuilderRule(i) && i.field === field && (operator ? i.operator === operator : true),
-        );
-        if (existingIndex >= 0) {
-          const updated = [...currentItems];
-          updated[existingIndex] = {
-            ...updated[existingIndex],
-            value: val,
-          };
-          updateItems(updated);
-        } else {
-          updateItems([
-            ...currentItems,
-            {
-              id: generateFilterId(),
-              field,
-              operator,
-              value: val,
-            },
-          ]);
-        }
+        return prevItems.filter((i) => !(!isQueryBuilderRule(i) && i.field === field));
       }
-    },
-  );
+      const existingIndex = prevItems.findIndex(
+        (i) => !isQueryBuilderRule(i) && i.field === field && (i.operator === "equals" || i.operator === "is"),
+      );
+      if (existingIndex >= 0) {
+        const updated = [...prevItems];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          operator: "equals",
+          value: val,
+        };
+        return updated;
+      }
+      return [
+        ...prevItems,
+        {
+          id: generateFilterId(),
+          field,
+          operator: "equals",
+          value: val,
+        },
+      ];
+    });
+  };
 
-  const handleValueChange = useMemoizedFn((field: string, val: any) => {
-    setFieldFilter(field, val, "equals");
-  });
+  const handleAddRule = (field: string, operator: DataTableFilterItem["operator"] = "contains", value: any = "") => {
+    const newRule: DataTableFilterItem = {
+      id: `qb_${generateFilterId()}`,
+      field,
+      operator,
+      value,
+    };
+    updateItems((prevItems) => [...prevItems, newRule]);
+  };
 
-  const handleAddRule = useMemoizedFn(
-    (field: string, operator: DataTableFilterItem["operator"] = "contains", value: any = "") => {
-      const newRule: DataTableFilterItem = {
-        id: `qb_${generateFilterId()}`,
-        field,
-        operator,
-        value,
-      };
-      updateItems([...currentItems, newRule]);
-    },
-  );
+  const handleUpdateRule = (id: string, patch: Partial<DataTableFilterItem>) => {
+    updateItems((prevItems) => prevItems.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  };
 
-  const handleUpdateRule = useMemoizedFn((id: string, patch: Partial<DataTableFilterItem>) => {
-    const updated = currentItems.map((item) => (item.id === id ? { ...item, ...patch } : item));
-    updateItems(updated);
-  });
+  const handleRemoveRule = (id: string) => {
+    updateItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  };
 
-  const handleRemoveRule = useMemoizedFn((id: string) => {
-    updateItems(currentItems.filter((item) => item.id !== id));
-  });
-
-  const handleResetAll = useMemoizedFn(() => {
+  const handleResetAll = () => {
     if (deferFilters) {
-      setDraftItems([]);
+      setDraftState(null);
     }
     onFilterModelChange({
       ...filterModel,
       items: [],
     });
-  });
+  };
 
-  const handleApply = useMemoizedFn(() => {
+  const handleApply = () => {
     if (deferFilters) {
       onFilterModelChange({
         ...filterModel,
-        items: draftItems,
+        items: currentItems,
       });
+      setDraftState(null);
     }
     setOpen(false);
-  });
+  };
 
   return {
     open,
     setOpen,
     currentItems,
-    draftItems,
     activeCount,
-    handleSelectChange: handleValueChange,
-    handleTernaryChange: handleValueChange,
-    handleCustomChange: handleValueChange,
+    handleValueChange,
     handleAddRule,
     handleUpdateRule,
     handleRemoveRule,

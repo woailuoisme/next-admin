@@ -42,6 +42,7 @@ export function progressCol<TData = any>(
 				target={resolveProp(target, row)}
 				targetLabel={targetLabel}
 				showPercentage={showPercentage}
+				align={colDef.align}
 			/>
 		),
 		...colDef,
@@ -102,6 +103,7 @@ export function sparklineCol<TData = any>(
 				interactive={interactive}
 				barWidth={barWidth}
 				barGap={barGap}
+				align={colDef.align ?? "center"}
 			/>
 		),
 		...colDef,
@@ -140,6 +142,7 @@ export function ratingCol<TData = any>(
 				allowHalf={allowHalf}
 				iconType={iconType}
 				reviewCount={resolveProp(reviewCount, row)}
+				align={colDef.align}
 			/>
 		),
 		...colDef,

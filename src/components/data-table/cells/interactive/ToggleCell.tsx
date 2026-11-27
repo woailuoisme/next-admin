@@ -1,15 +1,15 @@
-import { useMemoizedFn } from "ahooks";
-import { Loader2 } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { startTransition, useOptimistic, useState } from "react";
-import { toast } from "sonner";
+"use client";
 
+import { useTranslations } from "next-intl";
+
+import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "cn";
 
 import type { ToggleCellProps } from "./types";
 
 import { JUSTIFY_ALIGN_CLASSES } from "../base";
+import { useOptimisticCellMutation } from "./useOptimisticCellMutation";
 
 function ToggleCellInner<TData = unknown>({
 	checked = false,
@@ -25,35 +25,23 @@ function ToggleCellInner<TData = unknown>({
 }: ToggleCellProps<TData>) {
 	const t = useTranslations("table");
 	const handler = onCellChange || onToggle;
-	const [optimisticChecked, setOptimistic] = useOptimistic(checked, (_current, next: boolean) => next);
-	const [loading, setLoading] = useState(false);
-
-	const handleCheckedChange = useMemoizedFn(async (nextChecked: boolean) => {
-		if (disabled || readOnly || loading) return;
-
-		startTransition(async () => {
-			setOptimistic(nextChecked);
-			if (handler) {
-				try {
-					setLoading(true);
-					const result = handler(row, nextChecked);
-					if (result instanceof Promise) {
-						await result;
-					}
-				} catch (err) {
-					if (showErrorToast) {
-						const msg =
-							typeof errorToastMessage === "function"
-								? errorToastMessage(err)
-								: errorToastMessage || t("cell_toggle_save_error");
-						toast.error(msg);
-					}
-				} finally {
-					setLoading(false);
-				}
-			}
-		});
+	const {
+		optimisticValue: optimisticChecked,
+		isPending,
+		triggerMutation,
+	} = useOptimisticCellMutation({
+		value: checked,
+		row,
+		onMutate: handler,
+		showErrorToast,
+		errorToastMessage,
+		defaultErrorMessage: t("cell_toggle_save_error"),
+		disabled: disabled || readOnly,
 	});
+
+	const handleCheckedChange = (nextChecked: boolean) => {
+		triggerMutation(nextChecked);
+	};
 
 	return (
 		<div
@@ -65,10 +53,10 @@ function ToggleCellInner<TData = unknown>({
 				aria-label={t("aria_toggle_status")}
 				checked={optimisticChecked}
 				onCheckedChange={handleCheckedChange}
-				disabled={disabled || readOnly || loading}
+				disabled={disabled || readOnly || isPending}
 				className={cn(readOnly && "pointer-events-none cursor-default opacity-80")}
 			/>
-			{loading && <Loader2 className="text-muted-foreground size-3 shrink-0 animate-spin" />}
+			{isPending ? <Spinner className="text-muted-foreground size-3 shrink-0" /> : null}
 		</div>
 	);
 }

@@ -1,7 +1,7 @@
 import type { Virtualizer } from "@tanstack/react-virtual";
 import { memo, type ReactElement } from "react";
 
-import { TableBody } from "@/components/ui/table";
+import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 import { useDataTableContext } from "../core/DataTableContext";
 import type { DataTableRowId } from "../core/types";
@@ -74,9 +74,13 @@ function DataTableBodyInner<TData extends Record<string, any> = Record<string, a
 
 					return (
 						<>
-							<tr aria-hidden="true" style={{ height: `${startSpacerHeight}px` }}>
-								<td colSpan={totalColSpan} className="border-0 p-0" />
-							</tr>
+							<TableRow
+								aria-hidden="true"
+								className="border-0 hover:bg-transparent"
+								style={{ height: `${startSpacerHeight}px` }}
+							>
+								<TableCell colSpan={totalColSpan} className="border-0 p-0" />
+							</TableRow>
 							{virtualItems.map((virtualRow) => {
 								const row = pagedRows[virtualRow.index];
 								if (!row) return null;
@@ -95,9 +99,13 @@ function DataTableBodyInner<TData extends Record<string, any> = Record<string, a
 									/>
 								);
 							})}
-							<tr aria-hidden="true" style={{ height: `${endSpacerHeight}px` }}>
-								<td colSpan={totalColSpan} className="border-0 p-0" />
-							</tr>
+							<TableRow
+								aria-hidden="true"
+								className="border-0 hover:bg-transparent"
+								style={{ height: `${endSpacerHeight}px` }}
+							>
+								<TableCell colSpan={totalColSpan} className="border-0 p-0" />
+							</TableRow>
 						</>
 					);
 				})()
@@ -120,7 +128,44 @@ function DataTableBodyInner<TData extends Record<string, any> = Record<string, a
 	);
 }
 
+function arraysShallowEqual<T>(a: T[], b: T[]): boolean {
+	if (a === b) return true;
+	if (a.length !== b.length) return false;
+	for (let i = 0; i < a.length; i++) {
+		if (!Object.is(a[i], b[i])) return false;
+	}
+	return true;
+}
+
+function setsEqual<T>(a?: Set<T>, b?: Set<T>): boolean {
+	if (a === b) return true;
+	if (!a || !b || a.size !== b.size) return false;
+	for (const item of a) {
+		if (!b.has(item)) return false;
+	}
+	return true;
+}
+
+function areDataTableBodyPropsEqual<TData extends Record<string, any>>(
+	prev: DataTableBodyProps<TData>,
+	next: DataTableBodyProps<TData>,
+): boolean {
+	if (next.virtualize) return false;
+	return (
+		prev.loading === next.loading &&
+		prev.virtualize === next.virtualize &&
+		prev.isFiltered === next.isFiltered &&
+		prev.onResetFilters === next.onResetFilters &&
+		prev.skeletonRowCount === next.skeletonRowCount &&
+		arraysShallowEqual(prev.pagedRows, next.pagedRows) &&
+		setsEqual(prev.selectionSet, next.selectionSet) &&
+		setsEqual(prev.expandedSet, next.expandedSet)
+	);
+}
+
 // Whitelist AGENTS.md §5.2: 与 DataTableRow 配合隔离表体渲染边界，避免外层工具栏/分页交互触发无效全表 Diff
-export const DataTableBody = memo(DataTableBodyInner) as <TData extends Record<string, any> = Record<string, any>>(
+export const DataTableBody = memo(DataTableBodyInner, areDataTableBodyPropsEqual) as <
+	TData extends Record<string, any> = Record<string, any>,
+>(
 	props: DataTableBodyProps<TData>,
 ) => ReactElement | null;

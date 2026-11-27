@@ -167,6 +167,66 @@ describe("FilterRegistry & QueryBuilder & DataTableRow memoization", () => {
 		expect(screen.queryByRole("option", { name: "customActions" })).not.toBeInTheDocument();
 	});
 
+	it("resyncs deferred aboveContent drafts when external filterModel changes and uses valid default operator for date columns", () => {
+		function ExternalFilterHarness() {
+			const [model, setModel] = useState<DataTableFilterModel>({
+				items: [{ id: "f1", field: "status", operator: "equals", value: "active" }],
+			});
+			return (
+				<div>
+					<button type="button" onClick={() => setModel({ items: [] })}>
+						External Clear
+					</button>
+					<FilterRegistry
+						columns={baseColumns}
+						filterModel={model}
+						onFilterModelChange={setModel}
+						filterConfig={{
+							layout: "aboveContent",
+							deferFilters: true,
+							filters: [
+								{
+									type: "custom",
+									field: "name",
+									label: "Keyword",
+									render: ({ value, onChange }) => (
+										<input
+											aria-label="Deferred Keyword"
+											value={value ?? ""}
+											onChange={(e) => onChange(e.target.value)}
+										/>
+									),
+								},
+							],
+						}}
+					/>
+				</div>
+			);
+		}
+
+		renderWithProviders(<ExternalFilterHarness />, { locale: "en" });
+		const input = screen.getByLabelText("Deferred Keyword") as HTMLInputElement;
+		fireEvent.change(input, { target: { value: "pending-draft" } });
+		expect(input.value).toBe("pending-draft");
+
+		fireEvent.click(screen.getByRole("button", { name: "External Clear" }));
+		expect((screen.getByLabelText("Deferred Keyword") as HTMLInputElement).value).toBe("");
+
+		const onAddRule = vi.fn();
+		renderWithProviders(
+			<QueryBuilderControl
+				filterableColumns={[{ field: "createdAt", headerName: "Created", type: "date" }]}
+				rules={[]}
+				onAddRule={onAddRule}
+				onUpdateRule={vi.fn()}
+				onRemoveRule={vi.fn()}
+			/>,
+			{ locale: "en" },
+		);
+		fireEvent.click(screen.getByTestId("query-builder-add-rule-btn"));
+		expect(onAddRule).toHaveBeenCalledWith("createdAt", "equals", "");
+	});
+
 	it("keeps untouched sibling DataTableRow components memoized on selection, expansion, and column resize drag", async () => {
 		const renderCounts = new Map<string, number>();
 

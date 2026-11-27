@@ -122,17 +122,26 @@ export function useDataTableSetup<TData extends Record<string, any> = Record<str
     containerRef: tableContainerRef,
   });
 
-  // Whitelist AGENTS.md §5.2: 保持传入 DataTableConfigContextValue 的列查找表引用稳定，配合 DataTableRow memo 隔离
+  // Whitelist AGENTS.md §5.2: 保持传入 DataTableConfigContextValue 的列查找表与固定列集合引用稳定，配合 DataTableRow memo 隔离
   const columnByField = useMemo(
-    () => new Map(engine.normalizedColumns.map((col) => [col.field, col])),
+    () => new Map(engine.normalizedColumns.map((col) => [col.id ?? col.field, col])),
     [engine.normalizedColumns],
   );
+  const pinnedLeftSet = useMemo(() => new Set(engine.pinnedLeftFields), [engine.pinnedLeftFields]);
+  const pinnedRightSet = useMemo(() => new Set(engine.pinnedRightFields), [engine.pinnedRightFields]);
 
   // eslint-disable-next-line react/incompatible-library -- TanStack Virtualizer useVirtualizer 返回可变实例，无法由 React Compiler 自动记忆化
   const rowVirtualizer = useVirtualizer({
     count: engine.pagedRows.length,
     getScrollElement: () => tableContainerRef.current,
     estimateSize: () => DENSITY_ROW_HEIGHTS[density],
+    measureElement: (el) => {
+      const baseHeight = el.getBoundingClientRect().height;
+      const nextEl = el.nextElementSibling;
+      return nextEl?.getAttribute("data-slot") === "data-table-expanded-row"
+        ? baseHeight + nextEl.getBoundingClientRect().height
+        : baseHeight;
+    },
     overscan: 5,
     enabled: virtualize,
   });
@@ -147,6 +156,8 @@ export function useDataTableSetup<TData extends Record<string, any> = Record<str
       visibleColumns: engine.visibleColumns,
       pinnedLeftFields: engine.pinnedLeftFields,
       pinnedRightFields: engine.pinnedRightFields,
+      pinnedLeftSet,
+      pinnedRightSet,
       density,
       densityRowClass,
       checkboxSelection,
@@ -177,6 +188,8 @@ export function useDataTableSetup<TData extends Record<string, any> = Record<str
       engine.visibleColumns,
       engine.pinnedLeftFields,
       engine.pinnedRightFields,
+      pinnedLeftSet,
+      pinnedRightSet,
       density,
       densityRowClass,
       checkboxSelection,

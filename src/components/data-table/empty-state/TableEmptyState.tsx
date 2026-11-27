@@ -3,6 +3,7 @@ import { Inbox } from "lucide-react";
 import { type ComponentType, isValidElement, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "cn";
 
 import type {
@@ -104,12 +105,9 @@ export function TableEmptyState({
 								size={buttonSize}
 								disabled={action.disabled}
 								onClick={action.onClick}
-								className={cn(
-									"gap-1.5 font-medium shadow-xs transition-transform active:scale-[0.98]",
-									action.className,
-								)}
+								className={cn("font-medium shadow-xs transition-transform active:scale-[0.98]", action.className)}
 							>
-								{ActionIcon && <ActionIcon className="size-3.5 shrink-0" />}
+								{ActionIcon ? <ActionIcon data-icon="inline-start" /> : null}
 								<span>{action.label}</span>
 							</Button>
 						);
@@ -125,48 +123,50 @@ export function TableEmptyState({
 		return actionNodes;
 	};
 
+	const renderedActions = renderActions();
+
 	return (
-		<div
+		<Empty
 			data-slot="table-empty-state"
 			className={cn(
-				"flex w-full animate-in flex-col items-center justify-center text-center duration-200 fade-in-50 select-none",
+				"w-full animate-in border-0 duration-200 fade-in-50 select-none",
 				sizeConfig.containerClass,
 				className,
 			)}
 		>
-			{IconProp && (
-				<div
-					data-slot="empty-state-icon-badge"
-					className={cn(
-						"flex items-center justify-center rounded-full border shadow-2xs transition-colors",
-						sizeConfig.badgeClass,
-						iconColorClass,
-					)}
-				>
-					{renderIcon()}
-				</div>
-			)}
+			<EmptyHeader className="gap-1">
+				{IconProp ? (
+					<EmptyMedia
+						data-slot="empty-state-icon-badge"
+						className={cn(
+							"mb-1 rounded-full border shadow-2xs transition-colors",
+							sizeConfig.badgeClass,
+							iconColorClass,
+						)}
+					>
+						{renderIcon()}
+					</EmptyMedia>
+				) : null}
 
-			<div className="space-y-1 text-center">
-				{finalHeading && (
-					<p data-slot="empty-state-heading" className={sizeConfig.headingClass}>
+				{finalHeading ? (
+					<EmptyTitle data-slot="empty-state-heading" className={sizeConfig.headingClass}>
 						{finalHeading}
-					</p>
-				)}
-				{finalDescription && (
-					<p data-slot="empty-state-description" className={sizeConfig.descriptionClass}>
+					</EmptyTitle>
+				) : null}
+				{finalDescription ? (
+					<EmptyDescription data-slot="empty-state-description" className={sizeConfig.descriptionClass}>
 						{finalDescription}
-					</p>
-				)}
-			</div>
+					</EmptyDescription>
+				) : null}
+			</EmptyHeader>
 
-			{renderActions()}
+			{renderedActions ? <EmptyContent>{renderedActions}</EmptyContent> : null}
 
-			{footer && (
+			{footer ? (
 				<div data-slot="empty-state-footer" className="text-muted-foreground/70 mt-1 text-xs">
 					{footer}
 				</div>
-			)}
-		</div>
+			) : null}
+		</Empty>
 	);
 }

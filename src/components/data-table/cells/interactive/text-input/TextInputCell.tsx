@@ -1,4 +1,5 @@
-import { useMemoizedFn } from "ahooks";
+"use client";
+
 import { isNil } from "es-toolkit";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -16,7 +17,7 @@ function TextInputCellInner<TData = unknown>({
 	onCellChange,
 	type = "text",
 	inputMode,
-	placeholder = "点击编辑...",
+	placeholder,
 	prefix,
 	suffix,
 	schema,
@@ -28,6 +29,7 @@ function TextInputCellInner<TData = unknown>({
 	className,
 }: TextInputCellProps<TData>) {
 	const t = useTranslations("table");
+	const resolvedPlaceholder = placeholder ?? t("cell_edit_placeholder");
 	const externalVal = !isNil(value) ? String(value) : "";
 	const [isEditing, setIsEditing] = useState(false);
 	const [currentVal, setCurrentVal] = useState(externalVal);
@@ -37,13 +39,13 @@ function TextInputCellInner<TData = unknown>({
 
 	const savedVal = savedOverride && Object.is(savedOverride.baseValue, value) ? savedOverride.text : externalVal;
 
-	const validateValue = useMemoizedFn((val: string): string | undefined => {
+	const validateValue = (val: string): string | undefined => {
 		if (schema) {
-			const parsedInput = type === "number" ? (val === "" ? null : Number(val)) : val;
+			const parsedInput = type === "number" ? (val.trim() === "" ? null : Number(val)) : val;
 			const res = schema.safeParse(parsedInput);
 			if (!res.success) {
 				const firstIssue = res.error.issues[0];
-				return firstIssue?.message || "输入格式不正确";
+				return firstIssue?.message || t("cell_edit_invalid");
 			}
 		}
 		if (rules) {
@@ -53,25 +55,26 @@ function TextInputCellInner<TData = unknown>({
 			}
 		}
 		return undefined;
-	});
+	};
 
-	const handleChange = useMemoizedFn((nextVal: string) => {
+	const handleChange = (nextVal: string) => {
 		setCurrentVal(nextVal);
 		if (errorMsg) {
 			const err = validateValue(nextVal);
 			setErrorMsg(err);
 		}
-	});
+	};
 
-	const commitChange = useMemoizedFn(async () => {
+	const commitChange = async () => {
 		if (disabled || loading) return;
-		if (currentVal === savedVal) {
+		const normalizedVal = type === "number" ? currentVal.trim() : currentVal;
+		if (normalizedVal === savedVal) {
 			setErrorMsg(undefined);
 			setIsEditing(false);
 			return;
 		}
 
-		const validationErr = validateValue(currentVal);
+		const validationErr = validateValue(normalizedVal);
 		if (validationErr) {
 			setErrorMsg(validationErr);
 			return;
@@ -80,12 +83,12 @@ function TextInputCellInner<TData = unknown>({
 		setErrorMsg(undefined);
 		setIsEditing(false);
 		const previous = savedVal;
-		setSavedOverride({ baseValue: value, text: currentVal });
+		setSavedOverride({ baseValue: value, text: normalizedVal });
 
 		if (onCellChange) {
 			try {
 				setLoading(true);
-				const result = onCellChange(row, currentVal);
+				const result = onCellChange(row, normalizedVal);
 				if (result instanceof Promise) {
 					await result;
 				}
@@ -97,26 +100,26 @@ function TextInputCellInner<TData = unknown>({
 					const msg =
 						typeof errorToastMessage === "function"
 							? errorToastMessage(err)
-							: errorToastMessage || "保存失败，已自动回滚";
+							: errorToastMessage || t("cell_edit_save_error");
 					toast.error(msg);
 				}
 			} finally {
 				setLoading(false);
 			}
 		}
-	});
+	};
 
-	const cancelChange = useMemoizedFn(() => {
+	const cancelChange = () => {
 		setErrorMsg(undefined);
 		setCurrentVal(savedVal);
 		setIsEditing(false);
-	});
+	};
 
-	const handleStartEdit = useMemoizedFn(() => {
+	const handleStartEdit = () => {
 		setCurrentVal(savedVal);
 		setErrorMsg(undefined);
 		setIsEditing(true);
-	});
+	};
 
 	if (isEditing && !disabled) {
 		return (
@@ -125,7 +128,7 @@ function TextInputCellInner<TData = unknown>({
 				type={type}
 				inputMode={inputMode}
 				ariaLabel={fieldLabel ? t("cell_edit_field_aria", { name: fieldLabel }) : t("cell_edit_input_aria")}
-				placeholder={placeholder}
+				placeholder={resolvedPlaceholder}
 				prefix={prefix}
 				suffix={suffix}
 				error={errorMsg}
@@ -140,7 +143,7 @@ function TextInputCellInner<TData = unknown>({
 	return (
 		<InlineEditDisplay
 			value={savedVal}
-			placeholder={placeholder}
+			placeholder={resolvedPlaceholder}
 			disabled={disabled}
 			loading={loading}
 			align={align}

@@ -1,6 +1,9 @@
+import { useTranslations } from "next-intl";
+
 import { AvatarGroup as UiAvatarGroup, AvatarGroupCount } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 
@@ -16,6 +19,7 @@ interface StackedAvatarGroupProps {
 }
 
 function StackedAvatarGroupInner({ items, maxStacked = 3, size = "sm", shape = "circle" }: StackedAvatarGroupProps) {
+	const t = useTranslations("table");
 	const visibleItems = items.slice(0, maxStacked);
 	const remainingItems = items.slice(maxStacked);
 	const remainingCount = remainingItems.length;
@@ -23,7 +27,7 @@ function StackedAvatarGroupInner({ items, maxStacked = 3, size = "sm", shape = "
 	return (
 		<UiAvatarGroup>
 			{visibleItems.map((item, idx) => (
-				<Tooltip key={item.name || item.src || idx}>
+				<Tooltip key={`${item.src ?? ""}-${item.name ?? ""}-${idx}`}>
 					<TooltipTrigger asChild>
 						<AvatarThumb
 							src={item.src}
@@ -36,10 +40,10 @@ function StackedAvatarGroupInner({ items, maxStacked = 3, size = "sm", shape = "
 						/>
 					</TooltipTrigger>
 					<TooltipContent side="top" className="text-xs">
-						<p className="font-semibold">{item.name || "匿名用户"}</p>
-						{(item.role || item.subtext) && (
+						<p className="font-semibold">{item.name || t("avatar_anonymous")}</p>
+						{item.role || item.subtext ? (
 							<p className="text-muted-foreground text-[11px]">{item.role || item.subtext}</p>
-						)}
+						) : null}
 					</TooltipContent>
 				</Tooltip>
 			))}
@@ -50,9 +54,8 @@ function StackedAvatarGroupInner({ items, maxStacked = 3, size = "sm", shape = "
 						<Button
 							type="button"
 							variant="ghost"
-							size="icon"
-							className="focus-visible:ring-ring size-auto cursor-pointer rounded-full p-0 outline-hidden transition-transform hover:z-10 hover:scale-105 hover:bg-transparent focus-visible:ring-2"
-							aria-label={`查看剩余 ${remainingCount} 位成员`}
+							className="focus-visible:ring-ring h-auto w-auto cursor-pointer rounded-full p-0 outline-hidden transition-transform hover:z-10 hover:scale-105 hover:bg-transparent focus-visible:ring-2"
+							aria-label={t("avatar_view_more", { count: remainingCount })}
 						>
 							<AvatarGroupCount className={cn(avatarSizeClasses[size], avatarShapeClasses[shape])}>
 								+{remainingCount}
@@ -60,14 +63,15 @@ function StackedAvatarGroupInner({ items, maxStacked = 3, size = "sm", shape = "
 						</Button>
 					</PopoverTrigger>
 					<PopoverContent align="start" className="w-64 p-3 shadow-lg">
-						<div className="mb-2 flex items-center justify-between border-b pb-1.5 text-xs">
-							<span className="text-foreground font-medium">全部成员</span>
-							<span className="text-muted-foreground">{items.length} 人</span>
+						<div className="mb-2 flex items-center justify-between text-xs">
+							<span className="text-foreground font-medium">{t("avatar_all_members")}</span>
+							<span className="text-muted-foreground">{t("avatar_member_count", { count: items.length })}</span>
 						</div>
-						<div className="max-h-56 space-y-2 overflow-y-auto pr-1">
+						<Separator className="mb-2" />
+						<div className="flex max-h-56 flex-col gap-2 overflow-y-auto pr-1">
 							{remainingItems.map((rem, remIdx) => (
 								<div
-									key={rem.name || rem.src || remIdx}
+									key={`${rem.src ?? ""}-${rem.name ?? ""}-${remIdx}`}
 									className="hover:bg-muted/50 flex items-center gap-2.5 rounded-md p-1"
 								>
 									<AvatarThumb
@@ -79,10 +83,10 @@ function StackedAvatarGroupInner({ items, maxStacked = 3, size = "sm", shape = "
 										status={rem.status}
 									/>
 									<div className="min-w-0 flex-1">
-										<p className="text-foreground truncate text-xs font-medium">{rem.name || "匿名用户"}</p>
-										{(rem.role || rem.subtext) && (
+										<p className="text-foreground truncate text-xs font-medium">{rem.name || t("avatar_anonymous")}</p>
+										{rem.role || rem.subtext ? (
 											<p className="text-muted-foreground truncate text-[11px]">{rem.role || rem.subtext}</p>
-										)}
+										) : null}
 									</div>
 								</div>
 							))}

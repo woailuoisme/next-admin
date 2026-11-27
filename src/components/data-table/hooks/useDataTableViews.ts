@@ -1,9 +1,17 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { useIsHydrated } from "@/hooks/useIsHydrated";
+
+function isValidSavedView(item: unknown): item is DataTableSavedView {
+  return (
+    typeof item === "object" &&
+    item !== null &&
+    typeof (item as DataTableSavedView).id === "string" &&
+    typeof (item as DataTableSavedView).name === "string"
+  );
+}
 
 function readStoredViews(
   storageKeyViews: string | null,
@@ -15,8 +23,9 @@ function readStoredViews(
   try {
     const raw = window.localStorage.getItem(storageKeyViews);
     if (!raw) return defaultSavedViews;
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : defaultSavedViews;
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return defaultSavedViews;
+    return parsed.filter(isValidSavedView);
   } catch {
     return defaultSavedViews;
   }
@@ -85,7 +94,7 @@ export function useDataTableViews<TData = unknown>({
   const currentActiveTab =
     tabs && tabs.length > 0 && !tabs.some((t) => t.id === rawActiveTab) ? tabs[0].id : rawActiveTab;
 
-  const handleTabChange = useMemoizedFn((tabId: string) => {
+  const handleTabChange = (tabId: string) => {
     if (!isTabControlled) {
       setUncontrolledActiveTab(tabId);
     }
@@ -95,21 +104,13 @@ export function useDataTableViews<TData = unknown>({
     if (targetTab && onApplyFilterModel) {
       onApplyFilterModel(targetTab.filterModel ?? { items: [] });
     }
-  });
-
-  // Active tab item
-  const activeTabItem = useMemo(() => {
-    return tabs?.find((t) => t.id === currentActiveTab);
-  }, [tabs, currentActiveTab]);
+  };
 
   // 2. Saved Views State
   const storageKeyViews = storageKey ? `${storageKey}_saved_views` : null;
 
   const isHydrated = useIsHydrated();
-  const storedViews = useMemo(
-    () => (isHydrated ? readStoredViews(storageKeyViews, defaultSavedViews) : defaultSavedViews),
-    [isHydrated, defaultSavedViews, storageKeyViews],
-  );
+  const storedViews = isHydrated ? readStoredViews(storageKeyViews, defaultSavedViews) : defaultSavedViews;
   const [overrideViewsState, setOverrideViewsState] = useState<{
     key: string | null;
     views: DataTableSavedView[];
@@ -121,7 +122,7 @@ export function useDataTableViews<TData = unknown>({
     overrideViewsState && overrideViewsState.key === storageKeyViews ? overrideViewsState.views : storedViews;
   const allViews = isViewsControlled ? controlledSavedViews : uncontrolledViews;
 
-  const updateViews = useMemoizedFn((nextViews: DataTableSavedView[]) => {
+  const updateViews = (nextViews: DataTableSavedView[]) => {
     if (!isViewsControlled) {
       setOverrideViewsState({ key: storageKeyViews, views: nextViews });
       if (storageKeyViews && typeof window !== "undefined") {
@@ -133,10 +134,10 @@ export function useDataTableViews<TData = unknown>({
       }
     }
     onSavedViewsChange?.(nextViews);
-  });
+  };
 
   // Apply a saved view
-  const applyView = useMemoizedFn((viewId: string) => {
+  const applyView = (viewId: string) => {
     const targetView = allViews.find((v) => v.id === viewId);
     if (!targetView) return;
 
@@ -154,10 +155,10 @@ export function useDataTableViews<TData = unknown>({
     if (targetView.density && onApplyDensity) {
       onApplyDensity(targetView.density);
     }
-  });
+  };
 
   // Save current state as new view
-  const saveCurrentAsView = useMemoizedFn((name: string) => {
+  const saveCurrentAsView = (name: string) => {
     const newId =
       typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
         ? `view_${crypto.randomUUID()}`
@@ -173,10 +174,10 @@ export function useDataTableViews<TData = unknown>({
     updateViews([...allViews, newView]);
     setActiveViewId(newId);
     return newId;
-  });
+  };
 
   // Delete a custom view
-  const deleteView = useMemoizedFn((viewId: string) => {
+  const deleteView = (viewId: string) => {
     const target = allViews.find((v) => v.id === viewId);
     if (target?.isSystem) return; // Cannot delete system view
 
@@ -185,18 +186,17 @@ export function useDataTableViews<TData = unknown>({
     if (activeViewId === viewId) {
       setActiveViewId(null);
     }
-  });
+  };
 
   // Rename a custom view
-  const renameView = useMemoizedFn((viewId: string, newName: string) => {
+  const renameView = (viewId: string, newName: string) => {
     const nextViews = allViews.map((v) => (v.id === viewId ? { ...v, name: newName } : v));
     updateViews(nextViews);
-  });
+  };
 
   return {
     // Tabs
     currentActiveTab,
-    activeTabItem,
     handleTabChange,
 
     // Saved Views

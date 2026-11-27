@@ -5,7 +5,7 @@ import { cn } from "cn";
 import { EMPTY_ARRAY } from "../core/constants";
 import { useOptionalDataTableContext } from "../core/DataTableContext";
 import type { DataTableColDef } from "../core/types";
-import { buildColumnPinStyles, resolveExpandColumnLeft, toColumnCssVarKey } from "../core/utils";
+import { buildColumnPinStyles, getColumnPinClass, resolveExpandColumnLeft, toColumnCssVarKey } from "../core/utils";
 
 export interface DataTableSkeletonRowsProps<TData extends Record<string, any> = Record<string, any>> {
 	count: number;
@@ -42,8 +42,10 @@ export function DataTableSkeletonRows<TData extends Record<string, any> = Record
 	const pinnedRightFields = propPinnedRightFields ?? ctx?.pinnedRightFields ?? EMPTY_ARRAY;
 	const densityRowClass = propDensityRowClass ?? ctx?.densityRowClass;
 
-	const pinnedLeftSet = new Set(pinnedLeftFields);
-	const pinnedRightSet = new Set(pinnedRightFields);
+	const pinnedLeftSet = propPinnedLeftFields ? new Set(pinnedLeftFields) : (ctx?.pinnedLeftSet ?? new Set<string>());
+	const pinnedRightSet = propPinnedRightFields
+		? new Set(pinnedRightFields)
+		: (ctx?.pinnedRightSet ?? new Set<string>());
 	const lastPinnedLeftField = pinnedLeftFields[pinnedLeftFields.length - 1];
 	const firstPinnedRightField = pinnedRightFields[0];
 	const rows = Array.from({ length: Math.max(1, count) });
@@ -68,7 +70,7 @@ export function DataTableSkeletonRows<TData extends Record<string, any> = Record
 							className={cn(
 								"w-9 px-1 text-center",
 								(checkboxSelection || pinnedLeftFields.length > 0) &&
-									"sticky z-10 border-r border-border/80 bg-card shadow-pin-left",
+									"sticky z-15 border-r border-border/70 bg-card shadow-pin-left",
 							)}
 						>
 							<Skeleton className="mx-auto size-3.5 rounded-xs" />
@@ -97,10 +99,9 @@ export function DataTableSkeletonRows<TData extends Record<string, any> = Record
 								style={style}
 								className={cn(
 									"px-4 py-2",
-									isPinnedLeft && "sticky z-10 bg-card",
-									isPinnedRight && "sticky z-10 bg-card",
-									lastPinnedLeftField === col.field && "border-r border-border/80 shadow-pin-left",
-									firstPinnedRightField === col.field && "border-l border-border/80 shadow-pin-right",
+									getColumnPinClass(isPinnedLeft, isPinnedRight, "card", "z-15"),
+									lastPinnedLeftField === col.field && "border-r border-border/70 shadow-pin-left",
+									firstPinnedRightField === col.field && "border-l border-border/70 shadow-pin-right",
 									col.align === "right" && "text-right",
 									col.align === "center" && "text-center",
 								)}

@@ -1,12 +1,11 @@
 "use client";
 
-import { useLatest, useMemoizedFn } from "ahooks";
-
 import type { DataTableColDef } from "../core/types";
 
 import { exportToExcel } from "@/lib/excel";
 
 import { readCellValue } from "../core/utils";
+import { isSystemColumn } from "../toolbar/filters/utils";
 
 /** 触发浏览器下载并回收对象 URL */
 export function downloadBlob(content: string, fileName: string, mimeType: string) {
@@ -51,42 +50,22 @@ export function useDataTableExport<TData = any>({
   processedRows,
   exportFileName = "datatable-export",
 }: UseDataTableExportOptions<TData>) {
-  const latestRef = useLatest({
-    visibleColumns,
-    selectedFullRows,
-    processedRows,
-    exportFileName,
-  });
-
-  const handleExportExcel = useMemoizedFn(async () => {
-    const {
-      visibleColumns: cols,
-      selectedFullRows: selected,
-      processedRows: processed,
-      exportFileName: fileName,
-    } = latestRef.current;
-
-    const targetRows = selected.length > 0 ? selected : processed;
+  const handleExportExcel = async () => {
+    const targetRows = selectedFullRows.length > 0 ? selectedFullRows : processedRows;
     await exportToExcel({
-      columns: cols,
+      columns: visibleColumns,
       data: targetRows,
-      fileName,
+      fileName: exportFileName,
     });
-  });
+  };
 
-  const handleExportCsv = useMemoizedFn(() => {
-    const {
-      visibleColumns: cols,
-      selectedFullRows: selected,
-      processedRows: processed,
-      exportFileName: fileName,
-    } = latestRef.current;
-
-    const targetRows = selected.length > 0 ? selected : processed;
-    const headers = cols.map((c) => `"${c.headerName}"`).join(",");
+  const handleExportCsv = () => {
+    const exportCols = visibleColumns.filter((col) => !isSystemColumn(col));
+    const targetRows = selectedFullRows.length > 0 ? selectedFullRows : processedRows;
+    const headers = exportCols.map((c) => `"${String(c.headerName ?? "").replace(/"/g, '""')}"`).join(",");
     const body = targetRows
       .map((row) =>
-        cols
+        exportCols
           .map((col) => {
             const str = String(getExportCellValue(col, row) ?? "").replace(/"/g, '""');
             return `"${str}"`;
@@ -95,34 +74,28 @@ export function useDataTableExport<TData = any>({
       )
       .join("\n");
 
-    downloadBlob(`\uFEFF${headers}\n${body}`, `${stripExtension(fileName)}.csv`, "text/csv;charset=utf-8;");
-  });
+    downloadBlob(`\uFEFF${headers}\n${body}`, `${stripExtension(exportFileName)}.csv`, "text/csv;charset=utf-8;");
+  };
 
-  const handleExportJson = useMemoizedFn(() => {
-    const {
-      visibleColumns: cols,
-      selectedFullRows: selected,
-      processedRows: processed,
-      exportFileName: fileName,
-    } = latestRef.current;
-
-    const targetRows = selected.length > 0 ? selected : processed;
+  const handleExportJson = () => {
+    const exportCols = visibleColumns.filter((col) => !isSystemColumn(col));
+    const targetRows = selectedFullRows.length > 0 ? selectedFullRows : processedRows;
     const data = targetRows.map((row) => {
       const obj: Record<string, unknown> = {};
-      for (const col of cols) {
+      for (const col of exportCols) {
         obj[col.field] = getExportCellValue(col, row);
       }
       return obj;
     });
 
-    downloadBlob(JSON.stringify(data, null, 2), `${stripExtension(fileName)}.json`, "application/json");
-  });
+    downloadBlob(JSON.stringify(data, null, 2), `${stripExtension(exportFileName)}.json`, "application/json");
+  };
 
-  const handlePrint = useMemoizedFn(() => {
+  const handlePrint = () => {
     if (typeof window !== "undefined") {
       window.print();
     }
-  });
+  };
 
   return {
     handleExportExcel,

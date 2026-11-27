@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { useTranslations } from "next-intl";
 
 import type { DataTableFilterPanelProps } from "./types";
@@ -27,7 +26,7 @@ export function FilterRegistry<TData = any>({
 	const layout = filterConfig?.layout ?? "popover";
 	const deferFilters = filterConfig?.deferFilters ?? false;
 	const sheetTitle = filterConfig?.sheetTitle ?? t("filter_title");
-	const sheetDescription = filterConfig?.sheetDescription ?? "Filter and refine table records.";
+	const sheetDescription = filterConfig?.sheetDescription ?? t("filter_sheet_description");
 
 	const { filterableColumns, resolvedFilters } = useFilterInference({
 		columns,
@@ -41,9 +40,7 @@ export function FilterRegistry<TData = any>({
 		setOpen,
 		currentItems,
 		activeCount,
-		handleSelectChange,
-		handleTernaryChange,
-		handleCustomChange,
+		handleValueChange,
 		handleAddRule,
 		handleUpdateRule,
 		handleRemoveRule,
@@ -57,7 +54,8 @@ export function FilterRegistry<TData = any>({
 
 	const columnsCount = filterConfig?.columns ?? (resolvedFilters.length >= 3 ? 3 : resolvedFilters.length >= 2 ? 2 : 1);
 	const showQueryBuilder = Boolean(filterConfig?.showQueryBuilder);
-	const handleClose = useMemoizedFn(() => setOpen(false));
+	const showReset = currentItems.length > 0 || activeCount > 0;
+	const handleClose = () => setOpen(false);
 
 	return (
 		<FilterLayoutShell
@@ -65,7 +63,7 @@ export function FilterRegistry<TData = any>({
 			open={open}
 			onOpenChange={setOpen}
 			activeCount={activeCount}
-			showReset={currentItems.length > 0 || activeCount > 0}
+			showReset={showReset}
 			columnsCount={columnsCount}
 			deferFilters={deferFilters}
 			sheetTitle={sheetTitle}
@@ -78,14 +76,13 @@ export function FilterRegistry<TData = any>({
 				filterableColumns={filterableColumns}
 				currentItems={currentItems}
 				activeCount={activeCount}
+				showReset={showReset}
 				columnsCount={columnsCount}
 				deferFilters={deferFilters}
 				showQueryBuilder={showQueryBuilder}
 				hideHeader={layout === "sheet"}
 				hideFooter={layout === "sheet"}
-				onSelectChange={handleSelectChange}
-				onTernaryChange={handleTernaryChange}
-				onCustomChange={handleCustomChange}
+				onValueChange={handleValueChange}
 				onAddRule={handleAddRule}
 				onUpdateRule={handleUpdateRule}
 				onRemoveRule={handleRemoveRule}

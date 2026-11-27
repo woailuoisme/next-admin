@@ -30,7 +30,7 @@ function renderSparklineTooltip(
 	}
 	if (customTooltip) return customTooltip;
 	return (
-		<div className="space-y-0.5 font-mono text-[11px]">
+		<div className="flex flex-col gap-0.5 font-mono text-[11px]">
 			<p>
 				{t("sparkline_latest")} <span className="font-semibold">{values[values.length - 1]}</span>
 			</p>
@@ -92,7 +92,7 @@ export function SparklineCell({
 	return (
 		<Tooltip open={interactive ? hoveredIndex !== null : undefined}>
 			<TooltipTrigger asChild>
-				<div className="inline-flex max-w-full cursor-default">
+				<div className="w-full cursor-default">
 					<div
 						className={cn("flex items-center", JUSTIFY_ALIGN_CLASSES[align], resolvedColorClass, className)}
 						data-testid={variant === "bar" ? "sparkline-bar-cell" : "sparkline-cell"}

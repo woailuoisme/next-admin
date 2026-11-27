@@ -9,12 +9,12 @@ import { CodeBlockElement, CodeLineElement, CodeSyntaxLeaf } from "@/components/
 const lowlight = createLowlight(all);
 
 export const CodeBlockKit = [
-  CodeBlockPlugin.configure({
-    inputRules: [CodeBlockRules.markdown({ on: "match" })],
-    node: { component: CodeBlockElement },
-    options: { lowlight },
-    shortcuts: { toggle: { keys: "mod+alt+8" } },
-  }),
-  CodeLinePlugin.withComponent(CodeLineElement),
-  CodeSyntaxPlugin.withComponent(CodeSyntaxLeaf),
+	CodeBlockPlugin.configure({
+		inputRules: [CodeBlockRules.markdown({ on: "match" })],
+		node: { component: CodeBlockElement },
+		options: { lowlight },
+		shortcuts: { toggle: { keys: "mod+alt+8" } },
+	}),
+	CodeLinePlugin.withComponent(CodeLineElement),
+	CodeSyntaxPlugin.withComponent(CodeSyntaxLeaf),
 ];

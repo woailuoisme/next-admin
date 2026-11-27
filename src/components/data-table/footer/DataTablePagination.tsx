@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { clamp } from "es-toolkit";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "cn";
 
 import { DEFAULT_PAGE_SIZE_OPTIONS } from "../core/constants";
@@ -35,7 +35,8 @@ export function DataTablePagination({
 	renderSummary,
 }: DataTablePaginationProps) {
 	const t = useTranslations("table");
-	const { page: rawPage, pageSize } = paginationModel;
+	const { page: rawPage, pageSize: rawPageSize } = paginationModel;
+	const pageSize = Math.max(1, Number.isFinite(rawPageSize) ? rawPageSize : 1);
 	const totalPages = Math.max(1, Math.ceil(rowCount / pageSize));
 	const page = Math.min(Math.max(1, rawPage), totalPages);
 	const from = rowCount === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -51,7 +52,7 @@ export function DataTablePagination({
 	const pages = getPaginationPages(page, totalPages);
 	const mergedPageSizeOptions =
 		pageSize && !pageSizeOptions.includes(pageSize)
-			? [pageSize, ...pageSizeOptions].sort((a, b) => a - b)
+			? [pageSize, ...pageSizeOptions].toSorted((a, b) => a - b)
 			: pageSizeOptions;
 
 	const labels = {
@@ -81,16 +82,18 @@ export function DataTablePagination({
 				<Select value={String(pageSize)} onValueChange={(val) => handlePageSizeChange(Number(val))}>
 					<SelectTrigger
 						aria-label={t("aria_page_size")}
-						className="h-8 min-w-12 rounded-none border-0 bg-transparent py-0 pr-2 pl-2.5 font-mono text-xs shadow-none hover:bg-transparent focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent dark:hover:bg-transparent"
+						className="h-8 min-w-12 rounded-none border-0 bg-transparent py-0 pr-2 pl-2.5 font-mono text-xs shadow-none hover:bg-transparent focus-visible:border-0 focus-visible:ring-0"
 					>
 						<SelectValue placeholder={String(pageSize)}>{pageSize}</SelectValue>
 					</SelectTrigger>
 					<SelectContent side="top">
-						{mergedPageSizeOptions.map((opt) => (
-							<SelectItem key={opt} value={String(opt)} className="font-mono text-xs">
-								{opt}
-							</SelectItem>
-						))}
+						<SelectGroup>
+							{mergedPageSizeOptions.map((opt) => (
+								<SelectItem key={opt} value={String(opt)} className="font-mono text-xs">
+									{opt}
+								</SelectItem>
+							))}
+						</SelectGroup>
 					</SelectContent>
 				</Select>
 			</div>
