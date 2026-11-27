@@ -6,17 +6,20 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "cn";
 
 import type { LocationPickerValue } from "@/components/map/picker/types";
 import type { BasemapPreset } from "@/components/map/presets/basemaps";
 import { type CoordinateSystem, transformCoordinates } from "@/components/map/utils/coordinates";
 
 import { LocationPicker } from "@/components/map/picker/LocationPicker";
-import { type ConnectedFieldProps, connectField, type FormFieldRenderProps } from "../core";
+import { type ConnectedFieldProps, connectField, createContainerBlurHandler, type FormFieldRenderProps } from "../core";
 
 export interface FormLocationPickerExtraProps {
 	/** Input and output coordinate system: WGS84, GCJ02, BD09 (default: WGS84) */
 	coordinateSystem?: CoordinateSystem;
+	/** Coordinate system of `quickPresets` entries (default: "WGS84") */
+	presetsCoordinateSystem?: CoordinateSystem;
 
 	/** Map viewport height (default: 320) */
 	height?: number | string;
@@ -46,6 +49,10 @@ export type FormLocationPickerProps = ConnectedFieldProps<LocationPickerValue> &
 
 const EMPTY_PRESETS: Array<{ label: string; coords: { lng: number; lat: number } }> = [];
 
+function hasFiniteCoords(coords?: LocationPickerValue): coords is LocationPickerValue {
+	return Boolean(coords && Number.isFinite(coords.lng) && Number.isFinite(coords.lat));
+}
+
 function FormLocationControl({
 	id,
 	value,
@@ -58,6 +65,7 @@ function FormLocationControl({
 	showAddressSearch = true,
 	showCopyButton = true,
 	quickPresets = EMPTY_PRESETS,
+	presetsCoordinateSystem = "WGS84",
 	...restPickerProps
 }: FormFieldRenderProps<LocationPickerValue> & FormLocationPickerExtraProps) {
 	const t = useTranslations("form");
@@ -72,13 +80,7 @@ function FormLocationControl({
 	}, []);
 
 	const handleCopy = async (coords?: LocationPickerValue) => {
-		if (
-			!coords ||
-			!Number.isFinite(coords.lng) ||
-			!Number.isFinite(coords.lat) ||
-			typeof navigator === "undefined" ||
-			!navigator.clipboard
-		) {
+		if (!hasFiniteCoords(coords) || typeof navigator === "undefined" || !navigator.clipboard) {
 			toast.error(t("location_copy_failed"));
 			return;
 		}
@@ -96,7 +98,11 @@ function FormLocationControl({
 	const targetCRS: CoordinateSystem = restPickerProps.coordinateSystem ?? "WGS84";
 	const handlePresetSelect = (presetCoords: { lng: number; lat: number }) => {
 		if (isDisabled || isReadOnly) return;
-		const [convertedLng, convertedLat] = transformCoordinates([presetCoords.lng, presetCoords.lat], "WGS84", targetCRS);
+		const [convertedLng, convertedLat] = transformCoordinates(
+			[presetCoords.lng, presetCoords.lat],
+			presetsCoordinateSystem,
+			targetCRS,
+		);
 		const updated: LocationPickerValue = {
 			lng: Number(convertedLng.toFixed(6)),
 			lat: Number(convertedLat.toFixed(6)),
@@ -104,21 +110,24 @@ function FormLocationControl({
 		};
 		setPresetInteractionEpoch((epoch) => epoch + 1);
 		onChange(updated);
-		onBlur?.();
 	};
+
+	const showCopyAction = showCopyButton && hasFiniteCoords(value);
 
 	return (
 		<div
 			id={id}
+			role="group"
 			aria-describedby={describedBy}
 			data-invalid={hasError || undefined}
-			className={hasError ? "ring-destructive/40 flex flex-col gap-2 rounded-lg p-1 ring-1" : "flex flex-col gap-2"}
+			onBlur={createContainerBlurHandler(onBlur)}
+			className={cn("flex flex-col gap-2 rounded-lg p-1", hasError ? "ring-destructive/40 ring-1" : "ring-transparent")}
 		>
-			{(quickPresets.length > 0 || (showCopyButton && value)) && (
-				<div className="flex flex-wrap items-center justify-between gap-2">
+			{quickPresets.length > 0 || showCopyAction ? (
+				<div className="flex flex-wrap items-center gap-2">
 					{quickPresets.length > 0 ? (
 						<div className="flex flex-wrap items-center gap-1.5">
-							<span className="text-muted-foreground text-[11px] font-medium">{t("location_presets")}</span>
+							<span className="text-muted-foreground text-xs font-medium">{t("location_presets")}</span>
 							{quickPresets.map((preset) => (
 								<Button
 									key={preset.label}
@@ -127,50 +136,44 @@ function FormLocationControl({
 									size="xs"
 									disabled={isDisabled || isReadOnly}
 									onClick={() => handlePresetSelect(preset.coords)}
-									className="border-border/70 bg-muted/40 text-muted-foreground hover:border-primary/40 hover:bg-primary/10 hover:text-primary h-6 px-2 text-[11px]"
 								>
 									{preset.label}
 								</Button>
 							))}
 						</div>
-					) : (
-						<div />
-					)}
+					) : null}
 
-					{showCopyButton && value && (
+					{showCopyAction ? (
 						<Button
 							type="button"
 							variant="ghost"
 							size="xs"
-							className="text-muted-foreground hover:text-foreground h-6 text-[11px]"
+							className="text-muted-foreground hover:text-foreground ml-auto"
 							onClick={() => handleCopy(value)}
 							title={t("location_copy_title")}
 						>
 							{copied ? (
 								<>
-									<Check aria-hidden="true" className="text-primary size-3" />
+									<Check aria-hidden="true" className="text-primary size-3.5" data-icon="inline-start" />
 									<span className="text-primary font-medium">{t("location_copied")}</span>
 								</>
 							) : (
 								<>
-									<Copy aria-hidden="true" className="size-3" />
+									<Copy aria-hidden="true" className="size-3.5" data-icon="inline-start" />
 									<span>{t("location_copy_coords")}</span>
 								</>
 							)}
 						</Button>
-					)}
+					) : null}
 				</div>
-			)}
+			) : null}
 
 			<LocationPicker
 				{...restPickerProps}
 				externalInteractionEpoch={presetInteractionEpoch}
 				showAddressSearch={showAddressSearch}
 				value={value}
-				onChange={(val) => {
-					onChange(val);
-					onBlur?.();
-				}}
+				onChange={onChange}
 				disabled={isDisabled}
 				readOnly={isReadOnly}
 			/>

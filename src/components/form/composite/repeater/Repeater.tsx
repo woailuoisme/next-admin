@@ -2,7 +2,8 @@
 
 import { type ReactNode } from "react";
 
-import { connectField, type FormFieldRenderProps } from "../../core";
+import { type BaseInputProps, connectField, type FormFieldRenderProps } from "@/components/form/core";
+
 import { RepeaterInner } from "./RepeaterInner";
 import type { RepeaterProps } from "./types";
 
@@ -10,7 +11,7 @@ const DEFAULT_EMPTY_ARRAY: unknown[] = [];
 
 type RepeaterExtraProps<T = unknown> = Omit<
 	RepeaterProps<T>,
-	"value" | "defaultValue" | "onChange" | "onBlur" | keyof import("../../core").BaseInputProps
+	"value" | "defaultValue" | "onChange" | "onBlur" | keyof BaseInputProps
 >;
 
 function RepeaterControl<T = unknown>({

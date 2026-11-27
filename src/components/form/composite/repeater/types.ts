@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { BaseInputProps } from "../../core";
+import type { BaseInputProps } from "@/components/form/core";
 
 export type RepeaterLayout = "card" | "table" | "simple";
 

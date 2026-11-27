@@ -1,10 +1,7 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
-import { type KeyboardEvent, useRef } from "react";
-
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "cn";
 
 import {
@@ -25,17 +22,16 @@ export interface SegmentedControlProps<T extends string | number = string> exten
 	fullWidth?: boolean;
 }
 
-interface SegmentedExtraProps<T extends string | number = string> {
-	options: SegmentedOption<T>[];
-	size?: "sm" | "md" | "lg";
-	fullWidth?: boolean;
-}
+type SegmentedExtraProps<T extends string | number = string> = Pick<
+	SegmentedControlProps<T>,
+	"options" | "size" | "fullWidth"
+>;
 
 const SIZE_STYLES = {
 	sm: "h-7 text-xs px-2.5 gap-1.5",
 	md: "h-8 text-xs px-3 gap-2",
 	lg: "h-9 text-sm px-4 gap-2.5",
-};
+} as const;
 
 function SegmentedControlGroup<T extends string | number = string>({
 	id,
@@ -50,106 +46,72 @@ function SegmentedControlGroup<T extends string | number = string>({
 	hasError,
 	describedBy,
 }: FormFieldRenderProps<T> & SegmentedExtraProps<T>) {
-	const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+	const stringValue = value !== undefined && value !== null ? String(value) : "";
 
-	const handleSelect = useMemoizedFn((optValue: T, optDisabled?: boolean) => {
-		if (disabled || readOnly || optDisabled) return;
-		onChange(optValue);
-	});
-
-	const handleKeyDown = useMemoizedFn((e: KeyboardEvent<HTMLDivElement>) => {
-		if (disabled || readOnly) return;
-		const enabledEntries = options.map((opt, index) => ({ opt, index })).filter(({ opt }) => !opt.disabled);
-		if (enabledEntries.length === 0) return;
-
-		const currentIndex = enabledEntries.findIndex(
-			({ opt }) => value !== undefined && String(opt.value) === String(value),
-		);
-
-		if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-			e.preventDefault();
-			const nextEntry = enabledEntries[(currentIndex + 1) % enabledEntries.length];
-			onChange(nextEntry.opt.value);
-			itemRefs.current[nextEntry.index]?.focus();
-		} else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-			e.preventDefault();
-			const prevEntry = enabledEntries[(currentIndex - 1 + enabledEntries.length) % enabledEntries.length];
-			onChange(prevEntry.opt.value);
-			itemRefs.current[prevEntry.index]?.focus();
+	const handleValueChange = (nextStr: string) => {
+		if (!nextStr || disabled || readOnly) return;
+		const matched = options.find((opt) => String(opt.value) === nextStr);
+		if (matched && !matched.disabled) {
+			onChange(matched.value);
 		}
-	});
-
-	const handleBlur = createContainerBlurHandler(onBlur);
+	};
 
 	const sizeStyle = SIZE_STYLES[size];
-	const selectedIndex = options.findIndex(
-		(opt) => !opt.disabled && value !== undefined && String(opt.value) === String(value),
-	);
-	const firstEnabledIndex = options.findIndex((opt) => !opt.disabled);
-	const tabStopIndex = selectedIndex >= 0 ? selectedIndex : firstEnabledIndex;
 
 	return (
-		<div
+		<ToggleGroup
 			id={id}
-			role="radiogroup"
+			type="single"
+			value={stringValue}
+			onValueChange={handleValueChange}
+			onBlur={createContainerBlurHandler(onBlur)}
+			disabled={disabled}
+			spacing={1}
 			aria-invalid={hasError}
 			aria-describedby={describedBy}
-			aria-readonly={readOnly}
-			onKeyDown={handleKeyDown}
-			onBlur={handleBlur}
+			aria-readonly={readOnly || undefined}
 			className={cn(
-				"inline-flex items-center rounded-lg bg-muted p-1 text-muted-foreground transition-colors outline-none select-none",
+				"bg-muted text-muted-foreground inline-flex items-center rounded-lg p-1 transition-colors select-none",
 				fullWidth && "flex w-full",
 				disabled && "pointer-events-none cursor-not-allowed opacity-50",
-				hasError && "ring-1 ring-destructive",
+				hasError && "ring-destructive ring-1",
 			)}
 		>
-			{options.map((opt, index) => {
-				const isSelected = value !== undefined && String(opt.value) === String(value);
-				const isItemDisabled = disabled || readOnly || opt.disabled;
+			{options.map((opt) => {
+				const optKey = String(opt.value);
+				const isSelected = value !== undefined && value !== null && optKey === stringValue;
 				const Icon = opt.icon;
 
 				return (
-					<Button
-						key={String(opt.value)}
-						ref={(el) => {
-							itemRefs.current[index] = el;
-						}}
-						type="button"
-						variant="ghost"
-						role="radio"
-						aria-checked={isSelected}
-						tabIndex={disabled || readOnly || opt.disabled ? -1 : index === tabStopIndex ? 0 : -1}
-						disabled={isItemDisabled}
-						onClick={() => handleSelect(opt.value, opt.disabled)}
+					<ToggleGroupItem
+						key={optKey}
+						value={optKey}
+						disabled={Boolean(disabled || opt.disabled)}
 						className={cn(
-							"relative inline-flex items-center justify-center rounded-md font-medium transition-all focus-visible:ring-1 focus-visible:ring-ring focus:outline-none",
+							"h-auto cursor-pointer rounded-md font-medium shadow-none transition-all",
+							"hover:bg-background/40 hover:text-foreground/80",
+							"data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:font-semibold data-[state=on]:shadow-xs",
 							sizeStyle,
 							fullWidth && "flex-1",
-							isSelected
-								? "bg-background font-semibold text-foreground shadow-xs hover:bg-background"
-								: "hover:bg-background/40 hover:text-foreground/80",
-							isItemDisabled && "cursor-not-allowed opacity-50",
-							!isItemDisabled && "cursor-pointer",
 						)}
 					>
-						{Icon && <Icon className="size-3.5 shrink-0" aria-hidden="true" />}
+						{Icon ? <Icon className="size-3.5 shrink-0" aria-hidden="true" /> : null}
 						<span>{opt.label}</span>
-						{opt.badge != null && (
+						{opt.badge != null ? (
 							<span className="ml-1 shrink-0">
 								{typeof opt.badge === "string" || typeof opt.badge === "number" ? (
-									<Badge variant={isSelected ? "default" : "secondary"} className="h-4 rounded-full px-1 text-[10px]">
+									<Badge variant={isSelected ? "default" : "secondary"} className="h-4 rounded-full px-1 text-xs">
 										{opt.badge}
 									</Badge>
 								) : (
 									opt.badge
 								)}
 							</span>
-						)}
-					</Button>
+						) : null}
+					</ToggleGroupItem>
 				);
 			})}
-		</div>
+		</ToggleGroup>
 	);
 }
 

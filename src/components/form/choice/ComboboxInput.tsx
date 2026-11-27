@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "cn";
 
 import {
@@ -41,7 +41,8 @@ const LazyComboboxMenu = dynamic(
 							<CommandEmpty>{emptyText}</CommandEmpty>
 							<CommandGroup>
 								{options.map((option) => {
-									const isSelected = String(option.value) === String(value);
+									const isSelected =
+										value !== undefined && value !== null && value !== "" && String(option.value) === String(value);
 									return (
 										<CommandItem
 											key={String(option.value)}
@@ -55,12 +56,12 @@ const LazyComboboxMenu = dynamic(
 												aria-hidden="true"
 												className={cn("mr-2 size-4 shrink-0", isSelected ? "opacity-100" : "opacity-0")}
 											/>
-											{option.icon && <span className="mr-2 shrink-0">{option.icon}</span>}
+											{option.icon ? <span className="mr-2 shrink-0">{option.icon}</span> : null}
 											<div className="flex min-w-0 flex-col">
 												<span className="truncate">{option.label}</span>
-												{option.description && (
-													<span className="text-muted-foreground truncate text-[11px]">{option.description}</span>
-												)}
+												{option.description ? (
+													<span className="text-muted-foreground truncate text-xs">{option.description}</span>
+												) : null}
 											</div>
 										</CommandItem>
 									);
@@ -73,7 +74,7 @@ const LazyComboboxMenu = dynamic(
 		}),
 	{
 		ssr: false,
-		loading: () => <div className="text-muted-foreground flex h-32 items-center justify-center text-xs">...</div>,
+		loading: () => <Skeleton className="h-32 w-full rounded-lg" />,
 	},
 );
 
@@ -88,13 +89,10 @@ export interface ComboboxInputProps<TValue extends string | number = string> ext
 	clearable?: boolean;
 }
 
-interface ComboboxExtraProps<TValue extends string | number = string> {
-	options: SelectOption<TValue>[];
-	placeholder?: string;
-	searchPlaceholder?: string;
-	emptyText?: string;
-	clearable?: boolean;
-}
+type ComboboxExtraProps<TValue extends string | number = string> = Pick<
+	ComboboxInputProps<TValue>,
+	"options" | "placeholder" | "searchPlaceholder" | "emptyText" | "clearable"
+>;
 
 function ComboboxControl<TValue extends string | number = string>({
 	id,
@@ -103,6 +101,7 @@ function ComboboxControl<TValue extends string | number = string>({
 	onBlur,
 	disabled,
 	readOnly,
+	required,
 	hasError,
 	describedBy,
 	clearable = true,
@@ -112,6 +111,8 @@ function ComboboxControl<TValue extends string | number = string>({
 	emptyText,
 }: FormFieldRenderProps<TValue> & ComboboxExtraProps<TValue>) {
 	const t = useTranslations("form");
+	const listboxId = useId();
+	const triggerRef = useRef<HTMLButtonElement>(null);
 	const resolvedPlaceholder = placeholder ?? t("select_placeholder");
 	const resolvedSearchPlaceholder = searchPlaceholder ?? t("combobox_search_placeholder");
 	const resolvedEmptyText = emptyText ?? t("combobox_empty");
@@ -120,54 +121,61 @@ function ComboboxControl<TValue extends string | number = string>({
 	const locked = Boolean(disabled || readOnly);
 	const hasValue = value !== undefined && value !== null && value !== "";
 
-	const selectedOption = options.find((opt) => String(opt.value) === String(value));
+	const selectedOption = hasValue ? options.find((opt) => String(opt.value) === String(value)) : undefined;
 
-	const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
+	const handleOpenChange = (nextOpen: boolean) => {
 		if (locked && nextOpen) return;
 		setOpen(nextOpen);
 		if (!nextOpen) onBlur?.();
-	});
+	};
 
-	const handleClear = useMemoizedFn((e: React.MouseEvent) => {
+	const handleClear = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		if (!locked) onChange("" as unknown as TValue);
-	});
+		if (locked) return;
+		onChange(undefined as unknown as TValue);
+		triggerRef.current?.focus();
+	};
 
-	const handleSelect = useMemoizedFn((optValue: TValue) => {
+	const handleSelect = (optValue: TValue) => {
 		if (locked) return;
 		onChange(optValue);
 		setOpen(false);
-	});
+	};
 
 	return (
 		<div className="relative flex w-full items-center">
 			<Popover open={open} onOpenChange={handleOpenChange}>
 				<PopoverTrigger asChild>
 					<Button
+						ref={triggerRef}
 						id={id}
 						type="button"
 						variant="outline"
 						role="combobox"
 						aria-expanded={open}
-						aria-readonly={readOnly}
+						aria-controls={listboxId}
+						aria-readonly={readOnly || undefined}
 						aria-invalid={hasError}
+						aria-required={required}
 						aria-describedby={describedBy}
 						disabled={disabled}
+						onBlur={() => {
+							if (!open) onBlur?.();
+						}}
 						className={cn(
 							"h-9 w-full justify-between px-3 text-left font-normal",
 							clearable && hasValue && !locked && "pr-8",
-							!hasValue && "text-muted-foreground",
-							hasError && "border-destructive focus-visible:ring-destructive",
+							!selectedOption && "text-muted-foreground",
 						)}
 					>
 						<span className="flex items-center gap-2 truncate">
-							{selectedOption?.icon && <span className="shrink-0">{selectedOption.icon}</span>}
+							{selectedOption?.icon ? <span className="shrink-0">{selectedOption.icon}</span> : null}
 							{selectedOption ? selectedOption.label : resolvedPlaceholder}
 						</span>
 						<ChevronsUpDown aria-hidden="true" className="ml-2 size-4 shrink-0 opacity-50" />
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+				<PopoverContent id={listboxId} className="w-(--radix-popover-trigger-width) p-0" align="start">
 					{open ? (
 						<LazyComboboxMenu
 							options={options}
@@ -180,17 +188,19 @@ function ComboboxControl<TValue extends string | number = string>({
 				</PopoverContent>
 			</Popover>
 
-			{clearable && hasValue && !locked && (
+			{clearable && hasValue && !locked ? (
 				<FieldClearButton
 					onClick={handleClear}
 					ariaLabel={clearAriaLabel}
-					className="hover:bg-muted absolute right-7 z-10"
+					className="hover:bg-muted absolute right-7"
 				/>
-			)}
+			) : null}
 		</div>
 	);
 }
 
-export const ComboboxInput = connectField<string | number, ComboboxExtraProps<string | number>>(ComboboxControl, {
-	defaultValue: "",
-}) as <TValue extends string | number = string>(props: ComboboxInputProps<TValue>) => React.ReactElement;
+export const ComboboxInput = connectField<string | number, ComboboxExtraProps<string | number>>(ComboboxControl) as <
+	TValue extends string | number = string,
+>(
+	props: ComboboxInputProps<TValue>,
+) => React.ReactElement;

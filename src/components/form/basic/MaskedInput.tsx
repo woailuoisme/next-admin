@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import type { ChangeEvent, ReactNode } from "react";
 
 import { cn } from "cn";
 
-import { AdornedInput, type BaseInputProps, connectField } from "../core";
+import { AdornedInput, type BaseInputProps, connectField, type FormFieldRenderProps } from "../core";
 
 export interface MaskedInputProps extends BaseInputProps {
 	value?: string;
@@ -20,30 +19,45 @@ export interface MaskedInputProps extends BaseInputProps {
 	inputClassName?: string;
 }
 
-interface MaskedControlProps {
-	id: string;
-	value?: string;
-	onChange: (value: string) => void;
-	onBlur?: () => void;
-	mask: string;
-	unmask?: boolean;
-	placeholder?: string;
-	disabled?: boolean;
-	readOnly?: boolean;
-	clearable?: boolean;
-	prefix?: ReactNode;
-	suffix?: ReactNode;
-	inputClassName?: string;
-	hasError?: boolean;
-	describedBy?: string;
+type MaskedExtraProps = Pick<
+	MaskedInputProps,
+	"mask" | "unmask" | "prefix" | "suffix" | "clearable" | "placeholder" | "inputClassName"
+>;
+
+function isWildcardMaskChar(ch: string): boolean {
+	return ch === "#" || ch === "A" || ch === "*";
+}
+
+function getLeadingLiteral(mask: string): string {
+	let prefix = "";
+	for (const ch of mask) {
+		if (isWildcardMaskChar(ch)) break;
+		prefix += ch;
+	}
+	return prefix;
 }
 
 export function formatWithMask(rawInput: string, mask: string): { masked: string; unmasked: string } {
+	const leadingLiteral = getLeadingLiteral(mask);
+	let effectiveInput = rawInput;
+	if (leadingLiteral) {
+		if (rawInput.startsWith(leadingLiteral)) {
+			effectiveInput = rawInput.slice(leadingLiteral.length);
+		} else if (rawInput.length < leadingLiteral.length && leadingLiteral.startsWith(rawInput)) {
+			// User backspaced part of the leading literal when no user characters remain.
+			return { masked: "", unmasked: "" };
+		}
+	}
+
 	let rawChars = "";
-	for (const ch of rawInput) {
+	for (const ch of effectiveInput) {
 		if (/[0-9a-zA-Z]/.test(ch)) {
 			rawChars += ch;
 		}
+	}
+
+	if (rawChars.length === 0) {
+		return { masked: "", unmasked: "" };
 	}
 
 	let masked = "";
@@ -78,10 +92,11 @@ export function formatWithMask(rawInput: string, mask: string): { masked: string
 			rawIdx++;
 		} else {
 			masked += maskChar;
-			if (nextChar === maskChar) {
-				rawIdx++;
-			}
 		}
+	}
+
+	if (unmasked.length === 0) {
+		return { masked: "", unmasked: "" };
 	}
 
 	return { masked, unmasked };
@@ -97,24 +112,25 @@ function MaskedControl({
 	placeholder,
 	disabled,
 	readOnly,
+	required,
 	clearable = false,
 	prefix,
 	suffix,
 	inputClassName,
 	hasError,
 	describedBy,
-}: MaskedControlProps) {
+}: FormFieldRenderProps<string> & MaskedExtraProps) {
 	const displayValue = formatWithMask(value ?? "", mask).masked;
 
-	const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
+	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const raw = e.target.value;
 		const { masked, unmasked: cleanUnmasked } = formatWithMask(raw, mask);
 		onChange(unmask ? cleanUnmasked : masked);
-	});
+	};
 
-	const handleClear = useMemoizedFn(() => {
+	const handleClear = () => {
 		onChange("");
-	});
+	};
 
 	return (
 		<AdornedInput
@@ -124,9 +140,10 @@ function MaskedControl({
 			onChange={handleInputChange}
 			onClear={handleClear}
 			onBlur={onBlur}
-			placeholder={placeholder || mask}
+			placeholder={placeholder ?? mask}
 			disabled={disabled}
 			readOnly={readOnly}
+			required={required}
 			clearable={clearable}
 			prefix={prefix}
 			suffix={suffix}
@@ -136,10 +153,5 @@ function MaskedControl({
 		/>
 	);
 }
-
-type MaskedExtraProps = Pick<
-	MaskedInputProps,
-	"mask" | "unmask" | "prefix" | "suffix" | "clearable" | "inputClassName"
->;
 
 export const MaskedInput = connectField<string, MaskedExtraProps>(MaskedControl, { defaultValue: "" });

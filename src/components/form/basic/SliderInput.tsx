@@ -1,6 +1,7 @@
 "use client";
 
 import { Slider } from "@/components/ui/slider";
+import { cn } from "cn";
 
 import { type BaseInputProps, connectField, type FormFieldRenderProps } from "../core";
 
@@ -33,28 +34,31 @@ function SliderControl({
 	formatValue,
 	showValue = true,
 }: FormFieldRenderProps<number> & SliderExtraProps) {
-	const numValue = typeof value === "number" ? value : min;
+	const numValue = typeof value === "number" && Number.isFinite(value) ? value : min;
 	const displayStr = formatValue ? formatValue(numValue) : String(numValue);
 
 	return (
-		<div className="flex w-full items-center gap-3 pt-1.5">
+		<div className="flex w-full items-center gap-3 pt-1.5" onBlur={onBlur}>
 			<Slider
 				id={id}
 				value={[numValue]}
 				onValueChange={(vals) => {
 					if (!readOnly) onChange(vals[0] ?? min);
 				}}
-				onBlur={onBlur}
 				min={min}
 				max={max}
 				step={step}
 				disabled={disabled || readOnly}
-				aria-invalid={hasError}
+				aria-invalid={hasError || undefined}
 				aria-describedby={describedBy}
-				className="flex-1 cursor-pointer"
+				className={cn(
+					"flex-1 cursor-pointer",
+					hasError &&
+						"[&_[data-slot=slider-range]]:bg-destructive [&_[data-slot=slider-thumb]]:border-destructive [&_[data-slot=slider-thumb]]:ring-destructive/30",
+				)}
 			/>
 			{showValue ? (
-				<span className="text-muted-foreground w-10 shrink-0 text-right font-mono text-xs tabular-nums">
+				<span className="text-muted-foreground min-w-10 shrink-0 text-right font-mono text-xs tabular-nums">
 					{displayStr}
 				</span>
 			) : null}

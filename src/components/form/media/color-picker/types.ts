@@ -1,4 +1,4 @@
-import type { BaseInputProps } from "../../core";
+import type { BaseInputProps } from "@/components/form/core";
 
 export const DEFAULT_COLOR_PRESETS: readonly string[] = [
   "#ef4444",

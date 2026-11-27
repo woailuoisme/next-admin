@@ -1,8 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useMemoizedFn } from "ahooks";
 import { AlertCircle, Eye, EyeOff, GripVertical, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -11,9 +10,8 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 
+import { SortableRowSlot } from "../sortableBinding";
 import type { KeyValueRowItem } from "./types";
-
-import { SortableRowSlot } from "../repeater/useRepeaterItemShell";
 
 interface KeyValueRowProps {
 	row: KeyValueRowItem;
@@ -29,7 +27,6 @@ interface KeyValueRowProps {
 	onKeyChange: (rowId: string, nextKey: string) => void;
 	onValueChange: (rowId: string, nextVal: string) => void;
 	onRemove: (rowId: string) => void;
-	onBlur?: () => void;
 }
 
 export function KeyValueRow({
@@ -46,7 +43,6 @@ export function KeyValueRow({
 	onKeyChange,
 	onValueChange,
 	onRemove,
-	onBlur,
 }: KeyValueRowProps) {
 	const t = useTranslations("form");
 	const keyPlaceholder = propKeyPlaceholder ?? t("keyvalue_key_placeholder");
@@ -54,21 +50,13 @@ export function KeyValueRow({
 	const datalistId = useId();
 	const [revealed, setRevealed] = useState(false);
 
-	const handleKeyChange = useMemoizedFn((e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		onKeyChange(row._id, e.target.value);
-	});
+	};
 
-	const handleValueChange = useMemoizedFn((e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		onValueChange(row._id, e.target.value);
-	});
-
-	const handleRemove = useMemoizedFn(() => {
-		onRemove(row._id);
-	});
-
-	const toggleReveal = useMemoizedFn(() => {
-		setRevealed((prev) => !prev);
-	});
+	};
 
 	const isValueMasked = masked && !revealed;
 	const hasSuggestions = Boolean(keySuggestions && keySuggestions.length > 0);
@@ -81,9 +69,9 @@ export function KeyValueRow({
 					ref={setNodeRef}
 					style={style}
 					className={cn(
-						"group transition-colors hover:bg-muted/15",
+						"group hover:bg-muted/15 transition-colors",
 						row.isDuplicate && "bg-destructive/5 hover:bg-destructive/10",
-						isDragging && "z-30 bg-muted/60 opacity-75 shadow-md",
+						isDragging && "bg-muted/60 z-30 opacity-75 shadow-md",
 					)}
 				>
 					{/* 拖拽排序把手列 */}
@@ -109,7 +97,6 @@ export function KeyValueRow({
 							<Input
 								value={row.key}
 								onChange={handleKeyChange}
-								onBlur={onBlur}
 								placeholder={keyPlaceholder}
 								disabled={disabled || !canEditKeys}
 								readOnly={readOnly}
@@ -117,8 +104,8 @@ export function KeyValueRow({
 								aria-label={keyPlaceholder}
 								aria-invalid={row.isDuplicate || undefined}
 								className={cn(
-									"h-9 w-full rounded-none border-0 bg-transparent px-3 py-1.5 font-mono text-xs text-foreground shadow-none outline-hidden transition-colors placeholder:text-muted-foreground/50 focus-visible:bg-muted/20 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50",
-									row.isDuplicate && "bg-destructive/5 pr-7 text-destructive focus-visible:bg-destructive/10",
+									"text-foreground placeholder:text-muted-foreground/50 focus-visible:bg-muted/20 h-9 w-full rounded-none border-0 bg-transparent px-3 py-1.5 font-mono text-xs shadow-none outline-hidden transition-colors focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50",
+									row.isDuplicate && "bg-destructive/5 text-destructive focus-visible:bg-destructive/10 pr-7",
 								)}
 							/>
 							{hasSuggestions ? (
@@ -133,15 +120,14 @@ export function KeyValueRow({
 								<div className="absolute top-1/2 right-2 -translate-y-1/2">
 									<Tooltip>
 										<TooltipTrigger asChild>
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon-xs"
+											<span
+												tabIndex={0}
+												role="img"
 												aria-label={t("keyvalue_duplicate_tooltip")}
-												className="text-destructive focus-visible:ring-ring relative flex size-4 items-center justify-center rounded-sm p-0 after:absolute after:-inset-1.5 hover:bg-transparent focus-visible:ring-2"
+												className="text-destructive focus-visible:ring-ring inline-flex size-4 items-center justify-center rounded-sm outline-none focus-visible:ring-2"
 											>
 												<AlertCircle aria-hidden="true" className="size-3.5" />
-											</Button>
+											</span>
 										</TooltipTrigger>
 										<TooltipContent side="top">{t("keyvalue_duplicate_tooltip")}</TooltipContent>
 									</Tooltip>
@@ -157,13 +143,12 @@ export function KeyValueRow({
 								type={isValueMasked ? "password" : "text"}
 								value={row.value}
 								onChange={handleValueChange}
-								onBlur={onBlur}
 								placeholder={valuePlaceholder}
 								disabled={disabled}
 								readOnly={readOnly}
 								aria-label={valuePlaceholder}
 								className={cn(
-									"h-9 flex-1 rounded-none border-0 bg-transparent px-3 py-1.5 text-xs text-foreground shadow-none outline-hidden transition-colors placeholder:text-muted-foreground/50 focus-visible:bg-muted/20 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50",
+									"text-foreground placeholder:text-muted-foreground/50 focus-visible:bg-muted/20 h-9 flex-1 rounded-none border-0 bg-transparent px-3 py-1.5 text-xs shadow-none outline-hidden transition-colors focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50",
 									masked && "pr-2 font-mono",
 								)}
 							/>
@@ -172,7 +157,7 @@ export function KeyValueRow({
 									type="button"
 									variant="ghost"
 									size="icon-xs"
-									onClick={toggleReveal}
+									onClick={() => setRevealed((prev) => !prev)}
 									aria-pressed={revealed}
 									aria-label={revealed ? t("keyvalue_hide_value") : t("keyvalue_show_value")}
 									className="text-muted-foreground/60 hover:text-foreground mr-1 size-6 cursor-pointer"
@@ -190,7 +175,7 @@ export function KeyValueRow({
 									type="button"
 									variant="ghost"
 									size="icon-xs"
-									onClick={handleRemove}
+									onClick={() => onRemove(row._id)}
 									className="text-destructive/80 hover:bg-destructive/10 hover:text-destructive mr-1.5 size-7 shrink-0 cursor-pointer transition-colors"
 									title={t("keyvalue_delete_row")}
 									aria-label={t("keyvalue_delete_row")}

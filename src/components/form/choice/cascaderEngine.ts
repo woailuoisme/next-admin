@@ -39,15 +39,26 @@ export function getCascaderOptionValue(
   return (option[fieldNames.value] ?? option.value ?? "") as string | number;
 }
 
-/** Reads a cascader option string label respecting custom fieldNames. */
+/** Reads a cascader option string label respecting custom fieldNames and title fallback. */
 export function getCascaderOptionLabel(
   option: CascaderOption,
   fieldNames: Required<CascaderFieldNames> = DEFAULT_CASCADER_FIELD_NAMES,
 ): string {
-  const raw = option[fieldNames.label] ?? option.label ?? "";
+  const raw = option[fieldNames.label] ?? option.label ?? option.title ?? "";
   if (typeof raw === "string") return raw;
   if (typeof raw === "number") return String(raw);
+  if (typeof option.title === "string") return option.title;
   return "";
+}
+
+/** Reads the renderable ReactNode label for a cascader option. */
+export function getCascaderOptionDisplayNode(
+  option: CascaderOption,
+  fieldNames: Required<CascaderFieldNames> = DEFAULT_CASCADER_FIELD_NAMES,
+): ReactNode {
+  const raw = option[fieldNames.label] ?? option.label ?? option.title;
+  if (raw !== undefined && raw !== null) return raw as ReactNode;
+  return String(getCascaderOptionValue(option, fieldNames));
 }
 
 /** Reads cascader child options respecting custom fieldNames. */
@@ -88,36 +99,42 @@ export function collectCascaderSearchPaths(
   query: string,
   changeOnSelect: boolean,
   fieldNames: Required<CascaderFieldNames> = DEFAULT_CASCADER_FIELD_NAMES,
+  separator = " / ",
 ): CascaderSearchResultItem[] {
-  const results: CascaderSearchResultItem[] = [];
   const lowerQuery = query.toLowerCase().trim();
-  if (!lowerQuery) return results;
+  if (!lowerQuery) return [];
 
-  for (const option of options) {
-    const nextPath = [...currentPath, option];
-    const children = getCascaderOptionChildren(option, fieldNames);
-    const isLeaf = Boolean(
-      option.isLeaf === true ||
-      (!children && option.isLeaf !== false) ||
-      (children && children.length === 0 && option.isLeaf !== false),
-    );
+  const results: CascaderSearchResultItem[] = [];
 
-    const pathLabels = nextPath.map((o) => getCascaderOptionLabel(o, fieldNames));
-    const fullText = pathLabels.join(" / ").toLowerCase();
+  function walk(list: CascaderOption[], pathPrefix: CascaderOption[], labelPrefix: string[]) {
+    for (const option of list) {
+      const nextPath = [...pathPrefix, option];
+      const nextLabels = [...labelPrefix, getCascaderOptionLabel(option, fieldNames)];
+      const children = getCascaderOptionChildren(option, fieldNames);
+      const isLeaf = Boolean(
+        option.isLeaf === true ||
+        (!children && option.isLeaf !== false) ||
+        (children && children.length === 0 && option.isLeaf !== false),
+      );
 
-    if (fullText.includes(lowerQuery) && (changeOnSelect || isLeaf)) {
-      results.push({
-        path: nextPath,
-        labels: pathLabels,
-        values: nextPath.map((o) => getCascaderOptionValue(o, fieldNames)),
-        disabled: nextPath.some((o) => Boolean(o.disabled)),
-      });
-    }
+      const fullText = nextLabels.join(separator).toLowerCase();
+      if (fullText.includes(lowerQuery) && (changeOnSelect || isLeaf)) {
+        results.push({
+          path: nextPath,
+          labels: nextLabels,
+          values: nextPath.map((o) => getCascaderOptionValue(o, fieldNames)),
+          disabled: nextPath.some((o) => Boolean(o.disabled)),
+        });
+      }
 
-    if (children && children.length > 0) {
-      results.push(...collectCascaderSearchPaths(children, nextPath, query, changeOnSelect, fieldNames));
+      if (children && children.length > 0) {
+        walk(children, nextPath, nextLabels);
+      }
     }
   }
+
+  const initialLabels = currentPath.map((o) => getCascaderOptionLabel(o, fieldNames));
+  walk(options, currentPath, initialLabels);
 
   return results;
 }

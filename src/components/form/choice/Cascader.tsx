@@ -1,18 +1,19 @@
 "use client";
 
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { type ReactNode, useId } from "react";
+import { Fragment, type ReactNode, useId, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "cn";
 
-import { FieldClearButton } from "../core";
+import { createContainerBlurHandler, FieldClearButton } from "../core";
 import { CascaderColumnMenus, CascaderSearchResults } from "./CascaderMenus";
 import {
 	getCascaderOptionChildren,
+	getCascaderOptionDisplayNode,
 	getCascaderOptionLabel,
 	getCascaderOptionValue,
 	resolveCascaderOptionsByValue,
@@ -31,7 +32,7 @@ export {
 };
 
 export interface CascaderProps {
-	options: CascaderOption[];
+	options?: CascaderOption[];
 	value?: (string | number)[];
 	defaultValue?: (string | number)[];
 	onChange?: (value: (string | number)[], selectedOptions: CascaderOption[]) => void;
@@ -96,6 +97,7 @@ export function Cascader({
 	"aria-describedby": ariaDescribedBy,
 }: CascaderProps) {
 	const t = useTranslations("form");
+	const triggerRef = useRef<HTMLButtonElement>(null);
 	const placeholder = propPlaceholder ?? t("cascader_placeholder");
 	const searchPlaceholder = propSearchPlaceholder ?? t("cascader_search_placeholder");
 	const emptyText = propEmptyText ?? t("cascader_empty");
@@ -115,24 +117,38 @@ export function Cascader({
 		customFieldNames,
 		allowClear,
 		clearable,
+		separator,
 		disabled,
 		readOnly,
 		onBlur,
 	});
 
-	const displayText =
-		state.selectedOptions.length === 0
-			? null
-			: (() => {
-					const labels = state.selectedOptions.map((o) => getCascaderOptionLabel(o, state.fieldNames));
-					return displayRender ? displayRender(labels, state.selectedOptions) : labels.join(separator);
-				})();
+	const hasSelected = state.selectedOptions.length > 0;
+	let displayNode: ReactNode = null;
+	if (hasSelected) {
+		if (displayRender) {
+			const labels = state.selectedOptions.map((o) => getCascaderOptionLabel(o, state.fieldNames));
+			displayNode = displayRender(labels, state.selectedOptions);
+		} else {
+			displayNode = state.selectedOptions.map((o, idx) => (
+				<Fragment key={String(getCascaderOptionValue(o, state.fieldNames))}>
+					{idx > 0 ? separator : null}
+					{getCascaderOptionDisplayNode(o, state.fieldNames)}
+				</Fragment>
+			));
+		}
+	}
+
+	const handleContainerBlur = createContainerBlurHandler<HTMLDivElement>(() => {
+		if (!state.open) onBlur?.();
+	});
 
 	return (
 		<Popover open={state.open} onOpenChange={state.handleOpenChange}>
-			<div className="relative flex w-full items-center">
+			<div className="relative flex w-full items-center" onBlur={handleContainerBlur}>
 				<PopoverTrigger asChild>
 					<Button
+						ref={triggerRef}
 						id={triggerId}
 						type="button"
 						variant="outline"
@@ -140,24 +156,24 @@ export function Cascader({
 						aria-expanded={state.open}
 						aria-controls={contentId}
 						aria-readonly={readOnly || undefined}
-						aria-label={ariaLabel || placeholder}
+						aria-label={ariaLabel}
 						aria-invalid={ariaInvalid}
 						aria-describedby={ariaDescribedBy}
 						disabled={disabled}
 						onKeyDown={state.handleTriggerKeyDown}
-						onBlur={() => !state.open && onBlur?.()}
 						className={cn(
-							"w-full justify-between text-left font-normal select-none transition-colors",
+							"w-full justify-between text-left font-normal transition-colors select-none",
 							SIZE_CLASSES[size],
 							state.canClear && "pr-8",
-							state.currentValue.length === 0 && "text-muted-foreground",
-							ariaInvalid && "border-destructive focus-visible:ring-destructive",
+							!hasSelected && "text-muted-foreground",
 							className,
 						)}
 					>
-						<span className="flex items-center gap-2 truncate">
-							{state.selectedOptions[0]?.icon && <span className="shrink-0">{state.selectedOptions[0].icon}</span>}
-							<span className="truncate">{displayText || placeholder}</span>
+						<span className="flex min-w-0 flex-1 items-center gap-2">
+							{state.selectedOptions[0]?.icon ? (
+								<span className="shrink-0">{state.selectedOptions[0].icon}</span>
+							) : null}
+							<span className="truncate">{displayNode ?? placeholder}</span>
 						</span>
 
 						<ChevronDown
@@ -170,46 +186,54 @@ export function Cascader({
 					</Button>
 				</PopoverTrigger>
 
-				{state.canClear && (
+				{state.canClear ? (
 					<FieldClearButton
-						onClick={state.handleClear}
+						onClick={(e) => {
+							state.handleClear(e);
+							triggerRef.current?.focus();
+						}}
 						ariaLabel={t("cascader_clear")}
-						className="hover:bg-muted absolute right-7 z-10"
+						className="hover:bg-muted absolute right-7"
 					/>
-				)}
+				) : null}
 			</div>
 
 			<PopoverContent
 				id={contentId}
 				align="start"
 				sideOffset={4}
-				className={cn("ring-border/50 z-50 w-auto min-w-[200px] p-0 shadow-lg ring-1", popupClassName)}
+				className={cn("ring-border/50 w-auto min-w-[200px] p-0 shadow-lg ring-1", popupClassName)}
 			>
-				{showSearch && (
+				{showSearch ? (
 					<div className="border-border border-b p-2">
-						<div className="relative flex items-center">
-							<Search
-								aria-hidden="true"
-								className="text-muted-foreground pointer-events-none absolute left-2.5 size-3.5"
-							/>
-							<Input
+						<InputGroup>
+							<InputGroupAddon align="inline-start">
+								<Search aria-hidden="true" className="size-3.5" />
+							</InputGroupAddon>
+							<InputGroupInput
 								type="text"
 								value={state.searchQuery}
 								onChange={(e) => state.setSearchQuery(e.target.value)}
 								aria-label={searchPlaceholder}
 								placeholder={searchPlaceholder}
-								className="bg-muted/50 h-8 w-full pr-7 pl-8 text-xs shadow-none"
+								className="text-xs"
 							/>
-							{state.searchQuery && (
-								<FieldClearButton
-									onClick={() => state.setSearchQuery("")}
-									ariaLabel={t("cascader_clear_search")}
-									className="absolute right-1.5"
-								/>
-							)}
-						</div>
+							{state.searchQuery ? (
+								<InputGroupAddon align="inline-end">
+									<InputGroupButton
+										type="button"
+										size="icon-xs"
+										variant="ghost"
+										onClick={() => state.setSearchQuery("")}
+										aria-label={t("cascader_clear_search")}
+									>
+										<X className="size-3" aria-hidden="true" />
+									</InputGroupButton>
+								</InputGroupAddon>
+							) : null}
+						</InputGroup>
 					</div>
-				)}
+				) : null}
 
 				{state.searchQuery.trim() ? (
 					<CascaderSearchResults
@@ -223,6 +247,7 @@ export function Cascader({
 				) : (
 					<CascaderColumnMenus
 						columns={state.columns}
+						activeValuePath={state.activeValuePath}
 						activePath={state.activePath}
 						currentValue={state.currentValue}
 						fieldNames={state.fieldNames}
@@ -230,6 +255,7 @@ export function Cascader({
 						emptyText={emptyText}
 						onClickOption={state.handleItemClick}
 						onMouseEnterOption={state.handleItemMouseEnter}
+						onMouseLeaveMenu={state.handleMenuMouseLeave}
 					/>
 				)}
 			</PopoverContent>

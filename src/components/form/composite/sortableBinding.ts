@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, type CSSProperties, type ReactNode } from "react";
+import { createContext, type CSSProperties, type ReactNode, useContext } from "react";
 
 export interface SortableRenderBindings {
   setNodeRef: (node: HTMLElement | null) => void;
@@ -27,6 +27,12 @@ export interface SortableSlotProps {
 export type SortableSlotRenderer = (props: SortableSlotProps) => ReactNode;
 
 export const SortableItemContext = createContext<SortableSlotRenderer | null>(null);
+
+export function SortableRowSlot({ id, disabled, children }: SortableSlotProps) {
+  const renderSlot = useContext(SortableItemContext);
+  if (!renderSlot || disabled) return children(STATIC_SORTABLE_BINDINGS);
+  return renderSlot({ id, disabled, children });
+}
 
 /**
  * 原生数组重排纯函数：替代从 `@dnd-kit/sortable` 静态导入 `arrayMove`，确保非拖拽场景零额外打包体积。

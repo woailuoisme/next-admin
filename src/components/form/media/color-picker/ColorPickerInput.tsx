@@ -2,35 +2,27 @@
 
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useMemoizedFn } from "ahooks";
-import { X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
+import {
+	connectField,
+	createContainerBlurHandler,
+	FieldClearButton,
+	type FormFieldRenderProps,
+} from "@/components/form/core";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "cn";
 
-import { connectField } from "../../core";
 import { type ColorPickerInputProps, DEFAULT_COLOR_PRESETS } from "./types";
 
 const DynamicColorPickerContent = dynamic(() => import("./ColorPickerContent").then((mod) => mod.ColorPickerContent), {
 	ssr: false,
+	loading: () => <Skeleton className="h-48 w-56 rounded-lg" />,
 });
 
-interface ColorPickerControlProps {
-	id: string;
-	value: string;
-	onChange: (color: string) => void;
-	onBlur?: () => void;
-	disabled?: boolean;
-	readOnly?: boolean;
-	placeholder?: string;
-	presets: readonly string[] | string[];
-	clearable?: boolean;
-	showEyeDropper?: boolean;
-	hasError?: boolean;
-	describedBy?: string;
-}
+type ColorPickerExtraProps = Pick<ColorPickerInputProps, "placeholder" | "presets" | "clearable" | "showEyeDropper">;
 
 function ColorPickerControl({
 	id,
@@ -39,39 +31,44 @@ function ColorPickerControl({
 	onBlur,
 	disabled,
 	readOnly,
+	required,
 	placeholder = "#000000",
 	presets = DEFAULT_COLOR_PRESETS,
 	clearable = true,
 	showEyeDropper = true,
 	hasError,
 	describedBy,
-}: Omit<ColorPickerControlProps, "presets" | "value"> & {
-	value?: string;
-	presets?: readonly string[] | string[];
-}) {
+}: FormFieldRenderProps<string> & ColorPickerExtraProps) {
 	const t = useTranslations("form");
+	const triggerRef = useRef<HTMLButtonElement>(null);
 	const [open, setOpen] = useState(false);
 
-	const handleClear = useMemoizedFn((e: React.MouseEvent) => {
+	const handleClear = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		if (disabled || readOnly) return;
 		onChange("");
-		onBlur?.();
-	});
+		triggerRef.current?.focus();
+	};
 
-	const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
-		if (readOnly || disabled) return;
+	const handleOpenChange = (nextOpen: boolean) => {
+		if ((readOnly || disabled) && nextOpen) return;
 		setOpen(nextOpen);
+		if (!nextOpen) onBlur?.();
+	};
+
+	const handleContainerBlur = createContainerBlurHandler<HTMLDivElement>(() => {
+		if (!open) onBlur?.();
 	});
 
 	const hasValue = Boolean(value);
 	const displayText = (hasValue ? value : placeholder).toUpperCase();
 
 	return (
-		<div className="relative flex w-full items-center">
+		<div className="relative flex w-full items-center" onBlur={handleContainerBlur}>
 			<Popover open={open} onOpenChange={handleOpenChange}>
 				<PopoverTrigger asChild>
 					<Button
+						ref={triggerRef}
 						id={id}
 						type="button"
 						variant="outline"
@@ -79,28 +76,27 @@ function ColorPickerControl({
 						aria-readonly={readOnly || undefined}
 						aria-expanded={open}
 						aria-invalid={hasError || undefined}
+						aria-required={required}
 						aria-describedby={describedBy}
-						aria-label={hasValue ? value : placeholder}
 						className={cn(
-							"h-8 w-full justify-start rounded-md bg-transparent px-2.5 pr-8 text-left text-xs font-normal shadow-2xs transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
+							"h-8 w-full justify-start bg-transparent px-2.5 pr-8 text-left text-xs font-normal shadow-2xs",
 							!hasValue && "text-muted-foreground",
 							readOnly && "cursor-default",
-							hasError && "border-destructive focus-visible:ring-destructive/20",
 						)}
 					>
-						<div className="flex items-center gap-2 truncate">
+						<span className="flex min-w-0 flex-1 items-center gap-2">
 							<span
 								className="border-border/80 size-4 shrink-0 rounded-sm border shadow-2xs transition-transform"
 								style={{ backgroundColor: hasValue ? value : "transparent" }}
 								aria-hidden="true"
 							/>
 							<span className="truncate font-mono tracking-wider uppercase">{displayText}</span>
-						</div>
+						</span>
 					</Button>
 				</PopoverTrigger>
 
 				<PopoverContent className="w-auto p-0" align="start">
-					{open && !readOnly && (
+					{open && !readOnly ? (
 						<DynamicColorPickerContent
 							value={value}
 							onChange={onChange}
@@ -109,27 +105,20 @@ function ColorPickerControl({
 							disabled={disabled}
 							showEyeDropper={showEyeDropper}
 						/>
-					)}
+					) : null}
 				</PopoverContent>
 			</Popover>
 
-			{clearable && hasValue && !disabled && !readOnly && (
-				<Button
-					type="button"
-					variant="ghost"
-					size="icon-xs"
+			{clearable && hasValue && !disabled && !readOnly ? (
+				<FieldClearButton
 					onClick={handleClear}
-					className="text-muted-foreground/70 hover:bg-muted hover:text-destructive absolute right-1.5 size-5 cursor-pointer after:absolute after:-inset-1 after:content-['']"
-					aria-label={t("color_clear")}
-				>
-					<X className="size-3" aria-hidden="true" />
-				</Button>
-			)}
+					ariaLabel={t("color_clear")}
+					className="hover:text-destructive absolute right-1.5"
+				/>
+			) : null}
 		</div>
 	);
 }
-
-type ColorPickerExtraProps = Pick<ColorPickerInputProps, "placeholder" | "presets" | "clearable" | "showEyeDropper">;
 
 export const ColorPickerInput = connectField<string, ColorPickerExtraProps>(ColorPickerControl, {
 	defaultValue: "",

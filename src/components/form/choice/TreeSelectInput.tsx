@@ -6,13 +6,38 @@ import {
 	type ShowCheckedStrategy,
 	type TreeSelectFieldNames,
 	type TreeSelectNode,
+	type TreeSelectProps,
 	type TreeSelectValue,
 } from "./TreeSelect";
 
 export type { ShowCheckedStrategy, TreeSelectFieldNames, TreeSelectNode, TreeSelectValue };
 
-export interface TreeSelectExtraProps {
-	treeData?: TreeSelectNode[];
+export type TreeSelectExtraProps = Pick<
+	TreeSelectProps,
+	| "treeData"
+	| "multiple"
+	| "treeCheckable"
+	| "showCheckedStrategy"
+	| "onlyLeafSelectable"
+	| "treeLine"
+	| "showIcon"
+	| "showSearch"
+	| "placeholder"
+	| "searchPlaceholder"
+	| "emptyText"
+	| "treeDefaultExpandAll"
+	| "treeExpandedKeys"
+	| "onTreeExpand"
+	| "loadData"
+	| "fieldNames"
+	| "maxTagCount"
+	| "maxTagPlaceholder"
+	| "allowClear"
+	| "clearable"
+	| "popupClassName"
+	| "size"
+	| "filterTreeNode"
+> & {
 	onSelectionChange?: (
 		value: TreeSelectValue | TreeSelectValue[] | undefined,
 		selectedNodes: TreeSelectNode[] | TreeSelectNode | undefined,
@@ -22,36 +47,13 @@ export interface TreeSelectExtraProps {
 			allCheckedKeys?: TreeSelectValue[];
 		},
 	) => void;
-	multiple?: boolean;
-	treeCheckable?: boolean;
-	showCheckedStrategy?: ShowCheckedStrategy;
-	onlyLeafSelectable?: boolean;
-	treeLine?: boolean;
-	showIcon?: boolean;
-	showSearch?: boolean;
-	placeholder?: string;
-	searchPlaceholder?: string;
-	emptyText?: string;
-	treeDefaultExpandAll?: boolean;
-	treeExpandedKeys?: TreeSelectValue[];
-	onTreeExpand?: (keys: TreeSelectValue[]) => void;
-	loadData?: (node: TreeSelectNode) => Promise<void> | void;
-	fieldNames?: TreeSelectFieldNames;
-	maxTagCount?: number;
-	maxTagPlaceholder?: (omittedValues: TreeSelectValue[]) => React.ReactNode;
-	allowClear?: boolean;
-	clearable?: boolean;
 	triggerClassName?: string;
-	popupClassName?: string;
-	size?: "sm" | "default" | "lg";
-	filterTreeNode?: (searchValue: string, node: TreeSelectNode) => boolean;
-}
+};
 
 export type TreeSelectInputProps = ConnectedFieldProps<TreeSelectValue | TreeSelectValue[] | undefined> &
 	TreeSelectExtraProps;
 
 const EMPTY_TREE_DATA: TreeSelectNode[] = [];
-const EMPTY_ARRAY: TreeSelectValue[] = [];
 
 function TreeSelectControl({
 	id,
@@ -88,14 +90,11 @@ function TreeSelectControl({
 	size = "default",
 	filterTreeNode,
 }: FormFieldRenderProps<TreeSelectValue | TreeSelectValue[] | undefined> & TreeSelectExtraProps) {
-	const isMultiple = multiple || treeCheckable;
-	const resolvedValue = value === undefined ? (isMultiple ? EMPTY_ARRAY : undefined) : value;
-
 	return (
 		<TreeSelect
 			id={id}
 			treeData={treeData}
-			value={resolvedValue}
+			value={value}
 			onChange={(nextVal, nodes, extra) => {
 				onChange(nextVal);
 				onSelectionChange?.(nextVal, nodes, extra);

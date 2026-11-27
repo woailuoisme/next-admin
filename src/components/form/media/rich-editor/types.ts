@@ -1,4 +1,4 @@
-import type { BaseInputProps } from "../../core";
+import type { BaseInputProps } from "@/components/form/core";
 
 export interface RichEditorInputProps extends BaseInputProps {
   /** 受控值（Markdown 字符串） */

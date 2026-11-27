@@ -2,7 +2,8 @@
 
 import dynamic from "next/dynamic";
 
-import { connectField, type FormFieldRenderProps } from "../../core";
+import { connectField, type FormFieldRenderProps } from "@/components/form/core";
+
 import { RichEditorSkeleton } from "./RichEditorSkeleton";
 import type { RichEditorInputProps } from "./types";
 

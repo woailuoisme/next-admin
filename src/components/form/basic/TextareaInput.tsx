@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { type ChangeEvent } from "react";
 
 import { Textarea } from "@/components/ui/textarea";
@@ -36,6 +35,7 @@ function TextareaControl({
 	placeholder,
 	disabled,
 	readOnly,
+	required,
 	hasError,
 	describedBy,
 	debounceMs = 0,
@@ -49,14 +49,14 @@ function TextareaControl({
 		onBlur,
 	});
 
-	const handleTextareaChange = useMemoizedFn((e: ChangeEvent<HTMLTextAreaElement>) => {
+	const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
 		handleChange(e.target.value);
-	});
+	};
 
-	const currentLength = stringValue.length;
+	const currentLength = (typeof displayValue === "string" ? displayValue : "").length;
 
 	return (
-		<div className="w-full space-y-1">
+		<div className="flex w-full flex-col gap-1">
 			<Textarea
 				id={id}
 				rows={rows}
@@ -67,27 +67,24 @@ function TextareaControl({
 				placeholder={placeholder}
 				disabled={disabled}
 				readOnly={readOnly}
+
 				aria-invalid={hasError}
+				aria-required={required}
 				aria-describedby={describedBy}
-				className={cn(
-					"min-h-[80px] resize-y rounded-md",
-					hasError && "border-destructive ring-destructive/20",
-					disabled && "pointer-events-none opacity-50",
-					textareaClassName,
-				)}
+				className={cn("min-h-20 resize-y", textareaClassName)}
 			/>
 
-			{showCount && (
+			{showCount ? (
 				<div
 					className={cn(
-						"text-right text-[10px] tabular-nums",
+						"text-right text-xs tabular-nums",
 						maxLength && currentLength > maxLength ? "font-semibold text-destructive" : "text-muted-foreground",
 					)}
 				>
 					{currentLength}
 					{maxLength ? ` / ${maxLength}` : ""}
 				</div>
-			)}
+			) : null}
 		</div>
 	);
 }

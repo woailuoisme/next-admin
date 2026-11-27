@@ -1,14 +1,18 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { ArrowUpSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ChangeEvent, type KeyboardEvent, useState } from "react";
 
 import { InputGroupAddon } from "@/components/ui/input-group";
-import { cn } from "cn";
 
-import { AdornedInput, type BaseInputProps, connectField, type PasswordRequirement } from "../core";
+import {
+	AdornedInput,
+	type BaseInputProps,
+	connectField,
+	type FormFieldRenderProps,
+	type PasswordRequirement,
+} from "../core";
 import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
 
 export interface PasswordInputProps extends BaseInputProps {
@@ -23,22 +27,10 @@ export interface PasswordInputProps extends BaseInputProps {
 	autoComplete?: string;
 }
 
-interface PasswordInputInnerProps {
-	id: string;
-	value?: string;
-	onChange: (value: string) => void;
-	onBlur?: () => void;
-	placeholder?: string;
-	disabled?: boolean;
-	readOnly?: boolean;
-	clearable?: boolean;
-	showStrength?: boolean;
-	requirements?: PasswordRequirement[];
-	inputClassName?: string;
-	autoComplete?: string;
-	hasError?: boolean;
-	describedBy?: string;
-}
+type PasswordExtraProps = Pick<
+	PasswordInputProps,
+	"placeholder" | "clearable" | "showStrength" | "requirements" | "inputClassName" | "autoComplete"
+>;
 
 function PasswordInputInner({
 	id,
@@ -48,6 +40,7 @@ function PasswordInputInner({
 	placeholder,
 	disabled,
 	readOnly,
+	required,
 	clearable = false,
 	showStrength = false,
 	requirements,
@@ -55,40 +48,39 @@ function PasswordInputInner({
 	autoComplete = "current-password",
 	hasError,
 	describedBy,
-}: PasswordInputInnerProps) {
+}: FormFieldRenderProps<string> & PasswordExtraProps) {
 	const value = typeof rawValue === "string" ? rawValue : "";
 	const t = useTranslations("form");
 	const resolvedPlaceholder = placeholder ?? t("password_placeholder");
 	const [capsLockActive, setCapsLockActive] = useState(false);
 
-	const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
+	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		onChange(e.target.value);
-	});
+	};
 
-	const handleClear = useMemoizedFn(() => {
+	const handleClear = () => {
 		onChange("");
-	});
+	};
 
-	const checkCapsLock = useMemoizedFn((e: KeyboardEvent<HTMLInputElement>) => {
+	const checkCapsLock = (e: KeyboardEvent<HTMLInputElement>) => {
 		if (e.getModifierState) {
 			setCapsLockActive(e.getModifierState("CapsLock"));
 		}
-	});
+	};
 
-	const handleBlur = useMemoizedFn(() => {
+	const handleBlur = () => {
 		setCapsLockActive(false);
 		onBlur?.();
-	});
+	};
 
-	const stringVal = value ?? "";
-	const hasValue = stringVal.length > 0;
+	const hasValue = value.length > 0;
 
 	return (
-		<div className="w-full space-y-2">
+		<div className="flex w-full flex-col gap-2">
 			<AdornedInput
 				id={id}
 				isPassword
-				value={stringVal}
+				value={value}
 				onChange={handleInputChange}
 				onClear={handleClear}
 				onKeyDown={checkCapsLock}
@@ -97,11 +89,12 @@ function PasswordInputInner({
 				placeholder={resolvedPlaceholder}
 				disabled={disabled}
 				readOnly={readOnly}
+				required={required}
 				clearable={clearable}
 				autoComplete={autoComplete}
 				hasError={hasError}
 				describedBy={describedBy}
-				inputClassName={cn("pr-2 text-xs", inputClassName)}
+				inputClassName={inputClassName}
 				clearAriaLabel={t("password_clear")}
 				showPasswordLabel={t("password_show")}
 				hidePasswordLabel={t("password_hide")}
@@ -115,19 +108,10 @@ function PasswordInputInner({
 				}
 			/>
 
-			{showStrength && hasValue && (
-				<div className="pt-1">
-					<PasswordStrengthMeter password={stringVal} requirements={requirements} />
-				</div>
-			)}
+			{showStrength && hasValue ? <PasswordStrengthMeter password={value} requirements={requirements} /> : null}
 		</div>
 	);
 }
-
-type PasswordExtraProps = Pick<
-	PasswordInputProps,
-	"placeholder" | "clearable" | "showStrength" | "requirements" | "inputClassName" | "autoComplete"
->;
 
 export const PasswordInput = connectField<string, PasswordExtraProps>(PasswordInputInner, {
 	defaultValue: "",

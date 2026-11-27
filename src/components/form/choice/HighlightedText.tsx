@@ -20,7 +20,7 @@ export function HighlightedText({ text, keyword, variant = "inline" }: Highlight
 						key={index}
 						className={cn(
 							variant === "mark"
-								? "bg-primary/20 text-primary rounded-xs px-0.5 font-medium"
+								? "bg-primary/20 text-primary rounded-sm px-0.5 font-medium"
 								: "bg-transparent text-primary font-semibold",
 						)}
 					>

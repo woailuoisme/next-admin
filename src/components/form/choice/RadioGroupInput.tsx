@@ -1,8 +1,6 @@
 "use client";
 
-import { type MouseEvent } from "react";
-
-import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "cn";
 
@@ -13,6 +11,7 @@ import {
 	type FormFieldRenderProps,
 	type SelectOption,
 } from "../core";
+import { ChoiceCardField } from "./ChoiceHelpers";
 
 const EMPTY_OPTIONS: SelectOption<any>[] = [];
 
@@ -26,11 +25,10 @@ export interface RadioGroupInputProps<TValue extends string | number = string> e
 	card?: boolean;
 }
 
-interface RadioGroupExtraProps<TValue extends string | number = string> {
-	options: SelectOption<TValue>[];
-	direction?: "horizontal" | "vertical";
-	card?: boolean;
-}
+type RadioGroupExtraProps<TValue extends string | number = string> = Pick<
+	RadioGroupInputProps<TValue>,
+	"options" | "direction" | "card"
+>;
 
 function RadioGroupInputComponent<TValue extends string | number = string>({
 	id,
@@ -55,75 +53,80 @@ function RadioGroupInputComponent<TValue extends string | number = string>({
 	};
 
 	return (
-		<RadioGroup
-			id={id}
-			value={stringValue}
-			onValueChange={handleValueChange}
-			onBlur={createContainerBlurHandler(onBlur)}
-			disabled={groupLocked}
-			aria-invalid={hasError}
-			aria-describedby={describedBy}
-			className={cn("pt-1", direction === "horizontal" ? "flex-row flex-wrap items-center gap-4" : "space-y-2")}
-		>
-			<FieldGroup data-slot="radio-group" className="w-full gap-2">
-				{options.map((option) => {
-					const optionId = `${id}-${String(option.value)}`;
-					const isSelected = String(option.value) === stringValue;
-					const itemDisabled = groupLocked || Boolean(option.disabled);
+		<FieldSet disabled={isDisabled} onBlur={createContainerBlurHandler(onBlur)} className="w-full">
+			<RadioGroup
+				id={id}
+				value={stringValue}
+				onValueChange={handleValueChange}
+				disabled={isDisabled}
+				aria-readonly={isReadOnly || undefined}
+				aria-invalid={hasError || undefined}
+				aria-describedby={describedBy}
+				className="w-full pt-1"
+			>
+				<FieldGroup
+					data-slot="radio-group"
+					className={cn(
+						"w-full",
+						direction === "horizontal" ? "flex-row flex-wrap items-center gap-4" : "flex-col gap-2",
+					)}
+				>
+					{options.map((option) => {
+						const optionId = `${id}-${String(option.value)}`;
+						const isSelected = value !== undefined && value !== null && String(option.value) === stringValue;
+						const itemDisabled = Boolean(isDisabled || option.disabled);
+						const itemLocked = itemDisabled || Boolean(isReadOnly);
 
-					if (card) {
-						const handleCardClick = (e: MouseEvent<HTMLDivElement>) => {
-							if (itemDisabled) return;
-							const target = e.target as HTMLElement | null;
-							if (target?.closest('[role="radio"], button, label')) return;
-							handleValueChange(String(option.value));
-						};
+						const control = (
+							<RadioGroupItem
+								id={optionId}
+								value={String(option.value)}
+								disabled={itemDisabled}
+								aria-invalid={hasError || undefined}
+								className={card ? "mt-0.5" : undefined}
+							/>
+						);
+
+						if (card) {
+							return (
+								<ChoiceCardField
+									key={String(option.value)}
+									optionId={optionId}
+									label={option.label}
+									description={option.description}
+									icon={"icon" in option ? option.icon : undefined}
+									selected={isSelected}
+									hasError={hasError}
+									disabled={itemLocked}
+									controlRole="radio"
+									onToggleCard={() => handleValueChange(String(option.value))}
+									control={control}
+								/>
+							);
+						}
 
 						return (
 							<Field
 								key={String(option.value)}
 								orientation="horizontal"
-								onClick={handleCardClick}
-								className={cn(
-									"cursor-pointer items-start gap-3 rounded-lg border border-input bg-card/30 p-3 transition-colors select-none",
-									isSelected && "border-primary/60 bg-primary/5 ring-1 ring-primary/20",
-									hasError && "border-destructive/60",
-									itemDisabled && "pointer-events-none cursor-not-allowed opacity-50",
-								)}
+								data-invalid={hasError || undefined}
+								data-disabled={itemDisabled || undefined}
+								className={cn("items-center gap-2", direction === "horizontal" && "w-auto")}
 							>
-								<RadioGroupItem id={optionId} value={String(option.value)} disabled={itemDisabled} className="mt-0.5" />
-								<FieldContent className="min-w-0 flex-1 space-y-0.5">
-									<div className="flex items-center gap-1.5">
-										{"icon" in option && option.icon}
-										<FieldLabel htmlFor={optionId} className="text-foreground cursor-pointer text-xs font-semibold">
-											{option.label}
-										</FieldLabel>
-									</div>
-									{option.description && (
-										<FieldDescription className="text-muted-foreground text-[11px] leading-relaxed">
-											{option.description}
-										</FieldDescription>
-									)}
-								</FieldContent>
+								{control}
+								<FieldLabel
+									htmlFor={optionId}
+									className="text-foreground flex cursor-pointer items-center gap-1.5 text-xs font-medium select-none"
+								>
+									{"icon" in option ? option.icon : null}
+									<span>{option.label}</span>
+								</FieldLabel>
 							</Field>
 						);
-					}
-
-					return (
-						<Field key={String(option.value)} orientation="horizontal" className="items-center gap-2">
-							<RadioGroupItem id={optionId} value={String(option.value)} disabled={itemDisabled} />
-							<FieldLabel
-								htmlFor={optionId}
-								className="text-foreground flex cursor-pointer items-center gap-1.5 text-xs font-medium select-none"
-							>
-								{"icon" in option && option.icon}
-								<span>{option.label}</span>
-							</FieldLabel>
-						</Field>
-					);
-				})}
-			</FieldGroup>
-		</RadioGroup>
+					})}
+				</FieldGroup>
+			</RadioGroup>
+		</FieldSet>
 	);
 }
 

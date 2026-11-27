@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "cn";
 
@@ -61,7 +62,8 @@ export function KeyValueTable({
 	onAdd,
 }: KeyValueTableProps) {
 	const t = useTranslations("form");
-	const tableColCount = 2 + (reorderable && isEditable ? 1 : 0) + (canDelete && isEditable ? 1 : 0);
+	const hasReorderCol = Boolean(reorderable && isEditable);
+	const tableColCount = 2 + (hasReorderCol ? 1 : 0);
 
 	return (
 		<div
@@ -73,25 +75,28 @@ export function KeyValueTable({
 			<Table className="text-xs">
 				<TableHeader>
 					<TableRow className="border-border/60 bg-muted/40 text-muted-foreground hover:bg-muted/40 border-b font-medium select-none">
-						{reorderable && isEditable ? (
-							<TableHead className="border-border/60 w-8 border-r px-2 py-2 text-center" />
+						{hasReorderCol ? (
+							<TableHead className="border-border/60 w-8 border-r px-2 py-2 text-center">
+								<span className="sr-only">{t("keyvalue_drag_col")}</span>
+							</TableHead>
 						) : null}
 						<TableHead className="border-border/60 text-muted-foreground border-r px-3 py-2 text-left font-medium">
 							{keyLabel || t("keyvalue_key_label")}
 						</TableHead>
-						<TableHead
-							className="text-muted-foreground px-3 py-2 text-left font-medium"
-							colSpan={canDelete && isEditable ? 2 : 1}
-						>
+						<TableHead className="text-muted-foreground px-3 py-2 text-left font-medium">
 							{valueLabel || t("keyvalue_value_label")}
 						</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody className="divide-border/40 divide-y">
-					{rows.length === 0 && emptyText ? (
+					{rows.length === 0 ? (
 						<TableRow>
-							<TableCell colSpan={tableColCount} className="text-muted-foreground py-6 text-center text-xs">
-								{emptyText}
+							<TableCell colSpan={tableColCount} className="p-2">
+								<Empty className="border-0 p-4 md:p-5">
+									<EmptyHeader>
+										<EmptyDescription className="text-xs">{emptyText ?? t("repeater_empty")}</EmptyDescription>
+									</EmptyHeader>
+								</Empty>
 							</TableCell>
 						</TableRow>
 					) : (
@@ -124,7 +129,7 @@ export function KeyValueTable({
 					onClick={onAdd}
 					className="border-border/60 bg-card text-foreground hover:bg-muted/40 active:bg-muted/60 h-9 w-full rounded-none border-t px-3 text-xs font-medium"
 				>
-					<Plus aria-hidden="true" className="text-muted-foreground size-3.5" />
+					<Plus aria-hidden="true" className="text-muted-foreground size-3.5" data-icon="inline-start" />
 					<span>{addButtonText}</span>
 				</Button>
 			) : null}

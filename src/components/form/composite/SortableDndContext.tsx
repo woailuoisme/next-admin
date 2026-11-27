@@ -17,12 +17,15 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useMemoizedFn } from "ahooks";
 import type { ReactNode } from "react";
 
 import { SortableItemContext, type SortableSlotProps } from "./sortableBinding";
 
-const DndSortableItemBinding = function DndSortableItemBinding({ id, disabled, children }: SortableSlotProps) {
+const VERTICAL_MODIFIERS = [restrictToVerticalAxis];
+const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 5 } };
+const KEYBOARD_SENSOR_OPTIONS = { coordinateGetter: sortableKeyboardCoordinates };
+
+function DndSortableItemBinding({ id, disabled, children }: SortableSlotProps) {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
 	const style = {
 		transform: CSS.Transform.toString(transform),
@@ -30,7 +33,7 @@ const DndSortableItemBinding = function DndSortableItemBinding({ id, disabled, c
 	};
 
 	return <>{children({ setNodeRef, style, isDragging, attributes, listeners })}</>;
-};
+}
 
 function renderDndSortableSlot(props: SortableSlotProps) {
 	return <DndSortableItemBinding {...props} />;
@@ -47,22 +50,22 @@ export interface SortableDndContextProps {
  */
 export function SortableDndContext({ items, onReorder, children }: SortableDndContextProps) {
 	const sensors = useSensors(
-		useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-		useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+		useSensor(PointerSensor, POINTER_SENSOR_OPTIONS),
+		useSensor(KeyboardSensor, KEYBOARD_SENSOR_OPTIONS),
 	);
 
-	const handleDragEnd = useMemoizedFn((event: DragEndEvent) => {
+	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event;
 		if (!over || active.id === over.id) return;
 		onReorder(String(active.id), String(over.id));
-	});
+	};
 
 	return (
 		<SortableItemContext value={renderDndSortableSlot}>
 			<DndContext
 				sensors={sensors}
 				collisionDetection={closestCenter}
-				modifiers={[restrictToVerticalAxis]}
+				modifiers={VERTICAL_MODIFIERS}
 				onDragEnd={handleDragEnd}
 			>
 				<SortableContext items={items} strategy={verticalListSortingStrategy}>

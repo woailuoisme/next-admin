@@ -376,4 +376,35 @@ describe("UploadCN FileUploadCore & AvatarUpload behavior", () => {
 		expect(anchors).toHaveLength(1);
 		expect(anchors[0]).toHaveAttribute("href", "blob:https://example.com/123");
 	});
+
+	it("allows duplicate keys in KeyValueInput when configured, renders malformed MDX safely, and sets inert on disabled FileUploadCore", () => {
+		const { container } = renderWithProviders(
+			<>
+				<KeyValueInput
+					name="dup"
+					valueType="array"
+					allowDuplicateKeys
+					value={[
+						{ key: "TAG", value: "v1" },
+						{ key: "TAG", value: "v2" },
+					]}
+					onChange={vi.fn()}
+				/>
+				<PlateEditorCore value="<unclosed_tag" onChange={vi.fn()} />
+				<FileUploadCore id="locked-upload" value={[]} onChange={vi.fn()} disabled />
+			</>,
+			{ locale: "en" },
+		);
+
+		const tagInputs = screen.getAllByDisplayValue("TAG");
+		expect(tagInputs).toHaveLength(2);
+		for (const input of tagInputs) {
+			expect(input).not.toHaveAttribute("aria-invalid", "true");
+		}
+
+		expect(screen.getByRole("textbox", { name: "" })).toBeInTheDocument();
+		const uploadRoot = container.querySelector("#locked-upload");
+		expect(uploadRoot).toHaveAttribute("inert");
+		expect(uploadRoot).toHaveAttribute("aria-disabled", "true");
+	});
 });

@@ -9,20 +9,32 @@ import { cn } from "cn";
 
 import type { FieldWrapperProps } from "./types";
 
+function isRenderableNode(value: unknown): boolean {
+	return value !== undefined && value !== null && value !== false;
+}
+
 /**
  * Normalizes TanStack Form / Zod / Standard Schema validation errors to displayable strings.
  */
 export function extractErrorMessage(error: unknown): string | undefined {
 	if (!error) return undefined;
 	if (typeof error === "string") return error;
-	if (Array.isArray(error) && error.length > 0) {
-		return extractErrorMessage(error[0]);
+	if (typeof error === "number" || typeof error === "boolean") return String(error);
+	if (Array.isArray(error)) {
+		for (const item of error) {
+			const extracted = extractErrorMessage(item);
+			if (extracted) return extracted;
+		}
+		return undefined;
+	}
+	if (error instanceof Error) {
+		return error.message || undefined;
 	}
 	if (typeof error === "object" && error !== null && "message" in error) {
 		const message = (error as { message: unknown }).message;
 		if (typeof message === "string") return message;
 	}
-	return String(error);
+	return undefined;
 }
 
 export function FieldWrapper({
@@ -37,19 +49,26 @@ export function FieldWrapper({
 	colSpan,
 	className,
 	hidden,
+	disabled,
 	children,
 	align,
 }: FieldWrapperProps) {
 	if (hidden) return null;
 
-	const isTouched = meta?.isTouched ?? true;
-	const metaError = isTouched && meta?.errors?.length ? extractErrorMessage(meta.errors[0]) : undefined;
+	const isTouched = Boolean(meta?.isTouched);
+	const metaError = isTouched && meta?.errors?.length ? extractErrorMessage(meta.errors) : undefined;
 	const resolvedError = error ?? metaError;
 	const hasError = Boolean(resolvedError);
 
+	const showLabel = isRenderableNode(label);
+	const showTooltip = isRenderableNode(tooltip);
+	const showHint = isRenderableNode(hint);
+	const showHelperText = isRenderableNode(helperText);
+
 	return (
 		<Field
-			data-invalid={hasError}
+			data-invalid={hasError || undefined}
+			data-disabled={disabled || undefined}
 			orientation="vertical"
 			className={cn(
 				"w-full gap-1.5 text-left",
@@ -59,7 +78,7 @@ export function FieldWrapper({
 				className,
 			)}
 		>
-			{(label || tooltip || hint) && (
+			{showLabel || showTooltip || showHint ? (
 				<div
 					className={cn(
 						"flex items-center gap-2",
@@ -67,7 +86,7 @@ export function FieldWrapper({
 					)}
 				>
 					<div className="flex items-center gap-1.5">
-						{label && (
+						{showLabel ? (
 							<FieldLabel
 								htmlFor={id}
 								className={cn(
@@ -76,16 +95,20 @@ export function FieldWrapper({
 								)}
 							>
 								{label}
-								{required && <span className="text-destructive ml-0.5 font-bold">*</span>}
+								{required ? (
+									<span aria-hidden="true" className="text-destructive ml-0.5 font-bold">
+										*
+									</span>
+								) : null}
 							</FieldLabel>
-						)}
+						) : null}
 
-						{tooltip && <LabelHelpTooltip content={tooltip} />}
+						{showTooltip ? <LabelHelpTooltip content={tooltip} /> : null}
 					</div>
 
-					{hint && <div className="text-muted-foreground text-[11px] font-normal">{hint}</div>}
+					{showHint ? <div className="text-muted-foreground text-xs font-normal">{hint}</div> : null}
 				</div>
-			)}
+			) : null}
 
 			<div
 				className={cn("w-full", align === "center" && "flex justify-center", align === "right" && "flex justify-end")}
@@ -98,19 +121,19 @@ export function FieldWrapper({
 				<FieldError
 					id={id ? `${id}-error` : undefined}
 					className={cn(
-						"animate-in text-destructive fade-in-50 flex items-center gap-1 text-[11px] font-medium duration-150",
+						"animate-in text-destructive fade-in-50 flex items-center gap-1 text-xs font-medium duration-150",
 						align === "center" && "justify-center",
 						align === "right" && "justify-end",
 					)}
 				>
-					<AlertCircle aria-hidden="true" className="size-3 shrink-0" />
+					<AlertCircle aria-hidden="true" className="size-3.5 shrink-0" />
 					<span>{resolvedError}</span>
 				</FieldError>
-			) : helperText ? (
+			) : showHelperText ? (
 				<FieldDescription
 					id={id ? `${id}-desc` : undefined}
 					className={cn(
-						"text-muted-foreground text-[11px] leading-relaxed",
+						"text-muted-foreground text-xs leading-relaxed",
 						align === "center" && "text-center",
 						align === "right" && "text-right",
 					)}

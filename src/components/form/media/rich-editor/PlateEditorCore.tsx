@@ -83,8 +83,12 @@ function deserializeMarkdown(editor: PlateEditor, markdown: string): Value {
 	if (!markdown.trim()) {
 		return createEmptyValue();
 	}
-	const nodes = editor.getApi(MarkdownPlugin).markdown.deserialize(markdown);
-	return nodes.length > 0 ? nodes : createEmptyValue();
+	try {
+		const nodes = editor.getApi(MarkdownPlugin).markdown.deserialize(markdown);
+		return nodes.length > 0 ? nodes : createEmptyValue();
+	} catch {
+		return [{ children: [{ text: markdown }], type: KEYS.p }];
+	}
 }
 
 export interface PlateEditorCoreProps {
@@ -131,12 +135,19 @@ export function PlateEditorCore({
 
 	useEffect(() => {
 		if (value === lastMarkdownRef.current) return;
-		lastMarkdownRef.current = value;
+		const nextNodes = deserializeMarkdown(editor, value);
 		isSyncingRef.current = true;
-		editor.tf.setValue(deserializeMarkdown(editor, value));
-		queueMicrotask(() => {
+		try {
+			const canonical = editor.getApi(MarkdownPlugin).markdown.serialize({ value: nextNodes });
+			lastMarkdownRef.current = canonical || value;
+		} catch {
+			lastMarkdownRef.current = value;
+		}
+		editor.tf.setValue(nextNodes);
+		const timer = setTimeout(() => {
 			isSyncingRef.current = false;
-		});
+		}, 0);
+		return () => clearTimeout(timer);
 	}, [editor, value]);
 
 	const handleContainerBlur = (event: React.FocusEvent<HTMLDivElement>) => {
@@ -145,11 +156,12 @@ export function PlateEditorCore({
 
 	return (
 		<div
+			data-invalid={hasError || undefined}
 			className={cn(
-				"overflow-hidden rounded-md border bg-background transition-colors",
+				"bg-background overflow-hidden rounded-lg border transition-colors",
 				hasError
-					? "border-destructive focus-within:ring-2 focus-within:ring-destructive/20"
-					: "border-input focus-within:ring-2 focus-within:ring-ring/20",
+					? "border-destructive focus-within:ring-destructive/20 focus-within:ring-2"
+					: "border-input focus-within:ring-ring/20 focus-within:ring-2",
 				disabled && "cursor-not-allowed opacity-50",
 				className,
 			)}
@@ -165,8 +177,8 @@ export function PlateEditorCore({
 					onChange?.(nextMarkdown);
 				}}
 			>
-				{isInteractive && (
-					<FixedToolbar className="bg-muted/30 justify-start gap-0.5 rounded-t-md px-1.5 py-1">
+				{isInteractive ? (
+					<FixedToolbar className="bg-muted/30 justify-start gap-0.5 rounded-t-lg px-1.5 py-1">
 						<ToolbarGroup>
 							<UndoToolbarButton aria-label={t("editor_undo")} />
 							<RedoToolbarButton aria-label={t("editor_redo")} />
@@ -191,7 +203,7 @@ export function PlateEditorCore({
 							<InlineEquationToolbarButton aria-label={t("editor_equation")} />
 						</ToolbarGroup>
 					</FixedToolbar>
-				)}
+				) : null}
 
 				<EditorContainer style={{ minHeight, maxHeight }} className={cn(!isInteractive && "bg-muted/30")}>
 					<Editor
@@ -206,7 +218,7 @@ export function PlateEditorCore({
 					/>
 				</EditorContainer>
 
-				{isInteractive && (
+				{isInteractive ? (
 					<FloatingToolbar>
 						<ToolbarGroup>
 							<MarkButtons />
@@ -216,7 +228,7 @@ export function PlateEditorCore({
 							<InlineEquationToolbarButton aria-label={t("editor_equation")} />
 						</ToolbarGroup>
 					</FloatingToolbar>
-				)}
+				) : null}
 			</Plate>
 		</div>
 	);

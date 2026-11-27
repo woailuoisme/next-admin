@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { formatWithMask } from "@/components/form/basic/MaskedInput";
 import {
   applyCascadingCheckChange,
   buildTreeIndex,
@@ -16,6 +17,7 @@ import {
   rawToRows,
   reconcileKvRows,
   rowsToRaw,
+  rowsToRecord,
 } from "@/components/form/composite/key-value/parsers";
 import {
   getNextPaletteIndex,
@@ -23,7 +25,12 @@ import {
   normalizeHexInput,
   toSixDigitHex,
 } from "@/components/form/media/color-picker/colorUtils";
-import { formatBytes, normalizeUrls, parseAllowedFileTypes } from "@/components/form/media/file-upload/utils";
+import {
+  formatBytes,
+  isImageUrl,
+  normalizeUrls,
+  parseAllowedFileTypes,
+} from "@/components/form/media/file-upload/utils";
 import { sanitizeRichEditorUrl } from "@/components/shared/url";
 
 describe("file-upload/utils", () => {
@@ -213,5 +220,33 @@ describe("choice/treeEngine", () => {
     expect(formatBytes(Number.NaN)).toBe("0 B");
     expect(formatBytes(1000 ** 4)).toBe("1 TB");
     expect(formatBytes(1024 ** 4)).toBe("1.1 TB");
+  });
+
+  it("validates formatWithMask literal boundaries, .env error edge cases, __proto__ safety, and blob MIME detection", () => {
+    expect(formatWithMask("2", "+1 (###)")).toEqual({ masked: "+1 (2", unmasked: "2" });
+    expect(formatWithMask("+1 (", "+1 (###)")).toEqual({ masked: "", unmasked: "" });
+
+    expect(rawToRows("MISSING_EQUALS", "env").errorDescriptor).toEqual({
+      key: "keyvalue_raw_invalid_env_line",
+      params: { line: 1 },
+    });
+    expect(rawToRows("=orphan", "env").errorDescriptor).toEqual({
+      key: "keyvalue_raw_empty_env_key",
+      params: { line: 1 },
+    });
+
+    const commentParsed = rawToRows('FOO="bar#baz" # trailing comment\nPLAIN=abc # comment', "env");
+    expect(commentParsed.error).toBeUndefined();
+    expect(commentParsed.rows.map(({ key, value }) => ({ key, value }))).toEqual([
+      { key: "FOO", value: "bar#baz" },
+      { key: "PLAIN", value: "abc" },
+    ]);
+
+    const protoRecord = rowsToRecord([{ _id: "1", key: "__proto__", value: "polluted" }]);
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    expect(Object.prototype.hasOwnProperty.call(protoRecord, "__proto__")).toBe(true);
+
+    expect(isImageUrl("blob:https://example.com/file", "text/plain")).toBe(false);
+    expect(isImageUrl("blob:https://example.com/file")).toBe(true);
   });
 });

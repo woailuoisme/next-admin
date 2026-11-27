@@ -15,12 +15,33 @@ export interface PasswordStrengthMeterProps {
 	className?: string;
 }
 
-export const DEFAULT_PASSWORD_REQUIREMENTS: PasswordRequirement[] = [
-	{ label: "At least 8 characters", validator: (p) => p.length >= 8 },
-	{ label: "Contains uppercase & lowercase", validator: (p) => /[a-z]/.test(p) && /[A-Z]/.test(p) },
-	{ label: "Contains at least 1 number", validator: (p) => /\d/.test(p) },
-	{ label: "Contains at least 1 symbol", validator: (p) => /[^A-Za-z0-9]/.test(p) },
-];
+const PASSWORD_RULE_SPECS = [
+	{
+		key: "password_req_length" as const,
+		fallbackLabel: "At least 8 characters",
+		validator: (p: string) => p.length >= 8,
+	},
+	{
+		key: "password_req_case" as const,
+		fallbackLabel: "Contains uppercase & lowercase",
+		validator: (p: string) => /[a-z]/.test(p) && /[A-Z]/.test(p),
+	},
+	{
+		key: "password_req_number" as const,
+		fallbackLabel: "Contains at least 1 number",
+		validator: (p: string) => /\d/.test(p),
+	},
+	{
+		key: "password_req_symbol" as const,
+		fallbackLabel: "Contains at least 1 symbol",
+		validator: (p: string) => /[^A-Za-z0-9]/.test(p),
+	},
+] as const;
+
+export const DEFAULT_PASSWORD_REQUIREMENTS: PasswordRequirement[] = PASSWORD_RULE_SPECS.map((rule) => ({
+	label: rule.fallbackLabel,
+	validator: rule.validator,
+}));
 
 /**
  * 密码强度等级 → 进度条配色（warning 功能色统一收敛于此表）
@@ -35,34 +56,29 @@ const STRENGTH_COLOR_CLASSES = {
 
 export function calculatePasswordStrength(password: string): {
 	score: number;
-	label: string;
 	colorClass: string;
 	scoreKey: MessageKeyOf<"form">;
 } {
 	if (!password) {
-		return { score: 0, label: "Empty", colorClass: STRENGTH_COLOR_CLASSES.empty, scoreKey: "password_empty" };
+		return { score: 0, colorClass: STRENGTH_COLOR_CLASSES.empty, scoreKey: "password_empty" };
 	}
 
-	let passedChecks = 0;
-	if (password.length >= 8) passedChecks += 1;
-	if (password.length >= 12) passedChecks += 1;
-	if (/[a-z]/.test(password) && /[A-Z]/.test(password)) passedChecks += 1;
-	if (/\d/.test(password)) passedChecks += 1;
-	if (/[^A-Za-z0-9]/.test(password)) passedChecks += 1;
+	let passedChecks = password.length >= 12 ? 1 : 0;
+	for (const rule of PASSWORD_RULE_SPECS) {
+		if (rule.validator(password)) passedChecks += 1;
+	}
 
-	// Normalize to 0 - 4
 	if (passedChecks <= 1) {
-		return { score: 1, label: "Weak", colorClass: STRENGTH_COLOR_CLASSES.weak, scoreKey: "password_weak" };
+		return { score: 1, colorClass: STRENGTH_COLOR_CLASSES.weak, scoreKey: "password_weak" };
 	}
 	if (passedChecks === 2) {
-		return { score: 2, label: "Fair", colorClass: STRENGTH_COLOR_CLASSES.fair, scoreKey: "password_fair" };
+		return { score: 2, colorClass: STRENGTH_COLOR_CLASSES.fair, scoreKey: "password_fair" };
 	}
 	if (passedChecks <= 4) {
-		return { score: 3, label: "Good", colorClass: STRENGTH_COLOR_CLASSES.good, scoreKey: "password_good" };
+		return { score: 3, colorClass: STRENGTH_COLOR_CLASSES.good, scoreKey: "password_good" };
 	}
 	return {
 		score: 4,
-		label: "Strong",
 		colorClass: STRENGTH_COLOR_CLASSES.strong,
 		scoreKey: "password_strong",
 	};
@@ -78,12 +94,12 @@ export function PasswordStrengthMeter({
 	const t = useTranslations("form");
 	const { score, colorClass, scoreKey } = calculatePasswordStrength(password);
 
-	const requirements = propRequirements ?? [
-		{ label: t("password_req_length"), validator: (p) => p.length >= 8 },
-		{ label: t("password_req_case"), validator: (p) => /[a-z]/.test(p) && /[A-Z]/.test(p) },
-		{ label: t("password_req_number"), validator: (p) => /\d/.test(p) },
-		{ label: t("password_req_symbol"), validator: (p) => /[^A-Za-z0-9]/.test(p) },
-	];
+	const requirements =
+		propRequirements ??
+		PASSWORD_RULE_SPECS.map((rule) => ({
+			label: t(rule.key),
+			validator: rule.validator,
+		}));
 
 	if (!password) {
 		return null;
@@ -92,11 +108,12 @@ export function PasswordStrengthMeter({
 	const label = t(scoreKey);
 
 	return (
-		<div className={cn("space-y-2 pt-1 text-xs", className)}>
+		<div className={cn("flex flex-col gap-2 pt-1 text-xs", className)}>
 			{/* Segmented meter bars */}
 			<div
 				role="progressbar"
-				aria-label={label}
+				aria-label={t("password_strength")}
+				aria-valuetext={label}
 				aria-valuemin={0}
 				aria-valuemax={4}
 				aria-valuenow={score}
@@ -111,13 +128,13 @@ export function PasswordStrengthMeter({
 						)}
 					/>
 				))}
-				{showScoreLabel && (
-					<span className="text-muted-foreground min-w-10 text-right text-[11px] font-medium">{label}</span>
-				)}
+				{showScoreLabel ? (
+					<span className="text-muted-foreground min-w-10 text-right text-xs font-medium">{label}</span>
+				) : null}
 			</div>
 
 			{/* Requirements list */}
-			{showRequirements && requirements.length > 0 && (
+			{showRequirements && requirements.length > 0 ? (
 				<ul className="grid grid-cols-1 gap-1 pt-0.5 sm:grid-cols-2">
 					{requirements.map((req, idx) => {
 						const isPassed = req.validator(password);
@@ -126,7 +143,7 @@ export function PasswordStrengthMeter({
 								key={`${req.label}-${idx}`}
 								className={cn(
 									"flex items-center gap-1.5 transition-colors",
-									isPassed ? "font-medium text-primary" : "text-muted-foreground",
+									isPassed ? "text-primary font-medium" : "text-muted-foreground",
 								)}
 							>
 								{isPassed ? (
@@ -139,7 +156,7 @@ export function PasswordStrengthMeter({
 						);
 					})}
 				</ul>
-			)}
+			) : null}
 		</div>
 	);
 }

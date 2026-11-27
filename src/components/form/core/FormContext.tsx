@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemoizedFn } from "ahooks";
-import { Loader2 } from "lucide-react";
 import { createContext, type FocusEvent, type ReactNode, type SubmitEvent, useContext, useRef } from "react";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "cn";
 
 import { formContext as AppFormContext } from "./formContexts";
@@ -63,7 +64,7 @@ export function createContainerBlurHandler<T extends HTMLElement = HTMLElement>(
  */
 export function useLockedAsyncCallback(action?: () => void | Promise<void>, isBlocked = false): () => Promise<void> {
 	const lockRef = useRef(false);
-	// Whitelist AGENTS.md §5.2: 互斥提交回调需跨表单生命周期与异步状态保持稳定引用
+	// Whitelist AGENTS.md §5.2: 互斥提交回调需跨表单生命周期与异步快捷键监听保持稳定引用
 	return useMemoizedFn(async () => {
 		if (!action || lockRef.current || isBlocked) {
 			return;
@@ -75,6 +76,14 @@ export function useLockedAsyncCallback(action?: () => void | Promise<void>, isBl
 			lockRef.current = false;
 		}
 	});
+}
+
+function renderWithFormProviders(form: AppFormContract | undefined, children: ReactNode) {
+	return (
+		<FormContext value={{ form }}>
+			{form ? <AppFormContext value={form as never}>{children}</AppFormContext> : children}
+		</FormContext>
+	);
 }
 
 /**
@@ -101,13 +110,7 @@ export function FormBodyRegion({
 		<div className={className} aria-busy={loading || undefined}>
 			{loading ? <FormLoadingBanner label={loadingLabel} className={bannerClassName} /> : null}
 			<div className={cn(contentClassName, loading && "pointer-events-none opacity-60")}>
-				<FormContext value={formContextValue}>
-					{formContextValue.form ? (
-						<AppFormContext value={formContextValue.form as never}>{children}</AppFormContext>
-					) : (
-						children
-					)}
-				</FormContext>
+				{renderWithFormProviders(formContextValue.form, children)}
 			</div>
 		</div>
 	);
@@ -118,17 +121,17 @@ export function FormBodyRegion({
  */
 export function FormLoadingBanner({ label, className }: { label: string; className?: string }) {
 	return (
-		<div
+		<Alert
 			role="status"
 			aria-live="polite"
 			className={cn(
-				"border-border/60 bg-muted/40 text-muted-foreground flex items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+				"border-border/60 bg-muted/40 text-muted-foreground flex items-center gap-2 px-3 py-2 text-xs",
 				className,
 			)}
 		>
-			<Loader2 className="text-primary size-3.5 animate-spin" aria-hidden="true" />
-			<span>{label}</span>
-		</div>
+			<Spinner className="text-primary size-3.5" aria-hidden="true" />
+			<AlertDescription className="text-muted-foreground text-xs">{label}</AlertDescription>
+		</Alert>
 	);
 }
 
@@ -143,25 +146,20 @@ export interface FormProps {
 }
 
 export function Form({ form, children, className, id, as = "form", onSubmit }: FormProps) {
-	const contextValue = { form };
-
 	const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
 		dispatchFormSubmit(e, form, onSubmit);
 	};
 
-	const body = (
-		<FormContext value={contextValue}>
-			{as === "div" ? (
-				<div id={id} className={cn("w-full space-y-5", className)}>
-					{children}
-				</div>
-			) : (
-				<form id={id} onSubmit={handleSubmit} className={cn("w-full space-y-6", className)}>
-					{children}
-				</form>
-			)}
-		</FormContext>
-	);
+	const body =
+		as === "div" ? (
+			<div id={id} className={cn("flex w-full flex-col gap-5", className)}>
+				{children}
+			</div>
+		) : (
+			<form id={id} onSubmit={handleSubmit} className={cn("flex w-full flex-col gap-6", className)}>
+				{children}
+			</form>
+		);
 
-	return form ? <AppFormContext value={form as never}>{body}</AppFormContext> : body;
+	return renderWithFormProviders(form, body);
 }

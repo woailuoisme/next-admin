@@ -17,7 +17,7 @@ interface RepeaterTableProps<T> {
 	headers?: RepeaterHeaderColumn[];
 	disabled?: boolean;
 	reorderable?: boolean;
-	canDuplicate?: boolean;
+	checkCanDuplicate: (item: T, index: number) => boolean;
 	checkCanDelete: (item: T, index: number) => boolean;
 	confirmDelete?: boolean;
 	itemErrors?: Record<number, string | string[]>;
@@ -39,7 +39,7 @@ export const RepeaterTable = function RepeaterTable<T>({
 	headers,
 	disabled,
 	reorderable = true,
-	canDuplicate = true,
+	checkCanDuplicate,
 	checkCanDelete,
 	confirmDelete = false,
 	itemErrors,
@@ -58,7 +58,8 @@ export const RepeaterTable = function RepeaterTable<T>({
 	const resolvedAddText = addButtonText ?? t("repeater_add");
 	const hasReorderCol = Boolean(reorderable && !disabled);
 	const hasActionCol = Boolean(
-		!disabled && (canDuplicate || reorderable || items.some((item, index) => checkCanDelete(item, index))),
+		!disabled &&
+		(reorderable || items.some((item, index) => checkCanDuplicate(item, index) || checkCanDelete(item, index))),
 	);
 	const totalCols = (headers?.length || 1) + (hasReorderCol ? 1 : 0) + (hasActionCol ? 1 : 0);
 
@@ -67,7 +68,11 @@ export const RepeaterTable = function RepeaterTable<T>({
 			<Table className="text-xs">
 				<TableHeader className="border-border/60 bg-muted/40 text-muted-foreground border-b font-medium select-none">
 					<TableRow className="hover:bg-transparent">
-						{hasReorderCol ? <TableHead className="border-border/60 w-8 border-r px-2 py-2 text-center" /> : null}
+						{hasReorderCol ? (
+							<TableHead className="border-border/60 w-8 border-r px-2 py-2 text-center">
+								<span className="sr-only">{t("repeater_drag_col")}</span>
+							</TableHead>
+						) : null}
 						{headers && headers.length > 0 ? (
 							headers.map((col, idx) => {
 								const colKey = col.id ?? (typeof col.label === "string" ? col.label : `col-${idx}`);
@@ -75,14 +80,18 @@ export const RepeaterTable = function RepeaterTable<T>({
 									<TableHead
 										key={colKey}
 										className={cn(
-											"border-r border-border/40 px-3 py-2 text-left font-medium text-muted-foreground last:border-r-0",
+											"border-border/40 text-muted-foreground border-r px-3 py-2 text-left font-medium last:border-r-0",
 											col.width,
 											col.className,
 										)}
 									>
 										<span className="flex items-center gap-1">
 											<span>{col.label}</span>
-											{col.required && <span className="text-destructive">*</span>}
+											{col.required ? (
+												<span aria-hidden="true" className="text-destructive">
+													*
+												</span>
+											) : null}
 										</span>
 									</TableHead>
 								);
@@ -92,11 +101,11 @@ export const RepeaterTable = function RepeaterTable<T>({
 								{t("repeater_table_default_col")}
 							</TableHead>
 						)}
-						{hasActionCol && (
+						{hasActionCol ? (
 							<TableHead className="border-border/60 text-muted-foreground w-24 border-l px-2 py-2 text-right font-medium">
 								{t("repeater_table_actions_col")}
 							</TableHead>
-						)}
+						) : null}
 					</TableRow>
 				</TableHeader>
 
@@ -112,7 +121,7 @@ export const RepeaterTable = function RepeaterTable<T>({
 								totalItems={items.length}
 								disabled={disabled}
 								reorderable={reorderable}
-								canDuplicate={canDuplicate}
+								canDuplicate={checkCanDuplicate(item, index)}
 								canDelete={checkCanDelete(item, index)}
 								hasActionCol={hasActionCol}
 								confirmDelete={confirmDelete}
@@ -146,7 +155,7 @@ export const RepeaterTable = function RepeaterTable<T>({
 					onClick={onAdd}
 					className="border-border/60 bg-card text-foreground hover:bg-muted/40 active:bg-muted/60 h-9 w-full rounded-none border-t px-3 text-xs font-medium"
 				>
-					<Plus className="text-muted-foreground size-3.5" />
+					<Plus aria-hidden="true" className="text-muted-foreground size-3.5" data-icon="inline-start" />
 					<span>{resolvedAddText}</span>
 				</Button>
 			) : null}

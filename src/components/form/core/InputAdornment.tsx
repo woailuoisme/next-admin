@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Eye, EyeOff, X } from "lucide-react";
-import { type ChangeEvent, type FocusEvent, type KeyboardEvent, type ReactNode, useState } from "react";
+import { type ChangeEvent, type FocusEvent, type KeyboardEvent, type ReactNode, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ export function FieldClearButton({ onClick, ariaLabel, className }: FieldClearBu
 			onClick={onClick}
 			aria-label={ariaLabel ?? t("clear_value")}
 			className={cn(
-				"text-muted-foreground hover:text-foreground relative size-5 cursor-pointer rounded-full p-0 after:absolute after:-inset-1 after:content-['']",
+				"text-muted-foreground hover:text-foreground relative cursor-pointer rounded-full after:absolute after:-inset-1 after:content-['']",
 				className,
 			)}
 		>
@@ -46,12 +46,13 @@ export interface AdornedInputProps {
 	value?: string | number;
 	onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 	onClear?: () => void;
-	onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
+	onBlur?: (e?: FocusEvent<HTMLElement>) => void;
 	onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
 	onKeyUp?: (e: KeyboardEvent<HTMLInputElement>) => void;
 	placeholder?: string;
 	disabled?: boolean;
 	readOnly?: boolean;
+	required?: boolean;
 	clearable?: boolean;
 	isPassword?: boolean;
 	prefix?: ReactNode;
@@ -70,6 +71,10 @@ export interface AdornedInputProps {
 	hidePasswordLabel?: string;
 }
 
+function isRenderableAddon(node: ReactNode): boolean {
+	return node !== undefined && node !== null && node !== false;
+}
+
 export function AdornedInput({
 	id,
 	type = "text",
@@ -82,6 +87,7 @@ export function AdornedInput({
 	placeholder,
 	disabled,
 	readOnly,
+	required,
 	clearable,
 	isPassword,
 	prefix,
@@ -100,6 +106,7 @@ export function AdornedInput({
 	hidePasswordLabel,
 }: AdornedInputProps) {
 	const t = useTranslations("form");
+	const inputRef = useRef<HTMLInputElement>(null);
 	const resolvedClearLabel = clearAriaLabel ?? t("clear_value");
 	const resolvedShowPasswordLabel = showPasswordLabel ?? t("password_show");
 	const resolvedHidePasswordLabel = hidePasswordLabel ?? t("password_hide");
@@ -108,11 +115,26 @@ export function AdornedInput({
 	const currentType = isPassword ? (showPassword ? "text" : "password") : type;
 	const hasValue = value != null && value !== "";
 	const canClear = Boolean(clearable && onClear && hasValue && !disabled && !readOnly);
-	const hasAdornments = Boolean(prefix) || Boolean(suffix) || canClear || Boolean(isPassword) || Boolean(extraEndAddon);
+	const hasPrefix = isRenderableAddon(prefix);
+	const hasSuffix = isRenderableAddon(suffix);
+	const hasExtraEnd = isRenderableAddon(extraEndAddon);
+	const hasAdornments = hasPrefix || hasSuffix || canClear || Boolean(isPassword) || hasExtraEnd;
+
+	const handleGroupBlur = (e: FocusEvent<HTMLDivElement>) => {
+		if (onBlur && !e.currentTarget.contains(e.relatedTarget)) {
+			onBlur(e);
+		}
+	};
+
+	const handleClearClick = () => {
+		onClear?.();
+		inputRef.current?.focus();
+	};
 
 	if (!hasAdornments) {
 		return (
 			<Input
+				ref={inputRef}
 				id={id}
 				type={currentType}
 				value={value ?? ""}
@@ -123,70 +145,72 @@ export function AdornedInput({
 				placeholder={placeholder}
 				disabled={disabled}
 				readOnly={readOnly}
+
 				min={min}
 				max={max}
 				step={step}
 				autoComplete={autoComplete}
 				inputMode={inputMode}
 				aria-invalid={hasError}
+				aria-required={required}
 				aria-describedby={describedBy}
-				className={cn("rounded-md", inputClassName)}
+				className={inputClassName}
 			/>
 		);
 	}
 
 	return (
-		<InputGroup
-			className={cn(
-				"w-full rounded-md",
-				hasError && "border-destructive ring-destructive/20",
-				disabled && "pointer-events-none opacity-50",
-			)}
-		>
-			{prefix && (
+		<InputGroup onBlur={handleGroupBlur} className="w-full">
+			{hasPrefix ? (
 				<InputGroupAddon align="inline-start">
-					{typeof prefix === "string" ? <InputGroupText>{prefix}</InputGroupText> : prefix}
+					{typeof prefix === "string" || typeof prefix === "number" ? (
+						<InputGroupText>{prefix}</InputGroupText>
+					) : (
+						prefix
+					)}
 				</InputGroupAddon>
-			)}
+			) : null}
 
 			<InputGroupInput
+				ref={inputRef}
 				id={id}
 				type={currentType}
 				value={value ?? ""}
 				onChange={onChange}
-				onBlur={onBlur}
 				onKeyDown={onKeyDown}
 				onKeyUp={onKeyUp}
 				placeholder={placeholder}
 				disabled={disabled}
 				readOnly={readOnly}
+
 				min={min}
 				max={max}
 				step={step}
 				autoComplete={autoComplete}
 				inputMode={inputMode}
 				aria-invalid={hasError}
+				aria-required={required}
 				aria-describedby={describedBy}
 				className={inputClassName}
 			/>
 
-			{extraEndAddon}
+			{hasExtraEnd ? extraEndAddon : null}
 
-			{canClear && (
+			{canClear ? (
 				<InputGroupAddon align="inline-end">
 					<InputGroupButton
 						type="button"
 						size="icon-xs"
 						variant="ghost"
-						onClick={onClear}
+						onClick={handleClearClick}
 						aria-label={resolvedClearLabel}
 					>
 						<X className="size-3" aria-hidden="true" />
 					</InputGroupButton>
 				</InputGroupAddon>
-			)}
+			) : null}
 
-			{isPassword && !disabled && (
+			{isPassword && !disabled ? (
 				<InputGroupAddon align="inline-end">
 					<InputGroupButton
 						type="button"
@@ -203,13 +227,17 @@ export function AdornedInput({
 						)}
 					</InputGroupButton>
 				</InputGroupAddon>
-			)}
+			) : null}
 
-			{suffix && (
+			{hasSuffix ? (
 				<InputGroupAddon align="inline-end">
-					{typeof suffix === "string" ? <InputGroupText>{suffix}</InputGroupText> : suffix}
+					{typeof suffix === "string" || typeof suffix === "number" ? (
+						<InputGroupText>{suffix}</InputGroupText>
+					) : (
+						suffix
+					)}
 				</InputGroupAddon>
-			)}
+			) : null}
 		</InputGroup>
 	);
 }

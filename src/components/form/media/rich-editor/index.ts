@@ -1,2 +1,2 @@
-export * from "./types";
+export type { RichEditorInputProps } from "./types";
 export { RichEditorInput } from "./RichEditorInput";

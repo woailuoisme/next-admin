@@ -1,5 +1,44 @@
 import type { InternalTreeNode, ShowCheckedStrategy, TreeSelectNode, TreeSelectValue } from "./treeSelectEngine";
 
+function promoteAncestors(
+  checkedKeys: Set<TreeSelectValue>,
+  halfCheckedKeys: Set<TreeSelectValue>,
+  nodeMap: Map<TreeSelectValue, InternalTreeNode>,
+): void {
+  const sortedKeys = Array.from(nodeMap.values())
+    .sort((a, b) => b.level - a.level)
+    .map((item) => item.key);
+
+  for (const key of sortedKeys) {
+    const item = nodeMap.get(key);
+    if (!item || item.childrenKeys.length === 0) continue;
+
+    const selectableChildren = item.childrenKeys.filter((ck) => {
+      const child = nodeMap.get(ck);
+      return child && !child.disabled && !child.disableCheckbox;
+    });
+    if (selectableChildren.length === 0) continue;
+
+    const allChildrenChecked = selectableChildren.every((ck) => checkedKeys.has(ck));
+    const someChildrenCheckedOrHalf = selectableChildren.some((ck) => checkedKeys.has(ck) || halfCheckedKeys.has(ck));
+
+    if (allChildrenChecked) {
+      if (!item.disabled && !item.disableCheckbox) {
+        checkedKeys.add(key);
+      }
+      halfCheckedKeys.delete(key);
+    } else if (someChildrenCheckedOrHalf) {
+      checkedKeys.delete(key);
+      halfCheckedKeys.add(key);
+    } else {
+      if (!item.disabled && !item.disableCheckbox) {
+        checkedKeys.delete(key);
+      }
+      halfCheckedKeys.delete(key);
+    }
+  }
+}
+
 /** Resolves full checked and indeterminate (half-checked) key sets using bottom-up aggregation. */
 export function resolveCascadingCheckedState(
   selectedKeys: Set<TreeSelectValue>,
@@ -23,35 +62,7 @@ export function resolveCascadingCheckedState(
     }
   }
 
-  const sortedKeys = Array.from(nodeMap.values())
-    .sort((a, b) => b.level - a.level)
-    .map((item) => item.key);
-
-  for (const key of sortedKeys) {
-    const item = nodeMap.get(key);
-    if (!item || item.childrenKeys.length === 0) continue;
-
-    const selectableChildren = item.childrenKeys.filter((ck) => {
-      const child = nodeMap.get(ck);
-      return child && !child.disabled && !child.disableCheckbox;
-    });
-    if (selectableChildren.length === 0) continue;
-
-    const allChildrenChecked = selectableChildren.every((ck) => checkedKeys.has(ck));
-    const someChildrenCheckedOrHalf = selectableChildren.some((ck) => checkedKeys.has(ck) || halfCheckedKeys.has(ck));
-
-    if (allChildrenChecked) {
-      checkedKeys.add(key);
-      halfCheckedKeys.delete(key);
-    } else if (someChildrenCheckedOrHalf) {
-      checkedKeys.delete(key);
-      halfCheckedKeys.add(key);
-    } else {
-      checkedKeys.delete(key);
-      halfCheckedKeys.delete(key);
-    }
-  }
-
+  promoteAncestors(checkedKeys, halfCheckedKeys, nodeMap);
   return { checkedKeys, halfCheckedKeys };
 }
 
@@ -65,26 +76,58 @@ export function applyCascadingCheckChange(
   const nextCheckedSet = new Set(currentCheckedKeys);
 
   if (!shouldCheck) {
-    nextCheckedSet.delete(item.key);
+    if (!item.disabled && !item.disableCheckbox) {
+      nextCheckedSet.delete(item.key);
+    }
     for (const desc of item.descendantKeys) {
-      nextCheckedSet.delete(desc);
+      const descNode = nodeMap.get(desc);
+      if (descNode && !descNode.disabled && !descNode.disableCheckbox) {
+        nextCheckedSet.delete(desc);
+      }
     }
     let parentKey = item.parentKey;
     while (parentKey !== null) {
-      nextCheckedSet.delete(parentKey);
       const parentNode = nodeMap.get(parentKey);
+      if (parentNode && !parentNode.disabled && !parentNode.disableCheckbox) {
+        nextCheckedSet.delete(parentKey);
+      }
       parentKey = parentNode ? parentNode.parentKey : null;
     }
     return nextCheckedSet;
   }
 
-  nextCheckedSet.add(item.key);
+  if (!item.disabled && !item.disableCheckbox) {
+    nextCheckedSet.add(item.key);
+  }
   for (const desc of item.descendantKeys) {
     const descNode = nodeMap.get(desc);
     if (descNode && !descNode.disabled && !descNode.disableCheckbox) {
       nextCheckedSet.add(desc);
     }
   }
+
+  // Promote ancestors bottom-up when checking the last unchecked sibling completes a parent subtree.
+  let parentKey = item.parentKey;
+  while (parentKey !== null) {
+    const parentNode = nodeMap.get(parentKey);
+    if (!parentNode) break;
+    const selectableChildren = parentNode.childrenKeys.filter((ck) => {
+      const child = nodeMap.get(ck);
+      return child && !child.disabled && !child.disableCheckbox;
+    });
+    if (
+      selectableChildren.length > 0 &&
+      selectableChildren.every((ck) => nextCheckedSet.has(ck)) &&
+      !parentNode.disabled &&
+      !parentNode.disableCheckbox
+    ) {
+      nextCheckedSet.add(parentKey);
+    } else {
+      break;
+    }
+    parentKey = parentNode.parentKey;
+  }
+
   return nextCheckedSet;
 }
 
@@ -139,8 +182,9 @@ export function collectMatchedTreeKeys(
   hasSearchFilter: boolean;
   searchExpandedKeys: Set<TreeSelectValue>;
 } {
-  const trimmed = keyword.trim().toLowerCase();
-  if (!trimmed) {
+  const rawTrimmed = keyword.trim();
+  const lowerTrimmed = rawTrimmed.toLowerCase();
+  if (!rawTrimmed) {
     return {
       matchedKeys: new Set<TreeSelectValue>(),
       hasSearchFilter: false,
@@ -152,7 +196,9 @@ export function collectMatchedTreeKeys(
   const autoExpand = new Set<TreeSelectValue>();
 
   for (const [key, node] of nodeMap) {
-    const isMatch = filterTreeNode ? filterTreeNode(trimmed, node.raw) : node.label.toLowerCase().includes(trimmed);
+    const isMatch = filterTreeNode
+      ? filterTreeNode(rawTrimmed, node.raw)
+      : node.label.toLowerCase().includes(lowerTrimmed);
     if (isMatch) {
       matched.add(key);
       for (const pKey of node.path.slice(0, -1)) {

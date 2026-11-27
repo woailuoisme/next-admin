@@ -1,12 +1,16 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { Minus, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { type ChangeEvent, type ReactNode } from "react";
+import { type ChangeEvent, type KeyboardEvent, type ReactNode, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+	InputGroupText,
+} from "@/components/ui/input-group";
 import { cn } from "cn";
 
 import { type BaseInputProps, connectField, type FormFieldRenderProps } from "../core";
@@ -30,6 +34,11 @@ type NumberExtraProps = Pick<
 	"min" | "max" | "step" | "prefix" | "suffix" | "steppers" | "placeholder" | "inputClassName"
 >;
 
+interface NumberEditingState {
+	base: number | null;
+	text: string;
+}
+
 function getDecimalPrecision(num: number): number {
 	const str = String(num);
 	if (str.includes("e-")) {
@@ -45,9 +54,36 @@ function roundWithStepPrecision(next: number, current: number, step: number): nu
 	return Number(next.toFixed(precision));
 }
 
+function sanitizeNumericText(raw: string): string {
+	let cleaned = "";
+	let hasDot = false;
+	for (let i = 0; i < raw.length; i++) {
+		const ch = raw[i];
+		if (ch >= "0" && ch <= "9") {
+			cleaned += ch;
+		} else if (ch === "-" && i === 0 && !cleaned.includes("-")) {
+			cleaned += ch;
+		} else if (ch === "." && !hasDot) {
+			hasDot = true;
+			cleaned += ch;
+		}
+	}
+	return cleaned;
+}
+
+function parseFiniteNumber(raw: string): number | null {
+	if (raw === "" || raw === "-" || raw === "." || raw === "-.") return null;
+	const parsed = Number(raw);
+	return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isRenderableAddon(node: ReactNode): boolean {
+	return node !== undefined && node !== null && node !== false;
+}
+
 function NumberInputControl({
 	id,
-	value,
+	value: rawValue,
 	onChange,
 	onBlur,
 	min,
@@ -58,6 +94,7 @@ function NumberInputControl({
 	steppers = true,
 	disabled,
 	readOnly,
+	required,
 	placeholder = "0",
 	hasError,
 	describedBy,
@@ -65,108 +102,182 @@ function NumberInputControl({
 }: FormFieldRenderProps<number | null> & NumberExtraProps) {
 	const t = useTranslations("form");
 	const isLocked = Boolean(disabled || readOnly);
+	const finiteValue = typeof rawValue === "number" && Number.isFinite(rawValue) ? rawValue : null;
+	const [isFocused, setIsFocused] = useState(false);
+	const [editingState, setEditingState] = useState<NumberEditingState | null>(null);
 
-	const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
-		const raw = e.target.value.trim();
-		if (raw === "") {
-			onChange(null);
+	const activeDraft =
+		isFocused && editingState !== null && Object.is(editingState.base, finiteValue) ? editingState.text : null;
+	const displayValue = activeDraft ?? (finiteValue === null ? "" : String(finiteValue));
+
+	const commitChange = (nextVal: number | null, draftText?: string) => {
+		if (draftText !== undefined) {
+			setEditingState({ base: nextVal, text: draftText });
+		}
+		if (!Object.is(nextVal, finiteValue)) {
+			onChange(nextVal);
+		}
+	};
+
+	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+		if (isLocked) return;
+		const clean = sanitizeNumericText(e.target.value);
+		if (clean === "") {
+			commitChange(null, "");
 			return;
 		}
-		const parsed = Number(raw);
-		if (Number.isFinite(parsed)) {
-			onChange(parsed);
+		const parsed = parseFiniteNumber(clean);
+		if (parsed === null) {
+			// Keep partial numeric draft such as "-" or "1." without clearing the value.
+			setEditingState({ base: finiteValue, text: clean });
+			return;
 		}
-	});
+		commitChange(parsed, clean);
+	};
 
-	const stepUp = useMemoizedFn(() => {
+	const handleFocus = () => {
+		setIsFocused(true);
+		setEditingState({ base: finiteValue, text: finiteValue === null ? "" : String(finiteValue) });
+	};
+
+	const handleBlur = () => {
+		const draftParsed = activeDraft !== null ? parseFiniteNumber(activeDraft) : finiteValue;
+		setIsFocused(false);
+		setEditingState(null);
+
+		if (draftParsed !== null) {
+			let clamped = draftParsed;
+			if (min !== undefined && clamped < min) clamped = min;
+			if (max !== undefined && clamped > max) clamped = max;
+			if (!Object.is(clamped, finiteValue)) {
+				onChange(clamped);
+			}
+		} else if (activeDraft !== null && activeDraft !== "" && finiteValue !== null) {
+			// Revert dangling "-" / "." draft back to the persisted number on blur.
+			setEditingState(null);
+		}
+		onBlur?.();
+	};
+
+	const stepUp = () => {
 		if (isLocked) return;
-		const current = typeof value === "number" && Number.isFinite(value) ? value : 0;
+		const current = finiteValue ?? 0;
 		let next = roundWithStepPrecision(current + step, current, step);
 		if (min !== undefined && next < min) next = min;
 		if (max !== undefined && next > max) {
-			if (typeof value !== "number" && max >= (min ?? -Infinity)) {
+			if (finiteValue === null && max >= (min ?? -Infinity)) {
 				next = max;
 			} else {
 				return;
 			}
 		}
+		setEditingState(null);
 		onChange(next);
-	});
+	};
 
-	const stepDown = useMemoizedFn(() => {
+	const stepDown = () => {
 		if (isLocked) return;
-		const current = typeof value === "number" && Number.isFinite(value) ? value : 0;
+		const current = finiteValue ?? 0;
 		let next = roundWithStepPrecision(current - step, current, step);
 		if (max !== undefined && next > max) next = max;
 		if (min !== undefined && next < min) {
-			if (typeof value !== "number" && min <= (max ?? Infinity)) {
+			if (finiteValue === null && min <= (max ?? Infinity)) {
 				next = min;
 			} else {
 				return;
 			}
 		}
+		setEditingState(null);
 		onChange(next);
-	});
+	};
+
+	const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+		if (isLocked) return;
+		if (e.key === "ArrowUp") {
+			e.preventDefault();
+			stepUp();
+		} else if (e.key === "ArrowDown") {
+			e.preventDefault();
+			stepDown();
+		}
+	};
+
+	const hasPrefix = isRenderableAddon(prefix);
+	const hasSuffix = isRenderableAddon(suffix);
+	const showSteppers = steppers && !isLocked;
+	const decreaseDisabled = finiteValue !== null && min !== undefined && finiteValue <= min;
+	const increaseDisabled = finiteValue !== null && max !== undefined && finiteValue >= max;
 
 	return (
-		<div className="relative flex w-full items-center">
-			{prefix && (
-				<span className="text-muted-foreground pointer-events-none absolute left-2.5 text-xs select-none">
-					{prefix}
-				</span>
-			)}
-			<Input
+		<InputGroup className="w-full">
+			{hasPrefix ? (
+				<InputGroupAddon align="inline-start">
+					{typeof prefix === "string" || typeof prefix === "number" ? (
+						<InputGroupText>{prefix}</InputGroupText>
+					) : (
+						prefix
+					)}
+				</InputGroupAddon>
+			) : null}
+
+			<InputGroupInput
 				id={id}
-				type="number"
-				min={min}
-				max={max}
-				step={step}
-				value={value ?? ""}
+				type="text"
+				inputMode="decimal"
+				role="spinbutton"
+				aria-valuemin={min}
+				aria-valuemax={max}
+				aria-valuenow={finiteValue ?? undefined}
+				aria-invalid={hasError}
+				aria-required={required}
+				aria-describedby={describedBy}
+				value={displayValue}
 				onChange={handleInputChange}
-				onBlur={onBlur}
+				onFocus={handleFocus}
+				onBlur={handleBlur}
+				onKeyDown={handleKeyDown}
 				disabled={disabled}
 				readOnly={readOnly}
+
 				placeholder={placeholder}
-				aria-invalid={hasError}
-				aria-describedby={describedBy}
-				className={cn(
-					"h-8 [appearance:textfield] font-mono text-xs tabular-nums [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-					prefix && "pl-7",
-					(suffix || steppers) && "pr-16",
-					hasError && "border-destructive focus-visible:ring-destructive/20",
-					inputClassName,
-				)}
+				className={cn("font-mono text-xs tabular-nums", inputClassName)}
 			/>
-			<div className="absolute right-1 flex items-center gap-0.5">
-				{suffix && <span className="text-muted-foreground pointer-events-none mr-1 text-xs select-none">{suffix}</span>}
-				{steppers && !isLocked && (
-					<>
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon-xs"
-							aria-label={t("number_decrease")}
-							onClick={stepDown}
-							disabled={min !== undefined && (value ?? 0) <= min}
-							className="text-muted-foreground hover:text-foreground size-6 cursor-pointer"
-						>
-							<Minus aria-hidden="true" className="size-3" />
-						</Button>
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon-xs"
-							aria-label={t("number_increase")}
-							onClick={stepUp}
-							disabled={max !== undefined && (value ?? 0) >= max}
-							className="text-muted-foreground hover:text-foreground size-6 cursor-pointer"
-						>
-							<Plus aria-hidden="true" className="size-3" />
-						</Button>
-					</>
-				)}
-			</div>
-		</div>
+
+			{hasSuffix ? (
+				<InputGroupAddon align="inline-end">
+					{typeof suffix === "string" || typeof suffix === "number" ? (
+						<InputGroupText>{suffix}</InputGroupText>
+					) : (
+						suffix
+					)}
+				</InputGroupAddon>
+			) : null}
+
+			{showSteppers ? (
+				<InputGroupAddon align="inline-end" className="gap-0.5 pr-1">
+					<InputGroupButton
+						type="button"
+						variant="ghost"
+						size="icon-xs"
+						aria-label={t("number_decrease")}
+						onClick={stepDown}
+						disabled={decreaseDisabled}
+					>
+						<Minus aria-hidden="true" className="size-3" />
+					</InputGroupButton>
+					<InputGroupButton
+						type="button"
+						variant="ghost"
+						size="icon-xs"
+						aria-label={t("number_increase")}
+						onClick={stepUp}
+						disabled={increaseDisabled}
+					>
+						<Plus aria-hidden="true" className="size-3" />
+					</InputGroupButton>
+				</InputGroupAddon>
+			) : null}
+		</InputGroup>
 	);
 }
 

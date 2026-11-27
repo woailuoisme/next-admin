@@ -1,6 +1,7 @@
 "use client";
 
-import { connectField, type KeyValuePair } from "../../core";
+import { connectField, type KeyValuePair } from "@/components/form/core";
+
 import { KeyValueControl } from "./KeyValueControl";
 import type { KeyValueInputProps } from "./types";
 
@@ -8,7 +9,7 @@ const EMPTY_RECORD: Record<string, string> = {};
 
 type KeyValueExtraProps = Omit<
 	KeyValueInputProps,
-	"value" | "defaultValue" | "onChange" | "onBlur" | keyof import("../../core").BaseInputProps
+	"value" | "defaultValue" | "onChange" | "onBlur" | keyof import("@/components/form/core").BaseInputProps
 >;
 
 export const KeyValueInput = connectField<Record<string, string> | KeyValuePair[], KeyValueExtraProps>(

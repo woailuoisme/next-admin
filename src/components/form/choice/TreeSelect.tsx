@@ -1,14 +1,13 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { type ReactNode, useId } from "react";
+import { type KeyboardEvent, type ReactNode, useId } from "react";
 
-import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Popover, PopoverContent } from "@/components/ui/popover";
 import { cn } from "cn";
 
-import { FieldClearButton } from "../core";
 import type { ShowCheckedStrategy, TreeSelectFieldNames, TreeSelectNode, TreeSelectValue } from "./treeEngine";
 import { TreeNodeRow } from "./TreeNodeRow";
 import { TreeSelectTrigger } from "./TreeSelectTrigger";
@@ -133,6 +132,28 @@ export function TreeSelect({
 	const expandLabel = t("treeselect_expand_node");
 	const collapseLabel = t("treeselect_collapse_node");
 
+	const handleTreeKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+		const actions = Array.from(e.currentTarget.querySelectorAll<HTMLElement>("[data-treeitem-action]")).filter(
+			(el) => !el.hasAttribute("disabled"),
+		);
+		if (actions.length === 0) return;
+		const currentIndex = actions.indexOf(document.activeElement as HTMLElement);
+
+		if (e.key === "ArrowDown") {
+			e.preventDefault();
+			actions[(currentIndex + 1) % actions.length]?.focus();
+		} else if (e.key === "ArrowUp") {
+			e.preventDefault();
+			actions[currentIndex <= 0 ? actions.length - 1 : currentIndex - 1]?.focus();
+		} else if (e.key === "Home") {
+			e.preventDefault();
+			actions[0]?.focus();
+		} else if (e.key === "End") {
+			e.preventDefault();
+			actions[actions.length - 1]?.focus();
+		}
+	};
+
 	return (
 		<Popover open={state.open} onOpenChange={state.handleOpenChange}>
 			<TreeSelectTrigger
@@ -169,28 +190,43 @@ export function TreeSelect({
 					popupClassName,
 				)}
 			>
-				{showSearch && (
-					<div className="border-border/60 relative flex items-center border-b px-2.5 py-2">
-						<Search aria-hidden="true" className="text-muted-foreground pointer-events-none mr-1.5 size-3.5 shrink-0" />
-						<Input
-							type="text"
-							value={state.searchValue}
-							onChange={(e) => state.setSearchValue(e.target.value)}
-							aria-label={searchPlaceholder}
-							placeholder={searchPlaceholder}
-							className="h-7 flex-1 border-0 bg-transparent px-1 pr-6 text-xs shadow-none focus-visible:ring-0"
-						/>
-						{state.searchValue && (
-							<FieldClearButton
-								onClick={() => state.setSearchValue("")}
-								ariaLabel={t("treeselect_clear_search")}
-								className="absolute right-2.5"
+				{showSearch ? (
+					<div className="border-border/60 border-b p-2">
+						<InputGroup>
+							<InputGroupAddon align="inline-start">
+								<Search aria-hidden="true" className="size-3.5" />
+							</InputGroupAddon>
+							<InputGroupInput
+								type="text"
+								value={state.searchValue}
+								onChange={(e) => state.setSearchValue(e.target.value)}
+								aria-label={searchPlaceholder}
+								placeholder={searchPlaceholder}
+								className="text-xs"
 							/>
-						)}
+							{state.searchValue ? (
+								<InputGroupAddon align="inline-end">
+									<InputGroupButton
+										type="button"
+										size="icon-xs"
+										variant="ghost"
+										onClick={() => state.setSearchValue("")}
+										aria-label={t("treeselect_clear_search")}
+									>
+										<X className="size-3" aria-hidden="true" />
+									</InputGroupButton>
+								</InputGroupAddon>
+							) : null}
+						</InputGroup>
 					</div>
-				)}
+				) : null}
 
-				<div className="max-h-72 scrollbar-thin overflow-y-auto p-1.5" role="tree">
+				<div
+					className="max-h-72 scrollbar-thin overflow-y-auto p-1.5"
+					role="tree"
+					aria-multiselectable={state.isMultiple || undefined}
+					onKeyDown={handleTreeKeyDown}
+				>
 					{state.rootKeys.length === 0 ? (
 						<div className="text-muted-foreground py-6 text-center text-xs">{emptyText}</div>
 					) : (
@@ -206,6 +242,7 @@ export function TreeSelect({
 									halfCheckedKeys={state.halfCheckedKeys}
 									selectedKeysSet={state.selectedKeysSet}
 									matchedKeys={state.matchedKeys}
+									searchExpandedKeys={state.searchExpandedKeys}
 									hasSearchFilter={state.hasSearchFilter}
 									searchKeyword={state.searchKeyword}
 									isMultiple={state.isMultiple}
@@ -215,13 +252,14 @@ export function TreeSelect({
 									hasLoadData={Boolean(loadData)}
 									expandLabel={expandLabel}
 									collapseLabel={collapseLabel}
+									onCheckNode={state.handleCheckNode}
 									onSelectNode={state.handleSelectNode}
 									onToggleExpand={state.handleToggleExpand}
 								/>
 							))}
-							{state.hasSearchFilter && state.matchedKeys.size === 0 && (
+							{state.hasSearchFilter && state.matchedKeys.size === 0 ? (
 								<div className="text-muted-foreground py-6 text-center text-xs">{emptyText}</div>
-							)}
+							) : null}
 						</>
 					)}
 				</div>

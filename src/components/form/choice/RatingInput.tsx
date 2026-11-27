@@ -1,14 +1,12 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ComponentType, type KeyboardEvent, type MouseEvent, useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 
-import { type BaseInputProps, connectField } from "../core";
+import { type BaseInputProps, connectField, type FormFieldRenderProps } from "../core";
 
 export interface RatingInputProps extends BaseInputProps {
 	value?: number | null;
@@ -24,34 +22,33 @@ export interface RatingInputProps extends BaseInputProps {
 	icon?: ComponentType<{ className?: string }>;
 }
 
-interface RatingControlProps {
-	id: string;
-	value?: number | null;
-	onChange: (value: number | null) => void;
-	onBlur?: () => void;
-	count?: number;
-	allowHalf?: boolean;
-	allowClear?: boolean;
-	tooltips?: string[];
-	showScore?: boolean;
-	size?: "sm" | "md" | "lg";
-	icon?: ComponentType<{ className?: string }>;
-	disabled?: boolean;
-	readOnly?: boolean;
-	hasError?: boolean;
-	describedBy?: string;
-}
+type RatingExtraProps = Pick<
+	RatingInputProps,
+	"count" | "allowHalf" | "allowClear" | "tooltips" | "showScore" | "size" | "icon"
+>;
 
 const SIZE_MAP = {
 	sm: "size-4",
 	md: "size-5",
 	lg: "size-6",
-};
+} as const;
 
 const RATING_STAR_CLASSES = {
 	empty: "text-muted-foreground/30 transition-colors",
 	filled: "fill-chart-4 text-chart-4 transition-colors",
 } as const;
+
+function computePointerScore(starIndex: number, allowHalf: boolean, e: MouseEvent<HTMLElement>): number {
+	if (!allowHalf || e.detail === 0) {
+		return starIndex;
+	}
+	const rect = e.currentTarget.getBoundingClientRect();
+	if (rect.width <= 0) {
+		return starIndex;
+	}
+	const isLeftHalf = e.clientX - rect.left < rect.width / 2;
+	return isLeftHalf ? starIndex - 0.5 : starIndex;
+}
 
 function RatingControl({
 	id,
@@ -69,60 +66,64 @@ function RatingControl({
 	readOnly = false,
 	hasError,
 	describedBy,
-}: RatingControlProps) {
+}: FormFieldRenderProps<number | null> & RatingExtraProps) {
 	const t = useTranslations("form");
 	const [hoverValue, setHoverValue] = useState<number | null>(null);
 
-	const activeValue = hoverValue ?? value ?? 0;
+	const committedValue = typeof value === "number" && Number.isFinite(value) ? value : null;
+	const activeValue = hoverValue ?? committedValue ?? 0;
 	const iconSize = SIZE_MAP[size];
 
-	const handleItemMouseMove = useMemoizedFn((index: number, e: MouseEvent<HTMLButtonElement>) => {
+	const handleItemMouseMove = (index: number, e: MouseEvent<HTMLSpanElement>) => {
 		if (disabled || readOnly) return;
-		if (allowHalf) {
-			const rect = e.currentTarget.getBoundingClientRect();
-			const isLeftHalf = e.clientX - rect.left < rect.width / 2;
-			setHoverValue(isLeftHalf ? index - 0.5 : index);
-		} else {
-			setHoverValue(index);
-		}
-	});
+		setHoverValue(computePointerScore(index, allowHalf, e));
+	};
 
-	const handleMouseLeave = useMemoizedFn(() => {
+	const handleMouseLeave = () => {
 		if (disabled || readOnly) return;
 		setHoverValue(null);
-	});
+	};
 
-	const handleClick = useMemoizedFn((score: number) => {
+	const handleItemClick = (starIndex: number, e: MouseEvent<HTMLSpanElement>) => {
 		if (disabled || readOnly) return;
-		if (allowClear && value === score) {
+		const score = computePointerScore(starIndex, allowHalf, e);
+		if (allowClear && committedValue === score) {
 			onChange(null);
 			setHoverValue(null);
 		} else {
 			onChange(score);
 		}
-	});
+	};
 
-	const handleKeyDown = useMemoizedFn((e: KeyboardEvent<HTMLDivElement>) => {
+	const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
 		if (disabled || readOnly) return;
 		const step = allowHalf ? 0.5 : 1;
-		const current = value ?? 0;
+		const current = committedValue ?? 0;
 
 		if (e.key === "ArrowRight" || e.key === "ArrowUp") {
 			e.preventDefault();
-			const next = Math.min(count, current + step);
-			onChange(next);
+			onChange(Math.min(count, current + step));
 		} else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
 			e.preventDefault();
 			const next = Math.max(0, current - step);
 			onChange(next === 0 && allowClear ? null : next);
+		} else if (e.key === "Home") {
+			e.preventDefault();
+			onChange(allowClear ? null : 0);
+		} else if (e.key === "End") {
+			e.preventDefault();
+			onChange(count);
 		} else if (e.key === "Escape" && allowClear) {
 			e.preventDefault();
 			onChange(null);
 		}
-	});
+	};
 
 	const stars = Array.from({ length: count }, (_, i) => i + 1);
 	const currentTooltip = tooltips && activeValue > 0 ? tooltips[Math.ceil(activeValue) - 1] : null;
+	const committedTooltip =
+		tooltips && committedValue && committedValue > 0 ? tooltips[Math.ceil(committedValue) - 1] : null;
+	const valueText = committedTooltip ?? t("rating_of", { value: committedValue ?? 0, count });
 
 	return (
 		<div
@@ -130,17 +131,18 @@ function RatingControl({
 			role="slider"
 			aria-valuemin={0}
 			aria-valuemax={count}
-			aria-valuenow={activeValue}
-			aria-disabled={disabled}
-			aria-readonly={readOnly}
-			aria-invalid={hasError}
+			aria-valuenow={committedValue ?? 0}
+			aria-valuetext={valueText}
+			aria-disabled={disabled || undefined}
+			aria-readonly={readOnly || undefined}
+			aria-invalid={hasError || undefined}
 			aria-describedby={describedBy}
-			tabIndex={disabled || readOnly ? -1 : 0}
+			tabIndex={disabled ? -1 : 0}
 			onKeyDown={handleKeyDown}
 			onBlur={onBlur}
 			onMouseLeave={handleMouseLeave}
 			className={cn(
-				"inline-flex items-center gap-2 rounded-md py-1 outline-none focus-visible:ring-1 focus-visible:ring-ring",
+				"focus-visible:ring-ring inline-flex items-center gap-2 rounded-lg py-1 outline-none focus-visible:ring-2",
 				disabled && "pointer-events-none cursor-not-allowed opacity-50",
 				readOnly && "cursor-default",
 				hasError && "text-destructive",
@@ -151,34 +153,32 @@ function RatingControl({
 					const fillPercentage = Math.max(0, Math.min(100, (activeValue - (starIndex - 1)) * 100));
 
 					return (
-						<Button
+						<span
 							key={starIndex}
-							type="button"
-							variant="ghost"
-							size="icon-xs"
-							tabIndex={-1}
-							disabled={disabled || readOnly}
+							role="presentation"
+							title={t("rating_of", { value: starIndex, count })}
 							onMouseMove={(e) => handleItemMouseMove(starIndex, e)}
-							onClick={() => handleClick(hoverValue ?? starIndex)}
+							onClick={(e) => handleItemClick(starIndex, e)}
 							className={cn(
-								"relative inline-flex size-auto items-center justify-center p-0.5 transition-transform hover:scale-110 hover:bg-transparent focus:outline-none",
+								"relative inline-flex items-center justify-center p-0.5 transition-transform hover:scale-110 select-none",
 								!disabled && !readOnly && "cursor-pointer",
 							)}
-							aria-label={t("rating_of", { value: starIndex, count })}
 						>
-							<CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.empty)} aria-hidden="true" />
+							<span className="relative inline-flex items-center justify-center">
+								<CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.empty)} aria-hidden="true" />
 
-							{fillPercentage > 0 && (
-								<div className="absolute inset-0 overflow-hidden p-0.5" style={{ width: `${fillPercentage}%` }}>
-									<CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.filled)} aria-hidden="true" />
-								</div>
-							)}
-						</Button>
+								{fillPercentage > 0 ? (
+									<span className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${fillPercentage}%` }}>
+										<CustomIcon className={cn(iconSize, RATING_STAR_CLASSES.filled)} aria-hidden="true" />
+									</span>
+								) : null}
+							</span>
+						</span>
 					);
 				})}
 			</div>
 
-			{(showScore || currentTooltip) && (
+			{showScore || currentTooltip ? (
 				<span className="text-muted-foreground text-xs font-medium select-none">
 					{currentTooltip ? (
 						<span>{currentTooltip}</span>
@@ -188,14 +188,9 @@ function RatingControl({
 						</span>
 					)}
 				</span>
-			)}
+			) : null}
 		</div>
 	);
 }
-
-type RatingExtraProps = Pick<
-	RatingInputProps,
-	"count" | "allowHalf" | "allowClear" | "tooltips" | "showScore" | "size" | "icon"
->;
 
 export const RatingInput = connectField<number | null, RatingExtraProps>(RatingControl);

@@ -14,6 +14,7 @@ import { CheckboxGroup, CheckboxInput } from "@/components/form/choice/CheckboxG
 import { ComboboxInput } from "@/components/form/choice/ComboboxInput";
 import { RadioGroupInput } from "@/components/form/choice/RadioGroupInput";
 import { SwitchInput } from "@/components/form/choice/SwitchInput";
+import { TagsInput } from "@/components/form/choice/TagsInput";
 import { TreeSelectInput } from "@/components/form/choice/TreeSelectInput";
 import { CurrencyInput } from "@/components/form/finance/CurrencyInput";
 import { Section } from "@/components/shared/layout";
@@ -505,5 +506,55 @@ describe("TreeSelect & Cascader A11y & Keyboard Clear", () => {
 		);
 		fireEvent.submit(screen.getByLabelText("Field A").closest("form")!);
 		expect(onSubmit).toHaveBeenCalledTimes(1);
+	});
+
+	it("preserves partial CurrencyInput typing, rounds decimals, clamps on blur, and guards TagsInput IME & maxTags=0", () => {
+		const onCurrencyChange = vi.fn();
+		const onTagsChange = vi.fn();
+
+		function ControlledBudget() {
+			const [val, setVal] = useState<number | null>(null);
+			return (
+				<CurrencyInput
+					name="budget"
+					label="Budget"
+					min={0}
+					max={100}
+					decimals={2}
+					allowNegative
+					value={val}
+					onChange={(next) => {
+						setVal(next);
+						onCurrencyChange(next);
+					}}
+				/>
+			);
+		}
+
+		renderWithProviders(
+			<>
+				<ControlledBudget />
+				<TagsInput name="labels" label="Labels" maxTags={0} value={[]} onChange={onTagsChange} />
+			</>,
+			{ locale: "en" },
+		);
+
+		const budgetInput = screen.getByLabelText("Budget") as HTMLInputElement;
+		fireEvent.focus(budgetInput);
+		fireEvent.change(budgetInput, { target: { value: "-" } });
+		expect(budgetInput.value).toBe("-");
+		expect(onCurrencyChange).not.toHaveBeenCalled();
+
+		fireEvent.change(budgetInput, { target: { value: "123.456" } });
+		expect(onCurrencyChange).toHaveBeenLastCalledWith(123.46);
+		fireEvent.blur(budgetInput);
+		expect(onCurrencyChange).toHaveBeenLastCalledWith(100);
+
+		const tagsInput = screen.getByLabelText("Labels") as HTMLInputElement;
+		expect(tagsInput).toBeInTheDocument();
+		fireEvent.change(tagsInput, { target: { value: "react" } });
+		fireEvent.keyDown(tagsInput, { key: "Enter", isComposing: true });
+		fireEvent.keyDown(tagsInput, { key: "Enter" });
+		expect(onTagsChange).not.toHaveBeenCalled();
 	});
 });

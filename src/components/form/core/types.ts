@@ -1,5 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
 
+import type { ColSpan, ColumnsCount, GridColumns, GridGap, ResponsiveColumns } from "@/components/shared/grid";
+
 /**
  * 全仓唯一表单实例结构契约（统一收敛 `useAppForm` 返回值、Resource/Action/Dialog 宿主与测试替身）。
  * 采用方法语法保证泛型字段路径下的双变兼容性。
@@ -14,7 +16,7 @@ export interface AppFormContract {
   getFieldValue?(field: any): unknown;
   setFieldValue?(field: any, value: any, opts?: { dontUpdateMeta?: boolean }): void;
   store?: {
-    get(): { isDirty?: boolean; values?: Record<string, any> } | undefined;
+    get(): { isDirty?: boolean; values?: Record<string, any> };
     subscribe(listener: (value: any) => void): { unsubscribe(): void };
   };
   state?: {
@@ -25,8 +27,6 @@ export interface AppFormContract {
     defaultValues?: unknown;
   };
 }
-
-import type { ColSpan, ColumnsCount, GridColumns, GridGap, ResponsiveColumns } from "@/components/shared/grid";
 
 export type { ColSpan, ColumnsCount, GridColumns, GridGap, ResponsiveColumns };
 
@@ -58,6 +58,8 @@ export interface FieldWrapperProps {
   className?: string;
   /** 是否隐藏整个字段容器 */
   hidden?: boolean;
+  /** 是否处于禁用态（用于控制标签与描述样式） */
+  disabled?: boolean;
   children?: ReactNode;
 }
 
@@ -90,8 +92,8 @@ export interface ToggleButtonOption {
 }
 
 export interface DateRangeValue {
-  from?: Date;
-  to?: Date;
+  from?: Date | string;
+  to?: Date | string;
 }
 
 export interface KeyValuePair {

@@ -1,1 +1,1 @@
-export * from "./CurrencyInput";
+export { CurrencyInput, type CurrencyInputProps } from "./CurrencyInput";

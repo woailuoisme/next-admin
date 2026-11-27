@@ -1,6 +1,6 @@
 import type { UploadAdapter } from "@uploadcn/core";
 
-import type { BaseInputProps } from "../../core";
+import type { BaseInputProps } from "@/components/form/core";
 
 export type FileUploadValue = string | string[];
 

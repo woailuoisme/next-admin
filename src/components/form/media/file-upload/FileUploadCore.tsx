@@ -5,10 +5,11 @@ import { shallowArrayEqual, useUploadValue, useUploader } from "@uploadcn/react"
 import { cn } from "cn";
 import { DownloadIcon, FileIcon, Trash2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { type FocusEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { AvatarUpload } from "@/components/avatar-upload";
 import { FileUpload } from "@/components/file-upload";
+import { createContainerBlurHandler } from "@/components/form/core";
 import { sanitizeMediaUrl } from "@/components/shared/url";
 import { Button, buttonVariants } from "@/components/ui/button";
 
@@ -16,6 +17,7 @@ import type { FileUploadCoreProps } from "./types";
 import {
 	DEFAULT_MAX_FILES,
 	DEFAULT_MAX_SIZE,
+	formatBytes,
 	formatFormValue,
 	getFileNameFromUrl,
 	getItemResultUrl,
@@ -48,29 +50,74 @@ function GridFileUpload({
 	const t = useTranslations("form");
 	const isInteractive = !disabled && !readOnly;
 	const isSingleMode = !multiple;
-	const resolvedMaxFiles = isSingleMode ? 1 : maxFiles;
 	const resolvedAdapter = adapter ?? (endpoint ? httpAdapter({ url: endpoint, headers }) : undefined);
+
+	const [sessionUrls, setSessionUrls] = useState<string[]>([]);
+	const [sessionMimeByUrl, setSessionMimeByUrl] = useState<Record<string, string>>({});
+	const createdBlobUrlsRef = useRef<Set<string>>(new Set());
+
+	const rawUrls = normalizeUrls(value);
+	const persistedUrlsPreview = isSingleMode ? rawUrls : rawUrls.filter((url) => !sessionUrls.includes(url));
+	const remainingMaxFiles = isSingleMode ? 1 : Math.max(0, maxFiles - persistedUrlsPreview.length);
 
 	const uploader = useUploader({
 		adapter: resolvedAdapter,
 		accept,
-		maxFiles: resolvedMaxFiles,
+		maxFiles: remainingMaxFiles,
 		maxSize,
 	});
 	const uploadedUrls = useUploadValue(uploader, getItemResultUrl);
-	const [sessionUrls, setSessionUrls] = useState<string[]>([]);
 	const prevUploadedRef = useRef<string[]>(uploadedUrls);
 
-	useEffect(() => {
-		return uploader.on("success", ({ item }) => {
-			const url = getItemResultUrl(item);
-			if (url) {
-				setSessionUrls((prev) => (prev.includes(url) ? prev : [...prev, url]));
-			}
-		});
-	}, [uploader]);
+	const revokeBlobIfOwned = (url: string) => {
+		if (url.startsWith("blob:") && createdBlobUrlsRef.current.has(url)) {
+			URL.revokeObjectURL(url);
+			createdBlobUrlsRef.current.delete(url);
+		}
+	};
 
-	const rawUrls = normalizeUrls(value);
+	useEffect(() => {
+		const unsubSuccess = uploader.on("success", ({ item }) => {
+			const url = getItemResultUrl(item);
+			if (!url) return;
+			if (url.startsWith("blob:") && !adapter && !endpoint) {
+				createdBlobUrlsRef.current.add(url);
+			}
+			const fileType = item.file?.type;
+			if (fileType) {
+				setSessionMimeByUrl((prev) => (prev[url] === fileType ? prev : { ...prev, [url]: fileType }));
+			}
+			setSessionUrls((prev) => (prev.includes(url) ? prev : [...prev, url]));
+		});
+
+		const unsubRemove = uploader.on("remove", ({ item }) => {
+			const url = getItemResultUrl(item);
+			if (!url) return;
+			revokeBlobIfOwned(url);
+			setSessionMimeByUrl((prev) => {
+				if (!(url in prev)) return prev;
+				const next = { ...prev };
+				delete next[url];
+				return next;
+			});
+		});
+
+		return () => {
+			unsubSuccess();
+			unsubRemove();
+		};
+	}, [adapter, endpoint, uploader]);
+
+	useEffect(() => {
+		const owned = createdBlobUrlsRef.current;
+		return () => {
+			for (const url of owned) {
+				URL.revokeObjectURL(url);
+			}
+			owned.clear();
+		};
+	}, []);
+
 	const persistedUrls =
 		isSingleMode && uploadedUrls.length > 0 ? [] : rawUrls.filter((url) => !sessionUrls.includes(url));
 
@@ -81,13 +128,10 @@ function GridFileUpload({
 		onChange(formatFormValue(basePersisted, uploadedUrls, isSingleMode));
 	}, [isSingleMode, onChange, sessionUrls, uploadedUrls, value]);
 
-	const handleContainerBlur = (event: FocusEvent<HTMLDivElement>) => {
-		if (!onBlur) return;
-		const nextTarget = event.relatedTarget as Node | null;
-		if (!nextTarget || !event.currentTarget.contains(nextTarget)) {
-			onBlur();
-		}
-	};
+	const descParts = [
+		accept ? t("upload_supported_formats", { accept }) : t("upload_all_formats"),
+		maxSize ? t("upload_max_size", { size: formatBytes(maxSize) }) : null,
+	].filter(Boolean);
 
 	return (
 		<div
@@ -95,24 +139,28 @@ function GridFileUpload({
 			aria-describedby={describedBy}
 			aria-invalid={hasError || undefined}
 			aria-disabled={!isInteractive || undefined}
-			onBlur={handleContainerBlur}
-			className={cn("space-y-3", !isInteractive && "pointer-events-none opacity-60", className)}
+			inert={!isInteractive || undefined}
+			onBlur={createContainerBlurHandler(onBlur)}
+			className={cn("flex flex-col gap-3", !isInteractive && "pointer-events-none opacity-60", className)}
 		>
 			<FileUpload
 				uploader={uploader}
 				accept={accept}
-				maxFiles={resolvedMaxFiles}
+				maxFiles={remainingMaxFiles}
 				maxSize={maxSize}
-				paste={paste}
+				disabled={!isInteractive}
+				paste={isInteractive ? paste : false}
+				title={t("upload_dropzone_title")}
+				description={descParts.join(" · ")}
 				className={dropzoneClassName}
 			/>
 
-			{persistedUrls.length > 0 && (
-				<div className="space-y-2">
+			{persistedUrls.length > 0 ? (
+				<div className="flex flex-col gap-2">
 					{persistedUrls.map((rawUrl) => {
 						const safeUrl = sanitizeMediaUrl(rawUrl, { allowDataImage: true });
 						const fileName = getFileNameFromUrl(rawUrl);
-						const showThumb = Boolean(safeUrl) && isImageUrl(rawUrl);
+						const showThumb = Boolean(safeUrl) && isImageUrl(rawUrl, sessionMimeByUrl[rawUrl]);
 
 						return (
 							<div
@@ -121,7 +169,6 @@ function GridFileUpload({
 							>
 								<div className="bg-muted/50 flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md">
 									{showThumb && safeUrl ? (
-										// eslint-disable-next-line @next/next/no-img-element -- sanitized persisted image preview
 										<img src={safeUrl} alt={fileName} className="size-full object-cover" />
 									) : (
 										<FileIcon className="text-muted-foreground size-4" aria-hidden="true" />
@@ -133,11 +180,10 @@ function GridFileUpload({
 								</span>
 
 								<div className="flex items-center gap-1">
-									{showDownload && safeUrl && (
+									{showDownload && safeUrl ? (
 										<a
 											href={safeUrl}
 											download={fileName}
-											target="_blank"
 											rel="noopener noreferrer"
 											title={t("upload_download")}
 											aria-label={t("upload_download")}
@@ -148,14 +194,15 @@ function GridFileUpload({
 										>
 											<DownloadIcon className="size-3.5" aria-hidden="true" />
 										</a>
-									)}
+									) : null}
 
-									{showRemove && isInteractive && (
+									{showRemove && isInteractive ? (
 										<Button
 											type="button"
 											variant="ghost"
 											size="icon-xs"
 											onClick={() => {
+												revokeBlobIfOwned(rawUrl);
 												const nextPersisted = persistedUrls.filter((item) => item !== rawUrl);
 												onChange(formatFormValue(nextPersisted, uploadedUrls, isSingleMode));
 											}}
@@ -165,13 +212,13 @@ function GridFileUpload({
 										>
 											<Trash2Icon className="size-3.5" aria-hidden="true" />
 										</Button>
-									)}
+									) : null}
 								</div>
 							</div>
 						);
 					})}
 				</div>
-			)}
+			) : null}
 		</div>
 	);
 }
@@ -188,21 +235,14 @@ export function FileUploadCore(props: FileUploadCoreProps) {
 		const rawAvatar = normalizeUrls(props.value)[0];
 		const safeAvatarSrc = rawAvatar ? sanitizeMediaUrl(rawAvatar, { allowDataImage: true }) : null;
 
-		const handleContainerBlur = (event: FocusEvent<HTMLDivElement>) => {
-			if (!props.onBlur) return;
-			const nextTarget = event.relatedTarget as Node | null;
-			if (!nextTarget || !event.currentTarget.contains(nextTarget)) {
-				props.onBlur();
-			}
-		};
-
 		return (
 			<div
 				id={props.id}
 				aria-describedby={props.describedBy}
 				aria-invalid={props.hasError || undefined}
 				aria-disabled={!isInteractive || undefined}
-				onBlur={handleContainerBlur}
+				inert={!isInteractive || undefined}
+				onBlur={createContainerBlurHandler(props.onBlur)}
 				className={cn(!isInteractive && "pointer-events-none opacity-60", props.className)}
 			>
 				<AvatarUpload

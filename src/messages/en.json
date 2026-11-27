@@ -404,6 +404,7 @@
     "upload_error_max_files": "Maximum {count} files allowed",
     "upload_failed": "Upload failed",
     "password_empty": "Empty",
+    "password_strength": "Password strength",
     "password_weak": "Weak",
     "password_fair": "Fair",
     "password_good": "Good",
@@ -516,7 +517,14 @@
     "keyvalue_key_label": "Key",
     "keyvalue_value_label": "Value",
     "clear_value": "Clear",
-    "repeater_delete_item": "Delete item"
+    "repeater_delete_item": "Delete item",
+    "currency_selector": "Select currency",
+    "keyvalue_drag_col": "Reorder",
+    "repeater_drag_col": "Reorder",
+    "keyvalue_raw_invalid_object": "JSON must be a plain key-value object",
+    "keyvalue_raw_invalid_env_line": "Line {line} is missing '=' (expected KEY=VALUE)",
+    "keyvalue_raw_empty_env_key": "Line {line} has an empty key",
+    "keyvalue_raw_syntax_error": "Invalid {format} syntax"
   },
   "resource": {
     "back": "Back",

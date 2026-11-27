@@ -1,15 +1,17 @@
 "use client";
 
-import { Copy, GripVertical, MoveDown, MoveUp } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Fragment, isValidElement, type ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "cn";
 
+import { SortableRowSlot } from "../sortableBinding";
+import { RepeaterDragHandle, RepeaterRowActions } from "./RepeaterActions";
 import type { RepeaterItemHelpers } from "./types";
-import { RepeaterDeleteButton, SortableRowSlot, useRepeaterItemShell } from "./useRepeaterItemShell";
+import { useRepeaterItemShell } from "./useRepeaterItemShell";
 
 export interface RepeaterTableRowProps<T> {
 	itemKey: string;
@@ -78,6 +80,7 @@ export const RepeaterTableRow = function RepeaterTableRow<T>({
 	const isFragmentOrTd =
 		isValidElement(rendered) && (rendered.type === Fragment || rendered.type === "td" || rendered.type === TableCell);
 	const rowLabel = `#${index + 1}`;
+	const firstError = Array.isArray(error) ? error[0] : error;
 
 	return (
 		<SortableRowSlot id={itemKey} disabled={disabled || !reorderable}>
@@ -85,92 +88,73 @@ export const RepeaterTableRow = function RepeaterTableRow<T>({
 				<TableRow
 					ref={setNodeRef}
 					style={dragStyle}
+					aria-invalid={hasError || undefined}
 					className={cn(
-						"border-b border-border/40 transition-colors hover:bg-muted/20",
+						"border-border/40 hover:bg-muted/20 border-b transition-colors",
 						hasError && "bg-destructive/5 hover:bg-destructive/10",
-						isDragging && "z-30 bg-muted opacity-75 shadow-md",
+						isDragging && "bg-muted z-30 opacity-75 shadow-md",
 					)}
 				>
 					{reorderable && !disabled ? (
 						<TableCell className="border-border/40 w-8 border-r px-2 py-2 text-center align-middle">
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon-xs"
-								{...dragAttributes}
-								{...dragListeners}
-								aria-label={`${t("repeater_drag_handle")} ${rowLabel}`}
-								className="text-muted-foreground/60 hover:bg-muted/80 hover:text-foreground size-6 cursor-grab active:cursor-grabbing"
-							>
-								<GripVertical className="size-3.5" />
-							</Button>
+							<RepeaterDragHandle
+								ariaLabel={`${t("repeater_drag_handle")} ${rowLabel}`}
+								dragAttributes={dragAttributes}
+								dragListeners={dragListeners}
+							/>
 						</TableCell>
 					) : null}
 
-					{isFragmentOrTd ? rendered : <TableCell className="px-3 py-2 align-middle">{rendered}</TableCell>}
-
-					{hasActionCol && (
-						<TableCell className="border-border/40 w-24 shrink-0 border-l px-2 py-2 text-right align-middle">
-							<div className="flex items-center justify-end gap-0.5">
-								{canDuplicate && !disabled ? (
-									<Button
-										type="button"
-										variant="ghost"
-										size="icon-xs"
-										onClick={handleDuplicate}
-										className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer"
-										title={t("repeater_duplicate")}
-										aria-label={`${t("repeater_duplicate")} ${rowLabel}`}
-									>
-										<Copy aria-hidden="true" className="size-3" />
-									</Button>
-								) : null}
-
-								{reorderable && !disabled ? (
-									<>
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon-xs"
-											onClick={handleMoveUp}
-											disabled={isFirst}
-											className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer disabled:opacity-30"
-											title={t("repeater_move_up")}
-											aria-label={`${t("repeater_move_up")} ${rowLabel}`}
-										>
-											<MoveUp aria-hidden="true" className="size-3" />
-										</Button>
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon-xs"
-											onClick={handleMoveDown}
-											disabled={isLast}
-											className="text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-pointer disabled:opacity-30"
-											title={t("repeater_move_down")}
-											aria-label={`${t("repeater_move_down")} ${rowLabel}`}
-										>
-											<MoveDown aria-hidden="true" className="size-3" />
-										</Button>
-									</>
-								) : null}
-
-								{canDelete && !disabled ? (
-									<RepeaterDeleteButton
-										confirmDelete={confirmDelete}
-										onConfirmDelete={handleDirectRemove}
-										ariaLabel={`${t("repeater_delete_row")} ${rowLabel}`}
-										title={t("repeater_delete_row")}
-										confirmTitle={t("repeater_confirm_delete_row_title")}
-										confirmDescription={t("repeater_confirm_delete_row_desc")}
-										cancelLabel={t("repeater_cancel")}
-										confirmLabel={t("repeater_confirm_delete_action")}
-										destructiveHighlight
-									/>
+					{isFragmentOrTd ? (
+						rendered
+					) : (
+						<TableCell className="px-3 py-2 align-middle">
+							<div className="flex flex-col gap-1">
+								{rendered}
+								{hasError && firstError ? (
+									<Badge role="alert" variant="destructive" className="w-fit gap-1 px-1.5 text-xs font-normal">
+										<AlertCircle aria-hidden="true" className="size-3" />
+										<span>{firstError}</span>
+									</Badge>
 								) : null}
 							</div>
 						</TableCell>
 					)}
+
+					{hasActionCol ? (
+						<TableCell className="border-border/40 w-24 shrink-0 border-l px-2 py-2 text-right align-middle">
+							<div className="flex items-center justify-end gap-0.5">
+								{isFragmentOrTd && hasError && firstError ? (
+									<Badge
+										role="alert"
+										variant="destructive"
+										title={firstError}
+										className="mr-1 gap-1 px-1.5 text-xs font-normal"
+									>
+										<AlertCircle aria-hidden="true" className="size-3" />
+										<span className="max-w-24 truncate">{firstError}</span>
+									</Badge>
+								) : null}
+								<RepeaterRowActions
+									rowLabel={rowLabel}
+									disabled={disabled}
+									canDuplicate={canDuplicate}
+									reorderable={reorderable}
+									canDelete={canDelete}
+									confirmDelete={confirmDelete}
+									isFirst={isFirst}
+									isLast={isLast}
+									destructiveHighlight
+									confirmTitle={t("repeater_confirm_delete_row_title")}
+									confirmDescription={t("repeater_confirm_delete_row_desc")}
+									onDuplicate={handleDuplicate}
+									onMoveUp={handleMoveUp}
+									onMoveDown={handleMoveDown}
+									onDelete={handleDirectRemove}
+								/>
+							</div>
+						</TableCell>
+					) : null}
 				</TableRow>
 			)}
 		</SortableRowSlot>

@@ -1,8 +1,7 @@
 "use client";
 
+import { Check, Palette, Pipette } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useMemoizedFn } from "ahooks";
-import { Palette, Pipette } from "lucide-react";
 import { type ChangeEvent, type KeyboardEvent, useRef, useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -53,16 +52,21 @@ export function ColorPickerContent({
 
 	const currentText = draft ?? value;
 
-	const handleNativeChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
+	const handleNativeChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setDraft(null);
 		setHexError(null);
 		onChange(e.target.value);
-	});
+	};
 
-	const handleTextInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
+	const handleTextInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const val = normalizeHexInput(e.target.value);
 		setDraft(val);
-		if (val === "" || val === "#") {
+		if (val === "") {
+			setHexError(null);
+			onChange("");
+			return;
+		}
+		if (val === "#") {
 			setHexError(null);
 			return;
 		}
@@ -72,9 +76,9 @@ export function ColorPickerContent({
 		} else {
 			setHexError(t("color_invalid_hex"));
 		}
-	});
+	};
 
-	const handleBlur = useMemoizedFn(() => {
+	const handleBlur = () => {
 		if (draft !== null) {
 			if (isValidHexColor(draft)) {
 				setHexError(null);
@@ -89,37 +93,41 @@ export function ColorPickerContent({
 			}
 		}
 		onBlur?.();
-	});
+	};
 
-	const handleKeyDown = useMemoizedFn((e: KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter") {
 			e.preventDefault();
 			if (draft !== null && isValidHexColor(draft)) {
 				setHexError(null);
 				onChange(draft);
 				setDraft(null);
-			} else if (draft !== null && draft !== "" && draft !== "#") {
+			} else if (draft === "" || draft === "#") {
+				setHexError(null);
+				onChange("");
+				setDraft(null);
+			} else if (draft !== null) {
 				setHexError(t("color_invalid_hex"));
 			}
 		}
-	});
+	};
 
-	const handleSelectPreset = useMemoizedFn((color: string) => {
+	const handleSelectPreset = (color: string) => {
 		setDraft(null);
 		setHexError(null);
 		onChange(color);
-	});
+	};
 
-	const handlePaletteKeyDown = useMemoizedFn((index: number, e: KeyboardEvent<HTMLButtonElement>) => {
+	const handlePaletteKeyDown = (index: number, e: KeyboardEvent<HTMLButtonElement>) => {
 		const nextIdx = getNextPaletteIndex(index, e.key, presets.length, 6);
 		if (nextIdx !== index && nextIdx >= 0 && nextIdx < presets.length) {
 			e.preventDefault();
 			setFocusedPresetIndex(nextIdx);
 			paletteRefs.current[nextIdx]?.focus();
 		}
-	});
+	};
 
-	const handlePickEyeDropper = useMemoizedFn(async () => {
+	const handlePickEyeDropper = async () => {
 		if (!checkEyeDropperSupport() || disabled || !window.EyeDropper) return;
 		try {
 			let eyeDropper: EyeDropperInstance | undefined;
@@ -141,9 +149,10 @@ export function ColorPickerContent({
 				return;
 			}
 		}
-	});
+	};
 
 	const fallbackColor = toSixDigitHex(currentText);
+	const swatchBackground = isValidHexColor(currentText) ? currentText : fallbackColor;
 	const normalizedActive = value.toLowerCase();
 	const selectedPresetIndex = presets.findIndex((color) => normalizedActive === color.toLowerCase());
 	const tabStopPresetIndex =
@@ -154,10 +163,10 @@ export function ColorPickerContent({
 				: 0;
 
 	return (
-		<div className="w-56 space-y-3 p-3">
-			<div className="space-y-1.5">
+		<div className="flex w-56 flex-col gap-3 p-3">
+			<div className="flex flex-col gap-1.5">
 				<div className="flex items-center gap-2">
-					<div className="border-border relative size-8 shrink-0 overflow-hidden rounded-md border shadow-2xs">
+					<div className="border-border focus-within:ring-ring relative size-8 shrink-0 overflow-hidden rounded-md border shadow-2xs focus-within:ring-2 focus-within:ring-offset-1">
 						<input
 							type="color"
 							value={fallbackColor}
@@ -166,7 +175,7 @@ export function ColorPickerContent({
 							aria-label={t("color_native_picker_label")}
 							className="absolute -top-2 -left-2 size-12 cursor-pointer opacity-0 disabled:cursor-not-allowed"
 						/>
-						<span className="block size-full" style={{ backgroundColor: fallbackColor }} aria-hidden="true" />
+						<span className="block size-full" style={{ backgroundColor: swatchBackground }} aria-hidden="true" />
 					</div>
 
 					<Input
@@ -182,7 +191,7 @@ export function ColorPickerContent({
 						aria-label={t("color_hex_input_label")}
 					/>
 
-					{showEyeDropper && isEyeDropperSupported && (
+					{showEyeDropper && isEyeDropperSupported ? (
 						<Button
 							type="button"
 							variant="outline"
@@ -195,19 +204,19 @@ export function ColorPickerContent({
 						>
 							<Pipette className="size-3.5" aria-hidden="true" />
 						</Button>
-					)}
+					) : null}
 				</div>
 
-				{hexError && (
-					<p role="alert" className="text-destructive text-[11px]">
+				{hexError ? (
+					<p role="alert" className="text-destructive text-xs">
 						{hexError}
 					</p>
-				)}
+				) : null}
 			</div>
 
-			{presets && presets.length > 0 && (
-				<div className="space-y-1.5">
-					<div className="text-muted-foreground flex items-center gap-1 text-[11px] font-medium">
+			{presets && presets.length > 0 ? (
+				<div className="flex flex-col gap-1.5">
+					<div className="text-muted-foreground flex items-center gap-1 text-xs font-medium">
 						<Palette className="size-3" aria-hidden="true" />
 						<span>{t("color_presets_title")}</span>
 					</div>
@@ -233,16 +242,18 @@ export function ColorPickerContent({
 									onClick={() => handleSelectPreset(color)}
 									onKeyDown={(e) => handlePaletteKeyDown(index, e)}
 									className={cn(
-										"size-6 cursor-pointer rounded-md border border-border/70 p-0 shadow-2xs transition-all hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
-										isSelected && "ring-2 ring-primary ring-offset-1",
+										"border-border/70 focus-visible:ring-ring flex size-6 cursor-pointer items-center justify-center rounded-md border p-0 shadow-2xs transition-all hover:scale-110 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+										isSelected && "border-foreground ring-primary ring-2 ring-offset-1",
 									)}
 									style={{ backgroundColor: color }}
-								/>
+								>
+									{isSelected ? <Check className="text-background size-3 drop-shadow-xs" aria-hidden="true" /> : null}
+								</Button>
 							);
 						})}
 					</div>
 				</div>
-			)}
+			) : null}
 		</div>
 	);
 }

@@ -158,12 +158,29 @@ describe("FormFieldEngine Unified Inputs", () => {
 		expect(handleChange).toHaveBeenCalledWith(["React", "Next.js"]);
 	});
 
-	it("OtpInput renders input slots and handles complete callback", () => {
+	it("OtpInput renders input slots, masks sensitive digits, and lays out horizontal RadioGroupInput", () => {
 		const handleComplete = vi.fn();
 		renderWithProviders(
-			<OtpInput name="code" label="Verification Code" length={6} value="12345" onComplete={handleComplete} />,
+			<>
+				<OtpInput name="code" label="Verification Code" length={6} value="12345" mask onComplete={handleComplete} />
+				<RadioGroupInput
+					name="layout"
+					label="Direction"
+					direction="horizontal"
+					options={[
+						{ label: "Left", value: "left" },
+						{ label: "Right", value: "right" },
+					]}
+				/>
+			</>,
 		);
 
 		expect(screen.getByText("Verification Code")).toBeInTheDocument();
+		expect(screen.getAllByText("•")).toHaveLength(5);
+		expect(screen.queryByText("1")).toBeNull();
+
+		const radioGroup = screen.getByRole("radiogroup");
+		const layoutGroup = radioGroup.querySelector('[data-slot="radio-group"]');
+		expect(layoutGroup?.className).toContain("flex-row");
 	});
 });

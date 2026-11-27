@@ -1,5 +1,31 @@
-export * from "./cascaderEngine";
-export * from "./treeSelectEngine";
+export {
+  collectCascaderSearchPaths,
+  DEFAULT_CASCADER_FIELD_NAMES,
+  getCascaderOptionChildren,
+  getCascaderOptionDisplayNode,
+  getCascaderOptionLabel,
+  getCascaderOptionValue,
+  resolveCascaderOptionsByValue,
+  type CascaderFieldNames,
+  type CascaderOption,
+  type CascaderSearchResultItem,
+} from "./cascaderEngine";
+export {
+  buildTreeIndex,
+  defaultFieldNames,
+  getNodeLabel,
+  type InternalTreeNode,
+  type ShowCheckedStrategy,
+  type TreeSelectFieldNames,
+  type TreeSelectNode,
+  type TreeSelectValue,
+} from "./treeSelectEngine";
+export {
+  applyCascadingCheckChange,
+  collectMatchedTreeKeys,
+  filterCheckedKeysByStrategy,
+  resolveCascadingCheckedState,
+} from "./treeCascade";
 
 export interface HighlightSegment {
   text: string;

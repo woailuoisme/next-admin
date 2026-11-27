@@ -4,7 +4,10 @@ import { createFormHook } from "@tanstack/react-form";
 import dynamic from "next/dynamic";
 import type { ComponentProps } from "react";
 
+import { MapSkeleton } from "@/components/map/shared/MapSkeleton";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 
 import { MaskedInput, NumberInput, SliderInput, TextareaInput, TextInput } from "./basic";
 import {
@@ -28,16 +31,19 @@ import { OtpInput, PasswordInput } from "./security";
 
 const ColorPickerInput = dynamic(
 	() => import("./media/color-picker/ColorPickerInput").then((m) => m.ColorPickerInput),
-	{ ssr: false },
+	{ ssr: false, loading: () => <Skeleton className="h-8 w-full rounded-lg" /> },
 );
 const FileUploadInput = dynamic(() => import("./media/file-upload/FileUploadInput").then((m) => m.FileUploadInput), {
 	ssr: false,
+	loading: () => <Skeleton className="h-28 w-full rounded-lg" />,
 });
 const RichEditorInput = dynamic(() => import("./media/rich-editor/RichEditorInput").then((m) => m.RichEditorInput), {
 	ssr: false,
+	loading: () => <Skeleton className="h-56 w-full rounded-lg" />,
 });
 const FormLocationPicker = dynamic(() => import("./map/FormLocationPicker").then((m) => m.FormLocationPicker), {
 	ssr: false,
+	loading: () => <MapSkeleton height={320} />,
 });
 
 export interface AppSubmitButtonProps extends Omit<ComponentProps<typeof Button>, "type"> {
@@ -54,6 +60,7 @@ export function AppFormSubmitButton({ label, submittingLabel, disabled, children
 		<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 			{([canSubmit, isSubmitting]) => (
 				<Button type="submit" disabled={disabled || isSubmitting || !canSubmit} {...props}>
+					{isSubmitting ? <Spinner data-icon="inline-start" aria-hidden="true" /> : null}
 					{isSubmitting ? (submittingLabel ?? children ?? label) : (children ?? label)}
 				</Button>
 			)}

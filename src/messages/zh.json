@@ -404,6 +404,7 @@
     "upload_error_max_files": "最多上传 {count} 个文件",
     "upload_failed": "上传失败",
     "password_empty": "未输入",
+    "password_strength": "密码强度",
     "password_weak": "较弱",
     "password_fair": "一般",
     "password_good": "良好",
@@ -516,7 +517,14 @@
     "keyvalue_key_label": "键 (Key)",
     "keyvalue_value_label": "值 (Value)",
     "clear_value": "清除",
-    "repeater_delete_item": "删除此项"
+    "repeater_delete_item": "删除此项",
+    "currency_selector": "选择币种",
+    "keyvalue_drag_col": "排序",
+    "repeater_drag_col": "排序",
+    "keyvalue_raw_invalid_object": "JSON 必须为键值对对象",
+    "keyvalue_raw_invalid_env_line": "第 {line} 行缺少等号（应为 KEY=VALUE）",
+    "keyvalue_raw_empty_env_key": "第 {line} 行键名不能为空",
+    "keyvalue_raw_syntax_error": "无效的 {format} 语法"
   },
   "resource": {
     "back": "返回",

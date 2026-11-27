@@ -16,6 +16,7 @@ export interface FormFieldRenderProps<TValue = any> {
 	onBlur?: () => void;
 	disabled?: boolean;
 	readOnly?: boolean;
+	required?: boolean;
 	hasError: boolean;
 	describedBy?: string;
 	align?: "left" | "center" | "right";
@@ -53,9 +54,11 @@ export function resolveFieldError(
 	explicitError: ReactNode,
 	meta?: { isTouched?: boolean; errors?: unknown[] },
 ): ReactNode | undefined {
-	if (explicitError) return explicitError;
+	if (explicitError !== undefined && explicitError !== null && explicitError !== false && explicitError !== "") {
+		return explicitError;
+	}
 	if (meta?.isTouched && meta.errors?.length) {
-		return extractErrorMessage(meta.errors[0]);
+		return extractErrorMessage(meta.errors);
 	}
 	return undefined;
 }
@@ -114,6 +117,7 @@ export function FormFieldEngine<TValue = any>({
 				colSpan={colSpan}
 				className={className}
 				hidden={hidden}
+				disabled={disabled}
 				align={align}
 			>
 				{children({
@@ -123,6 +127,7 @@ export function FormFieldEngine<TValue = any>({
 					onBlur,
 					disabled,
 					readOnly,
+					required,
 					hasError,
 					describedBy,
 					align,
@@ -168,5 +173,9 @@ export function FormFieldEngine<TValue = any>({
 		);
 	}
 
-	return renderField((controlledValue ?? defaultValue) as TValue, controlledOnChange ?? noop, controlledOnBlur);
+	return renderField(
+		(controlledValue === undefined ? defaultValue : controlledValue) as TValue,
+		controlledOnChange ?? noop,
+		controlledOnBlur,
+	);
 }

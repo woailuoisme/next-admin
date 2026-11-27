@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export {
+export type {
   applyCascadingCheckChange,
   collectMatchedTreeKeys,
   filterCheckedKeysByStrategy,
@@ -65,10 +65,12 @@ export function getNodeLabel(node: TreeSelectNode, labelKey: string): { labelTex
   if (typeof raw === "string" || typeof raw === "number") {
     return { labelText: String(raw), labelNode: raw };
   }
-  return { labelText: String(node.value ?? ""), labelNode: raw as ReactNode };
+  const titleFallback =
+    typeof node.title === "string" || typeof node.title === "number" ? String(node.title) : String(node.value ?? "");
+  return { labelText: titleFallback, labelNode: raw as ReactNode };
 }
 
-/** Builds an O(1) lookup map and root key list from hierarchical tree nodes. */
+/** Builds an O(N) single-pass lookup map and root key list from hierarchical tree nodes. */
 export function buildTreeIndex(
   nodes: TreeSelectNode[] | undefined,
   fieldKeys: Required<TreeSelectFieldNames>,
@@ -77,10 +79,8 @@ export function buildTreeIndex(
   rootKeys: TreeSelectValue[];
 } {
   const nodeMap = new Map<TreeSelectValue, InternalTreeNode>();
-  const rootKeys: TreeSelectValue[] = [];
-
   if (!nodes || nodes.length === 0) {
-    return { nodeMap, rootKeys };
+    return { nodeMap, rootKeys: [] };
   }
 
   function traverse(
@@ -90,14 +90,20 @@ export function buildTreeIndex(
     ancestorPath: TreeSelectValue[],
     ancestorLabels: string[],
     ancestorNodes: TreeSelectNode[],
-  ): TreeSelectValue[] {
+  ): {
+    directKeys: TreeSelectValue[];
+    descendants: TreeSelectValue[];
+    leaves: TreeSelectValue[];
+  } {
     const directKeys: TreeSelectValue[] = [];
+    const descendants: TreeSelectValue[] = [];
+    const leaves: TreeSelectValue[] = [];
 
     for (const node of list) {
       const key = (node[fieldKeys.value] ?? node.value) as TreeSelectValue;
-      if (key === undefined || key === null) continue;
+      if (key === undefined || key === null || (typeof key === "number" && Number.isNaN(key))) continue;
+      if (nodeMap.has(key)) continue;
 
-      directKeys.push(key);
       const { labelText, labelNode } = getNodeLabel(node, fieldKeys.label);
       const childrenRaw = node[fieldKeys.children] ?? node.children;
       const hasChildren = Array.isArray(childrenRaw) && childrenRaw.length > 0;
@@ -107,11 +113,7 @@ export function buildTreeIndex(
       const currentLabels = [...ancestorLabels, labelText];
       const currentNodes = [...ancestorNodes, node];
 
-      const childKeys = hasChildren
-        ? traverse(childrenRaw as TreeSelectNode[], key, level + 1, currentPath, currentLabels, currentNodes)
-        : [];
-
-      nodeMap.set(key, {
+      const internalNode: InternalTreeNode = {
         key,
         raw: node,
         label: labelText,
@@ -122,45 +124,34 @@ export function buildTreeIndex(
         disabled: Boolean(node.disabled),
         disableCheckbox: Boolean(node.disableCheckbox),
         selectable: node.selectable !== false,
-        childrenKeys: childKeys,
+        childrenKeys: [],
         descendantKeys: [],
-        leafKeys: [],
+        leafKeys: [key],
         path: currentPath,
         pathLabels: currentLabels,
         pathNodes: currentNodes,
         icon: node.icon,
-      });
-    }
+      };
+      // Register key before recursing to guard against duplicate descendant keys.
+      nodeMap.set(key, internalNode);
+      directKeys.push(key);
+      descendants.push(key);
 
-    return directKeys;
-  }
-
-  rootKeys.push(...traverse(nodes, null, 0, [], [], []));
-
-  for (const [key, item] of nodeMap) {
-    const descendants: TreeSelectValue[] = [];
-    const leaves: TreeSelectValue[] = [];
-
-    function gather(currentKey: TreeSelectValue) {
-      const curr = nodeMap.get(currentKey);
-      if (!curr) return;
-      for (const childKey of curr.childrenKeys) {
-        descendants.push(childKey);
-        const childNode = nodeMap.get(childKey);
-        if (childNode) {
-          if (childNode.childrenKeys.length === 0) {
-            leaves.push(childKey);
-          } else {
-            gather(childKey);
-          }
-        }
+      if (hasChildren) {
+        const sub = traverse(childrenRaw as TreeSelectNode[], key, level + 1, currentPath, currentLabels, currentNodes);
+        internalNode.childrenKeys = sub.directKeys;
+        internalNode.descendantKeys = sub.descendants;
+        internalNode.leafKeys = sub.leaves.length > 0 ? sub.leaves : [key];
+        descendants.push(...sub.descendants);
+        leaves.push(...(sub.leaves.length > 0 ? sub.leaves : [key]));
+      } else {
+        leaves.push(key);
       }
     }
 
-    gather(key);
-    item.descendantKeys = descendants;
-    item.leafKeys = leaves.length > 0 ? leaves : [key];
+    return { directKeys, descendants, leaves };
   }
 
-  return { nodeMap, rootKeys };
+  const rootResult = traverse(nodes, null, 0, [], [], []);
+  return { nodeMap, rootKeys: rootResult.directKeys };
 }

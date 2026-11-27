@@ -31,17 +31,19 @@ export function resolveRepeaterItemKey<T>(
   item: T,
   index: number,
   getItemKey?: (item: T, index: number) => string,
+  primitiveKeys?: readonly string[],
 ): string {
   if (getItemKey) return getItemKey(item, index);
   const explicitId = getExplicitObjectId(item);
   if (explicitId) return explicitId;
   if (typeof item === "object" && item !== null) return getOrAssignObjectKey(item);
-  return `rep-prim-${index}`;
+  return primitiveKeys?.[index] ?? `rep-prim-${index}`;
 }
 
 export function cloneRepeaterItem<T>(target: T, cloneItem?: (item: T) => T): T {
   let cloned: T;
-  if (cloneItem) {
+  const hasCustomClone = typeof cloneItem === "function";
+  if (hasCustomClone) {
     cloned = cloneItem(target);
   } else if (typeof structuredClone === "function") {
     try {
@@ -55,7 +57,7 @@ export function cloneRepeaterItem<T>(target: T, cloneItem?: (item: T) => T): T {
   }
 
   if (typeof cloned === "object" && cloned !== null) {
-    if (!Array.isArray(cloned)) {
+    if (!hasCustomClone && !Array.isArray(cloned)) {
       cloned = {
         ...(cloned as Record<string, unknown>),
         ...("id" in cloned ? { id: generateUniqueRepeaterKey() } : {}),

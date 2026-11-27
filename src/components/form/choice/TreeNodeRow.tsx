@@ -1,10 +1,11 @@
 "use client";
 
-import { Check, ChevronDown, ChevronRight, FileText, Folder, FolderOpen, Loader2 } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, FileText, Folder, FolderOpen } from "lucide-react";
 import type { MouseEvent, ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "cn";
 
 import { HighlightedText } from "./HighlightedText";
@@ -19,6 +20,7 @@ export interface TreeNodeRowProps {
 	halfCheckedKeys: Set<TreeSelectValue>;
 	selectedKeysSet: Set<TreeSelectValue>;
 	matchedKeys: Set<TreeSelectValue>;
+	searchExpandedKeys: Set<TreeSelectValue>;
 	hasSearchFilter: boolean;
 	searchKeyword: string;
 	isMultiple: boolean;
@@ -28,6 +30,7 @@ export interface TreeNodeRowProps {
 	hasLoadData: boolean;
 	expandLabel: string;
 	collapseLabel: string;
+	onCheckNode: (item: InternalTreeNode) => void;
 	onSelectNode: (item: InternalTreeNode) => void;
 	onToggleExpand: (item: InternalTreeNode, e?: MouseEvent) => void;
 }
@@ -41,6 +44,7 @@ export function TreeNodeRow({
 	halfCheckedKeys,
 	selectedKeysSet,
 	matchedKeys,
+	searchExpandedKeys,
 	hasSearchFilter,
 	searchKeyword,
 	isMultiple,
@@ -50,18 +54,15 @@ export function TreeNodeRow({
 	hasLoadData,
 	expandLabel,
 	collapseLabel,
+	onCheckNode,
 	onSelectNode,
 	onToggleExpand,
 }: TreeNodeRowProps) {
 	const item = nodeMap.get(nodeKey);
 	if (!item) return null;
 
-	if (hasSearchFilter) {
-		const isMatched = matchedKeys.has(nodeKey);
-		const hasMatchedDescendant = item.descendantKeys.some((dk) => matchedKeys.has(dk));
-		if (!isMatched && !hasMatchedDescendant) {
-			return null;
-		}
+	if (hasSearchFilter && !matchedKeys.has(nodeKey) && !searchExpandedKeys.has(nodeKey)) {
+		return null;
 	}
 
 	const isExpanded = effectiveExpandedKeys.has(nodeKey);
@@ -80,38 +81,42 @@ export function TreeNodeRow({
 			iconElement = item.icon;
 		} else if (hasChildren) {
 			iconElement = isExpanded ? (
-				<FolderOpen className="text-muted-foreground size-4 shrink-0" />
+				<FolderOpen className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
 			) : (
-				<Folder className="text-muted-foreground size-4 shrink-0" />
+				<Folder className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
 			);
 		} else {
-			iconElement = <FileText className="text-muted-foreground/80 size-4 shrink-0" />;
+			iconElement = <FileText className="text-muted-foreground/80 size-4 shrink-0" aria-hidden="true" />;
 		}
 	}
 
+	const labelDisabled = item.disabled || !item.selectable || (treeCheckable && item.disableCheckbox && item.selectable);
+
 	return (
 		<div className="relative flex flex-col">
-			{treeLine && item.level > 0 && (
+			{treeLine && item.level > 0 ? (
 				<div
+					aria-hidden="true"
 					className="border-border/60 pointer-events-none absolute top-0 bottom-0 border-l border-dashed"
 					style={{ left: `${(item.level - 1) * 20 + 10}px` }}
 				/>
-			)}
+			) : null}
 
 			<div
 				role="treeitem"
 				aria-level={item.level + 1}
 				aria-expanded={hasChildren ? isExpanded : undefined}
-				aria-selected={isMultiple ? isChecked || isHalfChecked : isSingleSelected}
+				aria-checked={treeCheckable ? (isChecked ? true : isHalfChecked ? "mixed" : false) : undefined}
+				aria-selected={treeCheckable ? undefined : isMultiple ? allCascadedChecked.has(nodeKey) : isSingleSelected}
 				aria-disabled={item.disabled || undefined}
 				className={cn(
 					"group relative flex min-h-8 items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors select-none",
 					item.disabled ? "text-muted-foreground/50 cursor-not-allowed" : "hover:bg-accent/60",
-					isSingleSelected && "bg-primary/10 text-primary font-medium hover:bg-primary/15",
+					isSingleSelected && "bg-primary/10 text-primary hover:bg-primary/15 font-medium",
 				)}
 				style={{ paddingLeft: `${item.level * 20 + 8}px` }}
 			>
-				{treeLine && item.level > 0 && (
+				{treeLine && item.level > 0 ? (
 					<div
 						aria-hidden="true"
 						className="border-border/60 pointer-events-none absolute h-px border-b border-dashed"
@@ -121,7 +126,7 @@ export function TreeNodeRow({
 							top: "50%",
 						}}
 					/>
-				)}
+				) : null}
 
 				<Button
 					type="button"
@@ -143,7 +148,7 @@ export function TreeNodeRow({
 					)}
 				>
 					{isLoading ? (
-						<Loader2 aria-hidden="true" className="text-primary size-3.5 animate-spin" />
+						<Spinner aria-hidden="true" className="text-primary size-3.5" />
 					) : isExpanded ? (
 						<ChevronDown aria-hidden="true" className="text-muted-foreground size-3.5" />
 					) : (
@@ -151,25 +156,26 @@ export function TreeNodeRow({
 					)}
 				</Button>
 
-				{treeCheckable && (
+				{treeCheckable ? (
 					<Checkbox
 						checked={isChecked ? true : isHalfChecked ? "indeterminate" : false}
 						disabled={item.disabled || item.disableCheckbox}
-						onCheckedChange={() => onSelectNode(item)}
+						onCheckedChange={() => onCheckNode(item)}
 						aria-label={item.label}
-						className="size-4 shrink-0 rounded-xs"
+						className="size-4 shrink-0 rounded-sm"
 					/>
-				)}
+				) : null}
 
 				<Button
 					type="button"
 					variant="ghost"
 					size="xs"
-					disabled={item.disabled || !item.selectable}
+					disabled={labelDisabled}
+					data-treeitem-action
 					onClick={() => onSelectNode(item)}
 					className={cn(
 						"h-auto min-w-0 flex-1 justify-start gap-1.5 px-1 py-0.5 text-left font-normal shadow-none outline-hidden hover:bg-transparent focus-visible:underline",
-						item.disabled || !item.selectable ? "cursor-not-allowed" : "cursor-pointer",
+						labelDisabled ? "cursor-not-allowed" : "cursor-pointer",
 					)}
 				>
 					{iconElement}
@@ -180,11 +186,11 @@ export function TreeNodeRow({
 							item.labelNode
 						)}
 					</span>
-					{isSingleSelected && <Check aria-hidden="true" className="text-primary size-3.5 shrink-0" />}
+					{isSingleSelected ? <Check aria-hidden="true" className="text-primary size-3.5 shrink-0" /> : null}
 				</Button>
 			</div>
 
-			{hasChildren && isExpanded && (
+			{hasChildren && isExpanded ? (
 				<div role="group" className="flex flex-col">
 					{item.childrenKeys.map((childKey) => (
 						<TreeNodeRow
@@ -197,6 +203,7 @@ export function TreeNodeRow({
 							halfCheckedKeys={halfCheckedKeys}
 							selectedKeysSet={selectedKeysSet}
 							matchedKeys={matchedKeys}
+							searchExpandedKeys={searchExpandedKeys}
 							hasSearchFilter={hasSearchFilter}
 							searchKeyword={searchKeyword}
 							isMultiple={isMultiple}
@@ -206,12 +213,13 @@ export function TreeNodeRow({
 							hasLoadData={hasLoadData}
 							expandLabel={expandLabel}
 							collapseLabel={collapseLabel}
+							onCheckNode={onCheckNode}
 							onSelectNode={onSelectNode}
 							onToggleExpand={onToggleExpand}
 						/>
 					))}
 				</div>
-			)}
+			) : null}
 		</div>
 	);
 }

@@ -5,10 +5,12 @@ import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 
+import { createContainerBlurHandler } from "@/components/form/core";
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "cn";
 
-import { createContainerBlurHandler } from "../../core";
 import { RepeaterRow } from "./RepeaterRow";
 import { RepeaterTable } from "./RepeaterTable";
 import { RepeaterToolbar } from "./RepeaterToolbar";
@@ -17,6 +19,7 @@ import { useRepeaterController } from "./useRepeaterController";
 
 const DynamicSortableDndContext = dynamic(() => import("../SortableDndContext").then((mod) => mod.SortableDndContext), {
 	ssr: false,
+	loading: () => <Skeleton className="h-24 w-full rounded-lg" />,
 });
 
 export interface RepeaterInnerProps<T> extends RepeaterProps<T> {
@@ -125,10 +128,11 @@ export const RepeaterInner = function RepeaterInner<T>({
 		<div
 			id={id}
 			role="group"
+			aria-label={t("repeater_table_default_col")}
 			aria-describedby={describedBy}
 			data-invalid={hasError || undefined}
 			onBlur={createContainerBlurHandler(onBlur)}
-			className={cn("w-full space-y-2.5 pt-1", hasError && "rounded-lg ring-1 ring-destructive/40 p-1.5")}
+			className={cn("flex w-full flex-col gap-2.5 pt-1", hasError && "ring-destructive/40 rounded-lg p-1.5 ring-1")}
 		>
 			<RepeaterToolbar
 				itemCount={items.length}
@@ -140,21 +144,25 @@ export const RepeaterInner = function RepeaterInner<T>({
 			/>
 
 			{items.length === 0 ? (
-				<div className="border-border/80 bg-card/20 flex flex-col items-center justify-center rounded-lg border border-dashed px-4 py-8 text-center">
-					<p className="text-muted-foreground/70 mb-3 text-xs">{emptyText}</p>
+				<Empty className="border-border/80 bg-card/20 border p-6 md:p-8">
+					<EmptyHeader>
+						<EmptyDescription className="text-xs">{emptyText}</EmptyDescription>
+					</EmptyHeader>
 					{showEmptyAddButton && isAddAllowed ? (
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={addItem}
-							className="hover:bg-muted h-7.5 cursor-pointer gap-1.5 text-xs shadow-2xs"
-						>
-							<Plus aria-hidden="true" className="size-3.5" />
-							<span>{addButtonText}</span>
-						</Button>
+						<EmptyContent>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={addItem}
+								className="hover:bg-muted cursor-pointer gap-1.5 text-xs shadow-2xs"
+							>
+								<Plus aria-hidden="true" className="size-3.5" data-icon="inline-start" />
+								<span>{addButtonText}</span>
+							</Button>
+						</EmptyContent>
 					) : null}
-				</div>
+				</Empty>
 			) : isTable ? (
 				wrapWithDnd(
 					<RepeaterTable<T>
@@ -163,7 +171,7 @@ export const RepeaterInner = function RepeaterInner<T>({
 						headers={headers}
 						disabled={isLocked}
 						reorderable={effectiveReorderable}
-						canDuplicate={effectiveCanDuplicate}
+						checkCanDuplicate={checkCanDuplicate}
 						checkCanDelete={checkCanDelete}
 						confirmDelete={confirmDelete}
 						itemErrors={itemErrors}
@@ -182,7 +190,7 @@ export const RepeaterInner = function RepeaterInner<T>({
 			) : (
 				<>
 					{wrapWithDnd(
-						<div className="space-y-2">
+						<div className="flex flex-col gap-2">
 							{items.map((item, index) => {
 								const itemKey = keys[index]!;
 								const fallbackTitle = t("repeater_item_fallback", { index: index + 1 });
@@ -228,7 +236,7 @@ export const RepeaterInner = function RepeaterInner<T>({
 							onClick={addItem}
 							className="hover:bg-muted h-8.5 w-full cursor-pointer gap-1.5 text-xs shadow-2xs"
 						>
-							<Plus aria-hidden="true" className="size-3.5" />
+							<Plus aria-hidden="true" className="size-3.5" data-icon="inline-start" />
 							<span>{addButtonText}</span>
 						</Button>
 					) : null}

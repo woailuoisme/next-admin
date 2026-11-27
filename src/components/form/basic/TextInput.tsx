@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
-import { type ChangeEvent, type ReactNode } from "react";
+import { type ChangeEvent, type KeyboardEvent, type ReactNode } from "react";
 
 import {
 	AdornedInput,
@@ -59,6 +58,7 @@ function TextInputControl({
 	placeholder,
 	disabled,
 	readOnly,
+	required,
 	clearable = false,
 	prefix,
 	suffix,
@@ -72,14 +72,16 @@ function TextInputControl({
 }: FormFieldRenderProps<string | number> & TextExtraProps) {
 	const isPassword = password || type === "password";
 	const effectiveType = numeric ? "number" : type;
-	const { displayValue, handleChange, handleClear, handleBlur } = useDebouncedFieldValue<string | number | undefined>({
+	const { displayValue, handleChange, handleClear, handleBlur, flush } = useDebouncedFieldValue<
+		string | number | undefined
+	>({
 		value,
 		debounceMs,
 		onChange: (nextVal) => onChange(nextVal ?? ""),
 		onBlur,
 	});
 
-	const handleInputChange = useMemoizedFn((e: ChangeEvent<HTMLInputElement>) => {
+	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const raw = e.target.value;
 		if (!numeric) {
 			handleChange(raw);
@@ -93,11 +95,17 @@ function TextInputControl({
 		if (Number.isFinite(parsed)) {
 			handleChange(parsed);
 		}
-	});
+	};
 
-	const handleClearClick = useMemoizedFn(() => {
+	const handleClearClick = () => {
 		handleClear("");
-	});
+	};
+
+	const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+			flush();
+		}
+	};
 
 	return (
 		<AdornedInput
@@ -107,10 +115,12 @@ function TextInputControl({
 			value={displayValue}
 			onChange={handleInputChange}
 			onClear={handleClearClick}
+			onKeyDown={handleKeyDown}
 			onBlur={handleBlur}
 			placeholder={placeholder}
 			disabled={disabled}
 			readOnly={readOnly}
+			required={required}
 			clearable={clearable}
 			prefix={prefix}
 			suffix={suffix}

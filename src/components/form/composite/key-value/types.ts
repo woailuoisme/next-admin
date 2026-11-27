@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { BaseInputProps, KeyValuePair } from "../../core";
+import type { BaseInputProps, KeyValuePair } from "@/components/form/core";
 
 export type KeyValueMode = "table" | "raw";
 export type KeyValueRawFormat = "json" | "env";

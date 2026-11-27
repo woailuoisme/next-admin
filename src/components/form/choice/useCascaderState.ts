@@ -15,6 +15,10 @@ import {
 
 const EMPTY_VALUES: (string | number)[] = [];
 
+export function buildCascaderLoadingKey(values: (string | number)[]): string {
+  return values.map(String).join("\u0000");
+}
+
 export interface UseCascaderStateOptions {
   options: CascaderOption[];
   value?: (string | number)[];
@@ -26,6 +30,7 @@ export interface UseCascaderStateOptions {
   customFieldNames?: CascaderFieldNames;
   allowClear: boolean;
   clearable: boolean;
+  separator: string;
   disabled: boolean;
   readOnly: boolean;
   onBlur?: () => void;
@@ -42,6 +47,7 @@ export function useCascaderState({
   customFieldNames,
   allowClear,
   clearable,
+  separator,
   disabled,
   readOnly,
   onBlur,
@@ -69,6 +75,7 @@ export function useCascaderState({
 
   const isMountedRef = useRef(true);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const interactionSeqRef = useRef(0);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -78,7 +85,14 @@ export function useCascaderState({
     };
   }, []);
 
-  const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
+  const clearHoverTimer = () => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen && (disabled || readOnly)) return;
     setOpen(nextOpen);
     if (nextOpen) {
@@ -89,10 +103,10 @@ export function useCascaderState({
       );
       setSearchQuery("");
     } else {
-      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+      clearHoverTimer();
       onBlur?.();
     }
-  });
+  };
 
   const selectedOptions = resolveCascaderOptionsByValue(options, currentValue, fieldNames);
 
@@ -105,31 +119,33 @@ export function useCascaderState({
   }
 
   const searchResults = searchQuery.trim()
-    ? collectCascaderSearchPaths(options, [], searchQuery, changeOnSelect, fieldNames)
+    ? collectCascaderSearchPaths(options, [], searchQuery, changeOnSelect, fieldNames, separator)
     : [];
 
-  const handleClear = useMemoizedFn((e?: MouseEvent<HTMLButtonElement>) => {
+  const handleClear = (e?: MouseEvent<HTMLButtonElement>) => {
     e?.stopPropagation();
     if (disabled || readOnly) return;
     if (!isControlled) setUncontrolledValue([]);
     setActiveValuePath([]);
     onChange?.([], []);
-  });
+  };
 
-  const handleSelectPath = useMemoizedFn((path: CascaderOption[], shouldClose: boolean) => {
+  const handleSelectPath = (path: CascaderOption[], shouldClose: boolean) => {
     const newValues = path.map((item) => getCascaderOptionValue(item, fieldNames));
     if (!isControlled) setUncontrolledValue(newValues);
     onChange?.(newValues, path);
     if (shouldClose) setOpen(false);
-  });
+  };
 
+  // Whitelist AGENTS.md §5.2: called across delayed hover setTimeout timer.
   const handleOptionInteraction = useMemoizedFn(
     async (option: CascaderOption, columnIndex: number, isHover = false) => {
       if (option.disabled) return;
 
+      const seq = ++interactionSeqRef.current;
       const rawOptValue = getCascaderOptionValue(option, fieldNames);
-      const optValue = String(rawOptValue);
       const newValuePath = [...activeValuePath.slice(0, columnIndex), rawOptValue];
+      const pathKey = buildCascaderLoadingKey(newValuePath);
       const newPath = [...activePath.slice(0, columnIndex), option];
       setActiveValuePath(newValuePath);
 
@@ -138,16 +154,19 @@ export function useCascaderState({
       const canLoadAsync = !hasChildren && option.isLeaf === false && typeof loadData === "function";
       const isLeafNode = option.isLeaf === true || (!hasChildren && !canLoadAsync);
 
-      if (canLoadAsync && !loadingMap[optValue]) {
-        setLoadingMap((prev) => ({ ...prev, [optValue]: true }));
+      if (canLoadAsync && !loadingMap[pathKey]) {
+        setLoadingMap((prev) => ({ ...prev, [pathKey]: true }));
         try {
           await loadData(newPath);
         } catch {
           return;
         } finally {
           if (isMountedRef.current) {
-            setLoadingMap((prev) => ({ ...prev, [optValue]: false }));
+            setLoadingMap((prev) => ({ ...prev, [pathKey]: false }));
           }
+        }
+        if (!isMountedRef.current || interactionSeqRef.current !== seq) {
+          return;
         }
       }
 
@@ -159,27 +178,28 @@ export function useCascaderState({
     },
   );
 
-  const handleItemClick = useMemoizedFn((option: CascaderOption, columnIndex: number) => {
+  const handleItemClick = (option: CascaderOption, columnIndex: number) => {
+    clearHoverTimer();
     void handleOptionInteraction(option, columnIndex, false);
-  });
+  };
 
-  const handleItemMouseEnter = useMemoizedFn((option: CascaderOption, columnIndex: number) => {
+  const handleItemMouseEnter = (option: CascaderOption, columnIndex: number) => {
     if (expandTrigger !== "hover") return;
-    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    clearHoverTimer();
     hoverTimerRef.current = setTimeout(() => {
       void handleOptionInteraction(option, columnIndex, true);
     }, 120);
-  });
+  };
 
   const canClear = Boolean(isClearable && currentValue.length > 0 && !disabled && !readOnly);
 
-  const handleTriggerKeyDown = useMemoizedFn((e: KeyboardEvent<HTMLButtonElement>) => {
+  const handleTriggerKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
     if (disabled || readOnly) return;
     if ((e.key === "Backspace" || e.key === "Delete") && canClear) {
       e.preventDefault();
       handleClear();
     }
-  });
+  };
 
   return {
     fieldNames,
@@ -188,6 +208,7 @@ export function useCascaderState({
     setSearchQuery,
     loadingMap,
     currentValue,
+    activeValuePath,
     activePath,
     selectedOptions,
     columns,
@@ -198,6 +219,7 @@ export function useCascaderState({
     handleSelectPath,
     handleItemClick,
     handleItemMouseEnter,
+    handleMenuMouseLeave: clearHoverTimer,
     handleTriggerKeyDown,
   };
 }

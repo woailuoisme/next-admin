@@ -2,24 +2,24 @@
 
 import type { DateRange } from "react-day-picker";
 
-import { useMemoizedFn } from "ahooks";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "cn";
 
-import { type BaseInputProps, connectField, type DateRangeValue, FieldClearButton } from "../core";
+import {
+	type BaseInputProps,
+	connectField,
+	type DateRangeValue,
+	FieldClearButton,
+	type FormFieldRenderProps,
+} from "../core";
+import { LocalizedLazyCalendar } from "./LazyCalendar";
 import { parseDate } from "./dateUtils";
-
-const LazyCalendar = dynamic(() => import("@/components/ui/calendar").then((mod) => mod.Calendar), {
-	ssr: false,
-	loading: () => <div className="text-muted-foreground flex h-64 w-80 items-center justify-center text-xs">...</div>,
-});
 
 export interface DateRangePickerInputProps extends BaseInputProps {
 	value?: DateRangeValue;
@@ -30,25 +30,14 @@ export interface DateRangePickerInputProps extends BaseInputProps {
 	clearable?: boolean;
 }
 
-interface DateRangePickerControlProps {
-	id: string;
-	placeholder?: string;
-	disabled?: boolean;
-	readOnly?: boolean;
-	dateFormat?: string;
-	clearable?: boolean;
-	value?: DateRangeValue;
-	onChange: (value: DateRangeValue | undefined) => void;
-	onBlur?: () => void;
-	hasError?: boolean;
-	describedBy?: string;
-}
+type DateRangeExtraProps = Pick<DateRangePickerInputProps, "dateFormat" | "clearable" | "placeholder">;
 
 function DateRangePickerControl({
 	id,
 	placeholder,
 	disabled,
 	readOnly,
+	required,
 	dateFormat = "yyyy-MM-dd",
 	clearable = true,
 	value,
@@ -56,8 +45,9 @@ function DateRangePickerControl({
 	onBlur,
 	hasError,
 	describedBy,
-}: DateRangePickerControlProps) {
+}: FormFieldRenderProps<DateRangeValue | undefined> & DateRangeExtraProps) {
 	const t = useTranslations("form");
+	const triggerRef = useRef<HTMLButtonElement>(null);
 	const [open, setOpen] = useState(false);
 	const locked = Boolean(disabled || readOnly);
 
@@ -65,13 +55,13 @@ function DateRangePickerControl({
 	const toDate = parseDate(value?.to);
 	const rangeSelected: DateRange | undefined = fromDate || toDate ? { from: fromDate, to: toDate } : undefined;
 
-	const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
+	const handleOpenChange = (nextOpen: boolean) => {
 		if (locked && nextOpen) return;
 		setOpen(nextOpen);
 		if (!nextOpen) onBlur?.();
-	});
+	};
 
-	const handleSelect = useMemoizedFn((range: DateRange | undefined) => {
+	const handleSelect = (range: DateRange | undefined) => {
 		if (locked) return;
 		if (!range) {
 			onChange(undefined);
@@ -81,12 +71,14 @@ function DateRangePickerControl({
 				to: range.to,
 			});
 		}
-	});
+	};
 
-	const handleClear = useMemoizedFn((e: React.MouseEvent) => {
+	const handleClear = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		if (!locked) onChange(undefined);
-	});
+		if (locked) return;
+		onChange(undefined);
+		triggerRef.current?.focus();
+	};
 
 	let displayLabel = placeholder ?? t("daterange_placeholder");
 	if (fromDate && toDate) {
@@ -100,45 +92,44 @@ function DateRangePickerControl({
 			<Popover open={open} onOpenChange={handleOpenChange}>
 				<PopoverTrigger asChild>
 					<Button
+						ref={triggerRef}
 						id={id}
 						type="button"
 						variant="outline"
 						disabled={disabled}
-						aria-readonly={readOnly}
+						data-readonly={readOnly || undefined}
 						aria-invalid={hasError}
+						aria-required={required}
 						aria-describedby={describedBy}
 						className={cn(
-							"h-8 w-full justify-start rounded-md bg-transparent px-2.5 pr-8 text-left text-xs font-normal",
+							"h-8 w-full justify-start bg-transparent px-2.5 pr-8 text-left text-xs font-normal",
 							!fromDate && "text-muted-foreground",
-							hasError && "border-destructive focus-visible:ring-destructive/20",
 						)}
 					>
-						<div className="flex items-center gap-2 truncate">
+						<span className="flex min-w-0 flex-1 items-center gap-2">
 							<CalendarIcon aria-hidden="true" className="text-muted-foreground size-3.5 shrink-0" />
 							<span className="truncate">{displayLabel}</span>
-						</div>
+						</span>
 					</Button>
 				</PopoverTrigger>
 
 				<PopoverContent className="w-auto rounded-xl p-0" align="start">
 					{open ? (
-						<LazyCalendar mode="range" numberOfMonths={2} selected={rangeSelected} onSelect={handleSelect} />
+						<LocalizedLazyCalendar mode="range" numberOfMonths={2} selected={rangeSelected} onSelect={handleSelect} />
 					) : null}
 				</PopoverContent>
 			</Popover>
 
-			{clearable && (fromDate || toDate) && !locked && (
+			{clearable && (fromDate || toDate) && !locked ? (
 				<FieldClearButton
 					onClick={handleClear}
 					ariaLabel={t("daterange_clear")}
 					className="hover:text-destructive absolute right-2"
 				/>
-			)}
+			) : null}
 		</div>
 	);
 }
-
-type DateRangeExtraProps = Pick<DateRangePickerInputProps, "dateFormat" | "clearable">;
 
 export const DateRangePickerInput = connectField<DateRangeValue | undefined, DateRangeExtraProps>(
 	DateRangePickerControl,

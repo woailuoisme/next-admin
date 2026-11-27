@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "cn";
 
 import { type BaseInputProps, connectField, type FormFieldRenderProps, type SelectOption } from "../core";
@@ -16,11 +17,10 @@ export interface SelectInputProps<TValue extends string | number = string> exten
 	triggerClassName?: string;
 }
 
-interface SelectExtraProps<TValue extends string | number = string> {
-	options: SelectOption<TValue>[] | readonly SelectOption<TValue>[];
-	placeholder?: string;
-	triggerClassName?: string;
-}
+type SelectExtraProps<TValue extends string | number = string> = Pick<
+	SelectInputProps<TValue>,
+	"options" | "placeholder" | "triggerClassName"
+>;
 
 const EMPTY_OPTIONS: readonly SelectOption<any>[] = [];
 
@@ -28,8 +28,10 @@ function SelectControl<TValue extends string | number = string>({
 	id,
 	value,
 	onChange,
+	onBlur,
 	disabled,
 	readOnly,
+	required,
 	hasError,
 	describedBy,
 	placeholder,
@@ -37,45 +39,59 @@ function SelectControl<TValue extends string | number = string>({
 	triggerClassName,
 }: FormFieldRenderProps<TValue> & SelectExtraProps<TValue>) {
 	const t = useTranslations("form");
+	const [open, setOpen] = useState(false);
 	const resolvedPlaceholder = placeholder ?? t("select_placeholder");
-	const stringValue = value != null ? String(value) : "";
+	const stringValue = value !== undefined && value !== null ? String(value) : undefined;
+
+	const handleOpenChange = (nextOpen: boolean) => {
+		if (readOnly && nextOpen) return;
+		setOpen(nextOpen);
+		if (!nextOpen) {
+			onBlur?.();
+		}
+	};
 
 	return (
 		<Select
+			open={open}
+			onOpenChange={handleOpenChange}
 			value={stringValue}
 			onValueChange={(val) => {
 				if (readOnly) return;
 				const matched = options.find((o) => String(o.value) === val);
 				onChange(matched ? matched.value : (val as unknown as TValue));
 			}}
-			disabled={disabled || readOnly}
+			disabled={disabled}
 		>
 			<SelectTrigger
 				id={id}
+				aria-readonly={readOnly || undefined}
 				aria-invalid={hasError}
+				aria-required={required}
 				aria-describedby={describedBy}
-				className={cn(
-					"w-full rounded-md",
-					hasError && "border-destructive focus-visible:ring-destructive/20",
-					triggerClassName,
-				)}
+				onBlur={() => {
+					if (!open) onBlur?.();
+				}}
+				className={cn("w-full", triggerClassName)}
 			>
 				<SelectValue placeholder={resolvedPlaceholder} />
 			</SelectTrigger>
 			<SelectContent>
-				{options.map((option) => (
-					<SelectItem
-						key={String(option.value)}
-						value={String(option.value)}
-						disabled={option.disabled}
-						className="text-xs"
-					>
-						{"icon" in option && option.icon && (
-							<span className="mr-1.5 inline-flex size-3.5 items-center justify-center">{option.icon}</span>
-						)}
-						<span>{option.label}</span>
-					</SelectItem>
-				))}
+				<SelectGroup>
+					{options.map((option) => (
+						<SelectItem
+							key={String(option.value)}
+							value={String(option.value)}
+							disabled={option.disabled}
+							className="text-xs"
+						>
+							{"icon" in option && option.icon ? (
+								<span className="mr-1.5 inline-flex size-3.5 items-center justify-center">{option.icon}</span>
+							) : null}
+							<span>{option.label}</span>
+						</SelectItem>
+					))}
+				</SelectGroup>
 			</SelectContent>
 		</Select>
 	);

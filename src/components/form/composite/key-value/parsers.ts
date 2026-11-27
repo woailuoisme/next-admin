@@ -1,4 +1,5 @@
-import type { KeyValuePair } from "../../core";
+import type { KeyValuePair } from "@/components/form/core";
+
 import type { KeyValueRawFormat, KeyValueRowItem } from "./types";
 
 const BACKSLASH_REGEX = /\\/g;
@@ -9,6 +10,15 @@ const ENV_DOUBLE_QUOTE_UNESCAPE_REGEX = /\\([\\nr"])/g;
 const ENV_SPECIAL_CHAR_REGEX = /[\s"'#\r\n\\=]/;
 
 let kvRowIdCounter = 0;
+
+export interface RawParseErrorDescriptor {
+  key:
+    | "keyvalue_raw_invalid_object"
+    | "keyvalue_raw_invalid_json"
+    | "keyvalue_raw_invalid_env_line"
+    | "keyvalue_raw_empty_env_key";
+  params?: Record<string, string | number>;
+}
 
 export function createKvRow(key = "", value = ""): KeyValueRowItem {
   kvRowIdCounter += 1;
@@ -41,27 +51,50 @@ export function parseToRows(val: unknown): KeyValueRowItem[] {
 }
 
 /**
- * 增量对账已有行集合与外部传入值：尽可能保留原有行的 `_id`，避免组件重建与输入框失焦。
+ * 增量对账已有行集合与外部传入值：O(N) 查找，尽可能保留原有行的 `_id`，避免组件重建与输入框失焦。
  */
-export function reconcileKvRows(prevRows: KeyValueRowItem[], incomingValue: unknown): KeyValueRowItem[] {
+export function reconcileKvRows(
+  prevRows: KeyValueRowItem[],
+  incomingValue: unknown,
+  allowDuplicateKeys = false,
+): KeyValueRowItem[] {
   const nextPairs = toIncomingPairs(incomingValue);
   if (nextPairs.length === 0) return [];
 
   const isArrayInput = Array.isArray(incomingValue);
   const usedPrevIndices = new Set<number>();
 
+  const indicesByKey = new Map<string, number[]>();
+  for (let idx = 0; idx < prevRows.length; idx++) {
+    const key = prevRows[idx]!.key;
+    const queue = indicesByKey.get(key);
+    if (queue) queue.push(idx);
+    else indicesByKey.set(key, [idx]);
+  }
+
+  const takeUnusedByKey = (key: string): number => {
+    const queue = indicesByKey.get(key);
+    if (!queue) return -1;
+    while (queue.length > 0) {
+      const candidate = queue.shift()!;
+      if (!usedPrevIndices.has(candidate)) {
+        return candidate;
+      }
+    }
+    return -1;
+  };
+
   const reconciled = nextPairs.map((pair, idx) => {
-    // 数组模式下优先按同索引对齐，对象模式下优先按同名 key 对齐
     if (isArrayInput && prevRows[idx] && !usedPrevIndices.has(idx)) {
       usedPrevIndices.add(idx);
       const prev = prevRows[idx]!;
       return { ...prev, key: pair.key, value: pair.value };
     }
 
-    const matchedByKey = prevRows.findIndex((prev, prevIdx) => !usedPrevIndices.has(prevIdx) && prev.key === pair.key);
-    if (matchedByKey !== -1) {
-      usedPrevIndices.add(matchedByKey);
-      const prev = prevRows[matchedByKey]!;
+    const matchedIdx = takeUnusedByKey(pair.key);
+    if (matchedIdx !== -1) {
+      usedPrevIndices.add(matchedIdx);
+      const prev = prevRows[matchedIdx]!;
       return { ...prev, key: pair.key, value: pair.value };
     }
 
@@ -74,7 +107,7 @@ export function reconcileKvRows(prevRows: KeyValueRowItem[], incomingValue: unkn
     return createKvRow(pair.key, pair.value);
   });
 
-  return markDuplicateRows(reconciled);
+  return allowDuplicateKeys ? clearDuplicateFlags(reconciled) : markDuplicateRows(reconciled);
 }
 
 export function rowsToRecord(rows: KeyValueRowItem[]): Record<string, string> {
@@ -82,7 +115,12 @@ export function rowsToRecord(rows: KeyValueRowItem[]): Record<string, string> {
   for (const r of rows) {
     const trimmedKey = r.key.trim();
     if (trimmedKey !== "") {
-      rec[trimmedKey] = r.value;
+      Object.defineProperty(rec, trimmedKey, {
+        value: r.value,
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
     }
   }
   return rec;
@@ -111,11 +149,15 @@ export function findDuplicateKeys(rows: KeyValueRowItem[]): Set<string> {
   return duplicates;
 }
 
+export function clearDuplicateFlags(rows: KeyValueRowItem[]): KeyValueRowItem[] {
+  if (!rows.some((r) => r.isDuplicate)) return rows;
+  return rows.map((r) => (r.isDuplicate ? { ...r, isDuplicate: false } : r));
+}
+
 export function markDuplicateRows(rows: KeyValueRowItem[]): KeyValueRowItem[] {
   const dupes = findDuplicateKeys(rows);
   if (dupes.size === 0) {
-    const hasAnyDuplicateMarked = rows.some((r) => r.isDuplicate);
-    if (!hasAnyDuplicateMarked) return rows;
+    return clearDuplicateFlags(rows);
   }
   return rows.map((r) => {
     const trimmed = r.key.trim();
@@ -129,7 +171,6 @@ export function rowsToRaw(rows: KeyValueRowItem[], format: KeyValueRawFormat): s
     return JSON.stringify(rowsToRecord(rows), null, 2);
   }
 
-  // .env format: KEY=VALUE
   return rows
     .filter((r) => r.key.trim() !== "")
     .map((r) => {
@@ -156,7 +197,40 @@ function unescapeEnvDoubleQuoted(raw: string): string {
   });
 }
 
-export function rawToRows(rawText: string, format: KeyValueRawFormat): { rows: KeyValueRowItem[]; error?: string } {
+/**
+ * Finds a closing quote index in a `.env` value body, ensuring the rest of the line is whitespace or `# comment`.
+ */
+function findClosingQuote(segment: string, quoteChar: '"' | "'"): { content: string; closed: boolean } {
+  for (let i = 0; i < segment.length; i++) {
+    const ch = segment[i];
+    if (quoteChar === '"' && ch === "\\") {
+      i += 1;
+      continue;
+    }
+    if (ch === quoteChar) {
+      const trailing = segment.slice(i + 1).trim();
+      if (trailing === "" || trailing.startsWith("#")) {
+        return { content: segment.slice(0, i), closed: true };
+      }
+    }
+  }
+  return { content: segment, closed: false };
+}
+
+function stripInlineComment(value: string): string {
+  for (let i = 0; i < value.length; i++) {
+    if (value[i] === "#" && (i === 0 || /\s/.test(value[i - 1]!))) {
+      return value.slice(0, i).trimEnd();
+    }
+  }
+  return value.trimEnd();
+}
+
+export function rawToRows(
+  rawText: string,
+  format: KeyValueRawFormat,
+  allowDuplicateKeys = false,
+): { rows: KeyValueRowItem[]; error?: string; errorDescriptor?: RawParseErrorDescriptor } {
   if (format === "json") {
     try {
       if (!rawText.trim()) {
@@ -164,18 +238,25 @@ export function rawToRows(rawText: string, format: KeyValueRawFormat): { rows: K
       }
       const parsed = JSON.parse(rawText);
       if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-        return { rows: [], error: "JSON must be an object literal ({ key: value })" };
+        return {
+          rows: [],
+          error: "JSON must be an object literal ({ key: value })",
+          errorDescriptor: { key: "keyvalue_raw_invalid_object" },
+        };
       }
       const rows = Object.entries(parsed).map(([k, v]) =>
         createKvRow(k, typeof v === "object" && v !== null ? JSON.stringify(v) : String(v ?? "")),
       );
-      return { rows: markDuplicateRows(rows) };
+      return { rows: allowDuplicateKeys ? clearDuplicateFlags(rows) : markDuplicateRows(rows) };
     } catch (err) {
-      return { rows: [], error: (err as Error).message || "Invalid JSON syntax" };
+      return {
+        rows: [],
+        error: (err as Error).message || "Invalid JSON syntax",
+        errorDescriptor: { key: "keyvalue_raw_invalid_json" },
+      };
     }
   }
 
-  // .env format (supports single-line & multiline double-quoted entries + escaped \n/\r/\"/\\)
   const lines = rawText.split(/\r?\n/);
   const rows: KeyValueRowItem[] = [];
 
@@ -187,50 +268,56 @@ export function rawToRows(rawText: string, format: KeyValueRawFormat): { rows: K
 
     const eqIdx = line.indexOf("=");
     if (eqIdx === -1) {
-      rows.push(createKvRow(line, ""));
-      continue;
+      return {
+        rows: [],
+        error: `Line ${i + 1} is missing '='`,
+        errorDescriptor: { key: "keyvalue_raw_invalid_env_line", params: { line: i + 1 } },
+      };
     }
 
     const k = line.slice(0, eqIdx).trim();
+    if (!k) {
+      return {
+        rows: [],
+        error: `Line ${i + 1} has an empty key`,
+        errorDescriptor: { key: "keyvalue_raw_empty_env_key", params: { line: i + 1 } },
+      };
+    }
+
     const afterEq = line.slice(eqIdx + 1).trim();
 
-    if (afterEq.startsWith('"')) {
+    if (afterEq.startsWith('"') || afterEq.startsWith("'")) {
+      const quoteChar = afterEq[0] as '"' | "'";
       let body = afterEq.slice(1);
-      const hasClosingQuote = (segment: string) => {
-        let trailingBackslashes = 0;
-        for (let idx = segment.length - 1; idx >= 0 && segment[idx] === "\\"; idx--) {
-          trailingBackslashes += 1;
-        }
-        return segment.endsWith('"') && trailingBackslashes % 2 === 0;
-      };
-
-      while (!hasClosingQuote(body) && i + 1 < lines.length) {
+      let resolved = findClosingQuote(body, quoteChar);
+      while (!resolved.closed && i + 1 < lines.length) {
         i += 1;
         body += `\n${lines[i] ?? ""}`;
+        resolved = findClosingQuote(body, quoteChar);
       }
-
-      const trimmedBody = body.trimEnd();
-      if (hasClosingQuote(trimmedBody)) {
-        rows.push(createKvRow(k, unescapeEnvDoubleQuoted(trimmedBody.slice(0, -1))));
-      } else {
-        rows.push(createKvRow(k, unescapeEnvDoubleQuoted(body)));
-      }
-    } else if (afterEq.startsWith("'") && afterEq.endsWith("'") && afterEq.length >= 2) {
-      rows.push(createKvRow(k, afterEq.slice(1, -1)));
+      const rawContent = resolved.closed ? resolved.content : body;
+      rows.push(createKvRow(k, quoteChar === '"' ? unescapeEnvDoubleQuoted(rawContent) : rawContent));
     } else {
-      rows.push(createKvRow(k, afterEq));
+      rows.push(createKvRow(k, stripInlineComment(afterEq)));
     }
   }
 
-  return { rows: markDuplicateRows(rows) };
+  return { rows: allowDuplicateKeys ? clearDuplicateFlags(rows) : markDuplicateRows(rows) };
 }
 
-export function formatJsonText(rawText: string): { formatted?: string; error?: string } {
+export function formatJsonText(rawText: string): {
+  formatted?: string;
+  error?: string;
+  errorDescriptor?: RawParseErrorDescriptor;
+} {
   try {
     const parsed = JSON.parse(rawText);
     return { formatted: JSON.stringify(parsed, null, 2) };
   } catch (err) {
-    return { error: (err as Error).message || "Invalid JSON" };
+    return {
+      error: (err as Error).message || "Invalid JSON",
+      errorDescriptor: { key: "keyvalue_raw_invalid_json" },
+    };
   }
 }
 
@@ -238,10 +325,11 @@ export function convertRawFormat(
   rawText: string,
   fromFormat: KeyValueRawFormat,
   toFormat: KeyValueRawFormat,
-): { text?: string; rows?: KeyValueRowItem[]; error?: string } {
-  const { rows, error } = rawToRows(rawText, fromFormat);
+  allowDuplicateKeys = false,
+): { text?: string; rows?: KeyValueRowItem[]; error?: string; errorDescriptor?: RawParseErrorDescriptor } {
+  const { rows, error, errorDescriptor } = rawToRows(rawText, fromFormat, allowDuplicateKeys);
   if (error) {
-    return { error };
+    return { error, errorDescriptor };
   }
   return {
     rows,

@@ -61,13 +61,20 @@ export function parseAllowedFileTypes(accept?: string): string[] | null {
 	return tokens.length > 0 ? tokens : null;
 }
 
-export function isImageUrl(url: string): boolean {
+export function isImageUrl(url: string, knownMimeType?: string): boolean {
+	if (knownMimeType) {
+		return knownMimeType.startsWith("image/");
+	}
 	if (url.startsWith("data:image/") || url.startsWith("blob:")) return true;
 	const cleanUrl = url.split(/[?#]/)[0] ?? "";
 	return IMAGE_EXTENSION_RE.test(cleanUrl);
 }
 
 export function getFileNameFromUrl(url: string): string {
+	if (url.startsWith("data:")) {
+		const mimeMatch = url.match(/^data:image\/([a-z0-9+.-]+)/i);
+		return mimeMatch ? `image.${mimeMatch[1]!.toLowerCase()}` : "file";
+	}
 	const clean = url.split(/[?#]/)[0] ?? url;
 	return clean.split("/").pop() || clean || "file";
 }

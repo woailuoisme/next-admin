@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
-
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "cn";
 
-import { type BaseInputProps, connectField, type FormFieldRenderProps, type ToggleButtonOption } from "../core";
+import {
+	type BaseInputProps,
+	connectField,
+	createContainerBlurHandler,
+	type FormFieldRenderProps,
+	type ToggleButtonOption,
+} from "../core";
 
 const EMPTY_OPTIONS: ToggleButtonOption[] = [];
 
@@ -36,10 +40,9 @@ function ToggleButtonsControl({
 	size = "sm",
 	fullWidth = false,
 }: FormFieldRenderProps<string> & ToggleButtonsExtraProps) {
-	const locked = Boolean(isDisabled || isReadOnly);
-	const handleValueChange = useMemoizedFn((val: string) => {
-		if (val && !isReadOnly) onChange(val);
-	});
+	const handleValueChange = (val: string) => {
+		if (val && !isReadOnly && !isDisabled) onChange(val);
+	};
 
 	return (
 		<ToggleGroup
@@ -47,10 +50,11 @@ function ToggleButtonsControl({
 			type="single"
 			value={value}
 			onValueChange={handleValueChange}
-			onBlur={onBlur}
-			disabled={locked}
+			onBlur={createContainerBlurHandler(onBlur)}
+			disabled={isDisabled}
 			variant={variant}
 			size={size}
+			aria-readonly={isReadOnly || undefined}
 			aria-invalid={hasError}
 			aria-describedby={describedBy}
 			className={cn("pt-1", fullWidth && "flex w-full *:flex-1")}
@@ -61,10 +65,10 @@ function ToggleButtonsControl({
 					<ToggleGroupItem
 						key={opt.value}
 						value={opt.value}
-						disabled={locked || opt.disabled}
+						disabled={Boolean(isDisabled || opt.disabled)}
 						className="cursor-pointer gap-1.5 text-xs"
 					>
-						{Icon && <Icon className="size-3.5 shrink-0" />}
+						{Icon ? <Icon className="size-3.5 shrink-0" aria-hidden="true" /> : null}
 						<span>{opt.label}</span>
 					</ToggleGroupItem>
 				);

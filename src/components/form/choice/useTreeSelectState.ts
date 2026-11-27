@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { type KeyboardEvent, type MouseEvent, useDeferredValue, useEffect, useRef, useState } from "react";
 
 import {
@@ -86,6 +85,7 @@ export function useTreeSelectState({
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const deferredSearch = useDeferredValue(searchValue);
+  const searchKeyword = deferredSearch.trim();
 
   const fieldKeys = defaultFieldNames(fieldNames);
   const { nodeMap, rootKeys } = buildTreeIndex(treeData, fieldKeys);
@@ -115,13 +115,29 @@ export function useTreeSelectState({
     treeExpandedKeys: controlledExpandedKeys,
     onTreeExpand,
     hasSearchFilter,
+    searchKeyword,
     searchExpandedKeys,
     loadData,
     isMountedRef,
   });
 
-  const handleSelectNode = useMemoizedFn((item: InternalTreeNode) => {
-    if (item.disabled || !item.selectable) return;
+  const handleCheckNode = (item: InternalTreeNode) => {
+    if (disabled || readOnly || item.disabled || item.disableCheckbox) return;
+    const isCurrentlyChecked = allCascadedChecked.has(item.key);
+    const nextCheckedSet = applyCascadingCheckChange(allCascadedChecked, item, nodeMap, !isCurrentlyChecked);
+    const formattedKeys = filterCheckedKeysByStrategy(nextCheckedSet, showCheckedStrategy, nodeMap);
+
+    if (!isControlled) setUncontrolledValue(formattedKeys);
+    const selectedNodes = formattedKeys.map((k) => nodeMap.get(k)?.raw).filter(Boolean) as TreeSelectNode[];
+    onChange?.(formattedKeys, selectedNodes, {
+      triggerValue: item.key,
+      checked: !isCurrentlyChecked,
+      allCheckedKeys: Array.from(nextCheckedSet),
+    });
+  };
+
+  const handleSelectNode = (item: InternalTreeNode) => {
+    if (disabled || readOnly || item.disabled || !item.selectable) return;
     if (onlyLeafSelectable && !item.isLeaf) {
       void handleToggleExpand(item);
       return;
@@ -144,34 +160,24 @@ export function useTreeSelectState({
       return;
     }
 
-    const isCurrentlyChecked = allCascadedChecked.has(item.key);
-    const nextCheckedSet = applyCascadingCheckChange(allCascadedChecked, item, nodeMap, !isCurrentlyChecked);
-    const formattedKeys = filterCheckedKeysByStrategy(nextCheckedSet, showCheckedStrategy, nodeMap);
+    handleCheckNode(item);
+  };
 
-    if (!isControlled) setUncontrolledValue(formattedKeys);
-    const selectedNodes = formattedKeys.map((k) => nodeMap.get(k)?.raw).filter(Boolean) as TreeSelectNode[];
-    onChange?.(formattedKeys, selectedNodes, {
-      triggerValue: item.key,
-      checked: !isCurrentlyChecked,
-      allCheckedKeys: Array.from(nextCheckedSet),
-    });
-  });
-
-  const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
+  const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen && (disabled || readOnly)) return;
     setOpen(nextOpen);
     if (!nextOpen) onBlur?.();
-  });
+  };
 
-  const handleClear = useMemoizedFn((e?: MouseEvent<HTMLButtonElement>) => {
+  const handleClear = (e?: MouseEvent<HTMLButtonElement>) => {
     e?.stopPropagation();
     if (disabled || readOnly) return;
     const nextVal = isMultiple ? EMPTY_VALUES : undefined;
     if (!isControlled) setUncontrolledValue(nextVal);
     onChange?.(nextVal, isMultiple ? [] : undefined);
-  });
+  };
 
-  const handleRemoveTag = useMemoizedFn((tagKey: TreeSelectValue, e: MouseEvent<HTMLButtonElement>) => {
+  const handleRemoveTag = (tagKey: TreeSelectValue, e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (disabled || readOnly) return;
 
@@ -191,14 +197,14 @@ export function useTreeSelectState({
     if (!isControlled) setUncontrolledValue(formattedKeys);
     const selectedNodes = formattedKeys.map((k) => nodeMap.get(k)?.raw).filter(Boolean) as TreeSelectNode[];
     onChange?.(formattedKeys, selectedNodes, { triggerValue: tagKey, checked: false });
-  });
+  };
 
   const hasSelection = isMultiple
     ? Array.isArray(activeValue) && activeValue.length > 0
     : activeValue !== undefined && activeValue !== null && activeValue !== "";
-  const canClear = Boolean((allowClear || clearable) && !disabled && !readOnly && hasSelection);
+  const canClear = Boolean(allowClear && clearable && !disabled && !readOnly && hasSelection);
 
-  const handleTriggerKeyDown = useMemoizedFn((e: KeyboardEvent<HTMLElement>) => {
+  const handleTriggerKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (disabled || readOnly) return;
     if (e.target !== e.currentTarget) return;
     if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
@@ -208,7 +214,7 @@ export function useTreeSelectState({
       e.preventDefault();
       handleClear();
     }
-  });
+  };
 
   return {
     open,
@@ -219,7 +225,7 @@ export function useTreeSelectState({
     canClear,
     searchValue,
     setSearchValue,
-    searchKeyword: deferredSearch.trim(),
+    searchKeyword,
     nodeMap,
     rootKeys,
     effectiveExpandedKeys,
@@ -228,11 +234,13 @@ export function useTreeSelectState({
     halfCheckedKeys,
     selectedKeysSet,
     matchedKeys,
+    searchExpandedKeys,
     hasSearchFilter,
     handleOpenChange,
     handleClear,
     handleRemoveTag,
     handleTriggerKeyDown,
+    handleCheckNode,
     handleSelectNode,
     handleToggleExpand,
   };
