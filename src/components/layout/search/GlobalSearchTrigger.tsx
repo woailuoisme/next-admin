@@ -37,7 +37,7 @@ export function GlobalSearchTrigger({
 			aria-label={effectiveAriaLabel}
 		>
 			<div className="flex items-center gap-2 overflow-hidden">
-				<Search className="text-muted-foreground group-hover:text-foreground size-3.5 shrink-0 transition-colors" />
+				<Search className="text-muted-foreground group-hover:text-foreground shrink-0 transition-colors" />
 				<span className="hidden truncate sm:inline">{effectiveTriggerText}</span>
 			</div>
 			<Kbd className="border-border/80 bg-background/80 text-muted-foreground hidden h-4.5 items-center gap-0.5 rounded border px-1.5 font-mono text-[10px] md:inline-flex">

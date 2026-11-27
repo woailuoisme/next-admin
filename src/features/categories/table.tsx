@@ -3,17 +3,18 @@
 import { action } from "@/components/actions";
 import { col } from "@/components/data-table/columns/col";
 import type { ResourceTableSchema } from "@/components/resource";
-import { en, zh } from "@/i18n";
 import { createScopedTranslator } from "@/i18n/scoped";
+import { table as enTable } from "@/messages/en.json";
+import { table as zhTable } from "@/messages/zh.json";
 
 import type { Category } from "./types";
 
-const getTableT = createScopedTranslator("table", { zh: zh.table, en: en.table });
+const getTableT = createScopedTranslator("table", { zh: zhTable, en: enTable });
 
-const PINNED_COLUMNS = {
+const PINNED_COLUMNS = Object.freeze({
 	left: ["name"],
 	right: ["__actions"],
-};
+});
 
 export const categoryTableConfig: ResourceTableSchema<Category> = {
 	pinnedColumns: PINNED_COLUMNS,

@@ -7,7 +7,7 @@ export function ChartsFeatureHighlights() {
 			{FEATURE_HIGHLIGHTS.map(({ icon: Icon, iconClass, title, description }) => (
 				<Card key={title} className="border-border/60 bg-muted/30 flex items-center gap-3 p-3.5">
 					<div className={`rounded-md p-2 ${iconClass}`}>
-						<Icon className="h-4 w-4" />
+						<Icon className="size-4" aria-hidden="true" />
 					</div>
 					<div className="text-xs">
 						<div className="text-foreground font-semibold">{title}</div>

@@ -23,7 +23,7 @@ function KpiCard({
 		<Card className="bg-card border-border shadow-xs">
 			<CardHeader className="flex flex-row items-center justify-between pb-2">
 				<CardTitle className="text-muted-foreground text-xs font-medium">{title}</CardTitle>
-				<Icon className="text-primary h-4 w-4" />
+				<Icon className="text-primary size-4" aria-hidden="true" />
 			</CardHeader>
 			<CardContent>
 				<div className="text-foreground font-mono text-2xl font-bold">{value}</div>

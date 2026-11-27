@@ -38,6 +38,7 @@ export function DemoTelemetryProvider({ children }: { children: ReactNode }) {
 		volatility: 0.04,
 	});
 
+	// Whitelist AGENTS.md §5.2: 隔离 2.5s 高频遥测数据更新与控制引用，避免外层 Tabs 与图表重渲染
 	const dataValue = useMemo<DemoTelemetryData>(
 		() => ({
 			value: ticker.value,
@@ -48,6 +49,7 @@ export function DemoTelemetryProvider({ children }: { children: ReactNode }) {
 		[ticker.value, ticker.sparklineData, ticker.status, ticker.lastUpdated],
 	);
 
+	// Whitelist AGENTS.md §5.2: 与 dataValue 拆分为独立 Context，避免控制栏消费端随高频数据流重渲染
 	const controlsValue = useMemo<DemoTelemetryControls>(
 		() => ({
 			isRunning: ticker.isRunning,

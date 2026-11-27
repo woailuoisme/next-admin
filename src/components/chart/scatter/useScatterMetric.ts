@@ -2,7 +2,6 @@
 
 import { useMemoizedFn } from "ahooks";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
 
 import type { ScatterMetricChartProps, ScatterPoint, ScatterSeries } from "./types";
 
@@ -53,38 +52,35 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
     zValueFormatter,
   } = props;
 
-  const resolvedSeries = useMemo<ScatterSeries[]>(() => {
-    if (propSeries && propSeries.length > 0) {
-      return propSeries.map((s, idx) => ({
-        ...s,
-        data: s.data.map((point) => normalizeScatterPoint(point, xAxisKey, yAxisKey, zAxisKey, nameKey, categoryKey)),
-        fill: s.fill || CHART_PALETTE[idx % CHART_PALETTE.length],
-      }));
-    }
+  let resolvedSeries: ScatterSeries[] = [];
+  if (propSeries && propSeries.length > 0) {
+    resolvedSeries = propSeries.map((s, idx) => ({
+      ...s,
+      data: s.data.map((point) => normalizeScatterPoint(point, xAxisKey, yAxisKey, zAxisKey, nameKey, categoryKey)),
+      fill: s.fill || CHART_PALETTE[idx % CHART_PALETTE.length],
+    }));
+  } else if (data && data.length > 0) {
+    const normalizedPoints: ScatterPoint[] = data.map((point) =>
+      normalizeScatterPoint(point, xAxisKey, yAxisKey, zAxisKey, nameKey, categoryKey),
+    );
 
-    if (data && data.length > 0) {
-      const normalizedPoints: ScatterPoint[] = data.map((point) =>
-        normalizeScatterPoint(point, xAxisKey, yAxisKey, zAxisKey, nameKey, categoryKey),
-      );
-
-      // Group by category if present
-      const hasCategories = normalizedPoints.some((d) => Boolean(d.category));
-      if (hasCategories) {
-        const map = new Map<string, typeof normalizedPoints>();
-        for (const point of normalizedPoints) {
-          const cat = point.category || defaultCategoryLabel;
-          if (!map.has(cat)) map.set(cat, []);
-          map.get(cat)!.push(point);
-        }
-
-        return Array.from(map.entries()).map(([cat, points], idx) => ({
-          name: cat,
-          data: points,
-          fill: CHART_PALETTE[idx % CHART_PALETTE.length],
-        }));
+    // Group by category if present
+    const hasCategories = normalizedPoints.some((d) => Boolean(d.category));
+    if (hasCategories) {
+      const map = new Map<string, typeof normalizedPoints>();
+      for (const point of normalizedPoints) {
+        const cat = point.category || defaultCategoryLabel;
+        if (!map.has(cat)) map.set(cat, []);
+        map.get(cat)!.push(point);
       }
 
-      return [
+      resolvedSeries = Array.from(map.entries()).map(([cat, points], idx) => ({
+        name: cat,
+        data: points,
+        fill: CHART_PALETTE[idx % CHART_PALETTE.length],
+      }));
+    } else {
+      resolvedSeries = [
         {
           name: defaultSeriesLabel,
           data: normalizedPoints,
@@ -92,9 +88,7 @@ export function useScatterMetric(props: ScatterMetricChartProps) {
         },
       ];
     }
-
-    return [];
-  }, [data, propSeries, xAxisKey, yAxisKey, zAxisKey, nameKey, categoryKey, defaultCategoryLabel, defaultSeriesLabel]);
+  }
 
   const { valueFormatter: baseFormatter } = useChartFormatters();
   const xFormatter = useMemoizedFn((val: number) => (customXFormatter ?? xValueFormatter ?? baseFormatter)(val));

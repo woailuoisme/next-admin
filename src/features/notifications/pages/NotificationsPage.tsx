@@ -1,9 +1,10 @@
 "use client";
 
-import { Bell, CheckCheck, Settings2 } from "lucide-react";
+import { AlertCircle, Bell, CheckCheck, Settings2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,7 +19,7 @@ export function NotificationsPage() {
 
 	useRealtimeNotifications();
 
-	const { data, isLoading } = useNotifications();
+	const { data, isLoading, isError, refetch } = useNotifications();
 	const markAllAsReadMutation = useMarkAllAsReadMutation();
 
 	const allItems = data?.items ?? [];
@@ -27,7 +28,7 @@ export function NotificationsPage() {
 	return (
 		<div className="space-y-6">
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-				<div className="space-y-1">
+				<div className="flex flex-col gap-1">
 					<div className="flex items-center gap-2.5">
 						<h1 className="text-foreground text-2xl font-semibold tracking-tight">{t("page_title")}</h1>
 						<Badge variant={unreadCount > 0 ? "default" : "secondary"} className="tabular-nums">
@@ -43,21 +44,35 @@ export function NotificationsPage() {
 					size="sm"
 					disabled={unreadCount === 0 || markAllAsReadMutation.isPending}
 					onClick={() => markAllAsReadMutation.mutate()}
-					className="cursor-pointer gap-1.5 self-start sm:self-auto"
+					className="cursor-pointer self-start sm:self-auto"
 				>
-					<CheckCheck className="size-4" />
+					<CheckCheck data-icon="inline-start" aria-hidden="true" />
 					{t("mark_all_read")}
 				</Button>
 			</div>
 
+			{isError && !data ? (
+				<Alert variant="destructive">
+					<AlertCircle aria-hidden="true" />
+					<AlertDescription className="flex flex-col gap-3">
+						<span>{t("load_error")}</span>
+						<div>
+							<Button type="button" variant="outline" size="xs" onClick={() => void refetch()}>
+								{t("retry")}
+							</Button>
+						</div>
+					</AlertDescription>
+				</Alert>
+			) : null}
+
 			<Tabs value={sectionTab} onValueChange={(v) => setSectionTab(v as "inbox" | "preferences")}>
 				<TabsList>
 					<TabsTrigger value="inbox" className="gap-1.5">
-						<Bell className="size-3.5" />
+						<Bell className="size-3.5" aria-hidden="true" />
 						{t("inbox_tab")}
 					</TabsTrigger>
 					<TabsTrigger value="preferences" className="gap-1.5">
-						<Settings2 className="size-3.5" />
+						<Settings2 className="size-3.5" aria-hidden="true" />
 						{t("preferences_tab")}
 					</TabsTrigger>
 				</TabsList>

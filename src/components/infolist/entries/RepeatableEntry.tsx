@@ -84,9 +84,9 @@ function RepeatableCardItem({
 						<span className="truncate text-left">{title}</span>
 						<span className="sr-only"> {collapsed ? expandLabel : collapseLabel}</span>
 						{collapsed ? (
-							<ChevronRight className="text-muted-foreground size-3.5 shrink-0" aria-hidden="true" />
+							<ChevronRight data-icon="inline-end" className="text-muted-foreground" aria-hidden="true" />
 						) : (
-							<ChevronDown className="text-muted-foreground size-3.5 shrink-0" aria-hidden="true" />
+							<ChevronDown data-icon="inline-end" className="text-muted-foreground" aria-hidden="true" />
 						)}
 					</Button>
 				</CollapsibleTrigger>

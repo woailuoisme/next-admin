@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { memo } from "react";
 
 export interface HeatmapLegendProps {
 	legendTitle?: string;
@@ -9,7 +8,7 @@ export interface HeatmapLegendProps {
 	maxIntensity?: number;
 }
 
-export const HeatmapLegend = memo(function HeatmapLegend({ legendTitle, stops, maxIntensity = 1 }: HeatmapLegendProps) {
+export function HeatmapLegend({ legendTitle, stops, maxIntensity = 1 }: HeatmapLegendProps) {
 	const t = useTranslations("map");
 	const title = legendTitle ?? t("heatmap_legend_default");
 	const visibleStops = stops.filter((_, idx) => idx > 0);
@@ -38,4 +37,4 @@ export const HeatmapLegend = memo(function HeatmapLegend({ legendTitle, stops, m
 			</div>
 		</div>
 	);
-});
+}

@@ -263,7 +263,10 @@
     "pref_in_app": "站内实时提醒",
     "pref_email_digest": "邮件摘要通知",
     "pref_sound": "新消息提示音",
-    "pref_saved": "通知偏好设置已保存"
+    "pref_saved": "通知偏好设置已保存",
+    "load_error": "通知列表加载失败，请重试。",
+    "retry": "重试",
+    "batch_entity_name": "通知"
   },
   "products": {
     "status_active": "上架销售",
@@ -538,7 +541,10 @@
     "unsaved_changes_confirm": "您有尚未保存的修改，确定要离开吗？未保存的内容将会丢失。",
     "unsaved_changes_stay": "继续编辑",
     "unsaved_changes_discard": "放弃并离开",
-    "unsupported_mode_fallback": "当前视图配置不完整或缺少对应渲染器。"
+    "unsupported_mode_fallback": "当前视图配置不完整或缺少对应渲染器。",
+    "detail_load_error": "详情加载失败，请重试。",
+    "detail_not_found": "未找到对应记录或已被删除。",
+    "retry": "重试"
   },
   "map": {
     "basemap_selector": "底图图层",
@@ -891,6 +897,7 @@
     "create_action": "新增分类",
     "form_desc": "把商品归类到合理的分类层级中。",
     "form_name_label": "分类名称",
+    "form_name_placeholder": "例如：智能家居",
     "form_slug_label": "Slug 标识",
     "form_slug_placeholder": "smart-home",
     "form_desc_label": "分类描述",
@@ -931,7 +938,10 @@
     "confirm_activate_desc": "启用后“{name}”将恢复正常账户权限。",
     "confirm_batch_suspend_title": "批量停用 {count} 位客户？",
     "confirm_batch_suspend_desc": "确定要停用选中的 {count} 位客户吗？该操作可随时撤销。",
-    "batch_suspend_success": "已批量停用 {count} 位客户"
+    "batch_suspend_success": "已批量停用 {count} 位客户",
+    "batch_suspend_partial": "已停用 {succeeded} 位客户，失败 {failed} 位",
+    "batch_suspend_failed": "批量停用失败，请重试",
+    "batch_suspend_noop": "所选客户均已处于停用状态"
   },
   "dashboard": {
     "page_title": "运营仪表盘",
@@ -953,6 +963,8 @@
     "metric_customers_trend": "较上月",
     "revenue_chart_title": "营收走势 (Revenue Trajectory)",
     "revenue_chart_desc": "全平台近 12 个月度总经营入账及销售波动分析",
+    "period_3m": "近3月",
+    "period_6m": "近6月",
     "period_7d": "7天",
     "period_30d": "30天",
     "period_12m": "12月",
@@ -968,6 +980,7 @@
     "recent_orders_title": "最近客户订单",
     "recent_orders_desc": "待履约的最新客户采购记录",
     "recent_orders_view_all": "查看全部",
+    "recent_orders_empty": "暂无最近订单",
     "recent_orders_items": "{count, plural, one {# 件商品} other {# 件商品}}",
     "quick_actions_title": "运营快捷操作",
     "quick_actions_desc": "高频管理操作的直达入口",
@@ -1099,6 +1112,7 @@
     "import_preview_title": "数据预览与校验",
     "import_valid_count": "通过校验 {count} 条",
     "import_error_count": "异常 {count} 条",
+    "import_row_status": "状态",
     "import_row_valid": "通过",
     "import_row_invalid": "校验失败",
     "import_submit": "导入有效数据 ({count})",
@@ -1106,6 +1120,7 @@
     "import_parse_error": "文件解析失败，请检查格式是否正确",
     "import_success": "成功导入 {count} 条记录",
     "import_partial": "已导入 {succeeded} 条，失败 {failed} 条",
+    "import_failed_all": "导入失败（{failed} 条），请检查后重试",
     "export_label": "导出",
     "export_title": "导出{entityName}",
     "export_desc": "选择导出格式、文件名及需要包含的数据列。",
@@ -1115,6 +1130,7 @@
     "export_select_all": "全选",
     "export_deselect_all": "清空",
     "export_submit": "开始导出 ({count} 条)",
+    "export_submit_async": "开始导出",
     "export_empty": "暂无可导出的数据",
     "export_no_columns": "请至少选择一个导出列",
     "export_success": "成功导出 {count} 条记录",
@@ -1156,6 +1172,7 @@
     "avatar_url_placeholder": "https://example.com/avatar.png",
     "avatar_url_invalid": "请输入有效的 http(s) 或站内相对头像地址",
     "avatar_presets_label": "快速选择头像",
+    "avatar_preset_aria": "选择预设头像 {index}",
     "save_profile": "保存资料",
     "saving_profile": "正在保存...",
     "profile_updated": "个人资料已更新",

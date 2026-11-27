@@ -2,10 +2,12 @@
 
 import { DollarSign, Server, TrendingUp, Zap } from "lucide-react";
 
-import { ComposedTrendChart } from "@/components/chart/composed/ComposedTrendChart";
-import { DonutDistributionChart } from "@/components/chart/donut/DonutDistributionChart";
-import { HorizontalBarChart } from "@/components/chart/horizontal-bar/HorizontalBarChart";
-import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
+import {
+	LazyComposedTrendChart,
+	LazyDonutDistributionChart,
+	LazyHorizontalBarChart,
+	LazyRadialGaugeChart,
+} from "@/components/chart/lazy";
 import { LiveStatCard } from "@/components/stats/live-card/LiveStatCard";
 import { MultiMetricStatCard } from "@/components/stats/multi-metric-card/MultiMetricStatCard";
 import { ProgressStatCard } from "@/components/stats/progress-card/ProgressStatCard";
@@ -66,7 +68,7 @@ export function OverviewTab({
 	currentTrendData,
 }: OverviewTabProps) {
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			{/* Top KPI 4-Card Grid */}
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatCard
@@ -135,9 +137,11 @@ export function OverviewTab({
 							{TIME_RANGES.map((tr) => (
 								<Button
 									key={tr}
-									size="sm"
+									type="button"
+									size="xs"
 									variant={timeRange === tr ? "default" : "ghost"}
-									className="h-6 px-2 text-xs uppercase"
+									aria-pressed={timeRange === tr}
+									className="uppercase"
 									onClick={() => onTimeRangeChange(tr)}
 								>
 									{tr}
@@ -151,7 +155,7 @@ export function OverviewTab({
 								No transaction records found for range: {timeRange}
 							</div>
 						) : (
-							<ComposedTrendChart
+							<LazyComposedTrendChart
 								data={currentTrendData}
 								xAxisKey="label"
 								height={300}
@@ -187,7 +191,7 @@ export function OverviewTab({
 								No tier breakdown available
 							</div>
 						) : (
-							<DonutDistributionChart
+							<LazyDonutDistributionChart
 								data={DISTRIBUTION_DATA}
 								height={300}
 								innerRadius={65}
@@ -209,7 +213,7 @@ export function OverviewTab({
 						<CardDescription>Processed queries per minute across active mesh</CardDescription>
 					</CardHeader>
 					<CardContent className="pt-4">
-						<HorizontalBarChart
+						<LazyHorizontalBarChart
 							data={HORIZONTAL_RANKINGS}
 							height={240}
 							valueFormatter={(v) => `${(v / 1000).toFixed(1)}k req/m`}
@@ -224,13 +228,13 @@ export function OverviewTab({
 					</CardHeader>
 					<CardContent className="flex flex-col items-center justify-around gap-4 pt-2 sm:flex-row">
 						<div className="flex flex-col items-center">
-							<RadialGaugeChart value={99.9} max={100} height={180} theme="chart-2" label="Uptime SLA" unit="%" />
+							<LazyRadialGaugeChart value={99.9} max={100} height={180} theme="chart-2" label="Uptime SLA" unit="%" />
 						</div>
 						<div className="flex flex-col items-center">
-							<RadialGaugeChart value={76} max={100} height={180} theme="chart-3" label="Memory Quota" unit="%" />
+							<LazyRadialGaugeChart value={76} max={100} height={180} theme="chart-3" label="Memory Quota" unit="%" />
 						</div>
 						<div className="flex flex-col items-center">
-							<RadialGaugeChart value={42} max={100} height={180} theme="primary" label="Disk IOPS" unit="%" />
+							<LazyRadialGaugeChart value={42} max={100} height={180} theme="primary" label="Disk IOPS" unit="%" />
 						</div>
 					</CardContent>
 				</Card>

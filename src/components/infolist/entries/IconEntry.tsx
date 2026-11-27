@@ -70,7 +70,7 @@ export function IconEntry({
 	let ResolvedIcon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }> | null = null;
 	let resolvedColor: EntrySemanticColor = color ?? "neutral";
 
-	if (hasRawValue && iconMap && valStr in iconMap) {
+	if (hasRawValue && iconMap && Object.hasOwn(iconMap, valStr)) {
 		ResolvedIcon = iconMap[valStr];
 	} else if (explicitIcon) {
 		ResolvedIcon = explicitIcon;
@@ -81,7 +81,7 @@ export function IconEntry({
 		}
 	}
 
-	if (hasRawValue && colorMap && valStr in colorMap) {
+	if (hasRawValue && colorMap && Object.hasOwn(colorMap, valStr)) {
 		resolvedColor = colorMap[valStr];
 	}
 

@@ -1,12 +1,13 @@
 "use client";
 
-import { Edit, Loader2 } from "lucide-react";
+import { Edit } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { SheetDescription, SheetFooter, SheetTitle } from "@/components/ui/sheet";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "cn";
 
 import { ModalFrame } from "./ModalFrame";
@@ -46,15 +47,9 @@ function ViewOverlayHeader({
 				<div className="flex items-center gap-2">
 					{extraActions ?? null}
 					{onEdit ? (
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={onEdit}
-							className="h-8 gap-1.5 text-xs shadow-xs"
-						>
-							<Edit className="size-3.5" aria-hidden="true" />
-							<span>{editText}</span>
+						<Button type="button" variant="outline" size="sm" onClick={onEdit} className="text-xs shadow-xs">
+							<Edit data-icon="inline-start" aria-hidden="true" />
+							{editText}
 						</Button>
 					) : null}
 				</div>
@@ -111,7 +106,7 @@ export function ViewDialog({
 
 	const loadingSpinner = (
 		<div role="status" aria-label={tCommon("loading_page_aria")} className="flex h-64 items-center justify-center">
-			<Loader2 className="text-primary size-6 animate-spin" aria-hidden="true" />
+			<Spinner role={undefined} aria-hidden="true" className="text-primary size-6" />
 			<span className="sr-only">{tCommon("loading_page_aria")}</span>
 		</div>
 	);
@@ -121,9 +116,9 @@ export function ViewDialog({
 			<div className="flex items-center gap-2">
 				{extraActions}
 				{onEdit ? (
-					<Button type="button" variant="outline" size="sm" onClick={onEdit} className="h-8 gap-1.5 text-xs shadow-xs">
-						<Edit className="size-3.5" aria-hidden="true" />
-						<span>{resolvedEditText}</span>
+					<Button type="button" variant="outline" size="sm" onClick={onEdit} className="text-xs shadow-xs">
+						<Edit data-icon="inline-start" aria-hidden="true" />
+						{resolvedEditText}
 					</Button>
 				) : null}
 			</div>
@@ -140,7 +135,7 @@ export function ViewDialog({
 					backLabel={backLabel}
 					extraActions={pageActions}
 				/>
-				{loading ? loadingSpinner : <div className="space-y-6">{children}</div>}
+				{loading ? loadingSpinner : <div className="flex flex-col gap-6">{children}</div>}
 				<div className={cn("border-border/70 flex items-center justify-between border-t pt-4", footerClassName)}>
 					<Button type="button" variant="outline" onClick={handleBack} className="h-8.5 px-4 text-xs font-medium">
 						{resolvedCloseText}

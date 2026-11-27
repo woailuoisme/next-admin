@@ -1,9 +1,11 @@
 "use client";
 
+import { useRef } from "react";
 import { toast } from "sonner";
 
 import { FormDialog, ViewDialog } from "@/components/dialogs";
 import { useAppForm } from "@/components/form";
+import type { AppFormContract } from "@/components/form/core/types";
 import type { ResourcePresentation } from "@/components/resource";
 import { SchemaRenderer } from "@/components/schema";
 import { Badge } from "@/components/ui/badge";
@@ -42,11 +44,20 @@ export function ResourceShowcaseModals({
 	onCloseView,
 	onOpenEdit,
 }: ResourceShowcaseModalsProps) {
+	const keepOpenAfterSubmitRef = useRef(false);
+	const activeDefaults = isEditing ? customer : newCustomerDefaults;
+
 	const form = useAppForm({
-		defaultValues: isEditing ? customer : newCustomerDefaults,
+		defaultValues: activeDefaults,
 		onSubmit: async ({ value }) => {
+			const stay = keepOpenAfterSubmitRef.current;
+			keepOpenAfterSubmitRef.current = false;
 			await new Promise((r) => setTimeout(r, 600));
 			onSaveCustomer(value as SampleCustomer);
+			if (stay) {
+				toast.info("Saved! Ready for continued editing.");
+				return;
+			}
 			toast.success(isEditing ? "Customer details updated successfully!" : "New customer record created successfully!");
 			onCloseForm();
 		},
@@ -60,11 +71,16 @@ export function ResourceShowcaseModals({
 				onOpenChange={(next) => {
 					if (!next) onCloseForm();
 				}}
+				form={form as unknown as AppFormContract}
+				defaultValues={activeDefaults}
+				mode={isEditing ? "edit" : "create"}
+				entity={isEditing ? customer : null}
+				enableDirtyGuard
 				title={isCreateOpen ? "Create Customer" : `Edit ${customer.name}`}
 				description="Manage organization customer records and enterprise account settings."
 				badge={
 					<Badge variant="secondary" className="text-[10px]">
-						{customer.tier.toUpperCase()}
+						{activeDefaults.tier.toUpperCase()}
 					</Badge>
 				}
 				size="lg"
@@ -78,14 +94,18 @@ export function ResourceShowcaseModals({
 				submitText={isCreateOpen ? "Create Customer" : "Save Changes"}
 				saveAndContinueText="Save & Continue Editing"
 				onSaveAndContinue={async () => {
-					await form.handleSubmit();
-					toast.info("Saved! Ready for continued editing.");
+					keepOpenAfterSubmitRef.current = true;
+					try {
+						await form.handleSubmit();
+					} finally {
+						keepOpenAfterSubmitRef.current = false;
+					}
 				}}
 				onSubmit={() => form.handleSubmit()}
 				onCancel={onCloseForm}
 			>
 				<form.AppForm>
-					<div className="space-y-4">
+					<div className="flex flex-col gap-4">
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<form.AppField name="name">
 								{(field) => <field.TextInput label="Customer Name" required placeholder="e.g. Acme Corporation" />}
@@ -129,10 +149,14 @@ export function ResourceShowcaseModals({
 				description={`Customer ID: ${customer.id}`}
 				badge={
 					<Badge
-						variant="outline"
-						className={`${SHOWCASE_ACCENT_CLASSES.successBorder} text-[10px] ${SHOWCASE_ACCENT_CLASSES.successText}`}
+						variant={customer.isActive ? "outline" : "destructive"}
+						className={
+							customer.isActive
+								? `${SHOWCASE_ACCENT_CLASSES.successBorder} text-[10px] ${SHOWCASE_ACCENT_CLASSES.successText}`
+								: "text-[10px]"
+						}
 					>
-						ACTIVE ENTERPRISE
+						{`${customer.isActive ? "ACTIVE" : "SUSPENDED"} ${customer.tier.toUpperCase()}`}
 					</Badge>
 				}
 				size="lg"

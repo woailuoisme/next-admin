@@ -6,6 +6,7 @@ import type { Order, OrderStatus } from "@/features/orders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { MessageKeyOf } from "@/types/i18n";
 import { useFormatter, useTranslations } from "next-intl";
@@ -65,7 +66,7 @@ export function RecentOrdersTable({ orders = [], isLoading = false }: RecentOrde
 		return (
 			<Card className="border-border/60 col-span-full shadow-xs lg:col-span-3">
 				<CardHeader className="flex flex-row items-center justify-between pb-3">
-					<div className="space-y-1.5">
+					<div className="flex flex-col gap-1.5">
 						<Skeleton className="h-5 w-40" />
 						<Skeleton className="h-3.5 w-56" />
 					</div>
@@ -75,14 +76,14 @@ export function RecentOrdersTable({ orders = [], isLoading = false }: RecentOrde
 					<div className="divide-border/50 divide-y">
 						{Array.from({ length: 5 }).map((_, i) => (
 							<div key={`recent-orders-skeleton-${i}`} className="flex items-center justify-between p-4">
-								<div className="space-y-1.5">
+								<div className="flex flex-col gap-1.5">
 									<div className="flex items-center gap-2">
 										<Skeleton className="h-4 w-24" />
 										<Skeleton className="h-4 w-14 rounded-full" />
 									</div>
 									<Skeleton className="h-3 w-28" />
 								</div>
-								<div className="space-y-1 text-right">
+								<div className="flex flex-col gap-1 text-right">
 									<Skeleton className="ml-auto h-4 w-14" />
 									<Skeleton className="ml-auto h-3 w-10" />
 								</div>
@@ -99,37 +100,49 @@ export function RecentOrdersTable({ orders = [], isLoading = false }: RecentOrde
 			<CardHeader className="flex flex-row items-center justify-between pb-3">
 				<div>
 					<CardTitle className="flex items-center gap-2 text-base font-semibold">
-						<ShoppingCart className="text-primary size-4" />
+						<ShoppingCart className="text-primary size-4" aria-hidden="true" />
 						{t("recent_orders_title")}
 					</CardTitle>
 					<CardDescription className="text-xs">{t("recent_orders_desc")}</CardDescription>
 				</div>
-				<Button asChild variant="ghost" size="sm" className="gap-1 text-xs">
+				<Button asChild variant="ghost" size="sm" className="text-xs">
 					<Link href="/orders">
-						{t("recent_orders_view_all")} <ArrowRight className="size-3.5" />
+						{t("recent_orders_view_all")}
+						<ArrowRight data-icon="inline-end" aria-hidden="true" />
 					</Link>
 				</Button>
 			</CardHeader>
 			<CardContent className="p-0">
-				<div className="divide-border/50 divide-y">
-					{orders.map((order) => (
-						<div key={order.id} className="hover:bg-muted/40 flex items-center justify-between p-4 transition-colors">
-							<div className="space-y-1">
-								<div className="flex items-center gap-2">
-									<span className="text-xs font-semibold tracking-tight">{order.orderNumber}</span>
-									<OrderStatusBadge status={order.status} />
+				{orders.length === 0 ? (
+					<Empty className="border-none py-10">
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<ShoppingCart aria-hidden="true" />
+							</EmptyMedia>
+							<EmptyTitle className="text-sm">{t("recent_orders_empty")}</EmptyTitle>
+						</EmptyHeader>
+					</Empty>
+				) : (
+					<div className="divide-border/50 divide-y">
+						{orders.map((order) => (
+							<div key={order.id} className="hover:bg-muted/40 flex items-center justify-between p-4 transition-colors">
+								<div className="flex flex-col gap-1">
+									<div className="flex items-center gap-2">
+										<span className="text-xs font-semibold tracking-tight">{order.orderNumber}</span>
+										<OrderStatusBadge status={order.status} />
+									</div>
+									<p className="text-muted-foreground text-xs">{order.customerName}</p>
 								</div>
-								<p className="text-muted-foreground text-xs">{order.customerName}</p>
+								<div className="text-right">
+									<p className="text-xs font-bold">{formatOrderTotal(order.total)}</p>
+									<p className="text-muted-foreground text-[11px]">
+										{t("recent_orders_items", { count: order.items.length })}
+									</p>
+								</div>
 							</div>
-							<div className="text-right">
-								<p className="text-xs font-bold">{formatOrderTotal(order.total)}</p>
-								<p className="text-muted-foreground text-[11px]">
-									{t("recent_orders_items", { count: order.items.length })}
-								</p>
-							</div>
-						</div>
-					))}
-				</div>
+						))}
+					</div>
+				)}
 			</CardContent>
 		</Card>
 	);

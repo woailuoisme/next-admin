@@ -43,7 +43,7 @@ function CardsLiveTelemetryCard() {
 
 export function CardsTab() {
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<div>
 				<h2 className="text-foreground text-lg font-semibold">1. Standard StatCards with Sparklines & Themes</h2>
 				<p className="text-muted-foreground text-xs">

@@ -6,6 +6,7 @@ import { HorizontalBarChart } from "@/components/chart/horizontal-bar/Horizontal
 import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
 import { ChartEmptyState } from "@/components/chart/shared/ChartEmptyState";
 import { ChartSkeleton } from "@/components/chart/shared/ChartSkeleton";
+import { ChartTooltip } from "@/components/chart/shared/ChartTooltip";
 import { MetricSparkline } from "@/components/chart/sparkline/MetricSparkline";
 import { renderWithProviders, screen } from "test/test-utils";
 
@@ -141,5 +142,36 @@ describe("Chart Components", () => {
 
 		rerender(<ChartEmptyState height={180} />);
 		expect(screen.getByRole("status")).toBeInTheDocument();
+	});
+
+	it("renders ChartEmptyState instead of grid when HeatmapMatrixChart has empty data and flips edge tooltips", () => {
+		const { rerender } = renderWithProviders(<HeatmapMatrixChart data={[]} height={220} />);
+		expect(screen.queryByRole("grid")).not.toBeInTheDocument();
+		expect(screen.getByRole("status")).toBeInTheDocument();
+
+		rerender(
+			<HeatmapMatrixChart
+				data={[
+					{ x: "A", y: "Row0", value: 10 },
+					{ x: "B", y: "Row0", value: 20 },
+				]}
+			/>,
+		);
+
+		const topRightCell = screen.getByRole("gridcell", { name: "Row0 B: 20" });
+		fireEvent.focus(topRightCell);
+		const tooltipSurface = screen.getByText("Row0 · B").closest("div.absolute");
+		expect(tooltipSurface).toHaveClass("translate-y-2");
+		expect(tooltipSurface).toHaveClass("-translate-x-full");
+	});
+
+	it("renders dash for missing ChartTooltip values without literal undefined labels", () => {
+		renderWithProviders(
+			<ChartTooltip active label="Jan" payload={[{ value: undefined }, { name: "Revenue", value: 1200 }]} />,
+		);
+
+		expect(screen.getByText("-")).toBeInTheDocument();
+		expect(screen.queryByText("undefined")).not.toBeInTheDocument();
+		expect(screen.getByText("Revenue")).toBeInTheDocument();
 	});
 });

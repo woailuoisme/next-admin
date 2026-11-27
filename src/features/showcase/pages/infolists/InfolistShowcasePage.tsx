@@ -24,5 +24,3 @@ export function InfolistShowcasePage() {
 		</div>
 	);
 }
-
-export default InfolistShowcasePage;

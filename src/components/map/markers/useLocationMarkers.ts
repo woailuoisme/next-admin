@@ -25,6 +25,7 @@ export function useLocationMarkers(props: LocationMarkerMapProps & { activeBasem
 
   const rawItems = props.data ?? props.locations ?? EMPTY_MARKERS;
 
+  // 避免大批量网点坐标转换在无关渲染时重复执行
   const data = useMemo(() => {
     const validRaw = rawItems.filter((item) => isValidCoordinate(item.coordinates));
     if (!needsTransform) return validRaw;
@@ -45,6 +46,7 @@ export function useLocationMarkers(props: LocationMarkerMapProps & { activeBasem
 
   const activeSelectedId = controlledSelectedId !== undefined ? controlledSelectedId : internalSelectedId;
 
+  // 避免大批量网点分类统计在筛选与选中切换时重复遍历
   const { categories, categoryCounts } = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const item of data) {
@@ -55,6 +57,7 @@ export function useLocationMarkers(props: LocationMarkerMapProps & { activeBasem
     return { categories: Object.keys(counts), categoryCounts: counts };
   }, [data]);
 
+  // 避免大批量网点模糊检索在无关渲染时重复过滤
   const filteredData = useMemo(() => {
     let list = data;
 
@@ -75,6 +78,7 @@ export function useLocationMarkers(props: LocationMarkerMapProps & { activeBasem
     return list;
   }, [data, selectedCategory, deferredSearchQuery]);
 
+  // 避免大批量网点索引表与边界点列在选中态切换时重建
   const filteredLookup = useMemo(() => {
     const index = new Map<string, LocationMarkerItem>();
     for (const item of filteredData) {
@@ -83,18 +87,18 @@ export function useLocationMarkers(props: LocationMarkerMapProps & { activeBasem
     return index;
   }, [filteredData]);
 
+  // 稳定传给 MapFitBounds useEffect 的坐标数组引用
   const filteredPoints = useMemo<Coordinates[]>(() => filteredData.map((item) => item.coordinates), [filteredData]);
 
-  const computedCenter = useMemo<Coordinates>(() => {
-    const explicit =
-      propCenter && isValidCoordinate(propCenter)
-        ? needsTransform
-          ? transformCoordinates(propCenter, sourceCoords, targetCoords)
-          : propCenter
-        : undefined;
-    return resolveBoundingCenter(filteredPoints, explicit, DEFAULT_BEIJING_CENTER);
-  }, [propCenter, filteredPoints, needsTransform, sourceCoords, targetCoords]);
+  const explicitCenter =
+    propCenter && isValidCoordinate(propCenter)
+      ? needsTransform
+        ? transformCoordinates(propCenter, sourceCoords, targetCoords)
+        : propCenter
+      : undefined;
+  const computedCenter = resolveBoundingCenter(filteredPoints, explicitCenter, DEFAULT_BEIJING_CENTER);
 
+  // 避免大批量 GeoJSON 要素集合在选中态切换时重复构建
   const geojsonData = useMemo<GeoJSON.FeatureCollection<GeoJSON.Point>>(() => {
     return {
       type: "FeatureCollection",
@@ -116,10 +120,10 @@ export function useLocationMarkers(props: LocationMarkerMapProps & { activeBasem
     };
   }, [filteredData]);
 
-  const selectedMarker = useMemo(() => {
-    if (activeSelectedId === null || activeSelectedId === undefined) return null;
-    return data.find((m) => String(m.id) === String(activeSelectedId)) ?? null;
-  }, [data, activeSelectedId]);
+  const selectedMarker =
+    activeSelectedId === null || activeSelectedId === undefined
+      ? null
+      : (data.find((m) => String(m.id) === String(activeSelectedId)) ?? null);
 
   const handleSelectMarker = useMemoizedFn((marker: LocationMarkerItem | null) => {
     if (controlledSelectedId === undefined) {

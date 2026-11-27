@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { memo, useId } from "react";
+import { useId } from "react";
 
 import { SPARKLINE_TREND_KEYS } from "@/components/shared/sparkline/SparklineAreaFill";
 import { SparklinePrimitive } from "@/components/shared/sparkline/SparklinePrimitive";
@@ -10,7 +10,7 @@ import { cn } from "cn";
 
 import type { MetricSparklineProps } from "./types";
 
-export const MetricSparkline = memo(function MetricSparkline({
+export function MetricSparkline({
 	data,
 	width = 100,
 	height = 32,
@@ -89,4 +89,4 @@ export const MetricSparkline = memo(function MetricSparkline({
 			/>
 		</div>
 	);
-});
+}

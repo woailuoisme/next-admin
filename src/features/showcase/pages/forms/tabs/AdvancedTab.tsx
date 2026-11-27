@@ -26,7 +26,7 @@ export interface AdvancedTabProps {
 
 export function AdvancedTab({ form }: AdvancedTabProps) {
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<Section
 				title="Colors, Chips & Dynamic Dictionaries"
 				description="Color picker with preset palette, tags chips, and KeyValue dictionary editor."

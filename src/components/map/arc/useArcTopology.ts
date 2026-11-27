@@ -51,21 +51,15 @@ export function useArcTopology({
 }: UseArcTopologyOptions) {
   const tokens = useMapThemeTokens();
 
-  const { sourceCoords, targetCoords } = useMemo(
-    () => resolveCoordinateSystems(coordinateSystem, activeBasemap, basemapCRS),
-    [coordinateSystem, activeBasemap, basemapCRS],
-  );
+  const { sourceCoords, targetCoords } = resolveCoordinateSystems(coordinateSystem, activeBasemap, basemapCRS);
 
-  const resolvedArcColor = useMemo(
-    () => (arcColor ? resolveCssColorToHex(arcColor, tokens.primary) : tokens.primary),
-    [arcColor, tokens.primary],
-  );
+  const resolvedArcColor = arcColor ? resolveCssColorToHex(arcColor, tokens.primary) : tokens.primary;
 
-  const resolvedHoverColor = useMemo(
-    () => (arcHoverColor ? resolveCssColorToHex(arcHoverColor, tokens.destructive) : tokens.foreground),
-    [arcHoverColor, tokens.destructive, tokens.foreground],
-  );
+  const resolvedHoverColor = arcHoverColor
+    ? resolveCssColorToHex(arcHoverColor, tokens.destructive)
+    : tokens.foreground;
 
+  // 隔离大批量航线坐标转换与节点聚合计算
   const { arcsData, arcLookup, nodes, allPoints } = useMemo(() => {
     const resolved: ResolvedArcItem[] = [];
     const lookup = new Map<string, ArcFlightItem>();
@@ -112,10 +106,7 @@ export function useArcTopology({
     };
   }, [data, resolvedArcColor, sourceCoords, targetCoords]);
 
-  const computedCenter = useMemo(
-    () => resolveBoundingCenter(allPoints, center, DEFAULT_BEIJING_CENTER),
-    [allPoints, center],
-  );
+  const computedCenter = resolveBoundingCenter(allPoints, center, DEFAULT_BEIJING_CENTER);
 
   return {
     arcsData,

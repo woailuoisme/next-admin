@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ResourceStats } from "@/components/resource";
-import { computeProductStats } from "@/features/products/resource";
+import { computeProductStats, productResource } from "@/features/products/resource";
 import type { Product } from "@/features/products/types";
 import { ProductsActionView, ProductsListView, productUI } from "@/features/products/ui";
 import { renderWithProviders, screen } from "test/test-utils";
@@ -93,5 +93,30 @@ describe("Products Feature Tests", () => {
 		expect(await screen.findByText("SKU 平均单价").catch(() => null)).toBeNull();
 		// Form header & submit button rendered inside ResourceSubPageScaffold
 		expect(await screen.findByRole("button", { name: /确认新增|保存/ })).toBeInTheDocument();
+	});
+
+	it("normalizes status/categoryId 'all' in productResource keys and computes real active rate", () => {
+		expect(
+			productResource.keys.list({
+				status: "all",
+				categoryId: "all",
+				search: "headphone",
+			}),
+		).toEqual(["products", "list", { search: "headphone" }]);
+
+		const halfActive = [{ ...mockProducts[0] }, { ...mockProducts[1], status: "draft" as const }];
+		renderWithProviders(
+			<ResourceStats
+				i18nNamespace="products"
+				schema={productUI.config.stats!}
+				rows={halfActive}
+				total={2}
+				isLoading={false}
+			/>,
+		);
+
+		expect(screen.getByText("50%")).toBeInTheDocument();
+		expect(screen.queryByText("98.2%")).toBeNull();
+		expect(screen.queryByText("+4.5%")).toBeNull();
 	});
 });

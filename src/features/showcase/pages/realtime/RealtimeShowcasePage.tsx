@@ -25,7 +25,7 @@ export function RealtimeShowcasePage() {
 							实时通信引擎 (Centrifugo / Centrifuge)
 						</h1>
 						<Badge variant="outline" className="border-primary/40 text-primary gap-1">
-							<Server className="h-3 w-3" />
+							<Server className="size-3" aria-hidden="true" />
 							v6.10 (Redis Engine)
 						</Badge>
 					</div>
@@ -35,8 +35,8 @@ export function RealtimeShowcasePage() {
 				</div>
 
 				<div className="flex items-center gap-2">
-					<Button variant="outline" size="sm" onClick={reconnect} className="h-8 gap-1.5 text-xs">
-						<RefreshCw className="h-3.5 w-3.5" />
+					<Button type="button" variant="outline" size="sm" onClick={reconnect} className="text-xs">
+						<RefreshCw data-icon="inline-start" aria-hidden="true" />
 						重置长连接
 					</Button>
 				</div>
@@ -46,20 +46,20 @@ export function RealtimeShowcasePage() {
 			<RealtimeHealthBar activeChannels={["public:telemetry", "public:presence", "public:demo", "notification"]} />
 
 			{/* Main Feature Tabs */}
-			<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-6">
 				<TabsList className="bg-muted/70 grid h-auto! w-full grid-cols-1 gap-1 border p-1 sm:grid-cols-3">
 					<TabsTrigger value="telemetry" className="gap-2 px-3 py-2 text-center text-xs font-medium">
-						<Activity className="text-primary h-4 w-4" />
+						<Activity className="text-primary size-4" aria-hidden="true" />
 						<span>高频遥测监控流 (Telemetry)</span>
 					</TabsTrigger>
 
 					<TabsTrigger value="presence" className="gap-2 px-3 py-2 text-center text-xs font-medium">
-						<Users className="text-primary h-4 w-4" />
+						<Users className="text-primary size-4" aria-hidden="true" />
 						<span>多席位协同感知 (Presence)</span>
 					</TabsTrigger>
 
 					<TabsTrigger value="broadcaster" className="gap-2 px-3 py-2 text-center text-xs font-medium">
-						<Volume2 className="text-primary h-4 w-4" />
+						<Volume2 className="text-primary size-4" aria-hidden="true" />
 						<span>广播控制台与日志 (Broadcaster)</span>
 					</TabsTrigger>
 				</TabsList>
@@ -71,5 +71,3 @@ export function RealtimeShowcasePage() {
 		</div>
 	);
 }
-
-export default RealtimeShowcasePage;

@@ -1,8 +1,10 @@
+import { toast } from "sonner";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { action, ActionButton, ActionList } from "@/components/actions";
+import { action, ActionButton, ActionList, ActionResourceProvider } from "@/components/actions";
 import { parseCsvText } from "@/components/actions/prebuilt/fileParsing";
+import { defineResource } from "@/lib/resource";
 import { fireEvent, renderWithProviders, screen, waitFor } from "test/test-utils";
 
 interface DemoRow {
@@ -62,6 +64,8 @@ describe("Prebuilt Actions: Import, Export, Replicate & Soft Delete Lifecycle", 
 
 		expect(await screen.findByText("通过校验 1 条")).toBeInTheDocument();
 		expect(screen.getByText("异常 1 条")).toBeInTheDocument();
+		expect(screen.getByRole("columnheader", { name: "状态" })).toBeInTheDocument();
+		expect(screen.queryByRole("columnheader", { name: "Status" })).toBeNull();
 
 		await user.click(screen.getByRole("button", { name: /导入有效数据 \(1\)/ }));
 		await waitFor(() => {
@@ -90,9 +94,9 @@ describe("Prebuilt Actions: Import, Export, Replicate & Soft Delete Lifecycle", 
 		);
 
 		await user.click(screen.getByRole("button", { name: "导出数据" }));
-		expect(await screen.findByRole("button", { name: /开始导出/ })).toBeInTheDocument();
+		expect(await screen.findByRole("button", { name: "开始导出" })).toBeInTheDocument();
 
-		await user.click(screen.getByRole("button", { name: /开始导出/ }));
+		await user.click(screen.getByRole("button", { name: "开始导出" }));
 		await waitFor(() => {
 			expect(afterExport).toHaveBeenCalledWith({ format: "csv", count: 1, payload: undefined });
 		});
@@ -158,5 +162,81 @@ describe("Prebuilt Actions: Import, Export, Replicate & Soft Delete Lifecycle", 
 		await waitFor(() => {
 			expect(onRestore).toHaveBeenCalledWith(trashedRow);
 		});
+	});
+
+	it("keeps ImportActionModal open and reports error toast when all resource creates fail", async () => {
+		const errorSpy = vi.spyOn(toast, "error");
+		const createSpy = vi.fn().mockRejectedValue(new Error("server error"));
+		const rowSchema = z.object({
+			title: z.string().min(2),
+		});
+		const demoResource = defineResource<
+			{ id: string; title: string },
+			{ title: string },
+			Record<string, unknown>,
+			{ items: { id: string; title: string }[]; total: number }
+		>({
+			name: "items",
+			entityName: "条目",
+			basePath: "/items",
+			endpoint: "items",
+			i18nNamespace: "categories",
+			schema: rowSchema,
+			i18nKeys: {
+				title: "page_title",
+				description: "page_description",
+				heading: "page_heading",
+				headingDescription: "page_heading_desc",
+				createAction: "create_action",
+			},
+			defaultValues: { title: "" },
+			toFormValues: (item) => ({ title: item.title }),
+			api: {
+				list: async () => ({ items: [], total: 0 }),
+				detail: async (id) => ({ id, title: "Item" }),
+				create: createSpy,
+				update: async (id, input) => ({ id, title: input.title ?? "Item" }),
+				delete: async () => {},
+			},
+		});
+
+		const { user } = renderWithProviders(
+			<ActionResourceProvider
+				value={{
+					resource: demoResource,
+					rows: [],
+					openCreate: () => {},
+					openEdit: () => {},
+					openView: () => {},
+				}}
+			>
+				<ActionButton
+					action={action.import({
+						label: "批量导入",
+						rowSchema,
+						fields: [{ key: "title", label: "名称", required: true }],
+					})}
+				/>
+			</ActionResourceProvider>,
+		);
+
+		await user.click(screen.getByRole("button", { name: "批量导入" }));
+		expect(await screen.findByText("导入 条目")).toBeInTheDocument();
+
+		const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+		const csvFile = new File(["title\nBroken Item\n"], "items.csv", { type: "text/csv" });
+		Object.defineProperty(csvFile, "text", {
+			value: async () => "title\nBroken Item\n",
+		});
+		fireEvent.change(fileInput, { target: { files: [csvFile] } });
+
+		const submitBtn = await screen.findByRole("button", { name: /导入有效数据 \(1\)/ });
+		await user.click(submitBtn);
+
+		await waitFor(() => {
+			expect(createSpy).toHaveBeenCalledTimes(1);
+			expect(errorSpy).toHaveBeenCalledWith("导入失败（1 条），请检查后重试");
+		});
+		expect(screen.getByRole("button", { name: /导入有效数据 \(1\)/ })).toBeInTheDocument();
 	});
 });

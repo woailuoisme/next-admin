@@ -3,7 +3,7 @@
 import { useMemoizedFn } from "ahooks";
 import { AlertTriangle, RefreshCw, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { memo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useMap } from "@/components/ui/map";
@@ -34,11 +34,7 @@ export function useMapBasemapState(
 	return { activeBasemap, handleBasemapChange };
 }
 
-export const MapRuntimeWatcher = memo(function MapRuntimeWatcher({
-	onRuntimeError,
-}: {
-	onRuntimeError: (message: string) => void;
-}) {
+export function MapRuntimeWatcher({ onRuntimeError }: { onRuntimeError: (message: string) => void }) {
 	const { map } = useMap();
 
 	useEffect(() => {
@@ -59,7 +55,7 @@ export const MapRuntimeWatcher = memo(function MapRuntimeWatcher({
 	}, [map, onRuntimeError]);
 
 	return null;
-});
+}
 
 export function MapTileWarningBanner({ onRetry, onDismiss }: { onRetry: () => void; onDismiss: () => void }) {
 	const t = useTranslations("map");
@@ -71,19 +67,12 @@ export function MapTileWarningBanner({ onRetry, onDismiss }: { onRetry: () => vo
 		>
 			<AlertTriangle className="text-destructive size-3.5 shrink-0" aria-hidden="true" />
 			<span className="line-clamp-1 flex-1">{t("error_tile_timeout")}</span>
-			<Button type="button" variant="ghost" size="sm" onClick={onRetry} className="h-6 px-1.5 text-[11px]">
-				<RefreshCw className="mr-1 size-3" aria-hidden="true" />
+			<Button type="button" variant="ghost" size="xs" onClick={onRetry}>
+				<RefreshCw data-icon="inline-start" aria-hidden="true" />
 				{t("retry")}
 			</Button>
-			<Button
-				type="button"
-				variant="ghost"
-				size="icon"
-				onClick={onDismiss}
-				aria-label={t("dismiss_notice")}
-				className="size-5"
-			>
-				<X className="size-3" aria-hidden="true" />
+			<Button type="button" variant="ghost" size="icon-xs" onClick={onDismiss} aria-label={t("dismiss_notice")}>
+				<X aria-hidden="true" />
 			</Button>
 		</div>
 	);

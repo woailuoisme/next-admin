@@ -23,6 +23,7 @@ export function TableShowcasePage() {
 	const [columnsCount, setColumnsCount] = useState<1 | 2 | 3 | 4>(2);
 	const [paginationVariant, setPaginationVariant] = useState<"capsule" | "shadcn" | "simple">("capsule");
 
+	// Whitelist AGENTS.md §5.2: 保持传给 DataTable 的行内编辑/删除回调及 columns 数组引用稳定，配合 DataTableRow memo 行级隔离
 	const updateItem = useMemoizedFn((id: string, patch: Partial<ShowcaseItem>) => {
 		setData((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
 	});
@@ -32,9 +33,10 @@ export function TableShowcasePage() {
 		toast.error(`Deleted ${id}`);
 	});
 
-	const isAllSelected = useMemo(() => data.length > 0 && data.every((item) => item.isSelected), [data]);
-	const isSomeSelected = useMemo(() => data.some((item) => item.isSelected) && !isAllSelected, [data, isAllSelected]);
+	const isAllSelected = data.length > 0 && data.every((item) => item.isSelected);
+	const isSomeSelected = data.some((item) => item.isSelected) && !isAllSelected;
 
+	// Whitelist AGENTS.md §5.2: 与 DataTableRow memo 边界配合避免外层筛选配置切换时重建列定义
 	const dataColumns = useMemo(() => createShowcaseDataColumns({ updateItem, removeItem }), [updateItem, removeItem]);
 	const selectionColumn = useMemo(
 		() =>

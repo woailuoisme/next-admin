@@ -101,7 +101,7 @@ export function LiveStatCard({
 							{shouldPulse ? (
 								<span
 									className={cn(
-										"absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 motion-reduce:animate-none",
+										"absolute inline-flex size-full animate-ping rounded-full opacity-75 motion-reduce:animate-none",
 										statusCfg.pingClass,
 									)}
 								/>
@@ -140,14 +140,14 @@ export function LiveStatCard({
 							type="button"
 							variant="outline"
 							size="xs"
-							className="relative z-10 h-6 shrink-0 gap-1 px-2 text-xs"
+							className="relative z-10 shrink-0"
 							onClick={(e) => {
 								e.stopPropagation();
 								onRetry();
 							}}
 						>
-							<RefreshCw className="size-3.5" aria-hidden="true" />
-							<span>{t("retry")}</span>
+							<RefreshCw data-icon="inline-start" aria-hidden="true" />
+							{t("retry")}
 						</Button>
 					) : null}
 				</div>

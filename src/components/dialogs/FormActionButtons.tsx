@@ -1,9 +1,9 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 interface FormActionButtonsProps {
 	variant: "overlay" | "page";
@@ -59,13 +59,13 @@ export function FormActionButtons({
 					disabled={isSubmitBlocked}
 					className="h-8.5 px-4 text-xs font-medium"
 				>
-					{isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" aria-hidden="true" /> : null}
+					{isSubmitting ? <Spinner data-icon="inline-start" role={undefined} aria-hidden="true" /> : null}
 					{saveAndContinueText}
 				</Button>
 			) : null}
 
 			<Button type="submit" disabled={isSubmitBlocked} className="h-8.5 px-4 text-xs font-medium shadow-xs">
-				{isSubmitting ? <Loader2 className="mr-2 size-3.5 animate-spin" aria-hidden="true" /> : null}
+				{isSubmitting ? <Spinner data-icon="inline-start" role={undefined} aria-hidden="true" /> : null}
 				{submitText}
 			</Button>
 		</>

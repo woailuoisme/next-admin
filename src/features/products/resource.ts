@@ -5,12 +5,35 @@ import { categoryResource } from "@/features/categories/resource";
 import { dashboardResource } from "@/features/dashboard/resource";
 import { defineResource, RESOURCE_MANIFEST } from "@/lib/resource";
 
-import type { Product, ProductFilters, ProductInput, ProductListResponse } from "./types";
+import type { Product, ProductFilters, ProductInput, ProductListResponse, ProductStatus } from "./types";
 
 export const DEFAULT_PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60";
 
+export const LOW_STOCK_THRESHOLD = 15;
+
 export const PRODUCT_STATUSES = ["active", "draft", "out_of_stock"] as const;
+
+export const PRODUCT_STATUS_LABEL_KEYS: Record<ProductStatus, string> = {
+  active: "status_active",
+  draft: "status_draft",
+  out_of_stock: "status_out_of_stock",
+};
+
+export function buildProductStatusMap(t: (key: string) => string): Record<ProductStatus, string> {
+  return {
+    active: t(PRODUCT_STATUS_LABEL_KEYS.active),
+    draft: t(PRODUCT_STATUS_LABEL_KEYS.draft),
+    out_of_stock: t(PRODUCT_STATUS_LABEL_KEYS.out_of_stock),
+  };
+}
+
+export function buildProductStatusOptions(t: (key: string) => string) {
+  return PRODUCT_STATUSES.map((value) => ({
+    label: t(PRODUCT_STATUS_LABEL_KEYS[value]),
+    value,
+  }));
+}
 
 export const productStatusSchema = z.enum(PRODUCT_STATUSES);
 
@@ -46,6 +69,11 @@ export const productResource = defineResource<Product, ProductInput, ProductFilt
     editKey: "editProductId",
   },
   invalidates: [dashboardResource.keys.all, categoryResource.keys.all],
+  transformFilters: (filters) => ({
+    ...filters,
+    status: filters.status === "all" ? undefined : filters.status,
+    categoryId: filters.categoryId === "all" ? undefined : filters.categoryId,
+  }),
   defaultValues: {
     title: "",
     slug: "",
@@ -84,7 +112,7 @@ export function computeProductStats(rows: Product[], total?: number, serverSumma
     if (p.status === "active") {
       activeCount++;
     }
-    if (p.stock <= 15 || p.status === "out_of_stock") {
+    if (p.stock <= LOW_STOCK_THRESHOLD || p.status === "out_of_stock") {
       lowStockCount++;
     }
     sumPrice += p.price ?? 0;

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMemoizedFn } from "ahooks";
 import { Archive, CheckCircle2, Clock } from "lucide-react";
 
@@ -20,48 +20,47 @@ export function MasterDetailTableSection({ data }: MasterDetailTableSectionProps
 	const [singleExpand, setSingleExpand] = useState<boolean>(false);
 	const [expandOnRowClick, setExpandOnRowClick] = useState<boolean>(false);
 
-	const showcaseTabs = useMemo<DataTableTabItem[]>(() => {
-		const statusCounts: Record<ShowcaseItem["status"], number> = {
-			active: 0,
-			draft: 0,
-			archived: 0,
-		};
-		for (const row of data) {
-			statusCounts[row.status] += 1;
-		}
+	const statusCounts: Record<ShowcaseItem["status"], number> = {
+		active: 0,
+		draft: 0,
+		archived: 0,
+	};
+	for (const row of data) {
+		statusCounts[row.status] += 1;
+	}
 
-		return [
-			{ id: "all", label: "All Records", badge: data.length },
-			{
-				id: "active",
-				label: "Active",
-				icon: CheckCircle2,
-				badge: statusCounts.active,
-				filterModel: {
-					items: [{ id: "tab-f1", field: "status", operator: "equals", value: "active" }],
-				},
+	const showcaseTabs: DataTableTabItem[] = [
+		{ id: "all", label: "All Records", badge: data.length },
+		{
+			id: "active",
+			label: "Active",
+			icon: CheckCircle2,
+			badge: statusCounts.active,
+			filterModel: {
+				items: [{ id: "tab-f1", field: "status", operator: "equals", value: "active" }],
 			},
-			{
-				id: "draft",
-				label: "Drafts",
-				icon: Clock,
-				badge: statusCounts.draft,
-				filterModel: {
-					items: [{ id: "tab-f2", field: "status", operator: "equals", value: "draft" }],
-				},
+		},
+		{
+			id: "draft",
+			label: "Drafts",
+			icon: Clock,
+			badge: statusCounts.draft,
+			filterModel: {
+				items: [{ id: "tab-f2", field: "status", operator: "equals", value: "draft" }],
 			},
-			{
-				id: "archived",
-				label: "Archived",
-				icon: Archive,
-				badge: statusCounts.archived,
-				filterModel: {
-					items: [{ id: "tab-f3", field: "status", operator: "equals", value: "archived" }],
-				},
+		},
+		{
+			id: "archived",
+			label: "Archived",
+			icon: Archive,
+			badge: statusCounts.archived,
+			filterModel: {
+				items: [{ id: "tab-f3", field: "status", operator: "equals", value: "archived" }],
 			},
-		] satisfies DataTableTabItem[];
-	}, [data]);
+		},
+	];
 
+	// Whitelist AGENTS.md §5.2: 保持传入 DataTable 行展开渲染器的引用稳定，避免触发 DataTableRow memo 边界重绘
 	const renderExpandedRow = useMemoizedFn(({ row, collapse }: { row: ShowcaseItem; collapse: () => void }) => (
 		<MasterDetailRow row={row} collapse={collapse} />
 	));
@@ -81,10 +80,12 @@ export function MasterDetailTableSection({ data }: MasterDetailTableSectionProps
 					</div>
 					<div className="flex flex-wrap items-center gap-2">
 						<Button
+							type="button"
 							variant="outline"
 							size="sm"
+							aria-pressed={singleExpand}
 							onClick={() => setSingleExpand(!singleExpand)}
-							className="h-7 gap-1.5 text-xs"
+							className="gap-1.5 text-xs"
 						>
 							<span>Accordion (Single Expand):</span>
 							<Badge variant={singleExpand ? "default" : "secondary"} className="text-[10px]">
@@ -92,10 +93,12 @@ export function MasterDetailTableSection({ data }: MasterDetailTableSectionProps
 							</Badge>
 						</Button>
 						<Button
+							type="button"
 							variant="outline"
 							size="sm"
+							aria-pressed={expandOnRowClick}
 							onClick={() => setExpandOnRowClick(!expandOnRowClick)}
-							className="h-7 gap-1.5 text-xs"
+							className="gap-1.5 text-xs"
 						>
 							<span>Row Click Expand:</span>
 							<Badge variant={expandOnRowClick ? "default" : "secondary"} className="text-[10px]">

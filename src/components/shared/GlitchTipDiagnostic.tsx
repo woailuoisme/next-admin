@@ -35,10 +35,10 @@ export function GlitchTipDiagnostic({ className, title, triggerText }: GlitchTip
 	const statusText = isEnabled ? t("glitchtip_connected") : t("glitchtip_unconfigured");
 
 	return (
-		<div className={cn("border-border/40 space-y-1.5 border-t pt-2", className)}>
+		<div className={cn("border-border/40 flex flex-col gap-1.5 border-t pt-2", className)}>
 			<div className="flex items-center justify-between">
 				<span className="text-muted-foreground flex items-center gap-1.5 text-[11px] font-medium">
-					<Activity className="text-primary size-3" />
+					<Activity className="text-primary size-3" aria-hidden="true" />
 					{titleText}
 				</span>
 				<Badge
@@ -59,9 +59,9 @@ export function GlitchTipDiagnostic({ className, title, triggerText }: GlitchTip
 				size="sm"
 				onClick={handleTest}
 				disabled={!isEnabled}
-				className="h-7 w-full cursor-pointer text-xs"
+				className="w-full cursor-pointer text-xs"
 			>
-				<Bug className="mr-1.5 size-3.5" />
+				<Bug data-icon="inline-start" aria-hidden="true" />
 				{triggerBtnText}
 			</Button>
 		</div>

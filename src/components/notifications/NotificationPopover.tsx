@@ -1,4 +1,3 @@
-import { useMemoizedFn } from "ahooks";
 import { ArrowRight, CheckCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -90,10 +89,10 @@ export function NotificationHeader({
 				size="sm"
 				onClick={onMarkAllAsRead}
 				disabled={unreadCount === 0 || isMarkingAllAsRead}
-				className="text-muted-foreground hover:text-foreground hover:bg-muted/60 h-7 gap-1 px-2 text-xs font-normal transition-colors"
+				className="text-muted-foreground hover:text-foreground hover:bg-muted/60 text-xs font-normal transition-colors"
 			>
-				<CheckCheck className="size-3.5" aria-hidden="true" />
-				<span>{t("mark_all_read")}</span>
+				<CheckCheck data-icon="inline-start" aria-hidden="true" />
+				{t("mark_all_read")}
 			</Button>
 		</div>
 	);
@@ -102,9 +101,9 @@ export function NotificationHeader({
 export function NotificationTabs({ activeTab, unreadCount = 0, onTabChange, className }: NotificationTabsProps) {
 	const t = useTranslations("notification");
 
-	const handleValueChange = useMemoizedFn((val: string) => {
+	const handleValueChange = (val: string) => {
 		onTabChange(val as NotificationTabKey);
-	});
+	};
 
 	return (
 		<div className={cn("border-b border-border/40 px-3", className)}>
@@ -143,13 +142,14 @@ export function NotificationFooter({ total, onGotoOverview, className }: Notific
 			<Button
 				type="button"
 				variant="ghost"
-				size="sm"
+				size="xs"
 				onClick={onGotoOverview}
-				className="group text-muted-foreground hover:text-foreground h-auto gap-1 p-0 text-xs font-normal hover:bg-transparent"
+				className="text-muted-foreground hover:text-foreground h-auto p-0 text-xs font-normal hover:bg-transparent"
 			>
-				<span>{t("goto_overview")}</span>
+				{t("goto_overview")}
 				<ArrowRight
-					className="size-3 transition-transform duration-150 group-hover:translate-x-0.5"
+					data-icon="inline-end"
+					className="transition-transform duration-150 group-hover/button:translate-x-0.5"
 					aria-hidden="true"
 				/>
 			</Button>

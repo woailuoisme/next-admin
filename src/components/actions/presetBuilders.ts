@@ -1,8 +1,9 @@
 import { AlertTriangle, Copy, Download, Eye, Pencil, Plus, RotateCcw, Trash2, Upload } from "lucide-react";
 
-import { en, zh } from "@/i18n";
 import { createScopedTranslator } from "@/i18n/scoped";
 import { toastMessages } from "@/lib/toastMessages";
+import { actions as enActions, dialog as enDialog } from "@/messages/en.json";
+import { actions as zhActions, dialog as zhDialog } from "@/messages/zh.json";
 
 import {
   defaultExcludedClone,
@@ -14,8 +15,8 @@ import {
 } from "./builderTypes";
 import type { ActionConfirmConfig, ActionDef, ExportActionConfig, ImportActionConfig } from "./types";
 
-const getDialogT = createScopedTranslator("dialog", { zh: zh.dialog, en: en.dialog });
-const getActionsT = createScopedTranslator("actions", { zh: zh.actions, en: en.actions });
+const getDialogT = createScopedTranslator("dialog", { zh: zhDialog, en: enDialog });
+const getActionsT = createScopedTranslator("actions", { zh: zhActions, en: enActions });
 
 export const crudActionBuilders = {
   /**

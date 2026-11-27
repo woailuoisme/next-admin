@@ -2,7 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemoizedFn } from "ahooks";
-import { FileSpreadsheet, Loader2, Upload } from "lucide-react";
+import { FileSpreadsheet, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ChangeEvent, useId, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { ModalFrame } from "@/components/dialogs/ModalFrame";
 import { DIALOG_BODY_CLASS, DIALOG_FOOTER_CLASS } from "@/components/dialogs/sizeClasses";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 import { invalidateResourceScope } from "@/lib/resource";
 
 import type { ActionRuntimeResourceBridge, ImportActionConfig } from "../types";
@@ -116,7 +117,13 @@ function ImportActionModalPanel<TInput extends Record<string, unknown>, TPayload
 				const settled = await Promise.allSettled(validPayloads.map((item) => createFn(item)));
 				const succeeded = settled.filter((r) => r.status === "fulfilled").length;
 				const failed = settled.length - succeeded;
-				invalidateResourceScope(queryClient, resourceBridge.resource, config.invalidates);
+				if (succeeded > 0) {
+					invalidateResourceScope(queryClient, resourceBridge.resource, config.invalidates);
+				}
+				if (succeeded === 0 && failed > 0) {
+					toast.error(t("import_failed_all", { failed }));
+					return;
+				}
 				if (failed > 0) toast.warning(t("import_partial", { succeeded, failed }));
 				else toast.success(t("import_success", { count: succeeded }));
 				onOpenChange(false);
@@ -141,12 +148,12 @@ function ImportActionModalPanel<TInput extends Record<string, unknown>, TPayload
 	return (
 		<>
 			<div className={DIALOG_BODY_CLASS}>
-				<div className="space-y-5">
+				<div className="flex flex-col gap-5">
 					<div className="border-border/70 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-5 text-center">
 						<div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-full">
 							<FileSpreadsheet className="size-5" aria-hidden="true" />
 						</div>
-						<div className="space-y-1">
+						<div className="flex flex-col gap-1">
 							<p className="text-foreground text-xs font-medium">{fileName || t("import_dropzone")}</p>
 							<input
 								ref={fileInputRef}
@@ -162,18 +169,18 @@ function ImportActionModalPanel<TInput extends Record<string, unknown>, TPayload
 								type="button"
 								variant="outline"
 								size="sm"
-								className="h-8 gap-1.5 text-xs"
+								className="text-xs"
 								onClick={() => fileInputRef.current?.click()}
 								disabled={isImporting}
 							>
-								<Upload className="size-3.5" aria-hidden="true" />
-								<span>{t("import_label")}</span>
+								<Upload data-icon="inline-start" aria-hidden="true" />
+								{t("import_label")}
 							</Button>
 							<Button
 								type="button"
 								variant="ghost"
 								size="sm"
-								className="h-8 text-xs"
+								className="text-xs"
 								onClick={handleDownloadTemplate}
 								disabled={isImporting}
 							>
@@ -207,10 +214,14 @@ function ImportActionModalPanel<TInput extends Record<string, unknown>, TPayload
 					type="button"
 					onClick={() => void handleImportSubmit()}
 					disabled={isImporting || validItems.length === 0}
-					className="h-8.5 gap-1.5 px-4 text-xs"
+					className="h-8.5 px-4 text-xs"
 				>
-					{isImporting ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
-					<span>{t("import_submit", { count: validItems.length })}</span>
+					{isImporting ? (
+						<Spinner data-icon="inline-start" role={undefined} aria-hidden="true" />
+					) : (
+						<Upload data-icon="inline-start" aria-hidden="true" />
+					)}
+					{t("import_submit", { count: validItems.length })}
 				</Button>
 			</DialogFooter>
 		</>

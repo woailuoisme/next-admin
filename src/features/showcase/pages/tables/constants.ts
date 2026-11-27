@@ -36,7 +36,7 @@ export const TITLES = [
 export const CATEGORIES = ["Hardware", "Furniture", "Audio", "Accessories", "Peripherals"];
 export const ROLES: ShowcaseItem["role"][] = ["admin", "editor", "superadmin", "viewer"];
 export const STATUSES: ShowcaseItem["status"][] = ["active", "draft", "archived"];
-export const COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b"];
+export const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"];
 
 export const PRODUCT_THUMBNAILS = [
   "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&auto=format&fit=crop&q=80", // Headphones

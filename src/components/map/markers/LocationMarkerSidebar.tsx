@@ -3,7 +3,7 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTranslations } from "next-intl";
 import { List } from "lucide-react";
-import { memo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,14 +20,16 @@ interface LocationMarkerSidebarProps {
 
 const ROW_ESTIMATE_PX = 64;
 
-const VirtualMarkerList = memo(function VirtualMarkerList({
+function VirtualMarkerList({
 	filteredData,
 	selectedMarker,
 	onSelectMarker,
 	onItemPicked,
 }: LocationMarkerSidebarProps & { onItemPicked?: () => void }) {
+	"use no memo";
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+	// eslint-disable-next-line react/incompatible-library -- TanStack Virtualizer useVirtualizer 返回可变实例，已配合 "use no memo" 隔离 Compiler 记忆化
 	const rowVirtualizer = useVirtualizer({
 		count: filteredData.length,
 		getScrollElement: () => scrollContainerRef.current,
@@ -83,13 +85,9 @@ const VirtualMarkerList = memo(function VirtualMarkerList({
 			</div>
 		</div>
 	);
-});
+}
 
-export const LocationMarkerSidebar = memo(function LocationMarkerSidebar({
-	filteredData,
-	selectedMarker,
-	onSelectMarker,
-}: LocationMarkerSidebarProps) {
+export function LocationMarkerSidebar({ filteredData, selectedMarker, onSelectMarker }: LocationMarkerSidebarProps) {
 	const t = useTranslations("map");
 
 	return (
@@ -102,8 +100,8 @@ export const LocationMarkerSidebar = memo(function LocationMarkerSidebar({
 				{selectedMarker ? (
 					<Button
 						variant="ghost"
-						size="sm"
-						className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-[11px]"
+						size="xs"
+						className="text-muted-foreground hover:text-foreground"
 						onClick={() => onSelectMarker(null)}
 					>
 						{t("markers_cancel_selection")}
@@ -114,10 +112,10 @@ export const LocationMarkerSidebar = memo(function LocationMarkerSidebar({
 			<VirtualMarkerList filteredData={filteredData} selectedMarker={selectedMarker} onSelectMarker={onSelectMarker} />
 		</aside>
 	);
-});
+}
 
 /** 移动端（< 768px）浮动网点抽屉触发器与 Sheet 列表 */
-export const LocationMarkerMobileDrawer = memo(function LocationMarkerMobileDrawer({
+export function LocationMarkerMobileDrawer({
 	filteredData,
 	selectedMarker,
 	onSelectMarker,
@@ -132,10 +130,10 @@ export const LocationMarkerMobileDrawer = memo(function LocationMarkerMobileDraw
 				variant="secondary"
 				size="sm"
 				onClick={() => setOpen(true)}
-				className="border-border/70 bg-background/95 absolute bottom-3 left-3 z-10 h-8 gap-1.5 border text-xs shadow-md backdrop-blur-md md:hidden"
+				className="border-border/70 bg-background/95 absolute bottom-3 left-3 z-10 border shadow-md backdrop-blur-md md:hidden"
 			>
-				<List aria-hidden="true" className="size-3.5" />
-				<span>{t("markers_list_title", { count: filteredData.length })}</span>
+				<List data-icon="inline-start" aria-hidden="true" />
+				{t("markers_list_title", { count: filteredData.length })}
 			</Button>
 
 			<Sheet open={open} onOpenChange={setOpen}>
@@ -146,7 +144,6 @@ export const LocationMarkerMobileDrawer = memo(function LocationMarkerMobileDraw
 							<Button
 								variant="ghost"
 								size="sm"
-								className="h-7 px-2 text-xs"
 								onClick={() => {
 									onSelectMarker(null);
 									setOpen(false);
@@ -167,4 +164,4 @@ export const LocationMarkerMobileDrawer = memo(function LocationMarkerMobileDraw
 			</Sheet>
 		</>
 	);
-});
+}

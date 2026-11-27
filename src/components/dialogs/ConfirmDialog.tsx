@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemoizedFn, useUnmountedRef } from "ahooks";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ComponentType, type ReactNode, useId, useRef, useState } from "react";
 
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "cn";
 
 export interface ConfirmDialogProps {
@@ -102,7 +103,7 @@ function ConfirmDialogPanel({
 
 	return (
 		<AlertDialogContent className={cn("max-w-md sm:max-w-md", className)}>
-			<AlertDialogHeader className="space-y-2">
+			<AlertDialogHeader className="gap-2">
 				<div className="flex items-center gap-2.5">
 					<div className={cn("flex size-9 shrink-0 items-center justify-center rounded-full", tone.wrapper)}>
 						<HeaderIcon className={cn("size-4", tone.icon)} aria-hidden="true" />
@@ -118,7 +119,7 @@ function ConfirmDialogPanel({
 			</AlertDialogHeader>
 
 			{hasKeywordRequirement ? (
-				<div className="space-y-1.5 pt-1 pb-2">
+				<div className="flex flex-col gap-1.5 pt-1 pb-2">
 					<Label htmlFor={keywordInputId} className="text-muted-foreground text-xs">
 						{tDialog("delete_keyword_prompt", { keyword: targetKeyword })}
 					</Label>
@@ -153,11 +154,11 @@ function ConfirmDialogPanel({
 					className={cn("h-9 gap-1.5 text-xs disabled:opacity-50", tone.button)}
 				>
 					{isActionPending ? (
-						<Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+						<Spinner data-icon="inline-start" role={undefined} aria-hidden="true" />
 					) : ConfirmIcon ? (
-						<ConfirmIcon className="size-3.5" aria-hidden="true" />
+						<ConfirmIcon data-icon="inline-start" aria-hidden="true" />
 					) : null}
-					<span>{resolvedConfirmText}</span>
+					{resolvedConfirmText}
 				</AlertDialogAction>
 			</AlertDialogFooter>
 		</AlertDialogContent>

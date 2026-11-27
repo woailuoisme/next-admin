@@ -1,7 +1,5 @@
 "use client";
 
-import { memo } from "react";
-
 import { Area } from "recharts";
 
 import type { AreaTrendChartProps } from "./types";
@@ -12,7 +10,7 @@ import { useChartTheme } from "../hooks/useChartTheme";
 import { CartesianScaffold } from "../shared/CartesianScaffold";
 import { DEFAULT_ANIMATION_DURATION, DEFAULT_CHART_MARGIN } from "../shared/constants";
 
-export const AreaTrendChart = memo(function AreaTrendChart({
+export function AreaTrendChart({
 	data,
 	dataKey = "value",
 	xAxisKey = "label",
@@ -102,4 +100,4 @@ export const AreaTrendChart = memo(function AreaTrendChart({
 			/>
 		</CartesianScaffold>
 	);
-});
+}

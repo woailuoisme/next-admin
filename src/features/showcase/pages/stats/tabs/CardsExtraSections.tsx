@@ -33,7 +33,7 @@ function SparklineMatrix({
 				{items.map((item) => (
 					<div
 						key={item.theme}
-						className="border-border/50 bg-card/60 flex flex-col justify-between space-y-2 rounded-xl border p-3"
+						className="border-border/50 bg-card/60 flex flex-col justify-between gap-2 rounded-xl border p-3"
 					>
 						<div className="flex items-center justify-between">
 							<span className="text-foreground text-xs font-medium">{item.name}</span>
@@ -75,7 +75,7 @@ export function CardsSparklineSection() {
 						Embeddable inside tables, headers, dense KPI grids, or standalone micro-cards.
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-6">
+				<CardContent className="flex flex-col gap-6">
 					<SparklineMatrix title="Area Gradient Smoothing" label="Area" type="area" items={SPARKLINE_AREA_ITEMS} />
 					<SparklineMatrix title="Categorical Bar Histograms" label="Bar" type="bar" items={SPARKLINE_BAR_ITEMS} />
 				</CardContent>
@@ -106,9 +106,11 @@ export function CardsDensitySection() {
 							{(["compact", "default", "comfortable"] as const).map((d) => (
 								<Button
 									key={d}
-									size="sm"
+									type="button"
+									size="xs"
 									variant={cardDensity === d ? "secondary" : "ghost"}
-									className="h-7 text-xs capitalize"
+									aria-pressed={cardDensity === d}
+									className="capitalize"
 									onClick={() => setCardDensity(d)}
 								>
 									{d}
@@ -119,9 +121,11 @@ export function CardsDensitySection() {
 							{(["inline", "bottom"] as const).map((l) => (
 								<Button
 									key={l}
-									size="sm"
+									type="button"
+									size="xs"
 									variant={cardSparklineLayout === l ? "secondary" : "ghost"}
-									className="h-7 text-xs capitalize"
+									aria-pressed={cardSparklineLayout === l}
+									className="capitalize"
 									onClick={() => setCardSparklineLayout(l)}
 								>
 									{l === "bottom" ? "Bottom Sparkline" : "Inline Sparkline"}

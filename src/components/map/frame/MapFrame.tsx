@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { memo, type ReactNode, useCallback, useMemo, useState } from "react";
+import { useMemoizedFn } from "ahooks";
+import { type ReactNode, useState } from "react";
 
 import { Map, MapControls } from "@/components/ui/map";
 import { cn } from "cn";
@@ -34,7 +35,7 @@ export interface MapFrameProps extends MapCommonProps, MapFeedbackProps {
 /**
  * MapFrame：收口业务地图外壳的深模块，统一托管错误拦截至空态/骨架状态机、受控底图与全屏 Portal。
  */
-export const MapFrame = memo(function MapFrame({
+export function MapFrame({
 	height = 460,
 	className,
 	basemap = "carto",
@@ -71,25 +72,22 @@ export const MapFrame = memo(function MapFrame({
 	const [tileWarning, setTileWarning] = useState<string | null>(null);
 	const [mapResetEpoch, setMapResetEpoch] = useState(0);
 
-	const basemapConfig = useMemo(
-		() => resolveBasemapConfig(activeBasemap, customStyleUrl),
-		[activeBasemap, customStyleUrl],
-	);
+	const basemapConfig = resolveBasemapConfig(activeBasemap, customStyleUrl);
 
-	const safeCenter = useMemo<Coordinates>(() => {
-		if (isValidCoordinate(center)) return center;
-		if (isValidCoordinate(fallbackCenter)) return fallbackCenter;
-		return CHINA_MAP_CENTER;
-	}, [center, fallbackCenter]);
+	const safeCenter: Coordinates = isValidCoordinate(center)
+		? center
+		: isValidCoordinate(fallbackCenter)
+			? fallbackCenter
+			: CHINA_MAP_CENTER;
 
-	const mapProjection = useMemo(() => (projection ? { type: projection } : undefined), [projection]);
+	const mapProjection = projection ? { type: projection } : undefined;
 
-	const handleRuntimeError = useCallback((msg: string) => setTileWarning(msg), []);
-	const handleTileRetry = useCallback(() => {
+	const handleRuntimeError = useMemoizedFn((msg: string) => setTileWarning(msg));
+	const handleTileRetry = useMemoizedFn(() => {
 		setTileWarning(null);
 		setMapResetEpoch((n) => n + 1);
 		onRetry?.();
-	}, [onRetry]);
+	});
 
 	const hasFatalError = Boolean(isError || error);
 	const errorDetail = error instanceof Error ? error.message : typeof error === "string" ? error : undefined;
@@ -184,4 +182,4 @@ export const MapFrame = memo(function MapFrame({
 			{mapCanvasBody}
 		</div>
 	);
-});
+}

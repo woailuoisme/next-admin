@@ -287,4 +287,23 @@ describe("GeocodeAdapter, Circuit Breaker & LocationPicker", () => {
 		fireEvent.click(screen.getByRole("button", { name: zhMessages.map.picker_reset }));
 		expect(onChange).not.toHaveBeenCalled();
 	});
+
+	it("preserves partial longitude draft on blur when latitude is still empty in LocationCoordinatesInput", () => {
+		const onCoordinatesChange = vi.fn();
+		renderIntl(<LocationCoordinatesInput onCoordinatesChange={onCoordinatesChange} onReset={vi.fn()} />);
+
+		const lngInput = screen.getByLabelText(zhMessages.map.picker_longitude) as HTMLInputElement;
+		const latInput = screen.getByLabelText(zhMessages.map.picker_latitude) as HTMLInputElement;
+
+		fireEvent.change(lngInput, { target: { value: "116.4074" } });
+		fireEvent.blur(lngInput);
+
+		expect(onCoordinatesChange).not.toHaveBeenCalled();
+		expect(lngInput.value).toBe("116.4074");
+
+		fireEvent.change(latInput, { target: { value: "39.9042" } });
+		fireEvent.blur(latInput);
+
+		expect(onCoordinatesChange).toHaveBeenCalledWith({ lng: 116.4074, lat: 39.9042 });
+	});
 });

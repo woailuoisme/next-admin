@@ -8,17 +8,20 @@ import type { InfolistProps } from "./types";
 
 import { InfolistProvider } from "./InfolistContext";
 
-export const Infolist = React.forwardRef<HTMLDivElement, InfolistProps>(function Infolist(
-	{ record, orientation = "vertical", dense = false, className, children, ...props },
+export function Infolist({
+	record,
+	orientation = "vertical",
+	dense = false,
+	className,
+	children,
 	ref,
-) {
+	...props
+}: InfolistProps & { ref?: React.Ref<HTMLDivElement> }) {
 	return (
 		<InfolistProvider record={record} orientation={orientation} dense={dense}>
-			<div ref={ref} className={cn("w-full space-y-6 text-foreground", className)} {...props}>
+			<div ref={ref} className={cn("text-foreground flex w-full flex-col gap-6", className)} {...props}>
 				{children}
 			</div>
 		</InfolistProvider>
 	);
-});
-
-Infolist.displayName = "Infolist";
+}

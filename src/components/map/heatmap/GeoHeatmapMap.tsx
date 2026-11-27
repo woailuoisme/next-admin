@@ -3,7 +3,7 @@
 import type * as GeoJSON from "geojson";
 
 import { useTranslations } from "next-intl";
-import { memo, useId, useMemo } from "react";
+import { useId, useMemo } from "react";
 
 import type { GeoHeatmapMapProps } from "./types";
 
@@ -16,12 +16,33 @@ import { COLOR_RAMP_PRESETS } from "./colorRamps";
 import { HeatmapLegend } from "./HeatmapLegend";
 import { HeatmapWebGLSourceLayer } from "./HeatmapWebGLSourceLayer";
 
-function buildPrimaryMonoRamp(hexColor: string): Array<[number, string]> {
-	const match = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hexColor.trim());
-	if (!match) return COLOR_RAMP_PRESETS.mono;
-	const r = Number.parseInt(match[1], 16);
-	const g = Number.parseInt(match[2], 16);
-	const b = Number.parseInt(match[3], 16);
+const EMPTY_HEATMAP_POINTS: NonNullable<GeoHeatmapMapProps["data"]> = [];
+
+function parseColorChannels(color: string): [number, number, number] | null {
+	const trimmed = color.trim();
+	const hex6 = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(trimmed);
+	if (hex6) {
+		return [Number.parseInt(hex6[1], 16), Number.parseInt(hex6[2], 16), Number.parseInt(hex6[3], 16)];
+	}
+	const hex3 = /^#?([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(trimmed);
+	if (hex3) {
+		return [
+			Number.parseInt(hex3[1] + hex3[1], 16),
+			Number.parseInt(hex3[2] + hex3[2], 16),
+			Number.parseInt(hex3[3] + hex3[3], 16),
+		];
+	}
+	const rgbMatch = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,[\d.\s]+)?\)$/i.exec(trimmed);
+	if (rgbMatch) {
+		return [Number(rgbMatch[1]), Number(rgbMatch[2]), Number(rgbMatch[3])];
+	}
+	return null;
+}
+
+function buildPrimaryMonoRamp(color: string, fallbackColor?: string): Array<[number, string]> {
+	const channels = parseColorChannels(color) ?? (fallbackColor ? parseColorChannels(fallbackColor) : null);
+	if (!channels) return COLOR_RAMP_PRESETS.mono;
+	const [r, g, b] = channels;
 	return [
 		[0, `rgba(${r}, ${g}, ${b}, 0)`],
 		[0.25, `rgba(${r}, ${g}, ${b}, 0.35)`],
@@ -31,7 +52,7 @@ function buildPrimaryMonoRamp(hexColor: string): Array<[number, string]> {
 	];
 }
 
-export const GeoHeatmapMap = memo(function GeoHeatmapMap({
+export function GeoHeatmapMap({
 	data,
 	points,
 	coordinateSystem = "WGS84",
@@ -73,13 +94,11 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap({
 	const sourceId = useId();
 	const layerId = `heatmap-layer-${sourceId}`;
 
-	const rawPoints = useMemo(() => data ?? points ?? [], [data, points]);
+	const rawPoints = data ?? points ?? EMPTY_HEATMAP_POINTS;
 
-	const { sourceCoords, targetCoords } = useMemo(
-		() => resolveCoordinateSystems(coordinateSystem, activeBasemap, basemapCRS),
-		[coordinateSystem, activeBasemap, basemapCRS],
-	);
+	const { sourceCoords, targetCoords } = resolveCoordinateSystems(coordinateSystem, activeBasemap, basemapCRS);
 
+	// 避免大批量热力点坐标转换与 GeoJSON 组装重复计算
 	const { geojsonData, transformedPoints } = useMemo(() => {
 		const validPoints: [number, number][] = [];
 		const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
@@ -113,26 +132,18 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap({
 		};
 	}, [rawPoints, sourceCoords, targetCoords, weightProperty]);
 
-	const activeStops = useMemo<Array<[number, string]>>(() => {
-		if (customColorRamp && customColorRamp.length >= 2) {
-			return customColorRamp.map(([stop, color]) => [stop, resolveCssColorToHex(color, tokens.primary)]);
-		}
-		if (colorRamp === "mono") {
-			return buildPrimaryMonoRamp(tokens.primary);
-		}
-		return COLOR_RAMP_PRESETS[colorRamp] ?? COLOR_RAMP_PRESETS.thermal;
-	}, [colorRamp, customColorRamp, tokens.primary]);
+	const activeStops: Array<[number, string]> =
+		customColorRamp && customColorRamp.length >= 2
+			? customColorRamp.map(([stop, color]) => [stop, resolveCssColorToHex(color, tokens.primary)])
+			: colorRamp === "mono"
+				? buildPrimaryMonoRamp(tokens.primary, tokens.primaryRamp[4])
+				: (COLOR_RAMP_PRESETS[colorRamp] ?? COLOR_RAMP_PRESETS.thermal);
 
-	const computedCenter = useMemo(
-		() => resolveBoundingCenter(transformedPoints, center, CHINA_MAP_CENTER),
-		[center, transformedPoints],
-	);
+	const computedCenter = resolveBoundingCenter(transformedPoints, center, CHINA_MAP_CENTER);
 
-	const overlaySlot = useMemo(
-		() =>
-			showLegend ? <HeatmapLegend legendTitle={legendTitle} stops={activeStops} maxIntensity={maxIntensity} /> : null,
-		[activeStops, legendTitle, maxIntensity, showLegend],
-	);
+	const overlaySlot = showLegend ? (
+		<HeatmapLegend legendTitle={legendTitle} stops={activeStops} maxIntensity={maxIntensity} />
+	) : null;
 
 	return (
 		<MapFrame
@@ -175,4 +186,4 @@ export const GeoHeatmapMap = memo(function GeoHeatmapMap({
 			/>
 		</MapFrame>
 	);
-});
+}

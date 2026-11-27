@@ -5,7 +5,8 @@ import { useTranslations } from "next-intl";
 import type { ComponentType, ReactNode } from "react";
 
 import { BarChart3 } from "lucide-react";
-import { memo } from "react";
+
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "cn";
 
 export interface ChartEmptyStateProps {
@@ -18,7 +19,7 @@ export interface ChartEmptyStateProps {
 	className?: string;
 }
 
-export const ChartEmptyState = memo(function ChartEmptyState({
+export function ChartEmptyState({
 	message,
 	description,
 	icon: Icon = BarChart3,
@@ -31,21 +32,23 @@ export const ChartEmptyState = memo(function ChartEmptyState({
 	const displayDescription = description ?? (message === undefined ? t("empty_desc") : undefined);
 
 	return (
-		<div
-			className={cn(
-				"flex w-full flex-col items-center justify-center space-y-2 p-6 text-center select-none",
-				className,
-			)}
-			style={{ height }}
+		<Empty
+			className={cn("justify-center border-0 select-none", className)}
+			style={{ minHeight: height }}
 			role="status"
 			aria-live="polite"
 		>
-			<div className="border-border/40 bg-muted/60 text-muted-foreground/60 mb-1 rounded-full border p-3">
-				<Icon className="h-6 w-6" />
-			</div>
-			<p className="text-muted-foreground text-sm font-medium">{displayMessage}</p>
-			{displayDescription && <p className="text-muted-foreground/70 max-w-xs text-xs">{displayDescription}</p>}
-			{actionSlot && <div className="pt-2">{actionSlot}</div>}
-		</div>
+			<EmptyHeader>
+				<EmptyMedia
+					variant="icon"
+					className="border-border/40 bg-muted/60 text-muted-foreground/60 rounded-full border"
+				>
+					<Icon aria-hidden="true" />
+				</EmptyMedia>
+				<EmptyTitle className="text-muted-foreground">{displayMessage}</EmptyTitle>
+				{displayDescription && <EmptyDescription className="text-xs">{displayDescription}</EmptyDescription>}
+			</EmptyHeader>
+			{actionSlot && <EmptyContent>{actionSlot}</EmptyContent>}
+		</Empty>
 	);
-});
+}

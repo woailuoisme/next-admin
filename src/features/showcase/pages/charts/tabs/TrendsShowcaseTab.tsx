@@ -1,6 +1,5 @@
-import { BarTrendChart } from "@/components/chart/bar/BarTrendChart";
 import { ChartCard } from "@/components/chart/card/ChartCard";
-import { LineTrendChart } from "@/components/chart/line/LineTrendChart";
+import { LazyBarTrendChart, LazyLineTrendChart } from "@/components/chart/lazy";
 import { CHART_PALETTE } from "@/components/chart/shared/theme";
 import { TabsContent } from "@/components/ui/tabs";
 import { CURRENCY_FORMATTER, PERIOD_OPTIONS } from "../constants";
@@ -33,7 +32,7 @@ export function TrendsShowcaseTab({
 	trendData,
 }: TrendsShowcaseTabProps) {
 	return (
-		<TabsContent value="trends" className="space-y-6">
+		<TabsContent value="trends" className="flex flex-col gap-6">
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 				<ChartCard
 					title="单折线趋势带参考基线 (LineTrendChart)"
@@ -44,7 +43,7 @@ export function TrendsShowcaseTab({
 					{...chartStateProps}
 					height={320}
 				>
-					<LineTrendChart
+					<LazyLineTrendChart
 						data={trendData}
 						dataKey="revenue"
 						xAxisKey="period"
@@ -65,7 +64,7 @@ export function TrendsShowcaseTab({
 					{...chartStateProps}
 					height={320}
 				>
-					<LineTrendChart data={trendData} xAxisKey="period" height={320} series={MULTI_LINE_SERIES} />
+					<LazyLineTrendChart data={trendData} xAxisKey="period" height={320} series={MULTI_LINE_SERIES} />
 				</ChartCard>
 			</div>
 
@@ -78,7 +77,7 @@ export function TrendsShowcaseTab({
 				{...chartStateProps}
 				height={340}
 			>
-				<BarTrendChart
+				<LazyBarTrendChart
 					data={trendData}
 					dataKey="revenue"
 					secondaryDataKey="cost"

@@ -1,7 +1,7 @@
 import type { ResourcePresentation } from "@/components/resource";
 import { s, type SchemaNode } from "@/components/schema";
 
-export interface SampleCustomer {
+export type SampleCustomer = {
   id: string;
   name: string;
   email: string;
@@ -9,7 +9,7 @@ export interface SampleCustomer {
   tier: string;
   isActive: boolean;
   notes: string;
-}
+};
 
 export const INITIAL_CUSTOMER: SampleCustomer = {
   id: "cust-9042",

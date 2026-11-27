@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, type ReactElement, type ReactNode, useCallback } from "react";
+import type { ReactElement, ReactNode } from "react";
 
 import {
 	AreaChart,
@@ -22,7 +22,7 @@ import { ChartBrush } from "./ChartBrush";
 import { useChartHeight } from "./ChartContext";
 import { ChartFrame } from "./ChartFrame";
 import { ChartReferenceLines } from "./ChartReferenceLines";
-import { ChartTooltip, type ChartTooltipEntry } from "./ChartTooltip";
+import { createValueTooltipContent } from "./ChartTooltip";
 import { resolveNumericChartHeight } from "./formatters";
 
 export type CartesianChartType = "area" | "bar" | "line" | "composed" | "scatter";
@@ -67,7 +67,7 @@ export interface CartesianScaffoldProps {
  * Unified Cartesian chart scaffold consolidating responsive frame, grid, X/Y axes,
  * tooltip chrome, reference lines, and timeline brush across Cartesian Recharts charts.
  */
-export const CartesianScaffold = memo(function CartesianScaffold({
+export function CartesianScaffold({
 	chartType,
 	data,
 	height,
@@ -97,18 +97,7 @@ export const CartesianScaffold = memo(function CartesianScaffold({
 }: CartesianScaffoldProps) {
 	const defaultNumericHeight = resolveNumericChartHeight(defaultHeight, 300);
 	const resolvedHeight = useChartHeight(height, defaultNumericHeight);
-
-	const renderDefaultTooltip = useCallback(
-		(tooltipProps: { active?: boolean; payload?: ReadonlyArray<unknown>; label?: string | number }) => (
-			<ChartTooltip
-				active={tooltipProps.active}
-				payload={tooltipProps.payload as ReadonlyArray<ChartTooltipEntry> | undefined}
-				label={tooltipProps.label}
-				valueFormatter={valueFormatter}
-			/>
-		),
-		[valueFormatter],
-	);
+	const renderDefaultTooltip = createValueTooltipContent(valueFormatter);
 
 	const inner = (
 		<>
@@ -201,4 +190,4 @@ export const CartesianScaffold = memo(function CartesianScaffold({
 			{chartElement}
 		</ChartFrame>
 	);
-});
+}

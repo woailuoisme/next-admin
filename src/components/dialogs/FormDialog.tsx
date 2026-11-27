@@ -80,13 +80,13 @@ export function FormDialog<TData = Record<string, unknown>>(props: FormDialogPro
 				/>
 
 				{/* 本组件拥有 <form> 元素：children 只能是字段内容，严禁再嵌套 form / <Form as="form"> */}
-				<form onSubmit={state.handleFormSubmit} className="space-y-6">
+				<form onSubmit={state.handleFormSubmit} className="flex flex-col gap-6">
 					<FormBodyRegion
 						formContextValue={state.formContextValue}
 						loading={loading}
 						loadingLabel={tCommon("loading_page_aria")}
-						className="min-h-75 space-y-6"
-						contentClassName="space-y-6"
+						className="flex min-h-75 flex-col gap-6"
+						contentClassName="flex flex-col gap-6"
 					>
 						{children}
 					</FormBodyRegion>

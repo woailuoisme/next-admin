@@ -26,7 +26,7 @@ export function EmptyStateShowcaseSection({ columns }: EmptyStateShowcaseSection
 					semantic colors.
 				</CardDescription>
 			</CardHeader>
-			<CardContent className="space-y-6 pt-0">
+			<CardContent className="flex flex-col gap-6 pt-0">
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 					{/* Size: sm + primary */}
 					<div className="border-border/50 bg-card flex flex-col justify-center rounded-xl border p-2">
@@ -82,18 +82,20 @@ export function EmptyStateShowcaseSection({ columns }: EmptyStateShowcaseSection
 				</div>
 
 				{/* DataTable with custom emptyState configuration */}
-				<div className="border-border/60 bg-muted/20 space-y-3 rounded-xl border p-4">
+				<div className="border-border/60 bg-muted/20 flex flex-col gap-3 rounded-xl border p-4">
 					<div className="flex items-center justify-between">
-						<div className="space-y-0.5">
+						<div className="flex flex-col gap-0.5">
 							<h4 className="text-foreground text-xs font-semibold">DataTable with Empty State Simulation</h4>
 							<p className="text-muted-foreground text-[11px]">
 								Toggle empty dataset to preview integrated DataTable empty overlay with custom actions.
 							</p>
 						</div>
 						<Button
+							type="button"
 							variant="outline"
 							size="sm"
-							className="h-7 text-xs"
+							aria-pressed={showEmptyData}
+							className="text-xs"
 							onClick={() => setShowEmptyData(!showEmptyData)}
 						>
 							{showEmptyData ? "Hide Simulation" : "Simulate Empty Table"}

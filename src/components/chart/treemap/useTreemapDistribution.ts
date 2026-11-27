@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-
 import type { TreemapItem } from "./types";
 
 import { toFiniteNumber } from "../shared/formatters";
@@ -58,17 +56,15 @@ function applyPercent(node: WeightedTreemapNode, total: number): EnrichedTreemap
 }
 
 export function useTreemapDistribution({ data, colorPalette }: UseTreemapDistributionOptions) {
-  return useMemo(() => {
-    const safeData = data ?? [];
-    const palette = colorPalette && colorPalette.length > 0 ? colorPalette : CHART_PALETTE;
+  const safeData = data ?? [];
+  const palette = colorPalette && colorPalette.length > 0 ? colorPalette : CHART_PALETTE;
 
-    const weightedNodes = safeData.map((item, index) => buildWeightedNode(item, palette, index));
-    const total = weightedNodes.reduce((acc, item) => acc + item.value, 0);
-    const enrichedData = weightedNodes.map((node) => applyPercent(node, total));
+  const weightedNodes = safeData.map((item, index) => buildWeightedNode(item, palette, index));
+  const total = weightedNodes.reduce((acc, item) => acc + item.value, 0);
+  const enrichedData = weightedNodes.map((node) => applyPercent(node, total));
 
-    return {
-      total,
-      enrichedData,
-    };
-  }, [data, colorPalette]);
+  return {
+    total,
+    enrichedData,
+  };
 }

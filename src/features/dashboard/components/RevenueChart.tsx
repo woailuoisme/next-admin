@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -20,18 +19,17 @@ export function RevenueChart({ data = EMPTY_REVENUE_DATA, isLoading = false }: R
 	const format = useFormatter();
 	const [activePeriod, setActivePeriod] = useState("12M");
 
-	const formatRevenueTooltip = useMemoizedFn((val: number) =>
-		format.number(val, { style: "currency", currency: "USD", maximumFractionDigits: 0 }),
-	);
+	const formatRevenueTooltip = (val: number) =>
+		format.number(val, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 	const revenuePeriods = [
-		{ label: t("period_7d"), value: "7D" },
-		{ label: t("period_30d"), value: "30D" },
+		{ label: t("period_3m"), value: "3M" },
+		{ label: t("period_6m"), value: "6M" },
 		{ label: t("period_12m"), value: "12M" },
 	];
 
-	// Map MonthlyTrendPoint data to AreaTrendChart data format filtered by active period
-	const sliced = activePeriod === "7D" ? data.slice(-3) : activePeriod === "30D" ? data.slice(-6) : data;
+	// Map MonthlyTrendPoint data to AreaTrendChart data format filtered by active month-window
+	const sliced = activePeriod === "3M" ? data.slice(-3) : activePeriod === "6M" ? data.slice(-6) : data;
 	const chartData = sliced.map((item) => ({
 		label: item.month,
 		value: item.revenue,
@@ -47,7 +45,7 @@ export function RevenueChart({ data = EMPTY_REVENUE_DATA, isLoading = false }: R
 			onPeriodChange={setActivePeriod}
 			height={300}
 			isLoading={isLoading}
-			isEmpty={!data?.length}
+			isEmpty={!isLoading && chartData.length === 0}
 			className="col-span-full lg:col-span-4"
 		>
 			<LazyAreaTrendChart

@@ -5,7 +5,9 @@ import { BadgeCell } from "@/components/data-table/cells/display/BadgeCell";
 import { col } from "@/components/data-table/columns/col";
 import type { DataTableRenderCellParams } from "@/components/data-table/core";
 import type { ResourceTableSchema } from "@/components/resource";
+import { cn } from "cn";
 
+import { buildProductStatusMap, buildProductStatusOptions, LOW_STOCK_THRESHOLD } from "./resource";
 import type { Product } from "./types";
 
 const STATUS_VARIANT_MAP: Record<string, "success" | "secondary" | "warning"> = {
@@ -14,10 +16,10 @@ const STATUS_VARIANT_MAP: Record<string, "success" | "secondary" | "warning"> = 
 	out_of_stock: "warning",
 };
 
-const PINNED_COLUMNS = {
+const PINNED_COLUMNS = Object.freeze({
 	left: ["imageUrl", "title"],
 	right: ["actions"],
-};
+});
 
 export const productTableConfig: ResourceTableSchema<Product> = {
 	pinnedColumns: PINNED_COLUMNS,
@@ -28,11 +30,7 @@ export const productTableConfig: ResourceTableSchema<Product> = {
 			field: "status",
 			label: t("col_status"),
 			placeholder: t("filter_status_placeholder"),
-			options: [
-				{ label: t("status_active"), value: "active" },
-				{ label: t("status_draft"), value: "draft" },
-				{ label: t("status_out_of_stock"), value: "out_of_stock" },
-			],
+			options: buildProductStatusOptions(t),
 		},
 		{
 			type: "select",
@@ -48,11 +46,7 @@ export const productTableConfig: ResourceTableSchema<Product> = {
 		},
 	],
 	columns: ({ t }) => {
-		const statusLabelMap = {
-			active: t("status_active"),
-			draft: t("status_draft"),
-			out_of_stock: t("status_out_of_stock"),
-		};
+		const statusLabelMap = buildProductStatusMap(t);
 		return [
 			col.avatar<Product>("imageUrl", t("col_item"), { width: 70, pinned: "left", shape: "rounded", size: "md" }),
 			col.text<Product>("title", t("col_product_info"), {
@@ -79,7 +73,7 @@ export const productTableConfig: ResourceTableSchema<Product> = {
 								<span>
 									{t("cost_prefix")} ${row.costPrice.toFixed(2)}
 								</span>
-								<span className="text-chart-2 font-medium">
+								<span className={cn("font-medium", margin < 0 ? "text-destructive" : "text-chart-2")}>
 									({margin}
 									{t("margin_suffix")})
 								</span>
@@ -96,7 +90,8 @@ export const productTableConfig: ResourceTableSchema<Product> = {
 				sortable: true,
 				renderCell: ({ row }: DataTableRenderCellParams<Product>) => {
 					if (row.stock === 0) return <BadgeCell value={t("stock_out")} variant="destructive" />;
-					if (row.stock <= 10) return <BadgeCell value={t("low_stock", { count: row.stock })} variant="warning" dot />;
+					if (row.stock <= LOW_STOCK_THRESHOLD)
+						return <BadgeCell value={t("low_stock", { count: row.stock })} variant="warning" dot />;
 					return <span className="text-muted-foreground font-mono text-xs">{t("in_stock", { count: row.stock })}</span>;
 				},
 			},

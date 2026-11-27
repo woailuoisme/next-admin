@@ -2,12 +2,13 @@
 
 import { useMemoizedFn } from "ahooks";
 import { debounce, type DebouncedFunction } from "es-toolkit";
-import { Loader2, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { memo, useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 
 import { type AmapPlace, searchPlaces } from "./amapGeo";
 import { LocationSearchDropdown } from "./LocationSearchDropdown";
@@ -24,7 +25,7 @@ export interface LocationAddressSearchProps {
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-export const LocationAddressSearch = memo(function LocationAddressSearch({
+export function LocationAddressSearch({
 	disabled = false,
 	readOnly = false,
 	placeholder,
@@ -197,9 +198,10 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
 			/>
 
 			{isSearching ? (
-				<Loader2
+				<Spinner
+					role={undefined}
 					aria-hidden="true"
-					className="text-muted-foreground pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 animate-spin"
+					className="text-muted-foreground pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 motion-reduce:animate-none"
 				/>
 			) : keyword && !blocked ? (
 				<Button
@@ -210,7 +212,7 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
 					aria-label={t("picker_clear_search")}
 					className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1 -translate-y-1/2"
 				>
-					<X aria-hidden="true" className="size-3.5" />
+					<X aria-hidden="true" />
 				</Button>
 			) : null}
 
@@ -227,4 +229,4 @@ export const LocationAddressSearch = memo(function LocationAddressSearch({
 			) : null}
 		</div>
 	);
-});
+}

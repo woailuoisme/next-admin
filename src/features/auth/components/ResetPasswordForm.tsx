@@ -5,14 +5,14 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Form, useAppForm } from "@/components/form";
-import { DEFAULT_PASSWORD_REQUIREMENTS, PasswordStrengthMeter } from "@/components/form/security/PasswordStrengthMeter";
+import { PasswordStrengthMeter } from "@/components/form/security/PasswordStrengthMeter";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MessageKeyOf } from "@/types/i18n";
 
 import { resolveResetErrorKey, useResetPasswordMutation } from "../hooks";
-import { buildResetPasswordSchema, PASSWORD_REQUIREMENT_LABEL_KEYS } from "../schemas";
+import { buildResetPasswordSchema } from "../schemas";
 
-import { AuthCard, AuthFormError, AuthSubmitButton } from "./AuthShell";
+import { AuthCard, AuthFormError, AuthSubmitButton, usePasswordRequirements } from "./AuthShell";
 
 export interface ResetPasswordFormProps {
 	resetToken: string;
@@ -21,14 +21,9 @@ export interface ResetPasswordFormProps {
 
 export function ResetPasswordForm({ resetToken, email }: ResetPasswordFormProps) {
 	const t = useTranslations("auth");
-	const tForm = useTranslations("form");
 	const mutation = useResetPasswordMutation();
 	const [errorKey, setErrorKey] = useState<MessageKeyOf<"auth"> | null>(null);
-
-	const requirements = DEFAULT_PASSWORD_REQUIREMENTS.map((requirement, index) => ({
-		...requirement,
-		label: tForm(PASSWORD_REQUIREMENT_LABEL_KEYS[index]),
-	}));
+	const requirements = usePasswordRequirements();
 
 	const schema = buildResetPasswordSchema({
 		tooShort: t("error_password_weak"),
@@ -52,16 +47,16 @@ export function ResetPasswordForm({ resetToken, email }: ResetPasswordFormProps)
 
 	return (
 		<AuthCard>
-			<CardHeader className="space-y-1 text-center">
+			<CardHeader className="flex flex-col gap-1 text-center">
 				<CardTitle className="flex items-center justify-center gap-2 text-xl font-bold tracking-tight">
-					<KeyRound className="text-primary size-5" />
+					<KeyRound className="text-primary size-5" aria-hidden="true" />
 					{t("reset_card_title")}
 				</CardTitle>
 				<CardDescription className="text-xs">{t("reset_card_hint")}</CardDescription>
 			</CardHeader>
 
-			<CardContent className="space-y-4">
-				<Form form={form} className="space-y-4">
+			<CardContent className="flex flex-col gap-4">
+				<Form form={form} className="flex flex-col gap-4">
 					<form.AppForm>
 						<form.AppField name="password">
 							{(field) => (

@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { Infolist, getNestedValue } from "@/components/infolist";
 import { InfolistCallout } from "@/components/infolist/callout/InfolistCallout";
+import { ActionSelectEntry } from "@/components/infolist/entries/ActionSelectEntry";
 import { CodeEntry } from "@/components/infolist/entries/CodeEntry";
 import { ColorEntry } from "@/components/infolist/entries/ColorEntry";
 import { IconEntry } from "@/components/infolist/entries/IconEntry";
@@ -401,5 +402,35 @@ describe("Infolist Subsystem", () => {
 		expect(screen.getByRole("link", { name: "ORD-100" })).toHaveAttribute("href", "/orders/100");
 		expect(screen.getByText('{"foo":"bar"}')).toBeInTheDocument();
 		expect(screen.getByLabelText("json Code block")).toHaveAttribute("tabindex", "0");
+	});
+
+	it("guards IconEntry against prototype keys and renders ActionSelectEntry with Spinner without forced capitalize", () => {
+		renderWithProviders(
+			<Infolist record={{ protoKey: "toString" }}>
+				<IconEntry
+					name="protoKey"
+					label="Prototype Guard"
+					iconMap={{ active: ShieldCheck }}
+					colorMap={{ active: "success" }}
+				/>
+				<ActionSelectEntry
+					label="Runtime"
+					value="iOS"
+					options={[
+						{ label: "iOS", value: "iOS" },
+						{ label: "API v2", value: "API v2" },
+					]}
+					onChange={vi.fn()}
+					isPending
+					pendingText="Updating..."
+				/>
+			</Infolist>,
+			{ locale: "en" },
+		);
+
+		expect(screen.getByText("toString")).toBeInTheDocument();
+		const trigger = screen.getByRole("combobox");
+		expect(trigger).not.toHaveClass("capitalize");
+		expect(screen.getByRole("status")).toHaveTextContent("Updating...");
 	});
 });

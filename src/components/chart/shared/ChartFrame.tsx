@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, memo, type ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 
 import { ResponsiveContainer } from "recharts";
 
@@ -23,9 +23,8 @@ export interface ChartFrameProps {
 
 /**
  * Recharts 响应式容器外壳：集中 minWidth / minHeight / initialDimension 配置
- * Memoized wrapper conforming to Vercel React Best Practices (rerender-memo)
  */
-export const ChartFrame = memo(function ChartFrame({
+export function ChartFrame({
 	height,
 	className,
 	style,
@@ -36,6 +35,7 @@ export const ChartFrame = memo(function ChartFrame({
 	const resolvedHeight = useChartHeight(height, 300);
 	const numericHeight = resolveNumericChartHeight(resolvedHeight, 300);
 	const isPixelHeight = typeof resolvedHeight === "number" || /^\d+(?:\.\d+)?px$/i.test(resolvedHeight.trim());
+	const initialDimension = { width: initialWidth, height: numericHeight };
 
 	return (
 		<div
@@ -48,10 +48,10 @@ export const ChartFrame = memo(function ChartFrame({
 				height="100%"
 				minWidth={0}
 				minHeight={isPixelHeight ? numericHeight : undefined}
-				initialDimension={{ width: initialWidth, height: numericHeight }}
+				initialDimension={initialDimension}
 			>
 				{children}
 			</ResponsiveContainer>
 		</div>
 	);
-});
+}

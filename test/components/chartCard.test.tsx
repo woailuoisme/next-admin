@@ -2,6 +2,7 @@ import { fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ChartCard } from "@/components/chart/card/ChartCard";
+import { ChartFullscreenDialog } from "@/components/chart/card/ChartFullscreenDialog";
 import { HorizontalBarChart } from "@/components/chart/horizontal-bar";
 import { useChartHeight } from "@/components/chart/shared/ChartContext";
 import { renderWithProviders, screen } from "test/test-utils";
@@ -136,5 +137,29 @@ describe("ChartCard", () => {
 			const chartContainer = dialog.querySelector("[style*='min-height']");
 			expect(chartContainer).toHaveStyle({ minHeight: "540px" });
 		});
+	});
+
+	it("renders footerSlot inside CardFooter and uses minHeight for card body", () => {
+		const { container } = renderWithProviders(
+			<ChartCard title="With Footer" height={260} footerSlot={<span>Footer Summary</span>}>
+				<div data-testid="body-node">Body</div>
+			</ChartCard>,
+		);
+
+		const footer = container.querySelector('[data-slot="card-footer"]');
+		expect(footer).toHaveTextContent("Footer Summary");
+		const bodyContainer = screen.getByTestId("body-node").parentElement;
+		expect(bodyContainer).toHaveStyle({ minHeight: "260px" });
+	});
+
+	it("always renders accessible DialogTitle in ChartFullscreenDialog even when title is empty", () => {
+		renderWithProviders(
+			<ChartFullscreenDialog open onOpenChange={vi.fn()} title="" fullscreenHeight={480}>
+				<div>Chart Body</div>
+			</ChartFullscreenDialog>,
+		);
+
+		const dialog = screen.getByRole("dialog");
+		expect(dialog).toHaveAccessibleName(/全屏|fullscreen/i);
 	});
 });

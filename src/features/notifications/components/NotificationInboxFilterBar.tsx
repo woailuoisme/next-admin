@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -80,25 +80,29 @@ export function NotificationInboxFilterBar({
 				</Tabs>
 
 				<div className="flex flex-wrap items-center gap-3">
-					<div className="relative min-w-60 flex-1 sm:w-64 sm:flex-initial">
-						<Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-						<Input
+					<InputGroup className="h-9 min-w-60 flex-1 sm:w-64 sm:flex-initial">
+						<InputGroupAddon>
+							<Search aria-hidden="true" />
+						</InputGroupAddon>
+						<InputGroupInput
 							value={searchQuery}
 							onChange={(e) => onSearchChange(e.target.value)}
 							placeholder={t("search_placeholder")}
-							className="h-9 pr-8 pl-8 text-sm"
+							className="text-sm"
 						/>
 						{searchQuery ? (
-							<button
-								type="button"
-								onClick={() => onSearchChange("")}
-								aria-label={t("clear_filters")}
-								className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer"
-							>
-								<X className="size-3.5" />
-							</button>
+							<InputGroupAddon align="inline-end">
+								<InputGroupButton
+									size="icon-xs"
+									onClick={() => onSearchChange("")}
+									aria-label={t("clear_filters")}
+									className="cursor-pointer"
+								>
+									<X aria-hidden="true" />
+								</InputGroupButton>
+							</InputGroupAddon>
 						) : null}
-					</div>
+					</InputGroup>
 
 					<div className="flex items-center gap-2">
 						<Switch id="notifications-unread-only" checked={unreadOnly} onCheckedChange={onUnreadOnlyChange} />
@@ -113,7 +117,7 @@ export function NotificationInboxFilterBar({
 							variant="ghost"
 							size="sm"
 							onClick={onClearFilters}
-							className="text-muted-foreground h-8 cursor-pointer px-2 text-xs"
+							className="text-muted-foreground cursor-pointer text-xs"
 						>
 							{t("clear_filters")}
 						</Button>
@@ -144,9 +148,9 @@ export function NotificationInboxFilterBar({
 							size="sm"
 							disabled={isBatchMarkReadPending}
 							onClick={onBatchMarkRead}
-							className="h-7 cursor-pointer gap-1 px-2.5 text-xs"
+							className="cursor-pointer text-xs"
 						>
-							<CheckCheck className="size-3.5" />
+							<CheckCheck data-icon="inline-start" aria-hidden="true" />
 							{t("batch_mark_read")}
 						</Button>
 						<Button
@@ -155,9 +159,9 @@ export function NotificationInboxFilterBar({
 							size="sm"
 							disabled={isBatchDeletePending}
 							onClick={onOpenBatchDeleteConfirm}
-							className="h-7 cursor-pointer gap-1 px-2.5 text-xs"
+							className="cursor-pointer text-xs"
 						>
-							<Trash2 className="size-3.5" />
+							<Trash2 data-icon="inline-start" aria-hidden="true" />
 							{t("batch_delete")}
 						</Button>
 					</div>

@@ -2,7 +2,7 @@
 
 import type * as MapLibreGL from "maplibre-gl";
 
-import { memo, useEffect, useId, useMemo, useRef } from "react";
+import { useEffect, useId, useMemo, useRef } from "react";
 
 import { useMap } from "@/components/ui/map";
 
@@ -23,7 +23,7 @@ export interface ArcSplitLineLayerProps {
 	onClick?: (arc: ResolvedArcItem) => void;
 }
 
-export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
+export function ArcSplitLineLayer({
 	data,
 	curvature = 0.25,
 	samples = 64,
@@ -43,23 +43,27 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
 	const hitLayerId = `arc-split-hit-${autoId}`;
 
 	const latestRef = useRef({ onHover, onClick, data });
-	latestRef.current = { onHover, onClick, data };
-
-	const arcIndexMap = useMemo(() => new Map(data.map((arc) => [arc.id, arc])), [data]);
+	const arcIndexMap = new Map(data.map((arc) => [arc.id, arc]));
 	const arcIndexRef = useRef(arcIndexMap);
-	arcIndexRef.current = arcIndexMap;
 
+	// 稳定传给 MapLibre GeoJSON source.setData 的航线几何对象引用
 	const geojson = useMemo(() => buildArcFeatureCollection(data, curvature, samples), [curvature, data, samples]);
 	const latestGeojsonRef = useRef(geojson);
-	latestGeojsonRef.current = geojson;
 
 	const effectiveHoverWidth = hoverArcWidth ?? arcWidth + 2;
+	// 稳定传给 MapLibre setPaintProperty effect 的样式表达式引用
 	const paintSpecs = useMemo(
 		() => buildArcPaintSpecs(arcColor, arcHoverColor, arcWidth, effectiveHoverWidth, arcOpacity),
 		[arcColor, arcHoverColor, arcOpacity, arcWidth, effectiveHoverWidth],
 	);
 	const latestPaintRef = useRef(paintSpecs);
-	latestPaintRef.current = paintSpecs;
+
+	useEffect(() => {
+		latestRef.current = { onHover, onClick, data };
+		arcIndexRef.current = arcIndexMap;
+		latestGeojsonRef.current = geojson;
+		latestPaintRef.current = paintSpecs;
+	});
 
 	useEffect(() => {
 		if (!isLoaded || !map) return;
@@ -186,4 +190,4 @@ export const ArcSplitLineLayer = memo(function ArcSplitLineLayer({
 	}, [hitLayerId, interactive, isLoaded, map, sourceId]);
 
 	return null;
-});
+}

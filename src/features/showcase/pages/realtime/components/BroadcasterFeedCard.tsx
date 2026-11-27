@@ -12,6 +12,7 @@ import {
 	Trash2,
 	Volume2,
 } from "lucide-react";
+import { useFormatter } from "next-intl";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +39,7 @@ function LevelBadge({ level }: { level: StreamMessageItem["level"] }) {
 	if (level === "success") {
 		return (
 			<Badge variant="default" className="h-5 px-1.5 text-[10px]">
-				<CheckCircle2 className="mr-1 h-3 w-3" />
+				<CheckCircle2 className="mr-1 size-3" aria-hidden="true" />
 				SUCCESS
 			</Badge>
 		);
@@ -46,7 +47,7 @@ function LevelBadge({ level }: { level: StreamMessageItem["level"] }) {
 	if (level === "warning") {
 		return (
 			<Badge variant="outline" className="border-chart-4/30 text-chart-4 h-5 px-1.5 text-[10px]">
-				<AlertCircle className="mr-1 size-3" />
+				<AlertCircle className="mr-1 size-3" aria-hidden="true" />
 				WARNING
 			</Badge>
 		);
@@ -54,14 +55,14 @@ function LevelBadge({ level }: { level: StreamMessageItem["level"] }) {
 	if (level === "error") {
 		return (
 			<Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
-				<AlertCircle className="mr-1 h-3 w-3" />
+				<AlertCircle className="mr-1 size-3" aria-hidden="true" />
 				ERROR
 			</Badge>
 		);
 	}
 	return (
 		<Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
-			<Info className="mr-1 h-3 w-3" />
+			<Info className="mr-1 size-3" aria-hidden="true" />
 			INFO
 		</Badge>
 	);
@@ -78,6 +79,7 @@ export function BroadcasterFeedCard({
 	filterChannel,
 	onFilterChannelChange,
 }: BroadcasterFeedCardProps) {
+	const format = useFormatter();
 	const [expandedPayloads, setExpandedPayloads] = useState<Record<string, boolean>>({});
 
 	const toggleExpand = (id: string) => {
@@ -85,12 +87,12 @@ export function BroadcasterFeedCard({
 	};
 
 	return (
-		<div className="space-y-4 lg:col-span-3">
+		<div className="flex flex-col gap-4 lg:col-span-3">
 			<Card className="bg-card border-border shadow-xs">
 				<CardHeader className="flex flex-col pb-3 sm:flex-row sm:items-center sm:justify-between">
 					<div>
 						<CardTitle className="text-foreground flex items-center gap-2 text-sm font-semibold">
-							<Volume2 className="text-primary h-4 w-4" />
+							<Volume2 className="text-primary size-4" aria-hidden="true" />
 							实时消息接收瀑布流 · 共 {messages.length} 条
 						</CardTitle>
 						<CardDescription className="text-muted-foreground text-xs">
@@ -99,27 +101,28 @@ export function BroadcasterFeedCard({
 					</div>
 
 					<div className="mt-2 flex flex-wrap items-center gap-2 sm:mt-0">
-						<Button variant="outline" size="sm" onClick={onTogglePause} className="h-7 gap-1 text-xs">
+						<Button type="button" variant="outline" size="sm" onClick={onTogglePause} className="text-xs">
 							{isPaused ? (
 								<>
-									<Play className="text-primary h-3 w-3" />
+									<Play data-icon="inline-start" className="text-primary" aria-hidden="true" />
 									恢复接收
 								</>
 							) : (
 								<>
-									<Pause className="h-3 w-3" />
+									<Pause data-icon="inline-start" aria-hidden="true" />
 									暂停滚动
 								</>
 							)}
 						</Button>
 
 						<Button
+							type="button"
 							variant="ghost"
 							size="sm"
 							onClick={onClear}
-							className="text-muted-foreground hover:text-foreground h-7 px-2 text-xs"
+							className="text-muted-foreground hover:text-foreground text-xs"
 						>
-							<Trash2 className="h-3.5 w-3.5" />
+							<Trash2 data-icon="inline-start" aria-hidden="true" />
 							清空
 						</Button>
 					</div>
@@ -127,7 +130,7 @@ export function BroadcasterFeedCard({
 
 				<div className="border-border bg-muted/40 flex flex-wrap items-center justify-between gap-2 border-y px-4 py-2">
 					<div className="flex items-center gap-2">
-						<Filter className="text-muted-foreground h-3.5 w-3.5" />
+						<Filter className="text-muted-foreground size-3.5" aria-hidden="true" />
 						<span className="text-muted-foreground text-xs">过滤:</span>
 						<Select value={filterLevel} onValueChange={onFilterLevelChange}>
 							<SelectTrigger className="h-7 w-24 text-xs">
@@ -163,7 +166,7 @@ export function BroadcasterFeedCard({
 
 				<CardContent className="p-0">
 					<ScrollArea className="h-[460px] p-4">
-						<div className="space-y-3">
+						<div className="flex flex-col gap-3">
 							{filteredMessages.length === 0 ? (
 								<div className="text-muted-foreground py-16 text-center text-xs">
 									暂无广播消息，请在左侧发送一条测试消息
@@ -187,7 +190,11 @@ export function BroadcasterFeedCard({
 													) : null}
 												</div>
 												<span className="text-muted-foreground font-mono text-[10px]">
-													{new Date(msg.timestamp).toLocaleTimeString()}
+													{format.dateTime(new Date(msg.timestamp), {
+														hour: "2-digit",
+														minute: "2-digit",
+														second: "2-digit",
+													})}
 												</span>
 											</div>
 
@@ -201,11 +208,15 @@ export function BroadcasterFeedCard({
 													<Button
 														type="button"
 														variant="ghost"
-														size="sm"
+														size="xs"
 														onClick={() => toggleExpand(msg.id)}
 														className="text-muted-foreground hover:text-foreground h-auto gap-1 px-1 py-0.5 font-mono text-[10px]"
 													>
-														{isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+														{isExpanded ? (
+															<ChevronDown className="size-3" aria-hidden="true" />
+														) : (
+															<ChevronRight className="size-3" aria-hidden="true" />
+														)}
 														<span>原始 JSON Payload</span>
 													</Button>
 													{isExpanded ? (

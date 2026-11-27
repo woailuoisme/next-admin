@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect } from "react";
+import { useEffect } from "react";
 
 import { useMap } from "@/components/ui/map";
 
@@ -19,7 +19,7 @@ export interface MapFlyToProps {
  *
  * 每次 `target` **引用**变化都会触发一次 flyTo，并校验坐标有限性。
  */
-export const MapFlyTo = memo(function MapFlyTo({ target, minZoom = 13, duration = 1200 }: MapFlyToProps) {
+export function MapFlyTo({ target, minZoom = 13, duration = 1200 }: MapFlyToProps) {
 	const { map, isLoaded } = useMap();
 
 	useEffect(() => {
@@ -34,4 +34,4 @@ export const MapFlyTo = memo(function MapFlyTo({ target, minZoom = 13, duration 
 	}, [isLoaded, map, target, minZoom, duration]);
 
 	return null;
-});
+}

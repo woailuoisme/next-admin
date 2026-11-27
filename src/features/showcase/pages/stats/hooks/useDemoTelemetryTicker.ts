@@ -1,6 +1,6 @@
 "use client";
 
-import { useInterval, useMemoizedFn } from "ahooks";
+import { useInterval } from "ahooks";
 import { clamp } from "es-toolkit";
 import { useFormatter, useTranslations } from "next-intl";
 import { useRef, useState } from "react";
@@ -67,11 +67,11 @@ export function useDemoTelemetryTicker({
   const [lastUpdatedTime, setLastUpdatedTime] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState<boolean>(autoStart);
 
-  const toggle = useMemoizedFn(() => setIsRunning((prev) => !prev));
-  const start = useMemoizedFn(() => setIsRunning(true));
-  const stop = useMemoizedFn(() => setIsRunning(false));
+  const toggle = () => setIsRunning((prev) => !prev);
+  const start = () => setIsRunning(true);
+  const stop = () => setIsRunning(false);
 
-  const tick = useMemoizedFn(() => {
+  const tick = () => {
     const prevValue = valueRef.current;
     let delta: number;
     if (volatility !== undefined) {
@@ -97,7 +97,7 @@ export function useDemoTelemetryTicker({
         second: "2-digit",
       }),
     );
-  });
+  };
 
   useInterval(tick, isRunning ? intervalMs : undefined);
 

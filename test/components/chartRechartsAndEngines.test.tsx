@@ -18,7 +18,7 @@ import { RadarMetricChart } from "@/components/chart/radar";
 import { useRadialGauge } from "@/components/chart/radial-gauge/useRadialGauge";
 import { ScatterMetricChart } from "@/components/chart/scatter";
 import { getSecondaryChartStroke } from "@/components/chart/shared/theme";
-import { useMetricSparkline } from "@/components/chart/sparkline/useMetricSparkline";
+import { computeSparklineGeometry } from "@/components/shared/sparkline/sparklineEngine";
 import { TreemapDistributionChart } from "@/components/chart/treemap";
 import { useTreemapDistribution } from "@/components/chart/treemap/useTreemapDistribution";
 import { useWaterfallFinancial } from "@/components/chart/waterfall/useWaterfallFinancial";
@@ -109,18 +109,20 @@ describe("Chart Calculation Engines", () => {
 		});
 	});
 
-	it("useMetricSparkline filters non-finite inputs and preserves single-point 1-decimal line paths", () => {
-		const { result: singleResult } = renderHook(() => useMetricSparkline({ data: [Number.NaN, 25] }));
-		expect(singleResult.current.first).toBe(25);
-		expect(singleResult.current.last).toBe(25);
-		expect(singleResult.current.trend).toBe("neutral");
-		expect(singleResult.current.linePath).toBe("M 0 16 L 100 16");
-		expect(singleResult.current.areaPath).toBe("");
+	it("computeSparklineGeometry filters non-finite inputs and preserves single-point 1-decimal line paths", () => {
+		const singleResult = computeSparklineGeometry({ data: [Number.NaN, 25], variant: "area", padding: 3 });
+		expect(singleResult.first).toBe(25);
+		expect(singleResult.last).toBe(25);
+		expect(singleResult.trend).toBe("neutral");
+		expect(singleResult.linePath).toBe("M 0 16 L 100 16");
+		expect(singleResult.areaPath).toBe("");
 
-		const { result: emptyResult } = renderHook(() =>
-			useMetricSparkline({ data: [Number.NaN, Number.POSITIVE_INFINITY] }),
-		);
-		expect(emptyResult.current.linePath).toBe("");
+		const emptyResult = computeSparklineGeometry({
+			data: [Number.NaN, Number.POSITIVE_INFINITY],
+			variant: "area",
+			padding: 3,
+		});
+		expect(emptyResult.linePath).toBe("");
 	});
 
 	it("useRadialGauge guards NaN bounds and picks highest matched threshold", () => {
@@ -215,9 +217,9 @@ describe("Chart Calculation Engines", () => {
 		expect(heatmap.current.max).toBe(0);
 		expect(heatmap.current.rows).toEqual([]);
 
-		const { result: sparkline } = renderHook(() => useMetricSparkline({ data: undefined as unknown as never[] }));
-		expect(sparkline.current.linePath).toBe("");
-		expect(sparkline.current.trend).toBe("neutral");
+		const sparkline = computeSparklineGeometry({ data: undefined as unknown as never[] });
+		expect(sparkline.linePath).toBe("");
+		expect(sparkline.trend).toBe("neutral");
 	});
 
 	it("useChartAnimation disables animations when prefers-reduced-motion matches", () => {

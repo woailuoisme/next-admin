@@ -50,13 +50,13 @@ export function NotFoundComponent({ code, title, description, backText, homeText
 			<h1 className="mb-2 text-2xl font-bold tracking-tight">{effectiveTitle}</h1>
 			<p className="text-muted-foreground mb-6 max-w-md text-sm">{effectiveDescription}</p>
 			<div className="flex flex-wrap items-center justify-center gap-3">
-				<Button variant="outline" onClick={handleBack} className="cursor-pointer gap-2">
-					<ArrowLeft aria-hidden="true" className="size-4" />
+				<Button variant="outline" onClick={handleBack} className="cursor-pointer">
+					<ArrowLeft data-icon="inline-start" aria-hidden="true" />
 					{effectiveBackText}
 				</Button>
-				<Button asChild className="cursor-pointer gap-2">
+				<Button asChild className="cursor-pointer">
 					<Link href="/">
-						<Home aria-hidden="true" className="size-4" />
+						<Home data-icon="inline-start" aria-hidden="true" />
 						{effectiveHomeText}
 					</Link>
 				</Button>

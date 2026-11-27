@@ -1,10 +1,13 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import { useInterval } from "ahooks";
 import { Radio, Send } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useFormatter } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
 
-import { AreaTrendChart } from "@/components/chart/area/AreaTrendChart";
+import { LazyAreaTrendChart } from "@/components/chart/lazy";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +23,7 @@ import { INITIAL_TELEMETRY_POINTS } from "../constants";
 import type { TelemetryMetricPoint } from "../types";
 
 export function TelemetryShowcaseTab() {
+	const format = useFormatter();
 	const { isConnected } = useCentrifuge();
 	const [metrics, setMetrics] = useState<TelemetryMetricPoint[]>(INITIAL_TELEMETRY_POINTS);
 	const [isAutoStreaming, setIsAutoStreaming] = useState(false);
@@ -28,7 +32,10 @@ export function TelemetryShowcaseTab() {
 
 	const currentPoint = metrics[metrics.length - 1] ?? INITIAL_TELEMETRY_POINTS[0];
 
-	const handleTelemetryPublication = useCallback((pub: { data: Partial<TelemetryMetricPoint>; offset?: number }) => {
+	const formatTelemetryTime = (date: Date) =>
+		format.dateTime(date, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+	const handleTelemetryPublication = (pub: { data: Partial<TelemetryMetricPoint>; offset?: number }) => {
 		const now = new Date();
 		const incoming = pub.data;
 		if (pub.offset !== undefined) setLastMessageOffset(pub.offset);
@@ -36,7 +43,7 @@ export function TelemetryShowcaseTab() {
 		setMetrics((prev) => [
 			...prev.slice(-24),
 			{
-				time: now.toTimeString().slice(0, 8),
+				time: formatTelemetryTime(now),
 				timestamp: now.getTime(),
 				qps: incoming.qps ?? Math.floor(1900 + Math.random() * 700),
 				tps: incoming.tps ?? Math.floor(480 + Math.random() * 200),
@@ -45,25 +52,29 @@ export function TelemetryShowcaseTab() {
 				activeSockets: incoming.activeSockets ?? 1080 + Math.floor(Math.random() * 40),
 			},
 		]);
-	}, []);
+	};
 
 	useSubscription<Partial<TelemetryMetricPoint>>("public:telemetry", handleTelemetryPublication);
 
 	const { mutate: publishPulse, isPending: isSendingPulse } = useMutation({
 		mutationFn: async (payload: Partial<TelemetryMetricPoint>) => {
 			const res = await publishRealtime("public:telemetry", payload);
-			if (!res.ok) return null;
+			if (!res.ok) throw new Error("PUBLISH_FAILED");
 			return (await res.json()) as { result?: { offset?: number } };
 		},
 		onSuccess: (json) => {
 			if (json?.result?.offset !== undefined) setLastMessageOffset(json.result.offset);
 		},
 		onError: (e) => {
-			console.warn("Failed to publish telemetry pulse:", e);
+			toast.error(
+				e instanceof Error && e.message === "PUBLISH_FAILED"
+					? "遥测脉冲发送失败，请检查容器状态"
+					: "网络异常，无法发送遥测脉冲",
+			);
 		},
 	});
 
-	const sendTelemetryPulse = useCallback(() => {
+	const sendTelemetryPulse = () => {
 		const now = new Date();
 		publishPulse({
 			qps: Math.floor(2800 + Math.random() * 800),
@@ -71,36 +82,25 @@ export function TelemetryShowcaseTab() {
 			cpu: Math.floor(55 + Math.random() * 25),
 			memory: Math.floor(52 + Math.random() * 10),
 			activeSockets: 1150 + Math.floor(Math.random() * 80),
-			time: now.toTimeString().slice(0, 8),
+			time: formatTelemetryTime(now),
 			timestamp: now.getTime(),
 		});
-	}, [publishPulse]);
+	};
 
-	const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-	useEffect(() => {
-		if (isAutoStreaming && isConnected) {
-			const intervalMs = Number.parseInt(streamInterval, 10) || 2000;
-			intervalRef.current = setInterval(() => sendTelemetryPulse(), intervalMs);
-		} else if (intervalRef.current) {
-			clearInterval(intervalRef.current);
-			intervalRef.current = null;
-		}
-
-		return () => {
-			if (intervalRef.current) clearInterval(intervalRef.current);
-		};
-	}, [isAutoStreaming, streamInterval, isConnected, sendTelemetryPulse]);
+	useInterval(
+		sendTelemetryPulse,
+		isAutoStreaming && isConnected ? Number.parseInt(streamInterval, 10) || 2000 : undefined,
+	);
 
 	const chartData = metrics.map((m) => ({ label: m.time, value: m.qps, secondaryValue: m.tps }));
 
 	return (
-		<TabsContent value="telemetry" className="space-y-6">
+		<TabsContent value="telemetry" className="flex flex-col gap-6">
 			<Card className="bg-card border-border shadow-xs">
 				<CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex items-center gap-3">
-						<div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-lg">
-							<Radio className="h-5 w-5 animate-pulse" />
+						<div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-lg">
+							<Radio className="size-5 animate-pulse" aria-hidden="true" />
 						</div>
 						<div>
 							<h3 className="text-foreground text-sm font-semibold">频道: public:telemetry</h3>
@@ -136,13 +136,14 @@ export function TelemetryShowcaseTab() {
 						</Select>
 
 						<Button
+							type="button"
 							variant="outline"
 							size="sm"
 							onClick={sendTelemetryPulse}
 							disabled={isSendingPulse || !isConnected}
-							className="h-8 gap-1.5 text-xs"
+							className="text-xs"
 						>
-							<Send className="h-3.5 w-3.5" />
+							<Send data-icon="inline-start" aria-hidden="true" />
 							单次脉冲
 						</Button>
 					</div>
@@ -161,17 +162,17 @@ export function TelemetryShowcaseTab() {
 					</div>
 					<div className="mt-2 flex items-center gap-2 sm:mt-0">
 						<Badge variant="outline" className="text-xs">
-							<span className="bg-primary mr-1.5 inline-block h-2 w-2 rounded-full" />
+							<span className="bg-primary mr-1.5 inline-block size-2 rounded-full" aria-hidden="true" />
 							QPS 吞吐
 						</Badge>
 						<Badge variant="outline" className="text-xs">
-							<span className="bg-secondary mr-1.5 inline-block h-2 w-2 rounded-full" />
+							<span className="bg-secondary mr-1.5 inline-block size-2 rounded-full" aria-hidden="true" />
 							TPS 事务
 						</Badge>
 					</div>
 				</CardHeader>
 				<CardContent className="pt-4">
-					<AreaTrendChart
+					<LazyAreaTrendChart
 						data={chartData}
 						dataKey="value"
 						secondaryDataKey="secondaryValue"

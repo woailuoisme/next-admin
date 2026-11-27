@@ -20,10 +20,7 @@ export function NavMain({ groups, className }: NavMainProps) {
 
 	return (
 		<SidebarContent
-			className={cn(
-				"space-y-4 p-2 group-data-[collapsible=icon]:space-y-1 group-data-[collapsible=icon]:p-0",
-				className,
-			)}
+			className={cn("gap-4 p-2 group-data-[collapsible=icon]:gap-1 group-data-[collapsible=icon]:p-0", className)}
 		>
 			{groups.map((group, groupIdx) => (
 				<SidebarGroup key={group.title ?? `group-${groupIdx}`}>

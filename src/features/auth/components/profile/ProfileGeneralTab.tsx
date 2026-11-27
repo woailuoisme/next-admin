@@ -9,8 +9,9 @@ import { Form, useAppForm } from "@/components/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { getApiErrorMessage } from "@/lib/apiClient";
 
 import { useUpdateProfileMutation } from "../../hooks";
@@ -67,35 +68,35 @@ export function ProfileGeneralTab({ admin, roleLabels }: ProfileGeneralTabProps)
 				<CardDescription>{t("general_desc")}</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<Form form={profileForm} className="space-y-5">
+				<Form form={profileForm} className="flex flex-col gap-5">
 					<profileForm.AppForm>
 						<profileForm.AppField name="name">
 							{(field) => <field.TextInput label={t("name_label")} placeholder={t("name_placeholder")} required />}
 						</profileForm.AppField>
 
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<div className="space-y-1.5">
-								<Label htmlFor="profile-email">{t("email_label")}</Label>
+						<FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<Field data-disabled>
+								<FieldLabel htmlFor="profile-email">{t("email_label")}</FieldLabel>
 								<Input id="profile-email" value={admin.email} disabled className="bg-muted/50" />
-								<p className="text-muted-foreground text-[11px]">{t("email_readonly_hint")}</p>
-							</div>
-							<div className="space-y-1.5">
-								<Label htmlFor="profile-role">{t("role_label")}</Label>
+								<FieldDescription className="text-[11px]">{t("email_readonly_hint")}</FieldDescription>
+							</Field>
+							<Field data-disabled>
+								<FieldLabel htmlFor="profile-role">{t("role_label")}</FieldLabel>
 								<Input
 									id="profile-role"
 									value={roleLabels[admin.role] ?? admin.role}
 									disabled
 									className="bg-muted/50"
 								/>
-							</div>
-						</div>
+							</Field>
+						</FieldGroup>
 
 						<profileForm.AppField name="avatarUrl">
 							{(field) => (
 								<field.TextInput
 									label={t("avatar_url_label")}
 									placeholder={t("avatar_url_placeholder")}
-									prefix={<Link2 className="text-muted-foreground size-4" />}
+									prefix={<Link2 className="text-muted-foreground size-4" aria-hidden="true" />}
 									clearable
 								/>
 							)}
@@ -104,15 +105,18 @@ export function ProfileGeneralTab({ admin, roleLabels }: ProfileGeneralTabProps)
 
 					<profileForm.Subscribe selector={(state) => state.values.avatarUrl}>
 						{(currentAvatarUrl) => (
-							<div className="space-y-1.5">
+							<div className="flex flex-col gap-1.5">
 								<p className="text-muted-foreground text-xs">{t("avatar_presets_label")}</p>
 								<div className="flex flex-wrap items-center gap-2.5">
-									{AVATAR_PRESETS.map((presetUrl) => {
+									{AVATAR_PRESETS.map((presetUrl, index) => {
 										const selected = currentAvatarUrl === presetUrl;
+										const presetLabel = t("avatar_preset_aria", { index: index + 1 });
 										return (
 											<button
 												key={presetUrl}
 												type="button"
+												aria-label={presetLabel}
+												aria-pressed={selected}
 												onClick={() => profileForm.setFieldValue("avatarUrl", presetUrl)}
 												className={cn(
 													"cursor-pointer rounded-full p-0.5 transition-all",
@@ -120,7 +124,7 @@ export function ProfileGeneralTab({ admin, roleLabels }: ProfileGeneralTabProps)
 												)}
 											>
 												<Avatar className="size-9">
-													<AvatarImage src={presetUrl} alt="Preset avatar" />
+													<AvatarImage src={presetUrl} alt={presetLabel} />
 													<AvatarFallback>A</AvatarFallback>
 												</Avatar>
 											</button>
@@ -133,6 +137,9 @@ export function ProfileGeneralTab({ admin, roleLabels }: ProfileGeneralTabProps)
 
 					<div className="flex justify-end pt-2">
 						<Button type="submit" disabled={updateProfileMutation.isPending} className="cursor-pointer">
+							{updateProfileMutation.isPending ? (
+								<Spinner data-icon="inline-start" role={undefined} aria-hidden="true" />
+							) : null}
 							{updateProfileMutation.isPending ? t("saving_profile") : t("save_profile")}
 						</Button>
 					</div>

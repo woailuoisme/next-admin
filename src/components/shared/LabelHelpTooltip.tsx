@@ -28,11 +28,11 @@ export function LabelHelpTooltip({ content, helpTooltipAria }: LabelHelpTooltipP
 				<Button
 					type="button"
 					variant="ghost"
-					size="icon"
-					className="text-muted-foreground/70 hover:text-foreground -m-1 inline-flex size-6 cursor-help p-0 transition-colors hover:bg-transparent"
+					size="icon-xs"
+					className="text-muted-foreground/70 hover:text-foreground -m-1 inline-flex cursor-help p-0 transition-colors hover:bg-transparent"
 					aria-label={resolvedAria}
 				>
-					<HelpCircle className="size-3.5" aria-hidden="true" />
+					<HelpCircle aria-hidden="true" />
 				</Button>
 			</TooltipTrigger>
 			<TooltipContent side="top" className="max-w-xs text-xs">

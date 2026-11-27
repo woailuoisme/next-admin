@@ -13,6 +13,7 @@ import {
 	getFlatNavItems,
 	getRouteTitle,
 	getSidebarMenuGroups,
+	useRouteTitle,
 } from "@/components/layout/sidebar/menu.config";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { waitFor } from "@testing-library/react";
@@ -64,11 +65,23 @@ describe("HeaderNav & Breadcrumbs", () => {
 		expect(screen.getByRole("link", { name: "Admin" })).toHaveAttribute("href", "/overview");
 	});
 
-	it("dynamically resolves route title from menu configuration", () => {
+	it("dynamically resolves route title from menu configuration and customGroups", () => {
 		expect(getRouteTitle("/overview")).toBe("概览");
 		expect(getRouteTitle("/products")).toBe("商品管理");
 		expect(getRouteTitle("/showcase/tables")).toBe("数据表格");
 		expect(getRouteTitle("/unknown-custom-page")).toBe("Unknown Custom Page");
+
+		function RouteTitleProbe() {
+			const title = useRouteTitle("/custom/billing", undefined, [
+				{
+					title: "Custom",
+					items: [{ title: "Custom Billing", to: "/custom/billing", icon: () => null }],
+				},
+			]);
+			return <span data-testid="route-title-probe">{title}</span>;
+		}
+		renderWithProviders(<RouteTitleProbe />);
+		expect(screen.getByTestId("route-title-probe")).toHaveTextContent("Custom Billing");
 	});
 });
 

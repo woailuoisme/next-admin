@@ -1,12 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { type KeyboardEvent, memo, useCallback, useRef, useState } from "react";
+import { type KeyboardEvent, useRef, useState } from "react";
 
 import { cn } from "cn";
 
 import { useChartFormatters } from "../hooks/useChartFormatters";
 import { useChartHeight } from "../shared/ChartContext";
+import { ChartEmptyState } from "../shared/ChartEmptyState";
 import { ChartTooltipSurface } from "../shared/ChartTooltip";
 import { resolveNumericChartHeight } from "../shared/formatters";
 import { getChartTheme } from "../shared/theme";
@@ -21,7 +22,7 @@ const X_AXIS_TITLE_OFFSET = 16;
 const CELL_GAP = 3;
 const VIEW_BOX_WIDTH = 800;
 
-export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
+export function HeatmapMatrixChart({
 	data,
 	xKey,
 	yKey,
@@ -52,33 +53,9 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
 		cell: ComputedHeatmapCell;
 		x: number;
 		y: number;
+		placeBelow: boolean;
+		align: "start" | "center" | "end";
 	} | null>(null);
-
-	const handleCellActivate = useCallback(
-		(cell: ComputedHeatmapCell, target: SVGRectElement) => {
-			if (!showTooltip) return;
-			const containerRect = containerRef.current?.getBoundingClientRect();
-			const rect = target.getBoundingClientRect();
-			setHoveredCell({
-				cell,
-				x: rect.left - (containerRect?.left ?? 0) + rect.width / 2,
-				y: rect.top - (containerRect?.top ?? 0),
-			});
-		},
-		[showTooltip],
-	);
-
-	const handleCellFocus = useCallback(
-		(cell: ComputedHeatmapCell, rowIndex: number, colIndex: number, target: SVGRectElement) => {
-			setActiveCoord({ row: rowIndex, col: colIndex });
-			handleCellActivate(cell, target);
-		},
-		[handleCellActivate],
-	);
-
-	const handleCellDeactivate = useCallback(() => {
-		setHoveredCell(null);
-	}, []);
 
 	const {
 		xLabels: computedXLabels,
@@ -88,44 +65,71 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
 		max,
 	} = useHeatmapMatrix({ data, xKey, yKey, valueKey, xLabels, yLabels });
 
+	const numCols = computedXLabels.length || 1;
+	const numRows = computedYLabels.length || 1;
+
+	const handleCellActivate = (
+		cell: ComputedHeatmapCell,
+		rowIndex: number,
+		colIndex: number,
+		target: SVGRectElement,
+	) => {
+		if (!showTooltip) return;
+		const containerRect = containerRef.current?.getBoundingClientRect();
+		const rect = target.getBoundingClientRect();
+		const placeBelow = rowIndex === 0;
+		const align = numCols > 1 && colIndex === 0 ? "start" : numCols > 1 && colIndex === numCols - 1 ? "end" : "center";
+		setHoveredCell({
+			cell,
+			x: rect.left - (containerRect?.left ?? 0) + rect.width / 2,
+			y: placeBelow ? rect.bottom - (containerRect?.top ?? 0) : rect.top - (containerRect?.top ?? 0),
+			placeBelow,
+			align,
+		});
+	};
+
+	const handleCellFocus = (cell: ComputedHeatmapCell, rowIndex: number, colIndex: number, target: SVGRectElement) => {
+		setActiveCoord({ row: rowIndex, col: colIndex });
+		handleCellActivate(cell, rowIndex, colIndex, target);
+	};
+
+	const handleCellDeactivate = () => {
+		setHoveredCell(null);
+	};
+
 	const themeColor = getChartTheme(colorTheme).fillColor;
 	const maxYLabelLen = computedYLabels.reduce((acc, label) => Math.max(acc, String(label).length), 0);
 	const computedLabelLeftWidth = Math.min(120, Math.max(LABEL_LEFT_WIDTH, maxYLabelLen * 7 + 12));
 	const leftInset = computedLabelLeftWidth + (yLabel ? Y_AXIS_TITLE_OFFSET : 0);
 	const topInset = LABEL_TOP_HEIGHT + (xLabel ? X_AXIS_TITLE_OFFSET : 0);
 
-	const numCols = computedXLabels.length || 1;
-	const numRows = computedYLabels.length || 1;
 	const clampedActiveRow = rows.length > 0 ? Math.min(activeCoord.row, rows.length - 1) : 0;
 	const clampedActiveCol = numCols > 0 ? Math.min(activeCoord.col, numCols - 1) : 0;
 
-	const handleCellKeyDown = useCallback(
-		(e: KeyboardEvent<SVGRectElement>, rowIndex: number, colIndex: number) => {
-			if (e.key === "Escape") {
-				setHoveredCell(null);
-				return;
-			}
+	const handleCellKeyDown = (e: KeyboardEvent<SVGRectElement>, rowIndex: number, colIndex: number) => {
+		if (e.key === "Escape") {
+			setHoveredCell(null);
+			return;
+		}
 
-			const delta: Record<string, [number, number] | null> = {
-				ArrowRight: [rowIndex, Math.min(numCols - 1, colIndex + 1)],
-				ArrowLeft: [rowIndex, Math.max(0, colIndex - 1)],
-				ArrowDown: [Math.min(rows.length - 1, rowIndex + 1), colIndex],
-				ArrowUp: [Math.max(0, rowIndex - 1), colIndex],
-				Home: [rowIndex, 0],
-				End: [rowIndex, Math.max(0, numCols - 1)],
-			};
-			const target = delta[e.key];
-			if (!target) return;
+		const delta: Record<string, [number, number] | null> = {
+			ArrowRight: [rowIndex, Math.min(numCols - 1, colIndex + 1)],
+			ArrowLeft: [rowIndex, Math.max(0, colIndex - 1)],
+			ArrowDown: [Math.min(rows.length - 1, rowIndex + 1), colIndex],
+			ArrowUp: [Math.max(0, rowIndex - 1), colIndex],
+			Home: [rowIndex, 0],
+			End: [rowIndex, Math.max(0, numCols - 1)],
+		};
+		const target = delta[e.key];
+		if (!target) return;
 
-			e.preventDefault();
-			const [nextRow, nextCol] = target;
-			if (nextRow !== rowIndex || nextCol !== colIndex) {
-				setActiveCoord({ row: nextRow, col: nextCol });
-				svgRef.current?.querySelector<SVGRectElement>(`[data-row="${nextRow}"][data-col="${nextCol}"]`)?.focus();
-			}
-		},
-		[numCols, rows.length],
-	);
+		e.preventDefault();
+		const [nextRow, nextCol] = target;
+		if (nextRow !== rowIndex || nextCol !== colIndex) {
+			setActiveCoord({ row: nextRow, col: nextCol });
+			svgRef.current?.querySelector<SVGRectElement>(`[data-row="${nextRow}"][data-col="${nextCol}"]`)?.focus();
+		}
+	};
 
 	const availableWidth = VIEW_BOX_WIDTH - leftInset - 10;
 	const availableHeight = numericHeight - topInset - 10;
@@ -133,6 +137,10 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
 	const cellHeight = Math.max(12, (availableHeight - (numRows - 1) * CELL_GAP) / numRows);
 	const actualSvgWidth = leftInset + numCols * cellWidth + (numCols - 1) * CELL_GAP + 10;
 	const actualSvgHeight = topInset + numRows * cellHeight + (numRows - 1) * CELL_GAP + 10;
+
+	if (rows.length === 0 || computedXLabels.length === 0) {
+		return <ChartEmptyState height={resolvedHeight} className={className} />;
+	}
 
 	return (
 		<div ref={containerRef} className={cn("relative w-full select-none", className)}>
@@ -239,7 +247,12 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
 				<ChartTooltipSurface
 					title={`${hoveredCell.cell.y} · ${String(hoveredCell.cell.x)}`}
 					color={themeColor}
-					className="pointer-events-none absolute z-50 -translate-x-1/2 -translate-y-[calc(100%+8px)]"
+					className={cn(
+						"pointer-events-none absolute",
+						hoveredCell.align === "center" && "-translate-x-1/2",
+						hoveredCell.align === "end" && "-translate-x-full",
+						hoveredCell.placeBelow ? "translate-y-2" : "-translate-y-[calc(100%+8px)]",
+					)}
 					style={{ left: hoveredCell.x, top: hoveredCell.y }}
 				>
 					<div className="flex items-baseline gap-2">
@@ -250,4 +263,4 @@ export const HeatmapMatrixChart = memo(function HeatmapMatrixChart({
 			) : null}
 		</div>
 	);
-});
+}

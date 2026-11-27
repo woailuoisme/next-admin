@@ -2,7 +2,6 @@
 
 import { useLocale, useTranslations } from "next-intl";
 
-import { useMemoizedFn } from "ahooks";
 import { Check, Languages } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "cn";
@@ -11,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -47,7 +47,7 @@ export function LanguageSwitcher({
 	const currentLocale = (value ?? ctxLocale) as SupportedLocale;
 	const router = useRouter();
 
-	const handleLocaleChange = useMemoizedFn((newLocale: SupportedLocale) => {
+	const handleLocaleChange = (newLocale: SupportedLocale) => {
 		if (newLocale === currentLocale) return;
 		if (onLocaleChange) {
 			onLocaleChange(newLocale);
@@ -56,7 +56,7 @@ export function LanguageSwitcher({
 		setUserLocale(newLocale);
 		setupZodLocale(newLocale);
 		router.refresh();
-	});
+	};
 
 	const effectiveAriaLabel = ariaLabel ?? t("lang_switch_aria");
 	const effectiveTitle = title ?? t("lang_switch_title");
@@ -68,12 +68,12 @@ export function LanguageSwitcher({
 				<Button
 					type="button"
 					variant="ghost"
-					size="icon"
-					className={cn("text-muted-foreground hover:text-foreground size-9", className)}
+					size="icon-lg"
+					className={cn("text-muted-foreground hover:text-foreground", className)}
 					aria-label={effectiveAriaLabel}
 					title={effectiveTitle}
 				>
-					<Languages className="size-4" aria-hidden="true" />
+					<Languages aria-hidden="true" />
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-48">
@@ -81,22 +81,24 @@ export function LanguageSwitcher({
 					{effectiveMenuLabel}
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				{LOCALE_OPTIONS.map((option) => {
-					const isSelected = currentLocale === option.code;
-					return (
-						<DropdownMenuItem
-							key={option.code}
-							onClick={() => handleLocaleChange(option.code)}
-							className="flex cursor-pointer items-center justify-between py-1.5 text-xs"
-						>
-							<div className="flex flex-col">
-								<span className="text-foreground font-medium">{option.nativeName}</span>
-								<span className="text-muted-foreground text-[10px]">{option.name}</span>
-							</div>
-							{isSelected && <Check className="text-primary ml-2 size-4 shrink-0" aria-hidden="true" />}
-						</DropdownMenuItem>
-					);
-				})}
+				<DropdownMenuGroup>
+					{LOCALE_OPTIONS.map((option) => {
+						const isSelected = currentLocale === option.code;
+						return (
+							<DropdownMenuItem
+								key={option.code}
+								onClick={() => handleLocaleChange(option.code)}
+								className="flex cursor-pointer items-center justify-between py-1.5 text-xs"
+							>
+								<div className="flex flex-col">
+									<span className="text-foreground font-medium">{option.nativeName}</span>
+									<span className="text-muted-foreground text-[10px]">{option.name}</span>
+								</div>
+								{isSelected && <Check className="text-primary ml-2 size-4 shrink-0" aria-hidden="true" />}
+							</DropdownMenuItem>
+						);
+					})}
+				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

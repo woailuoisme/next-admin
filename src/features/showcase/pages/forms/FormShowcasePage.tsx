@@ -1,7 +1,7 @@
 "use client";
 
 import { Calendar, CheckCircle2, Layers, MapPin, Palette, Send, ShieldCheck, UploadCloud } from "lucide-react";
-import { type SyntheticEvent, useMemo, useState } from "react";
+import { type SyntheticEvent, useState } from "react";
 import { toast } from "sonner";
 
 import { useAppForm } from "@/components/form";
@@ -42,58 +42,55 @@ export function FormShowcasePage() {
 		form.reset();
 	};
 
-	const tabs = useMemo(
-		() => [
-			{
-				id: "basics",
-				label: "Basic Controls",
-				icon: Layers,
-				children: <BasicsTab form={form} />,
-			},
-			{
-				id: "choices",
-				label: "Selection & Toggles",
-				icon: CheckCircle2,
-				badge: "Interactive",
-				children: <ChoicesTab form={form} />,
-			},
-			{
-				id: "datetime",
-				label: "Date & Time",
-				icon: Calendar,
-				children: <DateTimeTab form={form} />,
-			},
-			{
-				id: "advanced",
-				label: "Advanced & Composite",
-				icon: Palette,
-				badge: "Repeater / KV",
-				children: <AdvancedTab form={form} />,
-			},
-			{
-				id: "media",
-				label: "Media & Rich Text",
-				icon: UploadCloud,
-				badge: "Filament v5",
-				children: <MediaTab form={form} />,
-			},
-			{
-				id: "security-finance",
-				label: "Security & Finance",
-				icon: ShieldCheck,
-				badge: "New Pro",
-				children: <SecurityFinanceTab form={form} />,
-			},
-			{
-				id: "geospatial",
-				label: "Map & Location",
-				icon: MapPin,
-				badge: "MapLibre / Amap",
-				children: <GeospatialTab form={form} />,
-			},
-		],
-		[form],
-	);
+	const tabs = [
+		{
+			id: "basics",
+			label: "Basic Controls",
+			icon: Layers,
+			children: <BasicsTab form={form} />,
+		},
+		{
+			id: "choices",
+			label: "Selection & Toggles",
+			icon: CheckCircle2,
+			badge: "Interactive",
+			children: <ChoicesTab form={form} />,
+		},
+		{
+			id: "datetime",
+			label: "Date & Time",
+			icon: Calendar,
+			children: <DateTimeTab form={form} />,
+		},
+		{
+			id: "advanced",
+			label: "Advanced & Composite",
+			icon: Palette,
+			badge: "Repeater / KV",
+			children: <AdvancedTab form={form} />,
+		},
+		{
+			id: "media",
+			label: "Media & Rich Text",
+			icon: UploadCloud,
+			badge: "Filament v5",
+			children: <MediaTab form={form} />,
+		},
+		{
+			id: "security-finance",
+			label: "Security & Finance",
+			icon: ShieldCheck,
+			badge: "New Pro",
+			children: <SecurityFinanceTab form={form} />,
+		},
+		{
+			id: "geospatial",
+			label: "Map & Location",
+			icon: MapPin,
+			badge: "MapLibre / Amap",
+			children: <GeospatialTab form={form} />,
+		},
+	];
 
 	return (
 		<div className="space-y-6">
@@ -107,7 +104,7 @@ export function FormShowcasePage() {
 
 			<ResourceShowcaseSection />
 
-			<form onSubmit={handleSubmit} className="space-y-6">
+			<form onSubmit={handleSubmit} className="flex flex-col gap-6">
 				<Tabs tabs={tabs} />
 
 				<div className="border-border flex items-center justify-between border-t pt-4">
@@ -118,8 +115,9 @@ export function FormShowcasePage() {
 						<Button type="button" variant="outline" size="sm" onClick={handleReset}>
 							Reset Defaults
 						</Button>
-						<Button type="submit" size="sm" className="gap-1.5 font-semibold">
-							<Send className="size-3.5" /> Submit Form
+						<Button type="submit" size="sm" className="font-semibold">
+							<Send data-icon="inline-start" aria-hidden="true" />
+							Submit Form
 						</Button>
 					</div>
 				</div>

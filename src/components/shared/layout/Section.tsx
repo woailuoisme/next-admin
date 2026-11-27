@@ -70,8 +70,8 @@ export function Section({
 			<Button
 				type="button"
 				variant="ghost"
-				size="icon"
-				className="text-muted-foreground hover:text-foreground size-7 rounded-md"
+				size="icon-sm"
+				className="text-muted-foreground hover:text-foreground rounded-md"
 				aria-label={collapseAriaLabel}
 				aria-expanded={!effectiveCollapsed}
 			>
@@ -103,7 +103,7 @@ export function Section({
 				{hasHeader ? (
 					<div className="flex min-w-0 flex-1 items-start gap-2.5">
 						{iconSlot}
-						<div className="min-w-0 flex-1 space-y-0.5">
+						<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 							{showTitle && (
 								<CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-semibold tracking-tight">
 									{title}
@@ -164,7 +164,7 @@ export function Section({
 			{hasHeader ? (
 				<div className="flex items-start gap-2.5">
 					{iconSlot}
-					<div className="space-y-0.5">
+					<div className="flex flex-col gap-0.5">
 						{showTitle && (
 							<h3 className="text-foreground flex items-center gap-1.5 text-sm font-semibold tracking-tight">
 								{title}
@@ -190,7 +190,7 @@ export function Section({
 			<Collapsible
 				open={!effectiveCollapsed}
 				onOpenChange={handleOpenChange}
-				className={cn("w-full space-y-4 text-left", className)}
+				className={cn("flex w-full flex-col gap-4 text-left", className)}
 				{...props}
 			>
 				{plainHeader}
@@ -205,7 +205,7 @@ export function Section({
 	}
 
 	return (
-		<div className={cn("w-full space-y-4 text-left", className)} {...props}>
+		<div className={cn("flex w-full flex-col gap-4 text-left", className)} {...props}>
 			{plainHeader}
 			{contentNode}
 			{showFooter && (

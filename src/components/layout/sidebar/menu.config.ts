@@ -203,17 +203,17 @@ export function getRouteTitle(pathname: string, fallback?: string, items?: FlatN
 /**
  * React hook to retrieve the localized route title, reactive to locale changes
  */
-export function useRouteTitle(pathname: string, fallback?: string): string {
+export function useRouteTitle(pathname: string, fallback?: string, customGroups?: NavGroup[]): string {
   const tMenu = useTranslations("menu");
   const menuGroups = useSidebarMenuGroups();
   const cleanPath = pathname.split("?")[0].replace(/\/+$/, "") || "/";
-  if (cleanPath === "/notifications" || cleanPath.startsWith("/notifications/")) {
+  if (!customGroups && (cleanPath === "/notifications" || cleanPath.startsWith("/notifications/"))) {
     return tMenu("notifications");
   }
-  if (cleanPath === "/profile" || cleanPath.startsWith("/profile/")) {
+  if (!customGroups && (cleanPath === "/profile" || cleanPath.startsWith("/profile/"))) {
     return tMenu("profile");
   }
-  const flatItems = getFlatNavItems(menuGroups);
+  const flatItems = getFlatNavItems(customGroups ?? menuGroups);
   return getRouteTitle(pathname, fallback, flatItems);
 }
 

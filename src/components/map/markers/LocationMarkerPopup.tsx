@@ -1,7 +1,6 @@
 "use client";
 
 import { Building2, Phone } from "lucide-react";
-import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -28,11 +27,11 @@ function formatExtraEntries(extra?: Record<string, unknown>): Array<[string, str
 	return entries;
 }
 
-export const LocationMarkerPopup = memo(function LocationMarkerPopup({ item }: LocationMarkerPopupProps) {
+export function LocationMarkerPopup({ item }: LocationMarkerPopupProps) {
 	const extraEntries = formatExtraEntries(item.extra);
 
 	return (
-		<div className="w-64 space-y-2.5 p-1 text-xs">
+		<div className="flex w-64 flex-col gap-2.5 p-1 text-xs">
 			<div className="flex items-start justify-between gap-2">
 				<div className="text-foreground text-sm leading-tight font-semibold">{item.title}</div>
 				<div className="flex shrink-0 items-center gap-1">
@@ -90,4 +89,4 @@ export const LocationMarkerPopup = memo(function LocationMarkerPopup({ item }: L
 			</div>
 		</div>
 	);
-});
+}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useMemoizedFn } from "ahooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -21,6 +20,7 @@ import {
 	useUnreadNotificationCount,
 } from "../hooks";
 import { notificationsEndpoint } from "../resource";
+import { isSafeNotificationUrl } from "./NotificationRowItem";
 
 export interface ConnectedNotificationBellProps {
 	className?: string;
@@ -53,48 +53,43 @@ export function ConnectedNotificationBell({ className }: ConnectedNotificationBe
 	const items = listData?.items ?? EMPTY_ITEMS;
 	const totalCount = listData?.total ?? 0;
 
-	const handlePrefetch = useMemoizedFn(() => {
+	const handlePrefetch = () => {
 		void queryClient
 			.prefetchQuery({
 				...notificationsEndpoint.queries.list(filters),
 				staleTime: 10000,
 			})
 			.catch(() => {});
-	});
+	};
 
-	const handleItemClick = useMemoizedFn((item: NotificationItem) => {
+	const handleItemClick = (item: NotificationItem) => {
 		if (!item.read) {
 			markAsReadMutation.mutate(item.id);
 		}
-		if (
-			item.actionUrl &&
-			item.actionUrl.startsWith("/") &&
-			!item.actionUrl.startsWith("//") &&
-			!item.actionUrl.startsWith("/\\")
-		) {
+		if (isSafeNotificationUrl(item.actionUrl)) {
 			setOpen(false);
 			router.push(item.actionUrl);
 		}
-	});
+	};
 
-	const handleSingleMarkRead = useMemoizedFn((id: string) => {
+	const handleSingleMarkRead = (id: string) => {
 		markAsReadMutation.mutate(id);
-	});
+	};
 
-	const handleDelete = useMemoizedFn((id: string) => {
+	const handleDelete = (id: string) => {
 		deleteMutation.mutate(id);
-	});
+	};
 
-	const handleMarkAllRead = useMemoizedFn(() => {
+	const handleMarkAllRead = () => {
 		if (unreadCount > 0) {
 			markAllAsReadMutation.mutate();
 		}
-	});
+	};
 
-	const handleGotoOverview = useMemoizedFn(() => {
+	const handleGotoOverview = () => {
 		setOpen(false);
 		router.push("/notifications");
-	});
+	};
 
 	return (
 		<NotificationBell

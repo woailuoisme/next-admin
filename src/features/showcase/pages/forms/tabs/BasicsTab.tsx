@@ -8,13 +8,12 @@ import { Grid, Section } from "@/components/shared/layout";
 import { formatRating } from "../constants";
 
 export interface BasicsTabProps {
-	// biome-ignore lint/suspicious/noExplicitAny: TanStack FormApi instance
 	form: any;
 }
 
 export function BasicsTab({ form }: BasicsTabProps) {
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<Section
 				title="User Identity & Biography"
 				description="Standard inputs, textareas, numeric steppers, and range sliders."

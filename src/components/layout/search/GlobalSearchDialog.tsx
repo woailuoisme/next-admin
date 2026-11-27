@@ -97,7 +97,7 @@ export function GlobalSearchDialog({
 										{Icon && (
 											<Icon
 												aria-hidden="true"
-												className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors"
+												className="text-muted-foreground group-aria-selected:text-foreground transition-colors"
 											/>
 										)}
 										<div className="flex min-w-0 items-center gap-1.5 truncate">
@@ -112,12 +112,9 @@ export function GlobalSearchDialog({
 											<span className="text-foreground truncate font-medium">{item.title}</span>
 										</div>
 									</div>
-									<span
-										data-slot="command-shortcut"
-										className="text-muted-foreground/40 group-aria-selected:text-muted-foreground/80 ml-auto hidden shrink-0 font-mono text-[11px] sm:inline"
-									>
+									<CommandShortcut className="text-muted-foreground/40 group-aria-selected:text-muted-foreground/80 hidden font-mono text-[11px] tracking-normal sm:inline">
 										{item.to}
-									</span>
+									</CommandShortcut>
 								</CommandItem>
 							);
 						})}
@@ -133,7 +130,7 @@ export function GlobalSearchDialog({
 							<div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
 								<PanelLeft
 									aria-hidden="true"
-									className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors"
+									className="text-muted-foreground group-aria-selected:text-foreground transition-colors"
 								/>
 								<span className="truncate">{t("search_toggle_sidebar")}</span>
 							</div>
@@ -147,7 +144,7 @@ export function GlobalSearchDialog({
 							<div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
 								<Sun
 									aria-hidden="true"
-									className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors"
+									className="text-muted-foreground group-aria-selected:text-foreground transition-colors"
 								/>
 								<span className="truncate">{t("search_theme_light")}</span>
 							</div>
@@ -160,7 +157,7 @@ export function GlobalSearchDialog({
 							<div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
 								<Moon
 									aria-hidden="true"
-									className="text-muted-foreground group-aria-selected:text-foreground size-4 shrink-0 transition-colors"
+									className="text-muted-foreground group-aria-selected:text-foreground transition-colors"
 								/>
 								<span className="truncate">{t("search_theme_dark")}</span>
 							</div>

@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
-import { memo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +20,7 @@ interface LocationMarkerSearchOverlayProps {
 	categoryCounts: Record<string, number>;
 }
 
-export const LocationMarkerSearchOverlay = memo(function LocationMarkerSearchOverlay({
+export function LocationMarkerSearchOverlay({
 	showSearch,
 	searchQuery,
 	onSearchChange,
@@ -56,12 +55,12 @@ export const LocationMarkerSearchOverlay = memo(function LocationMarkerSearchOve
 						<Button
 							type="button"
 							variant="ghost"
-							size="icon"
+							size="icon-xs"
 							onClick={() => onSearchChange("")}
-							className="text-muted-foreground hover:text-foreground absolute top-1 right-1 size-6"
+							className="text-muted-foreground hover:text-foreground absolute top-1 right-1"
 							aria-label={t("markers_clear_search")}
 						>
-							<X aria-hidden="true" className="size-3.5" />
+							<X aria-hidden="true" />
 						</Button>
 					) : null}
 				</div>
@@ -100,4 +99,4 @@ export const LocationMarkerSearchOverlay = memo(function LocationMarkerSearchOve
 			) : null}
 		</div>
 	);
-});
+}

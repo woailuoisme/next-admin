@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Clock, MapPin } from "lucide-react";
-import { type ComponentType, memo, useCallback } from "react";
+import type { ComponentType } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { MapMarker, MarkerContent, MarkerPopup } from "@/components/ui/map";
@@ -42,13 +42,13 @@ const STOP_STATUS_STYLES: Record<
 	},
 };
 
-export const StopMarker = memo(function StopMarker({ stop, onStopClick }: StopMarkerProps) {
+export function StopMarker({ stop, onStopClick }: StopMarkerProps) {
 	const t = useTranslations("map");
 	const status = stop.status ?? "pending";
 	const { marker, Icon, iconExtra, badge } = STOP_STATUS_STYLES[status];
-	const handleClick = useCallback(() => {
+	const handleClick = () => {
 		onStopClick?.(stop);
-	}, [onStopClick, stop]);
+	};
 
 	return (
 		<MapMarker longitude={stop.coordinates[0]} latitude={stop.coordinates[1]} onClick={handleClick}>
@@ -82,4 +82,4 @@ export const StopMarker = memo(function StopMarker({ stop, onStopClick }: StopMa
 			</MarkerPopup>
 		</MapMarker>
 	);
-});
+}

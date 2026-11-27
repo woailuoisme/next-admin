@@ -48,18 +48,17 @@ export function useLocationPicker({
 
   const amapEnabled = useGeocodeProxyAvailability();
 
-  const basemapConfig = useMemo(() => {
-    const customStyles = customStyleUrl?.light || customStyleUrl?.dark ? customStyleUrl : undefined;
-    return resolveBasemapConfig(basemap, customStyles);
-  }, [basemap, customStyleUrl]);
+  const customStyles = customStyleUrl?.light || customStyleUrl?.dark ? customStyleUrl : undefined;
+  const basemapConfig = resolveBasemapConfig(basemap, customStyles);
 
-  const displayCRS = useMemo(() => getBasemapCRS(basemap), [basemap]);
+  const displayCRS = getBasemapCRS(basemap);
 
   const sourceLng = hasValidCurrentValue ? currentValue?.lng : undefined;
   const sourceLat = hasValidCurrentValue ? currentValue?.lat : undefined;
   const currentCoordKey =
     sourceLng !== undefined && sourceLat !== undefined ? formatLocationCoordKey([sourceLng, sourceLat]) : "";
 
+  // 稳定传入 useReverseGeocodeEffect 的显示坐标引用，避免每次渲染重建 Tuple 触发重查
   const displayPosition = useMemo<[number, number] | undefined>(() => {
     if (sourceLng === undefined || sourceLat === undefined) return undefined;
     return transformCoordinates([sourceLng, sourceLat], sourceCRS, displayCRS);
@@ -67,10 +66,7 @@ export function useLocationPicker({
 
   const displayCoordKey = displayPosition ? formatLocationCoordKey(displayPosition) : "";
 
-  const fallbackMapCenter = useMemo<[number, number]>(
-    () => (isValidCoordinate(center) ? center : DEFAULT_BEIJING_CENTER),
-    [center],
-  );
+  const fallbackMapCenter: [number, number] = isValidCoordinate(center) ? center : DEFAULT_BEIJING_CENTER;
   const [mapCenter] = useState<[number, number]>(() => displayPosition ?? fallbackMapCenter);
 
   const [flyToTarget, setFlyToTarget] = useState<[number, number] | undefined>(undefined);

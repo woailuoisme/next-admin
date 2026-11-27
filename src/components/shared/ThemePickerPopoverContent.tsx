@@ -49,7 +49,7 @@ export function ThemePickerPopoverContent({ title, footerSlot }: { title?: strin
 			: currentModeText;
 
 	return (
-		<div className="space-y-4">
+		<div className="flex flex-col gap-4">
 			<div className="border-border/50 flex items-center justify-between border-b pb-2.5">
 				<div className="flex items-center gap-1.5">
 					<Sparkles className="text-primary size-4" aria-hidden="true" />
@@ -57,7 +57,7 @@ export function ThemePickerPopoverContent({ title, footerSlot }: { title?: strin
 				</div>
 			</div>
 
-			<div className="space-y-2">
+			<div className="flex flex-col gap-2">
 				<div className="flex items-center justify-between">
 					<span className="text-muted-foreground flex items-center gap-1 text-[11px] font-medium">
 						<Sliders className="size-3" aria-hidden="true" />
@@ -117,7 +117,7 @@ export function ThemePickerPopoverContent({ title, footerSlot }: { title?: strin
 				</div>
 			</div>
 
-			<div className="border-border/40 space-y-1.5 border-t pt-1">
+			<div className="border-border/40 flex flex-col gap-1.5 border-t pt-1">
 				<div className="flex items-center justify-between">
 					<span className="text-muted-foreground flex items-center gap-1 text-[11px] font-medium">
 						<Sun className="size-3" aria-hidden="true" />
@@ -137,21 +137,21 @@ export function ThemePickerPopoverContent({ title, footerSlot }: { title?: strin
 								aria-pressed={isSelected}
 								onClick={() => setMode(optMode)}
 								className={cn(
-									"h-7 cursor-pointer items-center justify-center gap-1.5 rounded-lg border text-[11px] transition-all",
+									"cursor-pointer items-center justify-center rounded-lg border text-[11px] transition-all",
 									isSelected
 										? "border-primary bg-primary/10 font-semibold text-primary shadow-xs"
 										: "border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground",
 								)}
 							>
-								<Icon className="size-3.5" aria-hidden="true" />
-								<span>{t(labelKey)}</span>
+								<Icon data-icon="inline-start" aria-hidden="true" />
+								{t(labelKey)}
 							</Button>
 						);
 					})}
 				</div>
 			</div>
 
-			<div className="border-border/40 space-y-1.5 border-t pt-1">
+			<div className="border-border/40 flex flex-col gap-1.5 border-t pt-1">
 				<div className="flex items-center justify-between">
 					<span className="text-muted-foreground text-[11px] font-medium">{t("theme_radius_title")}</span>
 					<span className="text-muted-foreground font-mono text-[10px]">{radius}</span>
@@ -164,11 +164,11 @@ export function ThemePickerPopoverContent({ title, footerSlot }: { title?: strin
 								key={opt.value}
 								type="button"
 								variant={isRadiusActive ? "default" : "outline"}
-								size="sm"
+								size="xs"
 								aria-pressed={isRadiusActive}
 								onClick={() => setRadius(opt.value)}
 								className={cn(
-									"h-6 cursor-pointer items-center justify-center rounded border p-0 font-mono text-[10px] transition-all",
+									"cursor-pointer items-center justify-center rounded border p-0 font-mono text-[10px] transition-all",
 									isRadiusActive
 										? "border-primary bg-primary font-semibold text-primary-foreground shadow-xs"
 										: "border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground",

@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import type { ImportFieldDef } from "../types";
 
@@ -50,7 +50,7 @@ export function ImportPreviewSection<TInput>({
 	return (
 		<>
 			{headers.length > 0 ? (
-				<div className="space-y-2.5">
+				<div className="flex flex-col gap-2.5">
 					<h4 className="text-foreground text-xs font-semibold">{t("import_mapping_title")}</h4>
 					<div className="border-border/70 divide-border/60 divide-y rounded-lg border">
 						{fields.map((field) => (
@@ -68,14 +68,16 @@ export function ImportPreviewSection<TInput>({
 											<SelectValue placeholder={t("import_unmapped")} />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value={UNMAPPED_VALUE} className="text-muted-foreground text-xs">
-												{t("import_unmapped")}
-											</SelectItem>
-											{headers.map((h) => (
-												<SelectItem key={h} value={h} className="text-xs">
-													{h}
+											<SelectGroup>
+												<SelectItem value={UNMAPPED_VALUE} className="text-muted-foreground text-xs">
+													{t("import_unmapped")}
 												</SelectItem>
-											))}
+												{headers.map((h) => (
+													<SelectItem key={h} value={h} className="text-xs">
+														{h}
+													</SelectItem>
+												))}
+											</SelectGroup>
 										</SelectContent>
 									</Select>
 								</div>
@@ -86,7 +88,7 @@ export function ImportPreviewSection<TInput>({
 			) : null}
 
 			{validatedRows.length > 0 ? (
-				<div className="space-y-2.5">
+				<div className="flex flex-col gap-2.5">
 					<div className="flex items-center justify-between">
 						<h4 className="text-foreground text-xs font-semibold">{t("import_preview_title")}</h4>
 						<div className="flex items-center gap-2">
@@ -113,7 +115,7 @@ export function ImportPreviewSection<TInput>({
 											{f.label}
 										</th>
 									))}
-									<th className="px-2.5 py-1.5 font-medium">Status</th>
+									<th className="px-2.5 py-1.5 font-medium">{t("import_row_status")}</th>
 								</tr>
 							</thead>
 							<tbody className="divide-border/50 divide-y">

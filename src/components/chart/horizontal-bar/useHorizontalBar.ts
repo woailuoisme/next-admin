@@ -1,7 +1,6 @@
 "use client";
 
 import { maxBy, orderBy, sumBy } from "es-toolkit";
-import { useMemo } from "react";
 
 import type { EnrichedHorizontalBarItem, HorizontalBarChartProps } from "./types";
 
@@ -32,7 +31,7 @@ export function useHorizontalBar(props: HorizontalBarChartProps) {
     percentageFormatter: propPercentageFormatter,
   });
 
-  const items = useMemo<EnrichedHorizontalBarItem[]>(() => {
+  const items: EnrichedHorizontalBarItem[] = (() => {
     if (!data.length) return [];
     const normalized = data.map((item) => ({
       ...item,
@@ -60,7 +59,7 @@ export function useHorizontalBar(props: HorizontalBarChartProps) {
         color,
       };
     });
-  }, [data, maxItems, activeStroke]);
+  })();
 
   return {
     items,

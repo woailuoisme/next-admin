@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, type ComponentType, lazy, Suspense } from "react";
+import { type ComponentType, lazy, Suspense } from "react";
 
 import { ChartSkeleton, type ChartSkeletonProps } from "../shared/ChartSkeleton";
 
@@ -19,7 +19,7 @@ export function createLazyChart<P extends { height?: number | string; className?
 	const LazyComponent = lazy(loadComponent);
 	const { defaultHeight = 300, variant = "trend" } = options;
 
-	return memo(function LazyChartWrapper(props: P) {
+	return function LazyChartWrapper(props: P) {
 		const height = props.height ?? defaultHeight;
 
 		return (
@@ -27,5 +27,5 @@ export function createLazyChart<P extends { height?: number | string; className?
 				<LazyComponent {...props} />
 			</Suspense>
 		);
-	});
+	};
 }

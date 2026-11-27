@@ -169,15 +169,15 @@ export function StatCardValue({
 							<Button
 								type="button"
 								variant="ghost"
-								size="icon"
-								className="text-muted-foreground/60 hover:bg-muted hover:text-foreground relative z-10 ml-1 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-70 transition-all focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/val:opacity-100"
+								size="icon-xs"
+								className="text-muted-foreground/60 hover:bg-muted hover:text-foreground relative z-10 ml-1 shrink-0 cursor-pointer rounded opacity-70 transition-all focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/val:opacity-100"
 								onClick={handleCopy}
 								aria-label={t("copy_value")}
 							>
 								{copied ? (
-									<Check className="animate-in text-primary zoom-in size-3.5" aria-hidden="true" />
+									<Check className="animate-in text-primary zoom-in" aria-hidden="true" />
 								) : (
-									<Copy className="size-3.5" aria-hidden="true" />
+									<Copy aria-hidden="true" />
 								)}
 							</Button>
 						</TooltipTrigger>
@@ -397,7 +397,7 @@ export function StatCardProgress({
 		typeof targetValue === "number" ? (Number.isFinite(targetValue) ? format.number(targetValue) : "0") : targetValue;
 
 	return (
-		<div className={cn("space-y-2", className)}>
+		<div className={cn("flex flex-col gap-2", className)}>
 			<Progress
 				value={calculatedProgress}
 				data-value={calculatedProgress}

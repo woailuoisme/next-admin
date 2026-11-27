@@ -13,10 +13,10 @@ interface ChartsHeaderBarProps {
 export function ChartsHeaderBar({ demoState, onDemoStateChange, onRefresh }: ChartsHeaderBarProps) {
 	return (
 		<div className="flex flex-col gap-4 border-b pb-5 md:flex-row md:items-center md:justify-between">
-			<div className="space-y-1.5">
+			<div className="flex flex-col gap-1.5">
 				<div className="flex items-center gap-2.5">
 					<div className="bg-primary/10 text-primary rounded-lg p-2">
-						<BarChart3 className="h-6 w-6" />
+						<BarChart3 className="size-6" aria-hidden="true" />
 					</div>
 					<h1 className="text-2xl font-bold tracking-tight">图表组件库 / Chart Library</h1>
 					<Badge variant="secondary" className="font-mono text-xs">
@@ -34,9 +34,10 @@ export function ChartsHeaderBar({ demoState, onDemoStateChange, onRefresh }: Cha
 					{DEMO_STATES.map((state) => (
 						<Button
 							key={state}
+							type="button"
 							variant={demoState === state ? "secondary" : "ghost"}
-							size="sm"
-							className="h-6 px-2 text-xs"
+							size="xs"
+							aria-pressed={demoState === state}
 							onClick={() => onDemoStateChange(state)}
 						>
 							{DEMO_STATE_LABELS[state]}
@@ -44,8 +45,8 @@ export function ChartsHeaderBar({ demoState, onDemoStateChange, onRefresh }: Cha
 					))}
 				</div>
 
-				<Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={onRefresh}>
-					<RefreshCw className="h-3.5 w-3.5" />
+				<Button type="button" variant="outline" size="sm" className="text-xs" onClick={onRefresh}>
+					<RefreshCw data-icon="inline-start" aria-hidden="true" />
 					刷新渲染
 				</Button>
 			</div>

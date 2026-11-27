@@ -1,6 +1,5 @@
 import { ChartCard } from "@/components/chart/card/ChartCard";
-import { RadarMetricChart } from "@/components/chart/radar/RadarMetricChart";
-import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
+import { LazyRadarMetricChart, LazyRadialGaugeChart } from "@/components/chart/lazy";
 import { CHART_PALETTE } from "@/components/chart/shared/theme";
 import { TabsContent } from "@/components/ui/tabs";
 import { ARCHITECTURE_RADAR_DATA } from "../constants";
@@ -25,7 +24,7 @@ interface GaugesShowcaseTabProps {
 
 export function GaugesShowcaseTab({ chartStateProps }: GaugesShowcaseTabProps) {
 	return (
-		<TabsContent value="gauges" className="space-y-6">
+		<TabsContent value="gauges" className="flex flex-col gap-6">
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 				<ChartCard
 					title="SLA 达成率 (Emerald 仪表盘)"
@@ -33,7 +32,7 @@ export function GaugesShowcaseTab({ chartStateProps }: GaugesShowcaseTabProps) {
 					{...chartStateProps}
 					height={200}
 				>
-					<RadialGaugeChart value={99.9} max={100} label="正常运行时间" unit="%" theme="chart-2" height={180} />
+					<LazyRadialGaugeChart value={99.9} max={100} label="正常运行时间" unit="%" theme="chart-2" height={180} />
 				</ChartCard>
 
 				<ChartCard
@@ -42,7 +41,7 @@ export function GaugesShowcaseTab({ chartStateProps }: GaugesShowcaseTabProps) {
 					{...chartStateProps}
 					height={200}
 				>
-					<RadialGaugeChart value={78.4} max={100} label="集群内存消耗" unit="%" theme="chart-3" height={180} />
+					<LazyRadialGaugeChart value={78.4} max={100} label="集群内存消耗" unit="%" theme="chart-3" height={180} />
 				</ChartCard>
 
 				<ChartCard
@@ -51,7 +50,7 @@ export function GaugesShowcaseTab({ chartStateProps }: GaugesShowcaseTabProps) {
 					{...chartStateProps}
 					height={200}
 				>
-					<RadialGaugeChart
+					<LazyRadialGaugeChart
 						value={92}
 						max={100}
 						formattedValue="4.6 / 5.0"
@@ -68,7 +67,7 @@ export function GaugesShowcaseTab({ chartStateProps }: GaugesShowcaseTabProps) {
 				{...chartStateProps}
 				height={340}
 			>
-				<RadarMetricChart data={ARCHITECTURE_RADAR_DATA} height={340} series={AUDIT_RADAR_SERIES} />
+				<LazyRadarMetricChart data={ARCHITECTURE_RADAR_DATA} height={340} series={AUDIT_RADAR_SERIES} />
 			</ChartCard>
 		</TabsContent>
 	);

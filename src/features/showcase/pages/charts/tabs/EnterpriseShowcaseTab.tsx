@@ -1,12 +1,14 @@
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
-import { AreaTrendChart } from "@/components/chart/area/AreaTrendChart";
 import { ChartCard } from "@/components/chart/card/ChartCard";
-import { FunnelConversionChart } from "@/components/chart/funnel/FunnelConversionChart";
-import { HeatmapMatrixChart } from "@/components/chart/heatmap/HeatmapMatrixChart";
-import { ScatterMetricChart } from "@/components/chart/scatter/ScatterMetricChart";
-import { MetricSparkline } from "@/components/chart/sparkline/MetricSparkline";
-import { TreemapDistributionChart } from "@/components/chart/treemap/TreemapDistributionChart";
-import { WaterfallFinancialChart } from "@/components/chart/waterfall/WaterfallFinancialChart";
+import {
+	LazyAreaTrendChart,
+	LazyFunnelConversionChart,
+	LazyHeatmapMatrixChart,
+	LazyMetricSparkline,
+	LazyScatterMetricChart,
+	LazyTreemapDistributionChart,
+	LazyWaterfallFinancialChart,
+} from "@/components/chart/lazy";
 import { Card } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
 import {
@@ -46,20 +48,20 @@ interface EnterpriseShowcaseTabProps {
 
 export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTabProps) {
 	return (
-		<TabsContent value="enterprise" className="space-y-6">
+		<TabsContent value="enterprise" className="flex flex-col gap-6">
 			{/* Metric Sparkline KPI Cards */}
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 				<Card className="flex items-center justify-between p-4">
-					<div className="space-y-1">
+					<div className="flex flex-col gap-1">
 						<span className="text-muted-foreground text-xs font-medium">主营实时营收</span>
 						<div className="text-2xl font-bold tracking-tight">¥1,250,000</div>
 						<div className="text-primary flex items-center gap-1 text-xs font-medium">
-							<ArrowUpRight className="h-3.5 w-3.5" />
+							<ArrowUpRight className="size-3.5" aria-hidden="true" />
 							<span>+18.4% 环比增长</span>
 						</div>
 					</div>
 					<div className="h-12 w-28">
-						<MetricSparkline
+						<LazyMetricSparkline
 							data={SPARKLINE_REVENUE}
 							color="var(--primary)"
 							height={48}
@@ -71,16 +73,16 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
 				</Card>
 
 				<Card className="flex items-center justify-between p-4">
-					<div className="space-y-1">
+					<div className="flex flex-col gap-1">
 						<span className="text-muted-foreground text-xs font-medium">活跃商机规模</span>
 						<div className="text-2xl font-bold tracking-tight">3,450 席</div>
 						<div className="text-primary flex items-center gap-1 text-xs font-medium">
-							<ArrowUpRight className="h-3.5 w-3.5" />
+							<ArrowUpRight className="size-3.5" aria-hidden="true" />
 							<span>+24.6% 环比上扬</span>
 						</div>
 					</div>
 					<div className="h-12 w-28">
-						<MetricSparkline
+						<LazyMetricSparkline
 							data={SPARKLINE_PIPELINE}
 							color="var(--chart-2)"
 							height={48}
@@ -92,16 +94,16 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
 				</Card>
 
 				<Card className="flex items-center justify-between p-4">
-					<div className="space-y-1">
+					<div className="flex flex-col gap-1">
 						<span className="text-muted-foreground text-xs font-medium">异常告警频次</span>
 						<div className="text-2xl font-bold tracking-tight">3 次/日</div>
 						<div className="text-muted-foreground flex items-center gap-1 text-xs font-medium">
-							<ArrowDownRight className="text-destructive h-3.5 w-3.5" />
+							<ArrowDownRight className="text-destructive size-3.5" aria-hidden="true" />
 							<span className="text-destructive">-45.2% 持续收敛</span>
 						</div>
 					</div>
 					<div className="h-12 w-28">
-						<MetricSparkline
+						<LazyMetricSparkline
 							data={SPARKLINE_DEFECT}
 							color="var(--destructive)"
 							height={48}
@@ -122,7 +124,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
 					{...chartStateProps}
 					height={320}
 				>
-					<FunnelConversionChart data={ENTERPRISE_FUNNEL_DATA} valueFormatter={FUNNEL_USERS_FORMATTER} />
+					<LazyFunnelConversionChart data={ENTERPRISE_FUNNEL_DATA} valueFormatter={FUNNEL_USERS_FORMATTER} />
 				</ChartCard>
 
 				<ChartCard
@@ -133,7 +135,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
 					{...chartStateProps}
 					height={320}
 				>
-					<WaterfallFinancialChart data={ENTERPRISE_WATERFALL_DATA} valueFormatter={CURRENCY_FORMATTER} />
+					<LazyWaterfallFinancialChart data={ENTERPRISE_WATERFALL_DATA} valueFormatter={CURRENCY_FORMATTER} />
 				</ChartCard>
 			</div>
 
@@ -146,7 +148,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
 					{...chartStateProps}
 					height={320}
 				>
-					<ScatterMetricChart
+					<LazyScatterMetricChart
 						data={ENTERPRISE_SCATTER_DATA}
 						xAxisKey="x"
 						yAxisKey="y"
@@ -169,7 +171,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
 					{...chartStateProps}
 					height={320}
 				>
-					<TreemapDistributionChart data={ENTERPRISE_TREEMAP_DATA} valueFormatter={CURRENCY_FORMATTER} />
+					<LazyTreemapDistributionChart data={ENTERPRISE_TREEMAP_DATA} valueFormatter={CURRENCY_FORMATTER} />
 				</ChartCard>
 			</div>
 
@@ -182,7 +184,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
 					{...chartStateProps}
 					height={320}
 				>
-					<HeatmapMatrixChart
+					<LazyHeatmapMatrixChart
 						data={ENTERPRISE_HEATMAP_DATA}
 						xKey="hour"
 						yKey="day"
@@ -200,7 +202,7 @@ export function EnterpriseShowcaseTab({ chartStateProps }: EnterpriseShowcaseTab
 					{...chartStateProps}
 					height={320}
 				>
-					<AreaTrendChart
+					<LazyAreaTrendChart
 						data={BRUSH_TIMELINE_DATA}
 						dataKey="revenue"
 						secondaryDataKey="cost"

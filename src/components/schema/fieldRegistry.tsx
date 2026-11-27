@@ -399,6 +399,12 @@ export function SchemaFieldItem({
 	t: SchemaTranslateFn;
 }) {
 	const renderField = FIELD_REGISTRY[spec.type];
+	if (!renderField) {
+		if (process.env.NODE_ENV === "development") {
+			console.warn(`[Schema] Unknown field type: "${String(spec.type)}" (name: "${spec.name}")`);
+		}
+		return null;
+	}
 	return renderField({
 		spec,
 		form,

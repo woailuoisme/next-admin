@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { useState } from "react";
 
 import { Popover } from "@/components/ui/popover";
@@ -59,24 +58,24 @@ export function NotificationBell({
 	const open = controlledOpen ?? uncontrolledOpen;
 	const activeTab = controlledActiveTab ?? uncontrolledTab;
 
-	const handleOpenChange = useMemoizedFn((nextOpen: boolean) => {
+	const handleOpenChange = (nextOpen: boolean) => {
 		if (controlledOpen === undefined) {
 			setUncontrolledOpen(nextOpen);
 		}
 		controlledOnOpenChange?.(nextOpen);
-	});
+	};
 
-	const handleTabChange = useMemoizedFn((nextTab: NotificationTabKey) => {
+	const handleTabChange = (nextTab: NotificationTabKey) => {
 		if (controlledActiveTab === undefined) {
 			setUncontrolledTab(nextTab);
 		}
 		controlledOnTabChange?.(nextTab);
-	});
+	};
 
-	const handleMarkAllRead = useMemoizedFn((e: React.MouseEvent) => {
+	const handleMarkAllRead = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		onMarkAllRead?.(e);
-	});
+	};
 
 	return (
 		<Popover open={open} onOpenChange={handleOpenChange}>

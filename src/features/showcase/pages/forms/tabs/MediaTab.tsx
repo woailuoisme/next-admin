@@ -11,7 +11,7 @@ export interface MediaTabProps {
 
 export function MediaTab({ form }: MediaTabProps) {
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<Section
 				title="Rich Text Editor (Plate)"
 				description="Official Plate + shadcn/ui WYSIWYG editor with fixed & floating toolbars, headings, lists, links, and code blocks."

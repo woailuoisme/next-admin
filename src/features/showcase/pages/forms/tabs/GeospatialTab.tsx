@@ -29,12 +29,12 @@ export function GeospatialTab({ form }: GeospatialTabProps) {
 	const [isLocationDisabled, setIsLocationDisabled] = useState(false);
 
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<Section
 				title="Interactive Map Location Picker (FormLocationPicker)"
 				description="Full-featured geographic coordinate picker built on MapLibre GL with integrated reverse geocoding, address search, coordinate system transformation, and quick presets."
 			>
-				<div className="space-y-4">
+				<div className="flex flex-col gap-4">
 					<FormLocationPicker
 						form={form}
 						name="officeLocation"
@@ -55,7 +55,7 @@ export function GeospatialTab({ form }: GeospatialTabProps) {
 				title="Custom Basemaps, Projections & Multi-CRS Configuration"
 				description="Switch between coordinate systems (WGS84, GCJ02, BD09), basemap providers (Amap, Carto, OpenStreetMap, Tianditu), and toggle manual controls dynamically."
 			>
-				<div className="space-y-4">
+				<div className="flex flex-col gap-4">
 					<div className="border-border/70 bg-muted/30 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
 						<div className="flex flex-wrap items-center gap-3">
 							<div className="flex items-center gap-1.5">
@@ -67,6 +67,7 @@ export function GeospatialTab({ form }: GeospatialTabProps) {
 											type="button"
 											size="xs"
 											variant={activeBasemap === opt.value ? "default" : "outline"}
+											aria-pressed={activeBasemap === opt.value}
 											onClick={() => setActiveBasemap(opt.value)}
 										>
 											{opt.label}
@@ -84,6 +85,7 @@ export function GeospatialTab({ form }: GeospatialTabProps) {
 											type="button"
 											size="xs"
 											variant={activeCRS === opt.value ? "default" : "outline"}
+											aria-pressed={activeCRS === opt.value}
 											onClick={() => setActiveCRS(opt.value)}
 										>
 											{opt.label}

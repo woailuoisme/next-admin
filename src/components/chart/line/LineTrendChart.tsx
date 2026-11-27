@@ -1,7 +1,5 @@
 "use client";
 
-import { memo } from "react";
-
 import { Line } from "recharts";
 
 import type { LineTrendChartProps } from "./types";
@@ -11,7 +9,7 @@ import { CartesianScaffold } from "../shared/CartesianScaffold";
 import { DEFAULT_ANIMATION_DURATION, DEFAULT_CHART_MARGIN, DEFAULT_LINE_DOT } from "../shared/constants";
 import { useLineTrend } from "./useLineTrend";
 
-export const LineTrendChart = memo(function LineTrendChart(props: LineTrendChartProps) {
+export function LineTrendChart(props: LineTrendChartProps) {
 	const {
 		data,
 		xAxisKey = "label",
@@ -63,4 +61,4 @@ export const LineTrendChart = memo(function LineTrendChart(props: LineTrendChart
 			))}
 		</CartesianScaffold>
 	);
-});
+}

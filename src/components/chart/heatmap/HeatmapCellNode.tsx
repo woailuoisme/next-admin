@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { type KeyboardEvent, memo } from "react";
+import type { KeyboardEvent } from "react";
 
 import type { ComputedHeatmapCell } from "./useHeatmapMatrix";
 
@@ -21,13 +21,13 @@ export interface HeatmapCellNodeProps {
 	isHovered: boolean;
 	isFocusable: boolean;
 	ariaLabel: string;
-	onHover: (cell: ComputedHeatmapCell, target: SVGRectElement) => void;
+	onHover: (cell: ComputedHeatmapCell, rowIndex: number, colIndex: number, target: SVGRectElement) => void;
 	onFocusCell: (cell: ComputedHeatmapCell, rowIndex: number, colIndex: number, target: SVGRectElement) => void;
 	onDeactivate: () => void;
 	onKeyNavigate: (e: KeyboardEvent<SVGRectElement>, rowIndex: number, colIndex: number) => void;
 }
 
-export const HeatmapCellNode = memo(function HeatmapCellNode({
+export function HeatmapCellNode({
 	cell,
 	rowIndex,
 	colIndex,
@@ -62,14 +62,14 @@ export const HeatmapCellNode = memo(function HeatmapCellNode({
 			data-row={rowIndex}
 			data-col={colIndex}
 			className="focus-visible:stroke-foreground cursor-pointer transition-all duration-150 outline-none hover:brightness-110"
-			onMouseEnter={(e) => onHover(cell, e.currentTarget)}
+			onMouseEnter={(e) => onHover(cell, rowIndex, colIndex, e.currentTarget)}
 			onMouseLeave={onDeactivate}
 			onFocus={(e) => onFocusCell(cell, rowIndex, colIndex, e.currentTarget)}
 			onBlur={onDeactivate}
 			onKeyDown={(e) => onKeyNavigate(e, rowIndex, colIndex)}
 		/>
 	);
-});
+}
 
 interface HeatmapLegendProps {
 	title: string;

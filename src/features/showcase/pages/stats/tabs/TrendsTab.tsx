@@ -57,7 +57,7 @@ export interface TrendsTabProps {
 
 export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: TrendsTabProps) {
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
 				<div>
 					<h2 className="text-foreground text-lg font-semibold">Time-Series Visualization Gallery</h2>
@@ -67,9 +67,11 @@ export function TrendsTab({ timeRange, onTimeRangeChange, currentTrendData }: Tr
 					{TIME_RANGES.map((tr) => (
 						<Button
 							key={tr}
-							size="sm"
+							type="button"
+							size="xs"
 							variant={timeRange === tr ? "default" : "ghost"}
-							className="h-6 px-2.5 text-xs uppercase"
+							aria-pressed={timeRange === tr}
+							className="uppercase"
 							onClick={() => onTimeRangeChange(tr)}
 						>
 							{tr}

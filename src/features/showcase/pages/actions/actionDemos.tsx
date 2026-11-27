@@ -65,7 +65,12 @@ export function buildArticleDataActions(
 			fields: [
 				{ key: "title", label: "标题", required: true, aliases: ["name"] },
 				{ key: "category", label: "分类", required: true },
-				{ key: "status", label: "状态", required: true, transform: (v) => (v === "published" ? "published" : "draft") },
+				{
+					key: "status",
+					label: "状态",
+					required: true,
+					transform: (v) => (typeof v === "string" ? v.trim().toLowerCase() : v),
+				},
 				{ key: "views", label: "浏览量", required: true, transform: (v) => Number(v ?? 0) },
 			],
 			sampleRows: [

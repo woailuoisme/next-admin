@@ -1,3 +1,4 @@
+import { DEFAULT_COLOR_PRESETS } from "@/components/form/media/color-picker/types";
 import type { BasemapPreset } from "@/components/map/presets/basemaps";
 import type { CoordinateSystem } from "@/components/map/utils/coordinates";
 
@@ -90,7 +91,7 @@ export const DEFAULT_VALUES: ShowcaseFormValues = {
   joinDate: "2026-03-01",
   vacationRange: {},
   dailyCheckinTime: "09:30",
-  accentColor: "#3b82f6",
+  accentColor: DEFAULT_COLOR_PRESETS[5],
   tags: ["TypeScript", "TanStack", "React 19"],
   metadata: { tier: "enterprise", security_clearance: "level_4" },
   customAttributes: [

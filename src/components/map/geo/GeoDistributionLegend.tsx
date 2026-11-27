@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { memo } from "react";
 
 import type { LegendStep } from "./useGeoDistribution";
 
@@ -10,10 +9,7 @@ interface GeoDistributionLegendProps {
 	legendSteps: LegendStep[];
 }
 
-export const GeoDistributionLegend = memo(function GeoDistributionLegend({
-	legendTitle,
-	legendSteps,
-}: GeoDistributionLegendProps) {
+export function GeoDistributionLegend({ legendTitle, legendSteps }: GeoDistributionLegendProps) {
 	const t = useTranslations("map");
 	const resolvedTitle = legendTitle ?? t("geo_legend_default");
 
@@ -35,4 +31,4 @@ export const GeoDistributionLegend = memo(function GeoDistributionLegend({
 			</div>
 		</div>
 	);
-});
+}

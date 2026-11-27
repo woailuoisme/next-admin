@@ -45,7 +45,7 @@ export function OrderDetailInfolist({ order }: { order: Order | null }) {
 				s.entry.text("customerEmail", {
 					labelKey: "detail_email",
 					copyable: true,
-					href: `mailto:${order.customerEmail}`,
+					href: order.customerEmail ? `mailto:${order.customerEmail}` : undefined,
 				}),
 				s.entry.text("shippingAddress", { labelKey: "detail_shipping_destination" }),
 			],
@@ -60,7 +60,7 @@ export function OrderDetailInfolist({ order }: { order: Order | null }) {
 						<RepeatableEntry<OrderItem>
 							name="items"
 							variant="card"
-							keyExtractor={(item) => item.productId}
+							keyExtractor={(item, idx) => `${item.productId}-${idx}`}
 							itemTitle={(item) => item.productTitle}
 						>
 							{(item) => (
@@ -99,7 +99,7 @@ export function OrderDetailInfolist({ order }: { order: Order | null }) {
 			record={order}
 			dense
 			mode="view"
-			className="space-y-5 text-xs"
+			className="gap-5 text-xs"
 		/>
 	);
 }

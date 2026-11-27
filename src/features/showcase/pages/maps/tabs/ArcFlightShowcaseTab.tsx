@@ -7,7 +7,7 @@ import type { DemoStateProps } from "../types";
 export function ArcFlightShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
 	const t = useTranslations("showcase");
 	return (
-		<TabsContent value="arc" className="space-y-4">
+		<TabsContent value="arc" className="flex flex-col gap-4">
 			<LazyArcFlightMap
 				data={MOCK_FLIGHT_ARCS}
 				curvature={0.25}

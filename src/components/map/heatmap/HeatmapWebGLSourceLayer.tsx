@@ -3,7 +3,7 @@
 import type * as GeoJSON from "geojson";
 import type * as MapLibreGL from "maplibre-gl";
 
-import { memo, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useMap } from "@/components/ui/map";
 
@@ -20,7 +20,7 @@ export interface HeatmapWebGLSourceLayerProps {
 	opacity: number;
 }
 
-export const HeatmapWebGLSourceLayer = memo(function HeatmapWebGLSourceLayer({
+export function HeatmapWebGLSourceLayer({
 	sourceId,
 	layerId,
 	geojsonData,
@@ -36,6 +36,7 @@ export const HeatmapWebGLSourceLayer = memo(function HeatmapWebGLSourceLayer({
 	const safeRadius = Math.max(1, Number.isFinite(radius) ? radius : 25);
 	const safeOpacity = Math.max(0, Math.min(1, Number.isFinite(opacity) ? opacity : 0.85));
 
+	// 稳定 MapLibre setPaintProperty effect 依赖的权重插值表达式
 	const heatmapWeightExpr = useMemo(
 		() =>
 			[
@@ -50,6 +51,7 @@ export const HeatmapWebGLSourceLayer = memo(function HeatmapWebGLSourceLayer({
 		[safeMaxIntensity, weightProperty],
 	);
 
+	// 稳定 MapLibre setPaintProperty effect 依赖的半径插值表达式
 	const heatmapRadiusExpr = useMemo(
 		() =>
 			[
@@ -66,8 +68,10 @@ export const HeatmapWebGLSourceLayer = memo(function HeatmapWebGLSourceLayer({
 		[safeRadius],
 	);
 
+	// 稳定 MapLibre setPaintProperty effect 依赖的颜色插值表达式
 	const heatmapColorExpr = useMemo(() => buildHeatmapColorExpression(stops), [stops]);
 
+	// 稳定 MapLibre setPaintProperty effect 依赖的透明度插值表达式
 	const heatmapOpacityExpr = useMemo(
 		() =>
 			[
@@ -83,7 +87,6 @@ export const HeatmapWebGLSourceLayer = memo(function HeatmapWebGLSourceLayer({
 	);
 
 	const latestGeojsonRef = useRef(geojsonData);
-	latestGeojsonRef.current = geojsonData;
 
 	const latestPaintRef = useRef({
 		weight: heatmapWeightExpr,
@@ -91,12 +94,16 @@ export const HeatmapWebGLSourceLayer = memo(function HeatmapWebGLSourceLayer({
 		color: heatmapColorExpr,
 		opacity: heatmapOpacityExpr,
 	});
-	latestPaintRef.current = {
-		weight: heatmapWeightExpr,
-		radius: heatmapRadiusExpr,
-		color: heatmapColorExpr,
-		opacity: heatmapOpacityExpr,
-	};
+
+	useEffect(() => {
+		latestGeojsonRef.current = geojsonData;
+		latestPaintRef.current = {
+			weight: heatmapWeightExpr,
+			radius: heatmapRadiusExpr,
+			color: heatmapColorExpr,
+			opacity: heatmapOpacityExpr,
+		};
+	});
 
 	// Effect 1: 仅挂载热力数据源与 WebGL 图层，不在调参时销毁重建
 	useEffect(() => {
@@ -153,4 +160,4 @@ export const HeatmapWebGLSourceLayer = memo(function HeatmapWebGLSourceLayer({
 	}, [heatmapColorExpr, heatmapOpacityExpr, heatmapRadiusExpr, heatmapWeightExpr, isLoaded, layerId, map]);
 
 	return null;
-});
+}

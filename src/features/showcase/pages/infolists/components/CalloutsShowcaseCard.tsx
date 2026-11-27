@@ -8,16 +8,16 @@ export function CalloutsShowcaseCard() {
 		<Card className="border-border shadow-xs">
 			<CardHeader className="border-b pb-4">
 				<div className="flex items-center gap-2">
-					<Sparkles className="text-primary size-4" />
+					<Sparkles className="text-primary size-4" aria-hidden="true" />
 					<CardTitle className="text-base font-semibold">Callouts 提示卡片矩阵 (Schemas / Callouts)</CardTitle>
 				</div>
 				<CardDescription className="text-xs">
 					基于 6 大 Tailwind 语义色彩 Token，支持标题、多行内容、动作按钮、可关闭及行内紧凑模式。
 				</CardDescription>
 			</CardHeader>
-			<CardContent className="space-y-4 pt-6">
+			<CardContent className="flex flex-col gap-4 pt-6">
 				{/* Compact Mode Row */}
-				<div className="space-y-2">
+				<div className="flex flex-col gap-2">
 					<span className="text-muted-foreground text-xs font-semibold">紧凑单行模式 (compact=true)</span>
 					<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 						<InfolistCallout
@@ -44,7 +44,7 @@ export function CalloutsShowcaseCard() {
 				</div>
 
 				{/* Rich Standard Cards */}
-				<div className="space-y-2 pt-2">
+				<div className="flex flex-col gap-2 pt-2">
 					<span className="text-muted-foreground text-xs font-semibold">
 						标准卡片模式 (包含操作按钮、自定义图标与可关闭交互)
 					</span>

@@ -34,7 +34,7 @@ function StatesLiveTelemetryCard({ isLoading, isError }: { isLoading: boolean; i
 
 export function StatesTab({ demoState, onDemoStateChange, isLoading, isError }: StatesTabProps) {
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<div>
 				<h2 className="text-foreground text-lg font-semibold">State Simulation & Resilience Testing</h2>
 				<p className="text-muted-foreground text-xs">
@@ -47,9 +47,11 @@ export function StatesTab({ demoState, onDemoStateChange, isLoading, isError }: 
 				{DEMO_STATES.map((st) => (
 					<Button
 						key={st}
-						size="sm"
+						type="button"
+						size="xs"
 						variant={demoState === st ? "default" : "outline"}
-						className="h-7 text-xs capitalize"
+						aria-pressed={demoState === st}
+						className="capitalize"
 						onClick={() => onDemoStateChange(st)}
 					>
 						{st}

@@ -1,11 +1,14 @@
 "use client";
 
 import { useMemoizedFn } from "ahooks";
+import { AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 import { ActionResourceProvider } from "@/components/actions";
 import { ViewDialog } from "@/components/dialogs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { type ResourceDefinition, useCan, useResourceDetail } from "@/lib/resource";
 
 import { ResourceFormController } from "./ResourceFormController";
@@ -43,7 +46,12 @@ export function ResourceSubPageScaffold<
 	const tResource = useTranslations("resource");
 	const canEdit = useCan(resource.name, "edit");
 
-	const { data: entity = null, isLoading } = useResourceDetail(resource, id ?? "", {
+	const {
+		data: entity = null,
+		isLoading,
+		isError,
+		refetch,
+	} = useResourceDetail(resource, id ?? "", {
 		enabled: mode !== "create" && Boolean(id),
 	});
 
@@ -84,6 +92,8 @@ export function ResourceSubPageScaffold<
 	}
 
 	if (mode === "view" && renderView) {
+		const isViewError = Boolean(id && isError && !entity);
+		const isViewNotFound = Boolean(id && !isLoading && !isViewError && !entity);
 		const viewProps = buildResourceViewProps({
 			resource,
 			t,
@@ -96,15 +106,34 @@ export function ResourceSubPageScaffold<
 			renderView,
 		});
 
+		const errorFallback =
+			isViewError || isViewNotFound ? (
+				<Alert variant="destructive">
+					<AlertCircle aria-hidden="true" />
+					<AlertDescription className="flex flex-col gap-3">
+						<span>{isViewError ? tResource("detail_load_error") : tResource("detail_not_found")}</span>
+						{isViewError ? (
+							<div>
+								<Button type="button" variant="outline" size="xs" onClick={() => void refetch()}>
+									{tResource("retry")}
+								</Button>
+							</div>
+						) : null}
+					</AlertDescription>
+				</Alert>
+			) : null;
+
 		return (
 			<ActionResourceProvider value={actionBridge}>
 				<ViewDialog
 					presentation="page"
 					breadcrumbs={breadcrumbs}
 					backTo={resource.basePath}
-					onEdit={canEdit && renderForm && id ? () => handleEditNavigate(id) : undefined}
+					onEdit={canEdit && renderForm && id && entity ? () => handleEditNavigate(id) : undefined}
 					{...viewProps}
-				/>
+				>
+					{errorFallback ?? viewProps.children}
+				</ViewDialog>
 			</ActionResourceProvider>
 		);
 	}
@@ -118,6 +147,8 @@ export function ResourceSubPageScaffold<
 					mode={mode}
 					entity={entity}
 					loading={mode === "edit" && isLoading && !entity}
+					detailError={mode === "edit" && Boolean(id && isError && !entity)}
+					onRetryDetail={() => void refetch()}
 					breadcrumbs={breadcrumbs}
 					backTo={resource.basePath}
 					onAfterSuccess={handleAfterSuccess}

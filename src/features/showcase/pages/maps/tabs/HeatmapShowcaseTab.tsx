@@ -14,9 +14,9 @@ export function HeatmapShowcaseTab({ isLoading, isEmpty, isError, onRetry }: Dem
 	const [heatmapRamp, setHeatmapRamp] = useState<HeatmapColorRamp>("thermal");
 
 	return (
-		<TabsContent value="heatmap" className="space-y-4">
+		<TabsContent value="heatmap" className="flex flex-col gap-4">
 			<div className="border-border/70 bg-card flex items-center justify-between rounded-lg border p-3 shadow-xs">
-				<div className="space-y-0.5">
+				<div className="flex flex-col gap-0.5">
 					<div className="text-foreground text-xs font-semibold">{t("maps_heatmap_control_title")}</div>
 					<div className="text-muted-foreground text-[11px]">{t("maps_heatmap_control_desc")}</div>
 				</div>
@@ -24,8 +24,10 @@ export function HeatmapShowcaseTab({ isLoading, isEmpty, isError, onRetry }: Dem
 					{HEATMAP_RAMPS.map((ramp) => (
 						<Button
 							key={ramp}
+							type="button"
 							variant={heatmapRamp === ramp ? "default" : "outline"}
 							size="xs"
+							aria-pressed={heatmapRamp === ramp}
 							className="text-xs capitalize"
 							onClick={() => setHeatmapRamp(ramp)}
 						>

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, memo, type ReactNode, useContext, useMemo } from "react";
+import { createContext, type ReactNode, useContext } from "react";
 
 import type { ChartHeight } from "./types";
 
@@ -22,14 +22,10 @@ export interface ChartProviderProps {
 /**
  * Provides container height and fullscreen override state to descendant chart primitives.
  */
-export const ChartProvider = memo(function ChartProvider({
-	height,
-	isFullscreen = false,
-	children,
-}: ChartProviderProps) {
-	const value = useMemo(() => ({ height, isFullscreen }), [height, isFullscreen]);
+export function ChartProvider({ height, isFullscreen = false, children }: ChartProviderProps) {
+	const value = { height, isFullscreen };
 	return <ChartContext.Provider value={value}>{children}</ChartContext.Provider>;
-});
+}
 
 /**
  * Resolves the effective chart height using fullscreen context > explicit prop > card context > default.

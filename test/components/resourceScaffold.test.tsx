@@ -341,4 +341,39 @@ describe("ResourceScaffold & ResourceSubPageScaffold", () => {
 		fireEvent.click(screen.getByText("智能硬件"));
 		expect(openView).toHaveBeenCalledWith("cat-1");
 	});
+
+	it("surfaces detail fetch failure in edit sub-page with retry recovery instead of silent disabled form", async () => {
+		const detailSpy = vi
+			.fn()
+			.mockRejectedValueOnce(new Error("network error"))
+			.mockResolvedValueOnce({ id: "cat-1", name: "智能硬件", slug: "smart-hardware", description: "" });
+		const demoResource = createDemoResource({ detail: detailSpy });
+
+		renderWithProviders(
+			<ResourceSubPageScaffold
+				resource={demoResource}
+				mode="edit"
+				id="cat-1"
+				renderForm={({ form }) => (
+					<form.Field name="name">
+						{(field: any) => (
+							<Input
+								aria-label="Edit Retry Name"
+								value={field.state.value}
+								onChange={(e) => field.handleChange(e.target.value)}
+							/>
+						)}
+					</form.Field>
+				)}
+			/>,
+		);
+
+		expect(await screen.findByText("详情加载失败，请重试。")).toBeInTheDocument();
+		const retryBtn = screen.getByRole("button", { name: "重试" });
+		fireEvent.click(retryBtn);
+
+		const nameInput = await screen.findByLabelText("Edit Retry Name");
+		expect(nameInput).toHaveValue("智能硬件");
+		expect(detailSpy).toHaveBeenCalledTimes(2);
+	});
 });

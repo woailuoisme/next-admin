@@ -27,12 +27,15 @@ function buildProductHeaderActions(t: ResourceTranslateFn) {
 					required: true,
 					transform: (v) => Number.parseInt(String(v ?? 0), 10),
 				},
-				{ key: "categoryId", label: t("category_label"), required: true, transform: (v) => String(v || "cat-1") },
+				{ key: "categoryId", label: t("category_label"), required: true, transform: (v) => String(v ?? "").trim() },
 				{
 					key: "status",
 					label: t("status_label"),
 					required: true,
-					transform: (v) => (v === "draft" || v === "out_of_stock" ? v : "active"),
+					transform: (v) =>
+						String(v ?? "")
+							.trim()
+							.toLowerCase(),
 				},
 				{ key: "imageUrl", label: t("image_label"), transform: (v) => (v ? String(v) : DEFAULT_PRODUCT_IMAGE) },
 				{ key: "description", label: t("desc_label"), required: true },
@@ -61,6 +64,7 @@ function buildProductHeaderActions(t: ResourceTranslateFn) {
 				{ field: "slug", headerName: t("slug_label") },
 				{ field: "categoryName", headerName: t("col_category") },
 				{ field: "price", headerName: t("price_label") },
+				{ field: "costPrice", headerName: t("cost_label") },
 				{ field: "stock", headerName: t("col_inventory") },
 				{ field: "status", headerName: t("col_status") },
 			],
@@ -75,26 +79,28 @@ export const productUI = defineResourceUI(productResource, {
 		columns: 4,
 		build: ({ rows, total, rawResponse, t }) => {
 			const stats = computeProductStats(rows, total, rawResponse?.summary);
+			const totalSku = stats?.total ?? 0;
+			const activeCount = stats?.activeCount ?? 0;
 			const lowStockCount = stats?.lowStockCount ?? 0;
+			const activeRate = totalSku > 0 ? `${Math.round((activeCount / totalSku) * 100)}%` : "0%";
 			return [
 				{
 					id: "total",
 					title: t("metric_total_title"),
-					value: stats?.total ?? 0,
+					value: totalSku,
 					icon: Package,
 					theme: "chart-4",
 					description: t("metric_total_desc"),
-					trend: { value: "+4.5%", direction: "up", label: t("metric_total_trend") },
 					sparklineData: stats?.sparklines?.totalSku,
 				},
 				{
 					id: "active",
 					title: t("metric_active_title"),
-					value: stats?.activeCount ?? 0,
+					value: activeCount,
 					icon: CheckCircle2,
 					theme: "chart-2",
 					description: t("metric_active_desc"),
-					trend: { value: "98.2%", direction: "neutral", label: t("metric_active_trend") },
+					trend: { value: activeRate, direction: "neutral", label: t("metric_active_trend") },
 					sparklineData: stats?.sparklines?.activeSku,
 				},
 				{
@@ -121,7 +127,6 @@ export const productUI = defineResourceUI(productResource, {
 					icon: DollarSign,
 					theme: "chart-1",
 					description: t("metric_avg_price_desc"),
-					trend: { value: "+1.8%", direction: "up", label: t("metric_avg_price_trend") },
 					sparklineData: stats?.sparklines?.avgPrice,
 				},
 			];

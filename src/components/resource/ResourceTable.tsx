@@ -37,18 +37,17 @@ export function ResourceTable<TItem extends { id: string | number }>({
 	const { can } = useAccessControl();
 	const resourceBridge = useActionResourceBridge();
 
-	const resolvedRowActions = resolveResourceActionsInput(schema.rowActions, t);
-
-	const resolvedRowActionsCol = schema.rowActionsColumn
-		? typeof schema.rowActionsColumn === "function"
-			? schema.rowActionsColumn(t)
-			: schema.rowActionsColumn
-		: undefined;
-
 	// 向 @tanstack/react-table ("use no memo") 与 React.memo(DataTableRow) 传递引用稳定的列与槽位配置
 	const columns = useMemo(() => {
 		const baseCols = schema.columns({ t });
+		const resolvedRowActions = resolveResourceActionsInput(schema.rowActions, t);
 		if (!resolvedRowActions?.length) return baseCols;
+
+		const resolvedRowActionsCol = schema.rowActionsColumn
+			? typeof schema.rowActionsColumn === "function"
+				? schema.rowActionsColumn(t)
+				: schema.rowActionsColumn
+			: undefined;
 
 		return [
 			...baseCols,
@@ -64,7 +63,7 @@ export function ResourceTable<TItem extends { id: string | number }>({
 				actions: resolvedRowActions,
 			}),
 		];
-	}, [resolvedRowActions, resolvedRowActionsCol, schema, t]);
+	}, [schema, t]);
 
 	// 解析过滤器与 toolbar 插槽配置
 	const filters = schema.filters?.(t);

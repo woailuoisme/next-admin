@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, memo, type ReactNode, useCallback } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "cn";
 
@@ -40,13 +40,7 @@ export interface ChartTooltipSurfaceProps {
 /**
  * Shared glassmorphic tooltip shell reused across Recharts Tooltip content and SVG overlays.
  */
-export const ChartTooltipSurface = memo(function ChartTooltipSurface({
-	title,
-	color,
-	className,
-	style,
-	children,
-}: ChartTooltipSurfaceProps) {
+export function ChartTooltipSurface({ title, color, className, style, children }: ChartTooltipSurfaceProps) {
 	return (
 		<div
 			className={cn(
@@ -57,14 +51,14 @@ export const ChartTooltipSurface = memo(function ChartTooltipSurface({
 		>
 			{title !== undefined && title !== "" && (
 				<div className="border-border/40 text-foreground mb-1.5 flex items-center gap-1.5 border-b pb-1 font-semibold">
-					{color && <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />}
+					{color && <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />}
 					<span>{title}</span>
 				</div>
 			)}
-			<div className="space-y-1">{children}</div>
+			<div className="flex flex-col gap-1">{children}</div>
 		</div>
 	);
-});
+}
 
 export interface ChartTooltipProps {
 	active?: boolean;
@@ -80,7 +74,7 @@ export interface ChartTooltipProps {
  * Shared, high-performance memoized tooltip for Recharts visualizations.
  * Supports both default multi-series entries and custom single-entity detail resolvers.
  */
-export const ChartTooltip = memo(function ChartTooltip({
+export function ChartTooltip({
 	active,
 	payload,
 	label,
@@ -105,7 +99,7 @@ export const ChartTooltip = memo(function ChartTooltip({
 					<div key={`${row.label ?? idx}-${idx}`} className="flex items-center justify-between gap-4 py-0.5">
 						{row.label ? (
 							<div className="flex min-w-0 items-center gap-1.5">
-								{row.color && <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: row.color }} />}
+								{row.color && <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: row.color }} />}
 								<span className="text-muted-foreground">{row.label}:</span>
 							</div>
 						) : null}
@@ -124,17 +118,27 @@ export const ChartTooltip = memo(function ChartTooltip({
 		<ChartTooltipSurface title={!hideLabel && displayLabel !== undefined ? displayLabel : undefined}>
 			{payload.map((entry, idx) => {
 				const rawVal = Array.isArray(entry.value) ? entry.value[0] : entry.value;
-				const val = typeof rawVal === "number" ? resolvedValueFormatter(rawVal) : String(rawVal ?? 0);
+				const val =
+					rawVal === null || rawVal === undefined
+						? "-"
+						: typeof rawVal === "number"
+							? resolvedValueFormatter(rawVal)
+							: String(rawVal);
 				const dotColor = entry.color || entry.stroke || entry.fill || "var(--primary)";
 				const baseKey =
 					typeof entry.dataKey === "function" ? String(entry.name ?? "") : String(entry.dataKey ?? entry.name ?? "");
 				const itemKey = `${baseKey}-${idx}`;
-				const itemName = entry.name || (typeof entry.dataKey !== "function" ? String(entry.dataKey) : "");
+				const itemName =
+					entry.name !== undefined && entry.name !== ""
+						? String(entry.name)
+						: typeof entry.dataKey !== "function" && entry.dataKey !== undefined
+							? String(entry.dataKey)
+							: "";
 
 				return (
 					<div key={itemKey} className="flex items-center justify-between gap-4 py-0.5">
 						<div className="flex min-w-0 items-center gap-1.5">
-							<span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: dotColor }} />
+							<span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: dotColor }} />
 							<span className="text-muted-foreground max-w-[120px] truncate capitalize">{itemName}</span>
 						</div>
 						<span className="text-foreground shrink-0 font-mono font-semibold tabular-nums">{val}</span>
@@ -143,20 +147,34 @@ export const ChartTooltip = memo(function ChartTooltip({
 			})}
 		</ChartTooltipSurface>
 	);
-});
+}
 
 export function useChartDetailTooltip(
 	resolveDetail: (payload: ReadonlyArray<ChartTooltipEntry>) => ChartTooltipDetail | null,
 ) {
-	return useCallback(
-		(tooltipProps: { active?: boolean; payload?: ReadonlyArray<unknown>; label?: string | number }) => (
+	return (tooltipProps: { active?: boolean; payload?: ReadonlyArray<unknown>; label?: string | number }) => (
+		<ChartTooltip
+			active={tooltipProps.active}
+			payload={tooltipProps.payload as ReadonlyArray<ChartTooltipEntry> | undefined}
+			label={tooltipProps.label}
+			resolveDetail={resolveDetail}
+		/>
+	);
+}
+
+export function createValueTooltipContent(valueFormatter?: (value: number) => string) {
+	return function ValueTooltipContent(tooltipProps: {
+		active?: boolean;
+		payload?: ReadonlyArray<unknown>;
+		label?: string | number;
+	}) {
+		return (
 			<ChartTooltip
 				active={tooltipProps.active}
 				payload={tooltipProps.payload as ReadonlyArray<ChartTooltipEntry> | undefined}
 				label={tooltipProps.label}
-				resolveDetail={resolveDetail}
+				valueFormatter={valueFormatter}
 			/>
-		),
-		[resolveDetail],
-	);
+		);
+	};
 }

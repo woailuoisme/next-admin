@@ -24,7 +24,7 @@ const DISTRIBUTION_RADAR_SERIES = [
 
 export function DistributionTab() {
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<div>
 				<h2 className="text-foreground text-lg font-semibold">Distribution, Gauges & Multi-Dimensional Radar</h2>
 				<p className="text-muted-foreground text-xs">

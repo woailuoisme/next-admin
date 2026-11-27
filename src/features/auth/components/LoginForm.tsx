@@ -37,12 +37,12 @@ export function LoginForm({ initialEmail }: LoginFormProps = {}) {
 
 	return (
 		<AuthCard>
-			<CardHeader className="space-y-1 text-center">
+			<CardHeader className="flex flex-col gap-1 text-center">
 				<CardTitle className="text-2xl font-bold tracking-tight">{t("portal_title")}</CardTitle>
 				<CardDescription className="text-muted-foreground text-xs">{t("portal_description")}</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<Form form={form} className="space-y-4">
+				<Form form={form} className="flex flex-col gap-4">
 					<form.AppForm>
 						<form.AppField name="email">
 							{(field) => (

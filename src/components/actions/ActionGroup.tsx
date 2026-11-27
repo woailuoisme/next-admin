@@ -2,12 +2,14 @@
 
 import { ChevronDown, MoreHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Fragment } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
@@ -39,13 +41,17 @@ function renderDropdownEntries<TPayload>(
 		if (entry.kind === "group") {
 			const subLabel = resolveActionValue(entry.label, payload);
 			return (
-				<div key={entry.id}>
+				<Fragment key={entry.id}>
 					{idx > 0 || entry.separator ? <DropdownMenuSeparator /> : null}
-					{subLabel ? (
-						<DropdownMenuLabel className="text-muted-foreground text-[11px] font-medium">{subLabel}</DropdownMenuLabel>
-					) : null}
-					{renderDropdownEntries(entry.actions, payload, surface, pendingActionId, onTrigger)}
-				</div>
+					<DropdownMenuGroup>
+						{subLabel ? (
+							<DropdownMenuLabel className="text-muted-foreground text-[11px] font-medium">
+								{subLabel}
+							</DropdownMenuLabel>
+						) : null}
+						{renderDropdownEntries(entry.actions, payload, surface, pendingActionId, onTrigger)}
+					</DropdownMenuGroup>
+				</Fragment>
 			);
 		}
 
@@ -136,13 +142,13 @@ export function ActionGroupView<TPayload = any>({
 					isIconTrigger
 						? "text-muted-foreground hover:text-foreground cursor-pointer"
 						: surface === "batch"
-							? "h-7 gap-1.5 rounded-full px-3 text-xs"
-							: "h-8.5 gap-1.5 text-xs shadow-xs",
+							? "h-7 rounded-full px-3 text-xs"
+							: "h-8.5 text-xs shadow-xs",
 				)}
 			>
-				<Icon className="size-3.5" aria-hidden="true" />
-				{label ? <span>{label}</span> : <span className="sr-only">{accessibleName}</span>}
-				{label ? <ChevronDown className="size-3.5 opacity-70" aria-hidden="true" /> : null}
+				<Icon data-icon={isIconTrigger ? undefined : "inline-start"} aria-hidden="true" />
+				{label ? label : <span className="sr-only">{accessibleName}</span>}
+				{label ? <ChevronDown data-icon="inline-end" className="opacity-70" aria-hidden="true" /> : null}
 			</Button>
 		</DropdownMenuTrigger>
 	);
@@ -160,7 +166,9 @@ export function ActionGroupView<TPayload = any>({
 				triggerButton
 			)}
 			<DropdownMenuContent align="end" className={cn("min-w-40", group.dropdownWidth)}>
-				{renderDropdownEntries(group.actions, payload, surface, pendingActionId, onTrigger)}
+				<DropdownMenuGroup>
+					{renderDropdownEntries(group.actions, payload, surface, pendingActionId, onTrigger)}
+				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

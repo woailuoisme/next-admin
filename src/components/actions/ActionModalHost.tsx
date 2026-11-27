@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
 import { FormDialog } from "@/components/dialogs/FormDialog";
@@ -47,9 +48,16 @@ export function ActionModalHost<TPayload = any>({
 }: ActionModalHostProps<TPayload>) {
 	const t = useTranslations("actions");
 	const tDialog = useTranslations("dialog");
-	if (!session) return null;
+	// 保留最近一次打开的会话节点，使 Dialog 关闭动画期间不会因 session 置空而瞬间闪烁卸载
+	const [retainedSession, setRetainedSession] = useState(session);
+	if (session && session !== retainedSession) {
+		setRetainedSession(session);
+	}
+	const activeSession = session ?? retainedSession;
+	if (!activeSession) return null;
 
-	const { action, payload, mode, clearSelection } = session;
+	const isModalOpen = Boolean(session);
+	const { action, payload, mode, clearSelection } = activeSession;
 	const isPending = pendingActionId === action.id;
 	const fallbackActionLabel =
 		resolveActionValue(action.label, payload) ??
@@ -58,7 +66,7 @@ export function ActionModalHost<TPayload = any>({
 	if (mode === "export" && action.builtinModal?.exportConfig) {
 		return (
 			<ExportActionModal
-				open
+				open={isModalOpen}
 				onOpenChange={(next) => {
 					if (!next) onClose();
 				}}
@@ -73,7 +81,7 @@ export function ActionModalHost<TPayload = any>({
 	if (mode === "import" && action.builtinModal?.importConfig) {
 		return (
 			<ImportActionModal
-				open
+				open={isModalOpen}
 				onOpenChange={(next) => {
 					if (!next) onClose();
 				}}
@@ -110,7 +118,7 @@ export function ActionModalHost<TPayload = any>({
 
 		return (
 			<ConfirmDialog
-				open
+				open={isModalOpen}
 				onOpenChange={(next) => {
 					if (!next) onClose();
 				}}
@@ -137,7 +145,7 @@ export function ActionModalHost<TPayload = any>({
 	if (modal.renderForm || modal.fields?.length) {
 		return (
 			<ActionFormModalPanel
-				open
+				open={isModalOpen}
 				onOpenChange={(next) => {
 					if (!next) onClose();
 				}}
@@ -153,7 +161,7 @@ export function ActionModalHost<TPayload = any>({
 
 	return (
 		<ActionContentModalPanel
-			open
+			open={isModalOpen}
 			onOpenChange={(next) => {
 				if (!next) onClose();
 			}}
@@ -193,8 +201,11 @@ function ActionFormModalPanel<TPayload>({
 	clearSelection,
 }: ActionFormModalPanelProps<TPayload>) {
 	const t = useTranslations("actions");
-	const initialValues =
-		typeof modal.defaultValues === "function" ? modal.defaultValues(payload) : (modal.defaultValues ?? {});
+	// 稳定 TanStack Form defaultValues 引用，避免提交 isPending 状态切换时重复派生新对象
+	const initialValues = useMemo(
+		() => (typeof modal.defaultValues === "function" ? modal.defaultValues(payload) : (modal.defaultValues ?? {})),
+		[modal, payload],
+	);
 
 	const form = useAppForm({
 		defaultValues: initialValues,

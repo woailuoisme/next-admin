@@ -46,7 +46,7 @@ export function MultiMetricStatCard({
 			<StatCardHeadline title={title} description={description} badge={badge} icon={Icon} theme={theme} />
 
 			{/* Primary Focus Metric */}
-			<div className="space-y-1">
+			<div className="flex flex-col gap-1">
 				{primaryLabel ? <p className="text-muted-foreground text-xs font-medium">{primaryLabel}</p> : null}
 				<div className="flex flex-wrap items-baseline justify-between gap-2">
 					<StatCardValue value={primaryValue} prefix={prefix} suffix={suffix} />

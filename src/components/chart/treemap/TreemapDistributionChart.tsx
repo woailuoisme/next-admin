@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 
-import { memo, useCallback } from "react";
 import { Tooltip, Treemap, type TreemapNode } from "recharts";
 
 import { cn } from "cn";
@@ -15,7 +14,6 @@ import { useChartFormatters } from "../hooks/useChartFormatters";
 import { useChartHeight } from "../shared/ChartContext";
 import { ChartFrame } from "../shared/ChartFrame";
 import { type ChartTooltipEntry, useChartDetailTooltip } from "../shared/ChartTooltip";
-import { CHART_ON_FILL_TEXT } from "../shared/constants";
 import { defaultNumberFormatter, toFiniteNumber } from "../shared/formatters";
 import { useTreemapDistribution } from "./useTreemapDistribution";
 
@@ -25,7 +23,7 @@ interface CustomContentProps extends Partial<TreemapNode> {
 	valueFormatter?: ValueFormatter;
 }
 
-const CustomTreemapNode = memo(function CustomTreemapNode(props: CustomContentProps) {
+function CustomTreemapNode(props: CustomContentProps) {
 	const {
 		depth = 0,
 		children,
@@ -66,7 +64,11 @@ const CustomTreemapNode = memo(function CustomTreemapNode(props: CustomContentPr
 				<text
 					x={x + 8}
 					y={y + 16}
-					fill={CHART_ON_FILL_TEXT}
+					fill="var(--foreground)"
+					stroke="var(--card)"
+					strokeWidth={3}
+					strokeLinejoin="round"
+					paintOrder="stroke"
 					fontSize={11}
 					fontWeight={600}
 					className="pointer-events-none tracking-tight select-none"
@@ -78,8 +80,12 @@ const CustomTreemapNode = memo(function CustomTreemapNode(props: CustomContentPr
 				<text
 					x={x + 8}
 					y={y + 32}
-					fill={CHART_ON_FILL_TEXT}
-					fillOpacity={0.85}
+					fill="var(--foreground)"
+					fillOpacity={0.9}
+					stroke="var(--card)"
+					strokeWidth={2.5}
+					strokeLinejoin="round"
+					paintOrder="stroke"
 					fontSize={10}
 					className="pointer-events-none tabular-nums select-none"
 				>
@@ -88,7 +94,7 @@ const CustomTreemapNode = memo(function CustomTreemapNode(props: CustomContentPr
 			)}
 		</g>
 	);
-});
+}
 
 interface TreemapTooltipItem {
 	name: string;
@@ -97,7 +103,7 @@ interface TreemapTooltipItem {
 	percent?: number;
 }
 
-export const TreemapDistributionChart = memo(function TreemapDistributionChart({
+export function TreemapDistributionChart({
 	data,
 	height,
 	valueFormatter: customValueFormatter,
@@ -117,38 +123,32 @@ export const TreemapDistributionChart = memo(function TreemapDistributionChart({
 		colorPalette,
 	});
 
-	const resolveTooltipDetail = useCallback(
-		(payload: ReadonlyArray<ChartTooltipEntry>) => {
-			const item = payload[0]?.payload as TreemapTooltipItem | undefined;
-			if (!item) return null;
-			const itemValue = toFiniteNumber(item.value, 0);
-			const percent = item.percent ?? (total > 0 ? (itemValue / total) * 100 : 0);
+	const resolveTooltipDetail = (payload: ReadonlyArray<ChartTooltipEntry>) => {
+		const item = payload[0]?.payload as TreemapTooltipItem | undefined;
+		if (!item) return null;
+		const itemValue = toFiniteNumber(item.value, 0);
+		const percent = item.percent ?? (total > 0 ? (itemValue / total) * 100 : 0);
 
-			return {
-				title: item.name,
-				color: item.color || "var(--chart-1)",
-				rows: [
-					{
-						label: t("treemap_value"),
-						value: `${valueFormatter(itemValue)} (${percent.toFixed(1)}%)`,
-					},
-				],
-			};
-		},
-		[t, total, valueFormatter],
-	);
+		return {
+			title: item.name,
+			color: item.color || "var(--chart-1)",
+			rows: [
+				{
+					label: t("treemap_value"),
+					value: `${valueFormatter(itemValue)} (${percent.toFixed(1)}%)`,
+				},
+			],
+		};
+	};
 
 	const renderTooltip = useChartDetailTooltip(resolveTooltipDetail);
-	const renderTreemapNode = useCallback(
-		(nodeProps: TreemapNode) => (
-			<CustomTreemapNode
-				{...nodeProps}
-				color={typeof nodeProps.color === "string" ? nodeProps.color : undefined}
-				percent={typeof nodeProps.percent === "number" ? nodeProps.percent : undefined}
-				valueFormatter={valueFormatter}
-			/>
-		),
-		[valueFormatter],
+	const renderTreemapNode = (nodeProps: TreemapNode) => (
+		<CustomTreemapNode
+			{...nodeProps}
+			color={typeof nodeProps.color === "string" ? nodeProps.color : undefined}
+			percent={typeof nodeProps.percent === "number" ? nodeProps.percent : undefined}
+			valueFormatter={valueFormatter}
+		/>
 	);
 
 	return (
@@ -169,4 +169,4 @@ export const TreemapDistributionChart = memo(function TreemapDistributionChart({
 			</Treemap>
 		</ChartFrame>
 	);
-});
+}

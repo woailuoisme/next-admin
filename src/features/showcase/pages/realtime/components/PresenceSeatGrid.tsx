@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock, Shield } from "lucide-react";
+import { useFormatter } from "next-intl";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,8 @@ import { Card } from "@/components/ui/card";
 import type { PresenceMember } from "../types";
 
 export function PresenceSeatGrid({ members }: { members: PresenceMember[] }) {
+	const format = useFormatter();
+
 	return (
 		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 			{members.map((member) => {
@@ -40,15 +43,22 @@ export function PresenceSeatGrid({ members }: { members: PresenceMember[] }) {
 								</div>
 							</div>
 							<Badge variant="secondary" className="text-[10px]">
-								<Shield className="mr-1 h-3 w-3" />
+								<Shield className="mr-1 size-3" aria-hidden="true" />
 								{member.role}
 							</Badge>
 						</div>
 						<div className="bg-muted/50 mt-3 rounded-md p-2.5">
 							<p className="text-foreground text-xs font-normal">{member.lastAction}</p>
 							<div className="text-muted-foreground mt-2 flex items-center gap-1 text-[10px]">
-								<Clock className="h-3 w-3" />
-								<span>接入时间: {new Date(member.joinedAt).toLocaleTimeString()}</span>
+								<Clock className="size-3" aria-hidden="true" />
+								<span>
+									接入时间:{" "}
+									{format.dateTime(new Date(member.joinedAt), {
+										hour: "2-digit",
+										minute: "2-digit",
+										second: "2-digit",
+									})}
+								</span>
 							</div>
 						</div>
 					</Card>

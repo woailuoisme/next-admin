@@ -103,7 +103,7 @@ export function buildModalDemos(articlesCount: number, setLastEvent: (msg: strin
 				title: "Action 自定义内容视图",
 				description: "支持任意 JSX 预览及底部附加 Action 触发。",
 				renderContent: ({ payload: _p }) => (
-					<div className="border-border/70 bg-muted/30 space-y-2 rounded-lg border p-4 text-xs">
+					<div className="border-border/70 bg-muted/30 flex flex-col gap-2 rounded-lg border p-4 text-xs">
 						<p className="font-semibold">当前演示文章总数：{articlesCount}</p>
 						<p className="text-muted-foreground">内容弹窗适合用于日志预览、差异对比或嵌入式 Infolist 卡片展示。</p>
 					</div>

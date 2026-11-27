@@ -7,7 +7,7 @@ import type { DemoStateProps } from "../types";
 export function RouteShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
 	const t = useTranslations("showcase");
 	return (
-		<TabsContent value="route" className="space-y-4">
+		<TabsContent value="route" className="flex flex-col gap-4">
 			<LazyRouteTrackingMap
 				coordinates={MOCK_ROUTE_COORDS}
 				stops={MOCK_ROUTE_STOPS}

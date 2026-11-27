@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
-import { RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "cn";
@@ -28,32 +28,18 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
 	const t = useTranslations("dashboard");
 	const { data, isLoading, isError, refetch, isFetching } = useDashboardSummary(range);
 
-	const handleRefetch = useMemoizedFn(() => {
-		refetch();
-	});
+	const handleRefetch = () => {
+		void refetch();
+	};
 
-	const handleRangeChange = useMemoizedFn((newRange: DashboardTimeRange) => {
+	const handleTabsValueChange = (value: string) => {
+		const newRange = value as DashboardTimeRange;
 		if (newRange === range) return;
 		onRangeChange?.(newRange);
-	});
-
-	const handleTabsValueChange = useMemoizedFn((value: string) => {
-		handleRangeChange(value as DashboardTimeRange);
-	});
+	};
 
 	if (isLoading) {
 		return <DashboardSkeleton />;
-	}
-
-	if (isError || !data) {
-		return (
-			<div className="flex h-[400px] flex-col items-center justify-center gap-3">
-				<p className="text-destructive text-sm font-medium">{t("load_error")}</p>
-				<Button variant="outline" size="sm" onClick={handleRefetch}>
-					{t("retry")}
-				</Button>
-			</div>
-		);
 	}
 
 	return (
@@ -75,34 +61,48 @@ export function DashboardPage({ range = "30d", onRangeChange }: DashboardPagePro
 						</TabsList>
 					</Tabs>
 
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={handleRefetch}
-						disabled={isFetching}
-						className="h-8 gap-1.5 text-xs"
-					>
-						<RefreshCw className={cn("size-3.5", isFetching && "animate-spin")} />
-						<span>{t("sync_action")}</span>
+					<Button variant="outline" size="sm" onClick={handleRefetch} disabled={isFetching} className="text-xs">
+						<RefreshCw
+							data-icon="inline-start"
+							className={cn(isFetching && "animate-spin motion-reduce:animate-none")}
+							aria-hidden="true"
+						/>
+						{t("sync_action")}
 					</Button>
 				</div>
 			</div>
 
-			{/* KPI Stats Cards */}
-			<MetricsCards metrics={data.metrics} monthlyTrends={data.monthlyTrends} sparklines={data.sparklines} />
+			{isError || !data ? (
+				<Alert variant="destructive">
+					<AlertCircle aria-hidden="true" />
+					<AlertDescription className="flex flex-col gap-3">
+						<span>{t("load_error")}</span>
+						<div>
+							<Button type="button" variant="outline" size="xs" onClick={handleRefetch}>
+								{t("retry")}
+							</Button>
+						</div>
+					</AlertDescription>
+				</Alert>
+			) : (
+				<>
+					{/* KPI Stats Cards */}
+					<MetricsCards metrics={data.metrics} monthlyTrends={data.monthlyTrends} sparklines={data.sparklines} />
 
-			{/* Charts & Tables Grid */}
-			<div className="grid grid-cols-1 gap-6 lg:grid-cols-7">
-				<RevenueChart data={data.monthlyTrends} />
-				<RecentOrdersTable orders={data.recentOrders} />
-			</div>
+					{/* Charts & Tables Grid */}
+					<div className="grid grid-cols-1 gap-6 lg:grid-cols-7">
+						<RevenueChart data={data.monthlyTrends} />
+						<RecentOrdersTable orders={data.recentOrders} />
+					</div>
 
-			<div className="grid grid-cols-1 gap-6 lg:grid-cols-7">
-				<CategoryDistributionChart data={data.categoryDistribution} className="col-span-full lg:col-span-4" />
-				<div className="col-span-full lg:col-span-3">
-					<QuickActions />
-				</div>
-			</div>
+					<div className="grid grid-cols-1 gap-6 lg:grid-cols-7">
+						<CategoryDistributionChart data={data.categoryDistribution} className="col-span-full lg:col-span-4" />
+						<div className="col-span-full lg:col-span-3">
+							<QuickActions />
+						</div>
+					</div>
+				</>
+			)}
 		</div>
 	);
 }

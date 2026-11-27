@@ -9,6 +9,7 @@ import { KeyValueEntry } from "@/components/infolist/entries/KeyValueEntry";
 import { RepeatableEntry } from "@/components/infolist/entries/RepeatableEntry";
 import { TextEntry } from "@/components/infolist/entries/TextEntry";
 import { Fieldset, Section, Tabs } from "@/components/shared/layout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "cn";
@@ -27,7 +28,7 @@ export function RecordDetailsShowcaseCard({ orientation, dense }: RecordDetailsS
 			<CardHeader className="border-b pb-4">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
-						<Layers className="text-primary size-4" />
+						<Layers className="text-primary size-4" aria-hidden="true" />
 						<CardTitle className="text-base font-semibold">
 							Infolist 完整只读详情面板 (Context + Declarative Entries)
 						</CardTitle>
@@ -43,7 +44,7 @@ export function RecordDetailsShowcaseCard({ orientation, dense }: RecordDetailsS
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="pt-6">
-				<Infolist record={SAMPLE_USER_DATA} orientation={orientation} dense={dense} className="space-y-6">
+				<Infolist record={SAMPLE_USER_DATA} orientation={orientation} dense={dense} className="flex flex-col gap-6">
 					{/* Top Section: User Profile & Status */}
 					<Section
 						title="用户主体与基本档案"
@@ -120,25 +121,31 @@ export function RecordDetailsShowcaseCard({ orientation, dense }: RecordDetailsS
 						action={
 							<div className="flex items-center gap-1">
 								<Button
+									type="button"
 									variant={repeatableVariant === "card" ? "default" : "ghost"}
-									size="sm"
-									className="h-7 px-2 text-[11px]"
+									size="xs"
+									aria-pressed={repeatableVariant === "card"}
+									className="text-[11px]"
 									onClick={() => setRepeatableVariant("card")}
 								>
 									卡片
 								</Button>
 								<Button
+									type="button"
 									variant={repeatableVariant === "grid" ? "default" : "ghost"}
-									size="sm"
-									className="h-7 px-2 text-[11px]"
+									size="xs"
+									aria-pressed={repeatableVariant === "grid"}
+									className="text-[11px]"
 									onClick={() => setRepeatableVariant("grid")}
 								>
 									网格
 								</Button>
 								<Button
+									type="button"
 									variant={repeatableVariant === "table" ? "default" : "ghost"}
-									size="sm"
-									className="h-7 px-2 text-[11px]"
+									size="xs"
+									aria-pressed={repeatableVariant === "table"}
+									className="text-[11px]"
 									onClick={() => setRepeatableVariant("table")}
 								>
 									表格
@@ -173,9 +180,12 @@ export function RecordDetailsShowcaseCard({ orientation, dense }: RecordDetailsS
 										{repeatableVariant !== "table" && (
 											<span className="text-muted-foreground block text-[11px]">履约状态</span>
 										)}
-										<span className="border-primary/20 bg-primary/10 text-primary inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium">
+										<Badge
+											variant="outline"
+											className="border-primary/20 bg-primary/10 text-primary text-[10px] font-medium"
+										>
 											{item.status}
-										</span>
+										</Badge>
 									</div>
 									<div>
 										{repeatableVariant !== "table" && (

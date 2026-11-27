@@ -18,9 +18,9 @@ export function CoordsShowcaseTab() {
 	const [activeCoordSys, setActiveCoordSys] = useState<CoordinateSystem>("WGS84");
 
 	return (
-		<TabsContent value="coords" className="space-y-4">
+		<TabsContent value="coords" className="flex flex-col gap-4">
 			<div className="border-border/70 bg-card flex flex-col gap-3 rounded-lg border p-4 shadow-xs md:flex-row md:items-center md:justify-between">
-				<div className="space-y-1">
+				<div className="flex flex-col gap-1">
 					<div className="text-foreground text-xs font-semibold">{t("maps_coords_title")}</div>
 					<div className="text-muted-foreground text-[11px]">{t("maps_coords_desc")}</div>
 				</div>
@@ -32,9 +32,11 @@ export function CoordsShowcaseTab() {
 							{COORD_SYSTEMS.map((cs) => (
 								<Button
 									key={cs}
+									type="button"
 									variant={activeCoordSys === cs ? "default" : "ghost"}
 									size="xs"
-									className="h-6 px-2 text-[10px]"
+									aria-pressed={activeCoordSys === cs}
+									className="text-[10px]"
 									onClick={() => setActiveCoordSys(cs)}
 								>
 									{cs}
@@ -49,9 +51,11 @@ export function CoordsShowcaseTab() {
 							{BASEMAP_OPTIONS.map((bm) => (
 								<Button
 									key={bm.value}
+									type="button"
 									variant={activeBasemap === bm.value ? "default" : "ghost"}
 									size="xs"
-									className="h-6 px-2 text-[10px]"
+									aria-pressed={activeBasemap === bm.value}
+									className="text-[10px]"
 									onClick={() => setActiveBasemap(bm.value)}
 								>
 									{tMap(bm.labelKey)}

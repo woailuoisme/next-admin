@@ -1,14 +1,12 @@
 "use client";
 
-import { memo } from "react";
-
 import type { ArcFlightItem } from "./types";
 
 export interface ArcDetailCardProps {
 	arc: ArcFlightItem | null;
 }
 
-export const ArcDetailCard = memo(function ArcDetailCard({ arc }: ArcDetailCardProps) {
+export function ArcDetailCard({ arc }: ArcDetailCardProps) {
 	if (!arc) return null;
 
 	const originLabel = arc.fromLabel ?? arc.fromName ?? `${arc.from[0].toFixed(2)}, ${arc.from[1].toFixed(2)}`;
@@ -34,4 +32,4 @@ export const ArcDetailCard = memo(function ArcDetailCard({ arc }: ArcDetailCardP
 			) : null}
 		</div>
 	);
-});
+}

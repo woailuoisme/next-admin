@@ -2,10 +2,11 @@
 
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { forwardRef, useState } from "react";
+import { type Ref, useState } from "react";
 
 import { COL_SPAN_CLASSES } from "@/components/shared/grid";
 import { hasRenderableNode } from "@/components/shared/renderable";
+import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 
@@ -13,23 +14,21 @@ import { CalloutActionButton } from "./CalloutActionButton";
 import { CALLOUT_COLOR_STYLES, renderCalloutIcon } from "./calloutStyles";
 import type { CalloutProps } from "./types";
 
-export const InfolistCallout = forwardRef<HTMLDivElement, CalloutProps>(function InfolistCallout(
-	{
-		color = "info",
-		title,
-		description,
-		icon,
-		compact = false,
-		dismissible = false,
-		onDismiss,
-		actions,
-		colSpan,
-		className,
-		children,
-		...props
-	},
+export function InfolistCallout({
+	color = "info",
+	title,
+	description,
+	icon,
+	compact = false,
+	dismissible = false,
+	onDismiss,
+	actions,
+	colSpan,
+	className,
+	children,
 	ref,
-) {
+	...props
+}: CalloutProps & { ref?: Ref<HTMLDivElement> }) {
 	const t = useTranslations("infolist");
 	const [dismissed, setDismissed] = useState(false);
 
@@ -91,7 +90,7 @@ export const InfolistCallout = forwardRef<HTMLDivElement, CalloutProps>(function
 							className="text-muted-foreground hover:text-foreground cursor-pointer"
 							aria-label={t("close_alert")}
 						>
-							<X className="size-3.5" aria-hidden="true" />
+							<X aria-hidden="true" />
 						</Button>
 					)}
 				</div>
@@ -100,11 +99,12 @@ export const InfolistCallout = forwardRef<HTMLDivElement, CalloutProps>(function
 	}
 
 	return (
-		<div
+		<Alert
 			ref={ref}
 			role={role}
 			className={cn(
-				"relative flex gap-3.5 rounded-xl border p-4 text-sm transition-colors",
+				"flex gap-3.5 rounded-xl p-4 text-sm transition-colors",
+				dismissible && "pr-10",
 				colSpan ? COL_SPAN_CLASSES[colSpan] : "w-full",
 				styles.container,
 				className,
@@ -113,14 +113,16 @@ export const InfolistCallout = forwardRef<HTMLDivElement, CalloutProps>(function
 		>
 			{iconComponent && <div className="mt-0.5 shrink-0">{iconComponent}</div>}
 
-			<div className="min-w-0 flex-1 space-y-1.5">
-				{showTitle && <div className={cn("leading-none font-semibold tracking-tight", styles.title)}>{title}</div>}
+			<div className="flex min-w-0 flex-1 flex-col gap-1.5">
+				{showTitle && (
+					<AlertTitle className={cn("leading-none font-semibold tracking-tight", styles.title)}>{title}</AlertTitle>
+				)}
 
 				{(showDescription || showChildren) && (
-					<div className="text-muted-foreground text-xs leading-relaxed break-words">
+					<AlertDescription className="text-muted-foreground text-xs leading-relaxed break-words">
 						{showDescription ? description : null}
 						{showChildren ? children : null}
-					</div>
+					</AlertDescription>
 				)}
 
 				{actions && actions.length > 0 && (
@@ -141,19 +143,19 @@ export const InfolistCallout = forwardRef<HTMLDivElement, CalloutProps>(function
 			</div>
 
 			{dismissible && (
-				<Button
-					type="button"
-					variant="ghost"
-					size="icon-xs"
-					onClick={handleDismiss}
-					className="text-muted-foreground hover:text-foreground absolute top-3 right-3 cursor-pointer"
-					aria-label={t("close_alert")}
-				>
-					<X className="size-4" aria-hidden="true" />
-				</Button>
+				<AlertAction className="top-3 right-3">
+					<Button
+						type="button"
+						variant="ghost"
+						size="icon-xs"
+						onClick={handleDismiss}
+						className="text-muted-foreground hover:text-foreground cursor-pointer"
+						aria-label={t("close_alert")}
+					>
+						<X aria-hidden="true" />
+					</Button>
+				</AlertAction>
 			)}
-		</div>
+		</Alert>
 	);
-});
-
-InfolistCallout.displayName = "InfolistCallout";
+}

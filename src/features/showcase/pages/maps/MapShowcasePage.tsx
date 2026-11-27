@@ -62,7 +62,7 @@ export function MapShowcasePage() {
 
 			<MapFeatureHighlights />
 
-			<Tabs defaultValue="markers" className="space-y-6">
+			<Tabs defaultValue="markers" className="flex flex-col gap-6">
 				<TabsList className="bg-muted/60 grid h-auto! w-full grid-cols-2 gap-1 border p-1 md:grid-cols-4">
 					{MAP_TABS.map(({ value, icon: Icon, labelKey }) => (
 						<TabsTrigger
@@ -70,7 +70,7 @@ export function MapShowcasePage() {
 							value={value}
 							className="gap-1.5 px-2 py-1.5 text-center text-xs whitespace-normal"
 						>
-							<Icon className="size-3.5" />
+							<Icon className="size-3.5" aria-hidden="true" />
 							{t(labelKey)}
 						</TabsTrigger>
 					))}
@@ -95,5 +95,3 @@ export function MapShowcasePage() {
 		</div>
 	);
 }
-
-export default MapShowcasePage;

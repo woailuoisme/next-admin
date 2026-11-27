@@ -7,7 +7,7 @@ import type { DemoStateProps } from "../types";
 export function GeoDistributionShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
 	const t = useTranslations("showcase");
 	return (
-		<TabsContent value="geo" className="space-y-4">
+		<TabsContent value="geo" className="flex flex-col gap-4">
 			<LazyGeoDistributionMap
 				data={MOCK_GEOJSON_DATA}
 				valueKey="value"

@@ -61,13 +61,13 @@ export function ProfilePage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="space-y-1">
+			<div className="flex flex-col gap-1">
 				<h1 className="text-foreground text-2xl font-semibold tracking-tight">{t("page_title")}</h1>
 				<p className="text-muted-foreground text-sm">{t("page_subtitle")}</p>
 			</div>
 
 			<div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-				<div className="space-y-6 lg:col-span-4">
+				<div className="flex flex-col gap-6 lg:col-span-4">
 					<ProfileIdentityCard
 						admin={admin}
 						roleLabels={roleLabels}
@@ -79,21 +79,25 @@ export function ProfilePage() {
 					<Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as ProfileTab)}>
 						<TabsList className="grid w-full grid-cols-3">
 							<TabsTrigger value="general" className="gap-1.5">
-								<UserIcon className="size-3.5" />
+								<UserIcon className="size-3.5" aria-hidden="true" />
 								{t("tab_general")}
 							</TabsTrigger>
 							<TabsTrigger value="security" className="gap-1.5">
-								<Lock className="size-3.5" />
+								<Lock className="size-3.5" aria-hidden="true" />
 								{t("tab_security")}
 							</TabsTrigger>
 							<TabsTrigger value="preferences" className="gap-1.5">
-								<Palette className="size-3.5" />
+								<Palette className="size-3.5" aria-hidden="true" />
 								{t("tab_preferences")}
 							</TabsTrigger>
 						</TabsList>
 
 						<TabsContent value="general" className="mt-4">
-							<ProfileGeneralTab key={admin.id} admin={admin} roleLabels={roleLabels} />
+							<ProfileGeneralTab
+								key={`${admin.id}:${admin.name}:${admin.avatarUrl ?? ""}`}
+								admin={admin}
+								roleLabels={roleLabels}
+							/>
 						</TabsContent>
 
 						<TabsContent value="security" className="mt-4">

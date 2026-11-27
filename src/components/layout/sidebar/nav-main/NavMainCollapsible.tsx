@@ -26,7 +26,7 @@ interface NavMainSubItemRowProps {
 	isActive: boolean;
 }
 
-const NavMainSubItemRow = function NavMainSubItemRow({ subItem, isActive }: NavMainSubItemRowProps) {
+function NavMainSubItemRow({ subItem, isActive }: NavMainSubItemRowProps) {
 	return (
 		<SidebarMenuSubItem className="relative">
 			{/* Connecting tree timeline dot */}
@@ -53,7 +53,7 @@ const NavMainSubItemRow = function NavMainSubItemRow({ subItem, isActive }: NavM
 			</SidebarMenuSubButton>
 		</SidebarMenuSubItem>
 	);
-};
+}
 
 export function NavMainCollapsible({ item, currentPath, isChildActive }: NavMainCollapsibleProps) {
 	const Icon = item.icon;
@@ -65,9 +65,12 @@ export function NavMainCollapsible({ item, currentPath, isChildActive }: NavMain
 			<SidebarMenuItem>
 				<CollapsibleTrigger asChild>
 					<SidebarMenuButton isActive={isChildActive} tooltip={item.title} className="font-medium">
-						<Icon className="size-4" />
+						<Icon aria-hidden="true" />
 						<span>{item.title}</span>
-						<ChevronRight className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+						<ChevronRight
+							aria-hidden="true"
+							className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+						/>
 					</SidebarMenuButton>
 				</CollapsibleTrigger>
 				<CollapsibleContent>

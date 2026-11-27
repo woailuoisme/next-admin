@@ -36,14 +36,14 @@ export function ExportColumnsPicker<TItem>({
 	const t = useTranslations("actions");
 
 	return (
-		<div className="space-y-2">
+		<div className="flex flex-col gap-2">
 			<div className="flex items-center justify-between">
 				<Label className="text-xs font-medium">{t("export_columns")}</Label>
 				<div className="flex items-center gap-2">
-					<Button type="button" variant="ghost" size="xs" className="h-6 px-2 text-xs" onClick={onSelectAll}>
+					<Button type="button" variant="ghost" size="xs" onClick={onSelectAll}>
 						{t("export_select_all")}
 					</Button>
-					<Button type="button" variant="ghost" size="xs" className="h-6 px-2 text-xs" onClick={onDeselectAll}>
+					<Button type="button" variant="ghost" size="xs" onClick={onDeselectAll}>
 						{t("export_deselect_all")}
 					</Button>
 				</div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useMemoizedFn } from "ahooks";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import type { RouteStop, RouteStopStatus, RouteTrackingMapProps } from "./types";
 
@@ -95,18 +96,15 @@ export function useRouteTracking({
 
   const [stopStatuses, setStopStatuses] = useState<RouteStopStatus[]>(() => deriveStopStatuses(stops, initialProgress));
 
-  const emitProgress = useCallback(
-    (nextVal: number) => {
-      const clamped = Math.max(0, Math.min(1, nextVal));
-      if (clamped === progressRef.current) return;
-      progressRef.current = clamped;
-      for (const listener of listenersRef.current) listener();
+  const emitProgress = useMemoizedFn((nextVal: number) => {
+    const clamped = Math.max(0, Math.min(1, nextVal));
+    if (clamped === progressRef.current) return;
+    progressRef.current = clamped;
+    for (const listener of listenersRef.current) listener();
 
-      const nextStatuses = deriveStopStatuses(stops, clamped);
-      setStopStatuses((prev) => (areStopStatusesEqual(prev, nextStatuses) ? prev : nextStatuses));
-    },
-    [stops],
-  );
+    const nextStatuses = deriveStopStatuses(stops, clamped);
+    setStopStatuses((prev) => (areStopStatusesEqual(prev, nextStatuses) ? prev : nextStatuses));
+  });
 
   // Sync controlled progress without rebuilding rAF effect
   useEffect(() => {
@@ -115,17 +113,15 @@ export function useRouteTracking({
     }
   }, [isControlled, controlledProgress, emitProgress]);
 
-  const updateProgress = useCallback(
-    (newVal: number) => {
-      const clamped = Math.max(0, Math.min(1, newVal));
-      if (!isControlled) {
-        emitProgress(clamped);
-      }
-      onProgressChangeRef.current?.(clamped);
-    },
-    [isControlled, emitProgress],
-  );
+  const updateProgress = useMemoizedFn((newVal: number) => {
+    const clamped = Math.max(0, Math.min(1, newVal));
+    if (!isControlled) {
+      emitProgress(clamped);
+    }
+    onProgressChangeRef.current?.(clamped);
+  });
 
+  // useSyncExternalStore 契约要求稳定的 store 引用，隔离 60fps 进度推送
   const progressStore = useMemo<RouteProgressStore>(
     () => ({
       subscribe: (listener: () => void) => {
@@ -183,30 +179,30 @@ export function useRouteTracking({
     };
   }, [enabled, isPlaying, coordinates.length, playbackDuration, updateProgress]);
 
-  const togglePlay = useCallback(() => {
+  const togglePlay = () => {
     if (!isPlaying && progressRef.current >= 1) {
       lastTimeRef.current = null;
       updateProgress(0);
     }
     setUserPlayingOverride(!isPlaying);
-  }, [isPlaying, updateProgress]);
+  };
 
-  const reset = useCallback(() => {
+  const reset = () => {
     lastTimeRef.current = null;
     setUserPlayingOverride(false);
     updateProgress(0);
-  }, [updateProgress]);
+  };
 
-  const enrichedStops = useMemo<RouteStop[]>(() => {
-    if (stops.length === 0) return EMPTY_STOPS;
-    return stops.map((stop, idx) => {
-      if (stop.status) return stop;
-      return {
-        ...stop,
-        status: stopStatuses[idx] ?? "pending",
-      };
-    });
-  }, [stops, stopStatuses]);
+  const enrichedStops: RouteStop[] =
+    stops.length === 0
+      ? EMPTY_STOPS
+      : stops.map((stop, idx) => {
+          if (stop.status) return stop;
+          return {
+            ...stop,
+            status: stopStatuses[idx] ?? "pending",
+          };
+        });
 
   return {
     progressStore,

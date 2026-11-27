@@ -7,20 +7,14 @@ import type { SchemaNode } from "@/components/schema";
 import { s } from "@/components/schema";
 import { categoryResource } from "@/features/categories/resource";
 
-import { PRODUCT_STATUSES } from "./resource";
+import { buildProductStatusOptions } from "./resource";
 
 export function buildProductFormSchema({ t }: { t: ResourceTranslateFn }): SchemaNode[] {
-	const statusLabelMap = {
-		active: t("status_active"),
-		draft: t("status_draft"),
-		out_of_stock: t("status_out_of_stock"),
-	};
-
 	return [
 		s.section({
 			title: t("section_basic"),
 			description: t("section_basic_desc"),
-			icon: <Layers className="size-4" />,
+			icon: <Layers className="size-4" aria-hidden="true" />,
 			columns: 2,
 			schema: [
 				s.text("title", {
@@ -29,7 +23,7 @@ export function buildProductFormSchema({ t }: { t: ResourceTranslateFn }): Schem
 					colSpan: 2,
 					placeholder: t("title_placeholder"),
 					clearable: true,
-					prefix: <Tag className="size-3.5" />,
+					prefix: <Tag className="size-3.5" aria-hidden="true" />,
 					slugTarget: "slug",
 				}),
 				s.text("slug", {
@@ -52,7 +46,7 @@ export function buildProductFormSchema({ t }: { t: ResourceTranslateFn }): Schem
 					label: t("image_label"),
 					required: true,
 					colSpan: 2,
-					prefix: <ImageIcon className="size-3.5" />,
+					prefix: <ImageIcon className="size-3.5" aria-hidden="true" />,
 					placeholder: "https://images.unsplash.com/...",
 					clearable: true,
 				}),
@@ -70,7 +64,7 @@ export function buildProductFormSchema({ t }: { t: ResourceTranslateFn }): Schem
 		s.section({
 			title: t("section_pricing"),
 			description: t("section_pricing_desc"),
-			icon: <DollarSign className="size-4" />,
+			icon: <DollarSign className="size-4" aria-hidden="true" />,
 			columns: 3,
 			schema: [
 				s.number("price", { label: t("price_label"), step: 0.01, min: 0.01, required: true, prefix: "$" }),
@@ -88,13 +82,13 @@ export function buildProductFormSchema({ t }: { t: ResourceTranslateFn }): Schem
 					min: 0,
 					required: true,
 					suffix: t("stock_suffix"),
-					prefix: <Package className="size-3.5" />,
+					prefix: <Package className="size-3.5" aria-hidden="true" />,
 				}),
 				s.select("status", {
 					label: t("status_label"),
 					required: true,
 					colSpan: 3,
-					options: PRODUCT_STATUSES.map((value) => ({ label: statusLabelMap[value], value })),
+					options: buildProductStatusOptions(t),
 				}),
 			],
 		}),

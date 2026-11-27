@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 
-import { useMemoizedFn } from "ahooks";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "cn";
 
@@ -25,10 +24,10 @@ export function ThemeToggle({ className, tooltip, ariaLabel }: ThemeToggleProps)
 
 	const isDark = resolvedMode === "dark";
 
-	const handleToggle = useMemoizedFn(() => {
+	const handleToggle = () => {
 		const nextMode = isDark ? "light" : "dark";
 		setMode(nextMode);
-	});
+	};
 
 	const currentModeText = isDark ? t("theme_mode_dark") : t("theme_mode_light");
 	const nextModeText = isDark ? t("theme_mode_light") : t("theme_mode_dark");
@@ -50,7 +49,7 @@ export function ThemeToggle({ className, tooltip, ariaLabel }: ThemeToggleProps)
 					size="icon"
 					onClick={handleToggle}
 					className={cn(
-						"relative h-8 w-8 cursor-pointer overflow-hidden rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground",
+						"relative cursor-pointer overflow-hidden rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground",
 						className,
 					)}
 					aria-label={effectiveAriaLabel}
@@ -58,14 +57,14 @@ export function ThemeToggle({ className, tooltip, ariaLabel }: ThemeToggleProps)
 					<Sun
 						aria-hidden="true"
 						className={cn(
-							"h-4 w-4 transition-all duration-300",
+							"size-4 transition-all duration-300",
 							isDark ? "scale-0 -rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100",
 						)}
 					/>
 					<Moon
 						aria-hidden="true"
 						className={cn(
-							"absolute h-4 w-4 transition-all duration-300",
+							"absolute size-4 transition-all duration-300",
 							isDark ? "scale-100 rotate-0 opacity-100" : "scale-0 rotate-90 opacity-0",
 						)}
 					/>
@@ -77,5 +76,3 @@ export function ThemeToggle({ className, tooltip, ariaLabel }: ThemeToggleProps)
 		</Tooltip>
 	);
 }
-
-export default ThemeToggle;

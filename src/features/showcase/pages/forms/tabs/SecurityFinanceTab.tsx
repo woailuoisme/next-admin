@@ -13,7 +13,7 @@ export interface SecurityFinanceTabProps {
 
 export function SecurityFinanceTab({ form }: SecurityFinanceTabProps) {
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<Section
 				title="Enterprise Authentication & Security"
 				description="Password inputs with entropy meter, policy requirements checklist, CapsLock detector, and multi-slot OTP/PIN verification."

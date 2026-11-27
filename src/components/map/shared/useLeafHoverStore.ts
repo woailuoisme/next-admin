@@ -23,6 +23,7 @@ export function useLeafHoverStore<T>(isSame?: (prev: T | null, next: T | null) =
     isSameRef.current = isSame;
   }, [isSame]);
 
+  // useSyncExternalStore 契约要求稳定的 store 引用，避免订阅频繁重绑
   const store = useMemo<LeafHoverStore<T>>(
     () => ({
       subscribe: (listener) => {
@@ -37,6 +38,7 @@ export function useLeafHoverStore<T>(isSame?: (prev: T | null, next: T | null) =
     [],
   );
 
+  // 保持稳定引用供 MapLibre 图层事件回调直接调用而不触发 effect 重绑
   const setHovered = useCallback((next: T | null) => {
     const prev = hoverRef.current;
     if (isSameRef.current ? isSameRef.current(prev, next) : prev === next) {

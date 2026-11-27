@@ -4,7 +4,7 @@ export const categoryFormSchema: readonly SchemaNode[] = [
 	s.text("name", {
 		labelKey: "form_name_label",
 		required: true,
-		placeholder: "e.g. Smart Home",
+		placeholderKey: "form_name_placeholder",
 		slugTarget: "slug",
 	}),
 	s.text("slug", {

@@ -39,26 +39,32 @@ export function TableFilterControlsBar({
 				<span className="text-muted-foreground text-xs font-medium">Filter Layout:</span>
 				<div className="border-border/80 bg-muted/30 inline-flex rounded-lg border p-0.5">
 					<Button
+						type="button"
 						variant={filterLayout === "popover" ? "secondary" : "ghost"}
-						size="sm"
+						size="xs"
+						aria-pressed={filterLayout === "popover"}
 						onClick={() => setFilterLayout("popover")}
-						className="h-7 px-2.5 text-xs"
+						className="px-2.5"
 					>
 						Popover ({columnsCount} col{columnsCount > 1 ? "s" : ""})
 					</Button>
 					<Button
+						type="button"
 						variant={filterLayout === "sheet" ? "secondary" : "ghost"}
-						size="sm"
+						size="xs"
+						aria-pressed={filterLayout === "sheet"}
 						onClick={() => setFilterLayout("sheet")}
-						className="h-7 px-2.5 text-xs"
+						className="px-2.5"
 					>
 						Slide-over Sheet
 					</Button>
 					<Button
+						type="button"
 						variant={filterLayout === "aboveContent" ? "secondary" : "ghost"}
-						size="sm"
+						size="xs"
+						aria-pressed={filterLayout === "aboveContent"}
 						onClick={() => setFilterLayout("aboveContent")}
-						className="h-7 px-2.5 text-xs"
+						className="px-2.5"
 					>
 						Above Content
 					</Button>
@@ -69,10 +75,11 @@ export function TableFilterControlsBar({
 						{([1, 2, 3] as const).map((cols) => (
 							<Button
 								key={cols}
+								type="button"
 								variant={columnsCount === cols ? "secondary" : "ghost"}
-								size="sm"
+								size="xs"
+								aria-pressed={columnsCount === cols}
 								onClick={() => setColumnsCount(cols)}
-								className="h-7 px-2 text-xs"
 							>
 								{cols}C
 							</Button>
@@ -83,10 +90,12 @@ export function TableFilterControlsBar({
 
 			<div className="flex flex-wrap items-center gap-2">
 				<Button
+					type="button"
 					variant="outline"
 					size="sm"
+					aria-pressed={deferFilters}
 					onClick={() => setDeferFilters(!deferFilters)}
-					className="h-8 gap-1.5 text-xs"
+					className="gap-1.5 text-xs"
 				>
 					<span>Defer Filters:</span>
 					<Badge variant={deferFilters ? "default" : "secondary"} className="text-[10px]">
@@ -95,10 +104,12 @@ export function TableFilterControlsBar({
 				</Button>
 
 				<Button
+					type="button"
 					variant="outline"
 					size="sm"
+					aria-pressed={showQueryBuilder}
 					onClick={() => setShowQueryBuilder(!showQueryBuilder)}
-					className="h-8 gap-1.5 text-xs"
+					className="gap-1.5 text-xs"
 				>
 					<span>Query Builder:</span>
 					<Badge variant={showQueryBuilder ? "default" : "secondary"} className="text-[10px]">
@@ -107,10 +118,12 @@ export function TableFilterControlsBar({
 				</Button>
 
 				<Button
+					type="button"
 					variant="outline"
 					size="sm"
+					aria-pressed={showActiveFiltersPills}
 					onClick={() => setShowActiveFiltersPills(!showActiveFiltersPills)}
-					className="h-8 gap-1.5 text-xs"
+					className="gap-1.5 text-xs"
 				>
 					<span>Filter Pills:</span>
 					<Badge variant={showActiveFiltersPills ? "default" : "secondary"} className="text-[10px]">
@@ -119,6 +132,7 @@ export function TableFilterControlsBar({
 				</Button>
 
 				<Button
+					type="button"
 					variant="outline"
 					size="sm"
 					onClick={() =>
@@ -126,7 +140,7 @@ export function TableFilterControlsBar({
 							paginationVariant === "capsule" ? "shadcn" : paginationVariant === "shadcn" ? "simple" : "capsule",
 						)
 					}
-					className="h-8 gap-1.5 text-xs"
+					className="gap-1.5 text-xs"
 				>
 					<span>Pagination:</span>
 					<Badge

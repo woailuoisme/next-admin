@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { memo, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { ModalFrame } from "@/components/dialogs/ModalFrame";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ export interface MapFullscreenDialogProps {
 	children?: ReactNode;
 }
 
-export const MapFullscreenDialog = memo(function MapFullscreenDialog({
+export function MapFullscreenDialog({
 	open,
 	onOpenChange,
 	title,
@@ -36,7 +36,7 @@ export const MapFullscreenDialog = memo(function MapFullscreenDialog({
 			size="full"
 			widthClassName="flex h-[92vh] max-h-[95vh] w-[95vw] max-w-7xl flex-col overflow-hidden p-0 sm:max-w-7xl"
 			headerSlot={
-				<div className="space-y-1">
+				<div className="flex flex-col gap-1">
 					<DialogTitle className="flex items-center gap-2 text-lg leading-none font-semibold">
 						<span>{title}</span>
 						<Badge variant="secondary" className="border-primary/20 bg-primary/10 text-primary">
@@ -60,4 +60,4 @@ export const MapFullscreenDialog = memo(function MapFullscreenDialog({
 			</div>
 		</ModalFrame>
 	);
-});
+}

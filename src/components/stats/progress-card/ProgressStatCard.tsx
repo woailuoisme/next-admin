@@ -5,7 +5,7 @@ import { useFormatter } from "next-intl";
 import type { ProgressStatCardProps } from "./types";
 
 import { StatCardHeadline, StatCardProgress, StatCardRoot, StatCardSkeleton, StatCardValue } from "../primitives";
-import { useProgressStat } from "./useProgressStat";
+import { computeProgressStat } from "./useProgressStat";
 
 export function ProgressStatCard({
 	title,
@@ -32,7 +32,7 @@ export function ProgressStatCard({
 	className,
 }: ProgressStatCardProps) {
 	const format = useFormatter();
-	const progressResult = useProgressStat({
+	const progressResult = computeProgressStat({
 		value,
 		targetValue,
 		progress,

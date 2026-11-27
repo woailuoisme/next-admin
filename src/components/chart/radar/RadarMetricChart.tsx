@@ -1,7 +1,5 @@
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
-
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, Tooltip } from "recharts";
 
 import type { RadarMetricChartProps } from "./types";
@@ -10,7 +8,7 @@ import { useChartAnimation } from "../hooks/useChartAnimation";
 import { useChartFormatters } from "../hooks/useChartFormatters";
 import { useChartHeight } from "../shared/ChartContext";
 import { ChartFrame } from "../shared/ChartFrame";
-import { ChartTooltip, type ChartTooltipEntry } from "../shared/ChartTooltip";
+import { createValueTooltipContent } from "../shared/ChartTooltip";
 import {
 	AXIS_TICK_STYLE_COMPACT,
 	CHART_AXIS_STROKE,
@@ -25,7 +23,7 @@ import { CHART_PALETTE } from "../shared/theme";
 
 const RADAR_RADIUS_AXIS_LINE = { stroke: CHART_AXIS_STROKE } as const;
 
-export const RadarMetricChart = memo(function RadarMetricChart({
+export function RadarMetricChart({
 	data,
 	series = EMPTY_DATA,
 	subjectKey = "subject",
@@ -44,29 +42,14 @@ export const RadarMetricChart = memo(function RadarMetricChart({
 	const numericHeight = resolveNumericChartHeight(resolvedHeight, 300);
 	const { valueFormatter } = useChartFormatters({ valueFormatter: propValueFormatter });
 
-	const normalizedSeries = useMemo(
-		() =>
-			series.map((s, idx) => ({
-				...s,
-				color: s.color || CHART_PALETTE[idx % CHART_PALETTE.length],
-				fillOpacity: s.fillOpacity ?? 0.25,
-			})),
-		[series],
-	);
+	const normalizedSeries = series.map((s, idx) => ({
+		...s,
+		color: s.color || CHART_PALETTE[idx % CHART_PALETTE.length],
+		fillOpacity: s.fillOpacity ?? 0.25,
+	}));
 
-	const radiusDomain = useMemo<[number, number]>(() => [0, maxDomain], [maxDomain]);
-
-	const renderTooltip = useCallback(
-		(tooltipProps: { active?: boolean; payload?: ReadonlyArray<unknown>; label?: string | number }) => (
-			<ChartTooltip
-				active={tooltipProps.active}
-				payload={tooltipProps.payload as ReadonlyArray<ChartTooltipEntry> | undefined}
-				label={tooltipProps.label}
-				valueFormatter={valueFormatter}
-			/>
-		),
-		[valueFormatter],
-	);
+	const radiusDomain: [number, number] = [0, maxDomain];
+	const renderTooltip = createValueTooltipContent(valueFormatter);
 
 	return (
 		<ChartFrame height={resolvedHeight} ariaLabel={ariaLabel} className={className} initialWidth={numericHeight}>
@@ -100,4 +83,4 @@ export const RadarMetricChart = memo(function RadarMetricChart({
 			</RadarChart>
 		</ChartFrame>
 	);
-});
+}

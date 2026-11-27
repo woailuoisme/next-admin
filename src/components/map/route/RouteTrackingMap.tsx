@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { memo, useMemo, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 import { MapRoute, RouteProgress } from "@/components/ui/map";
 
@@ -28,7 +28,7 @@ interface RouteAnimatedLayerProps {
 }
 
 /** 仅此叶子节点订阅 60fps progress，隔离 MapFrame 与 StopMarker 的 React 调和 */
-const RouteAnimatedLayer = memo(function RouteAnimatedLayer({
+function RouteAnimatedLayer({
 	coordinates,
 	routeColor,
 	traveledColor,
@@ -48,9 +48,9 @@ const RouteAnimatedLayer = memo(function RouteAnimatedLayer({
 			<VehicleMarker vehicle={vehicle} progress={progress} />
 		</MapRoute>
 	);
-});
+}
 
-export const RouteTrackingMap = memo(function RouteTrackingMap({
+export function RouteTrackingMap({
 	coordinateSystem = "WGS84",
 	coordinates,
 	stops = EMPTY_STOPS,
@@ -98,12 +98,14 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
 		basemapCRS,
 	);
 
+	// 避免长轨迹坐标批量转换在 60fps 播放状态切换时重复计算
 	const normalizedCoordinates = useMemo(() => {
 		const valid = coordinates.filter((c) => isValidCoordinate(c));
 		if (!needsTransform) return valid;
 		return valid.map((c) => transformCoordinates(c, sourceCoords, targetCoords));
 	}, [coordinates, needsTransform, sourceCoords, targetCoords]);
 
+	// 避免大量路线停靠点坐标转换重复计算
 	const normalizedStops = useMemo(() => {
 		const valid = stops.filter((s) => isValidCoordinate(s.coordinates));
 		if (!needsTransform) return valid;
@@ -113,8 +115,9 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
 		}));
 	}, [stops, needsTransform, sourceCoords, targetCoords]);
 
+	const hasError = Boolean(isError || error);
 	const hasEmptyData = isEmpty || normalizedCoordinates.length < 2;
-	const playbackEnabled = !isLoading && !isError && !hasEmptyData;
+	const playbackEnabled = !isLoading && !hasError && !hasEmptyData;
 
 	const { progressStore, isPlaying, togglePlay, seekTo, reset, enrichedStops } = useRouteTracking({
 		coordinates: normalizedCoordinates,
@@ -127,33 +130,27 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
 		enabled: playbackEnabled,
 	});
 
-	const computedCenter = useMemo<Coordinates>(() => {
-		const explicit =
-			center && isValidCoordinate(center)
-				? needsTransform
-					? transformCoordinates(center, sourceCoords, targetCoords)
-					: center
-				: undefined;
-		return resolveBoundingCenter(normalizedCoordinates, explicit, DEFAULT_BEIJING_CENTER);
-	}, [center, normalizedCoordinates, needsTransform, sourceCoords, targetCoords]);
+	const explicitCenter =
+		center && isValidCoordinate(center)
+			? needsTransform
+				? transformCoordinates(center, sourceCoords, targetCoords)
+				: center
+			: undefined;
+	const computedCenter = resolveBoundingCenter(normalizedCoordinates, explicitCenter, DEFAULT_BEIJING_CENTER);
 
 	const effectiveRouteColor = routeColor || tokens.primarySoft;
 	const effectiveTraveledColor = traveledColor || tokens.primary;
 
-	const overlaySlot = useMemo(
-		() =>
-			showScrubber ? (
-				<RoutePlaybackScrubber
-					isPlaying={isPlaying}
-					progressStore={progressStore}
-					onTogglePlay={togglePlay}
-					onReset={reset}
-					onSeek={seekTo}
-					vehicle={vehicle}
-				/>
-			) : null,
-		[showScrubber, isPlaying, progressStore, togglePlay, reset, seekTo, vehicle],
-	);
+	const overlaySlot = showScrubber ? (
+		<RoutePlaybackScrubber
+			isPlaying={isPlaying}
+			progressStore={progressStore}
+			onTogglePlay={togglePlay}
+			onReset={reset}
+			onSeek={seekTo}
+			vehicle={vehicle}
+		/>
+	) : null;
 
 	return (
 		<MapFrame
@@ -173,9 +170,9 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
 			fitBoundsPoints={normalizedCoordinates}
 			isLoading={isLoading}
 			isEmpty={hasEmptyData}
-			isError={isError}
+			isError={hasError}
 			error={error}
-			errorMessage={errorMessage || (isError ? t("route_error") : undefined)}
+			errorMessage={errorMessage || (hasError ? t("route_error") : undefined)}
 			emptyMessage={emptyMessage || t("route_empty")}
 			onRetry={onRetry}
 			cardProps={cardProps}
@@ -197,4 +194,4 @@ export const RouteTrackingMap = memo(function RouteTrackingMap({
 			))}
 		</MapFrame>
 	);
-});
+}

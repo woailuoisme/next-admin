@@ -18,7 +18,7 @@ export function MapFeatureHighlights() {
 			{MAP_HIGHLIGHTS.map(({ icon: Icon, key }) => (
 				<Card key={key} className="border-border/60 bg-muted/20 flex items-center gap-3 p-3.5">
 					<div className="bg-primary/10 text-primary flex size-9 items-center justify-center rounded-lg">
-						<Icon className="size-4" />
+						<Icon className="size-4" aria-hidden="true" />
 					</div>
 					<div className="text-xs">
 						<div className="text-foreground font-semibold">{t(`maps_highlight_${key}_title`)}</div>

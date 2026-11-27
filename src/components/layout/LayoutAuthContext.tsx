@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useMemo } from "react";
+import { createContext, type ReactNode, useContext } from "react";
 
 import type { SidebarUser } from "./sidebar/types";
 
@@ -17,8 +17,7 @@ export interface LayoutAuthProviderProps extends LayoutAuthContextValue {
 }
 
 export function LayoutAuthProvider({ user, onLogout, isLoggingOut, children }: LayoutAuthProviderProps) {
-	const value = useMemo(() => ({ user, onLogout, isLoggingOut }), [user, onLogout, isLoggingOut]);
-	return <LayoutAuthContext value={value}>{children}</LayoutAuthContext>;
+	return <LayoutAuthContext value={{ user, onLogout, isLoggingOut }}>{children}</LayoutAuthContext>;
 }
 
 export function useLayoutAuth(): LayoutAuthContextValue {

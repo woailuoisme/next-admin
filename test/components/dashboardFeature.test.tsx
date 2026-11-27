@@ -128,15 +128,29 @@ describe("Dashboard Feature Tests", () => {
 
 		renderWithProviders(<RevenueChart data={eightMonths} />);
 
-		const tab7d = screen.getByRole("tab", { name: "7天" });
-		const tab30d = screen.getByRole("tab", { name: "30天" });
+		const tab3m = screen.getByRole("tab", { name: "近3月" });
+		const tab6m = screen.getByRole("tab", { name: "近6月" });
 		const tab12m = screen.getByRole("tab", { name: "12月" });
 
 		expect(tab12m).toHaveAttribute("aria-selected", "true");
-		fireEvent.mouseDown(tab7d);
-		expect(tab7d).toHaveAttribute("aria-selected", "true");
-		fireEvent.mouseDown(tab30d);
-		expect(tab30d).toHaveAttribute("aria-selected", "true");
+		fireEvent.mouseDown(tab3m);
+		expect(tab3m).toHaveAttribute("aria-selected", "true");
+		fireEvent.mouseDown(tab6m);
+		expect(tab6m).toHaveAttribute("aria-selected", "true");
+	});
+
+	it("renders empty state on RecentOrdersTable when orders array is empty", () => {
+		renderWithProviders(<RecentOrdersTable orders={[]} />);
+		expect(screen.getByText("暂无最近订单")).toBeInTheDocument();
+	});
+
+	it("does not fabricate customer growth when customersGrowth is missing", () => {
+		const incompleteMetrics = { ...mockMetrics, customersGrowth: undefined as unknown as number };
+		renderWithProviders(
+			<MetricsCards metrics={incompleteMetrics} monthlyTrends={mockTrends} sparklines={mockSparklines} />,
+		);
+		expect(screen.queryByText("+8.2%")).toBeNull();
+		expect(screen.getByText("—")).toBeInTheDocument();
 	});
 
 	it("renders RecentOrdersTable with semantic status tokens", () => {

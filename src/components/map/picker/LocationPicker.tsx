@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { LocateFixed, MapPin } from "lucide-react";
-import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Map, MapControls, MapMarker, MarkerContent, MarkerPopup } from "@/components/ui/map";
@@ -18,7 +17,7 @@ import { LocationCoordinatesInput } from "./LocationCoordinatesInput";
 import { MapClickHandler } from "./MapClickHandler";
 import { useLocationPicker } from "./useLocationPicker";
 
-export const LocationPicker = memo(function LocationPicker({
+export function LocationPicker({
 	coordinateSystem = "WGS84",
 	value,
 	defaultValue,
@@ -126,7 +125,7 @@ export const LocationPicker = memo(function LocationPicker({
 								</button>
 							</MarkerContent>
 							<MarkerPopup className="w-56 p-2.5">
-								<div className="space-y-1 text-xs">
+								<div className="flex flex-col gap-1 text-xs">
 									<p className="text-foreground font-semibold">{t("picker_selected_location")}</p>
 									{effectiveAddress ? <p className="text-muted-foreground leading-tight">{effectiveAddress}</p> : null}
 									<p className="text-muted-foreground font-mono text-[11px]">
@@ -165,4 +164,4 @@ export const LocationPicker = memo(function LocationPicker({
 			) : null}
 		</div>
 	);
-});
+}

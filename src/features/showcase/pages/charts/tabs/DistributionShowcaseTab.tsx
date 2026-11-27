@@ -1,6 +1,5 @@
 import { ChartCard } from "@/components/chart/card/ChartCard";
-import { DonutDistributionChart } from "@/components/chart/donut/DonutDistributionChart";
-import { HorizontalBarChart } from "@/components/chart/horizontal-bar/HorizontalBarChart";
+import { LazyDonutDistributionChart, LazyHorizontalBarChart } from "@/components/chart/lazy";
 import { TabsContent } from "@/components/ui/tabs";
 import { CATEGORY_DISTRIBUTION, CURRENCY_FORMATTER, TRAFFIC_CHANNELS } from "../constants";
 import type { ChartStateProps } from "../types";
@@ -13,7 +12,7 @@ interface DistributionShowcaseTabProps {
 
 export function DistributionShowcaseTab({ chartStateProps }: DistributionShowcaseTabProps) {
 	return (
-		<TabsContent value="distribution" className="space-y-6">
+		<TabsContent value="distribution" className="flex flex-col gap-6">
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 				<ChartCard
 					title="环形占比分布 (DonutDistributionChart)"
@@ -21,7 +20,7 @@ export function DistributionShowcaseTab({ chartStateProps }: DistributionShowcas
 					{...chartStateProps}
 					height={320}
 				>
-					<DonutDistributionChart
+					<LazyDonutDistributionChart
 						data={CATEGORY_DISTRIBUTION}
 						centerLabel="总品类数"
 						centerValue="6 大类别"
@@ -36,7 +35,7 @@ export function DistributionShowcaseTab({ chartStateProps }: DistributionShowcas
 					{...chartStateProps}
 					height={320}
 				>
-					<HorizontalBarChart
+					<LazyHorizontalBarChart
 						data={TRAFFIC_CHANNELS}
 						valueFormatter={UV_FORMATTER}
 						showPercentage={true}

@@ -148,6 +148,12 @@ export function SchemaEntryItem({
 	}
 
 	const renderEntry = ENTRY_REGISTRY[spec.entryType];
+	if (!renderEntry) {
+		if (process.env.NODE_ENV === "development") {
+			console.warn(`[Schema] Unknown entry type: "${String(spec.entryType)}" (name: "${spec.name}")`);
+		}
+		return null;
+	}
 	return renderEntry({
 		spec,
 		evalCtx,

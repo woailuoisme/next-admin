@@ -3,7 +3,7 @@
 import type * as GeoJSON from "geojson";
 import type * as MapLibreGL from "maplibre-gl";
 
-import { memo, useCallback, useEffect } from "react";
+import { useEffect } from "react";
 
 import { MapClusterLayer, useMap } from "@/components/ui/map";
 
@@ -43,7 +43,7 @@ interface LocationMarkerClusterViewProps {
 	renderPopup?: (item: LocationMarkerItem) => React.ReactNode;
 }
 
-export const LocationMarkerClusterView = memo(function LocationMarkerClusterView({
+export function LocationMarkerClusterView({
 	geojsonData,
 	enableClustering,
 	clusterRadius,
@@ -70,14 +70,11 @@ export const LocationMarkerClusterView = memo(function LocationMarkerClusterView
 		};
 	}, [isLoaded, map, enableClustering, clusterRadius, clusterMaxZoom]);
 
-	const handlePointClick = useCallback(
-		(feature: GeoJSON.Feature) => {
-			const featureId = feature.properties?.id;
-			const item = featureId !== undefined ? filteredLookup.get(String(featureId)) : undefined;
-			if (item) onSelectMarker(item);
-		},
-		[filteredLookup, onSelectMarker],
-	);
+	const handlePointClick = (feature: GeoJSON.Feature) => {
+		const featureId = feature.properties?.id;
+		const item = featureId !== undefined ? filteredLookup.get(String(featureId)) : undefined;
+		if (item) onSelectMarker(item);
+	};
 
 	return (
 		<>
@@ -103,4 +100,4 @@ export const LocationMarkerClusterView = memo(function LocationMarkerClusterView
 			) : null}
 		</>
 	);
-});
+}

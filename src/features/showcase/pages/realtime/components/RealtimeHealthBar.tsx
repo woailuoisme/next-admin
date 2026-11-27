@@ -31,14 +31,14 @@ export function RealtimeHealthBar({
 				{/* Status indicator & WS info */}
 				<div className="flex flex-wrap items-center gap-3">
 					<div className="flex items-center gap-2">
-						<span className="relative flex h-3 w-3">
+						<span className="relative flex size-3">
 							{isConnected ? (
 								<>
 									<span className="bg-primary/75 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
-									<span className="bg-primary relative inline-flex h-3 w-3 rounded-full" />
+									<span className="bg-primary relative inline-flex size-3 rounded-full" />
 								</>
 							) : (
-								<span className="bg-destructive relative inline-flex h-3 w-3 rounded-full" />
+								<span className="bg-destructive relative inline-flex size-3 rounded-full" />
 							)}
 						</span>
 						<span className="text-foreground text-sm font-semibold tracking-tight">Centrifugo v6 引擎状态</span>
@@ -48,14 +48,18 @@ export function RealtimeHealthBar({
 						variant={isConnected ? "default" : state === "connecting" ? "secondary" : "destructive"}
 						className="capitalize"
 					>
-						{isConnected ? <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> : <WifiOff className="mr-1 h-3.5 w-3.5" />}
+						{isConnected ? (
+							<CheckCircle2 className="mr-1 size-3.5" aria-hidden="true" />
+						) : (
+							<WifiOff className="mr-1 size-3.5" aria-hidden="true" />
+						)}
 						{state}
 					</Badge>
 
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<div className="bg-muted text-muted-foreground flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-xs">
-								<Globe className="h-3.5 w-3.5" />
+								<Globe className="size-3.5" aria-hidden="true" />
 								<span className="max-w-[240px] truncate sm:max-w-xs">{wsUrl}</span>
 							</div>
 						</TooltipTrigger>
@@ -65,7 +69,7 @@ export function RealtimeHealthBar({
 					</Tooltip>
 
 					<div className="bg-muted/70 text-foreground flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs">
-						<Activity className="text-primary h-3.5 w-3.5" />
+						<Activity className="text-primary size-3.5" aria-hidden="true" />
 						<span>RTT 延迟:</span>
 						<span className={cn("font-mono font-medium", rtt > 100 ? "text-destructive" : "text-foreground")}>
 							{rtt > 0 ? `${rtt} ms` : "—"}
@@ -87,13 +91,14 @@ export function RealtimeHealthBar({
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<Button
+								type="button"
 								variant="outline"
 								size="sm"
 								onClick={handlePing}
 								disabled={isPinging || !isConnected}
-								className="h-8 gap-1 text-xs"
+								className="text-xs"
 							>
-								<RefreshCw className={cn("h-3.5 w-3.5", isPinging && "animate-spin")} />
+								<RefreshCw data-icon="inline-start" className={cn(isPinging && "animate-spin")} aria-hidden="true" />
 								探测延迟
 							</Button>
 						</TooltipTrigger>
@@ -102,17 +107,18 @@ export function RealtimeHealthBar({
 
 					{isConnected ? (
 						<Button
+							type="button"
 							variant="outline"
 							size="sm"
 							onClick={disconnect}
-							className="text-destructive hover:bg-destructive/10 h-8 gap-1 text-xs"
+							className="text-destructive hover:bg-destructive/10 text-xs"
 						>
-							<Unplug className="h-3.5 w-3.5" />
+							<Unplug data-icon="inline-start" aria-hidden="true" />
 							断开连接
 						</Button>
 					) : (
-						<Button variant="default" size="sm" onClick={reconnect} className="h-8 gap-1 text-xs">
-							<Wifi className="h-3.5 w-3.5" />
+						<Button type="button" variant="default" size="sm" onClick={reconnect} className="text-xs">
+							<Wifi data-icon="inline-start" aria-hidden="true" />
 							重新连接
 						</Button>
 					)}

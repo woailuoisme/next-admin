@@ -202,7 +202,7 @@ export function SchemaRenderer<TValues = Record<string, any>>({
 			{rendered}
 		</Grid>
 	) : (
-		<div className={cn("space-y-4", className)}>{rendered}</div>
+		<div className={cn("flex flex-col gap-4", className)}>{rendered}</div>
 	);
 
 	if (record !== undefined || mode === "view") {

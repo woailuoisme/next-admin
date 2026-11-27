@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { memo } from "react";
 
 import { MapMarker, MarkerContent, MarkerTooltip } from "@/components/ui/map";
 
@@ -13,7 +12,7 @@ export interface ArcNodeMarkerProps {
 	arcColor: string;
 }
 
-export const ArcNodeMarker = memo(function ArcNodeMarker({ node, size = 10, arcColor }: ArcNodeMarkerProps) {
+export function ArcNodeMarker({ node, size = 10, arcColor }: ArcNodeMarkerProps) {
 	const t = useTranslations("map");
 	const ariaLabel = node.label
 		? `${node.label} (${t("arc_node_routes", { count: node.count })})`
@@ -51,4 +50,4 @@ export const ArcNodeMarker = memo(function ArcNodeMarker({ node, size = 10, arcC
 			) : null}
 		</MapMarker>
 	);
-});
+}

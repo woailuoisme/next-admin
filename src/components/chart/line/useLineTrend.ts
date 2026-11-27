@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
 
 import type { ChartReferenceLine } from "../shared/types";
 import type { LineTrendChartProps } from "./types";
@@ -43,9 +42,8 @@ export function useLineTrend(props: LineTrendChartProps) {
     yAxisFormatter: propYAxisFormatter,
   });
 
-  const normalizedSeries = useMemo(() => {
-    if (series?.length) {
-      return series.map((s, idx) => {
+  const normalizedSeries = series?.length
+    ? series.map((s, idx) => {
         const resolvedColor = s.color || CHART_PALETTE[idx % CHART_PALETTE.length];
         return {
           ...s,
@@ -56,28 +54,22 @@ export function useLineTrend(props: LineTrendChartProps) {
             stroke: resolvedColor,
           },
         };
-      });
-    }
-
-    return [
-      {
-        dataKey,
-        name: seriesName,
-        color: activeStroke,
-        strokeWidth: 2.5,
-        activeDot: {
-          ...DEFAULT_LINE_ACTIVE_DOT_BASE,
-          stroke: activeStroke,
+      })
+    : [
+        {
+          dataKey,
+          name: seriesName,
+          color: activeStroke,
+          strokeWidth: 2.5,
+          activeDot: {
+            ...DEFAULT_LINE_ACTIVE_DOT_BASE,
+            stroke: activeStroke,
+          },
         },
-      },
-    ];
-  }, [series, dataKey, seriesName, activeStroke]);
+      ];
 
-  const referenceLines = useMemo<ChartReferenceLine[] | undefined>(() => {
-    if (typeof referenceValue !== "number") {
-      return propReferenceLines;
-    }
-
+  let referenceLines: ChartReferenceLine[] | undefined = propReferenceLines;
+  if (typeof referenceValue === "number") {
     const primaryLine: ChartReferenceLine = {
       y: referenceValue,
       label: referenceLabel ?? t("line_reference_target", { value: valueFormatter(referenceValue) }),
@@ -86,9 +78,8 @@ export function useLineTrend(props: LineTrendChartProps) {
       strokeWidth: DEFAULT_REFERENCE_STROKE_WIDTH,
       position: "insideTopRight",
     };
-
-    return propReferenceLines?.length ? [primaryLine, ...propReferenceLines] : [primaryLine];
-  }, [referenceValue, referenceLabel, propReferenceLines, valueFormatter, t]);
+    referenceLines = propReferenceLines?.length ? [primaryLine, ...propReferenceLines] : [primaryLine];
+  }
 
   return {
     normalizedSeries,

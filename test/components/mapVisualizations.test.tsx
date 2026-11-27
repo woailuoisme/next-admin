@@ -464,4 +464,18 @@ describe("MapFrame & All 5 Map Families", () => {
 
 		window.matchMedia = origMatchMedia;
 	});
+
+	it("renders localized route error message when RouteTrackingMap receives error without isError", () => {
+		renderMap(
+			<RouteTrackingMap
+				coordinates={[
+					[116.4, 39.9],
+					[117.2, 39.1],
+				]}
+				error={new Error("upstream failed")}
+			/>,
+		);
+
+		expect(screen.getByRole("alert")).toHaveTextContent(zhMessages.map.route_error);
+	});
 });

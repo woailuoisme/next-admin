@@ -5,6 +5,7 @@ import {
   hasStoredResetFlow,
   hasUsableResetToken,
   patchResetFlow,
+  peekResetFlow,
   readResetFlow,
   saveResetFlow,
 } from "@/features/auth/resetFlow";
@@ -50,6 +51,14 @@ describe("auth reset flow storage", () => {
 
   it("ignores patches when there is no flow", () => {
     expect(patchResetFlow({ resetToken: "r-x" })).toBeNull();
+  });
+
+  it("peeks expired flow without mutating storage (StrictMode-safe render)", () => {
+    saveResetFlow({ ticket: "t-peek", email: "a@example.com", expiresAt: PAST() });
+
+    expect(peekResetFlow()).toEqual({ flow: null, expired: true });
+    expect(peekResetFlow()).toEqual({ flow: null, expired: true });
+    expect(hasStoredResetFlow()).toBe(true);
   });
 
   it("reports whether anything was stored before cleanup", () => {

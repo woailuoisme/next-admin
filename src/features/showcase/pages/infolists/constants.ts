@@ -11,7 +11,7 @@ export const SAMPLE_USER_DATA = {
   balance: 12450.75,
   reputation: 98.6,
   joinedAt: "2024-03-15T09:30:00Z",
-  themeColor: "#6366f1",
+  themeColor: "var(--primary)",
   avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
   portfolio: [
     "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=300&auto=format&fit=crop&q=80",

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { useMap } from "@/components/ui/map";
 
@@ -24,7 +24,7 @@ export interface MapFitBoundsProps {
 /**
  * 无渲染边界框自适应控制器：在数据就绪或集合规模变化时自动将视野收敛至全部要素范围。
  */
-export const MapFitBounds = memo(function MapFitBounds({
+export function MapFitBounds({
 	points,
 	enabled = false,
 	padding = 48,
@@ -71,4 +71,4 @@ export const MapFitBounds = memo(function MapFitBounds({
 	}, [enabled, isLoaded, map, points, padding, maxZoom, duration]);
 
 	return null;
-});
+}

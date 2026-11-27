@@ -1,7 +1,5 @@
 "use client";
 
-import { memo } from "react";
-
 import { Bar, Line } from "recharts";
 
 import type { ComposedTrendChartProps } from "./types";
@@ -18,7 +16,7 @@ import { useComposedTrend } from "./useComposedTrend";
 
 const COMPOSED_BAR_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 
-export const ComposedTrendChart = memo(function ComposedTrendChart(props: ComposedTrendChartProps) {
+export function ComposedTrendChart(props: ComposedTrendChartProps) {
 	const {
 		data,
 		xAxisKey = "label",
@@ -91,4 +89,4 @@ export const ComposedTrendChart = memo(function ComposedTrendChart(props: Compos
 			))}
 		</CartesianScaffold>
 	);
-});
+}

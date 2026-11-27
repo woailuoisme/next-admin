@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { Cpu } from "lucide-react";
-import { memo, useMemo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -16,7 +15,7 @@ import { LocationMarkerSearchOverlay } from "./LocationMarkerSearchOverlay";
 import { LocationMarkerMobileDrawer, LocationMarkerSidebar } from "./LocationMarkerSidebar";
 import { useLocationMarkers } from "./useLocationMarkers";
 
-export const LocationMarkerMap = memo(function LocationMarkerMap(props: LocationMarkerMapProps) {
+export function LocationMarkerMap(props: LocationMarkerMapProps) {
 	const t = useTranslations("map");
 	const {
 		height = 500,
@@ -75,72 +74,48 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
 	const hasNoData = isEmpty || (!isLoading && filteredData.length === 0 && !deferredSearchQuery);
 	const isCanvasTier = renderMode === "canvas" || (renderMode === "auto" && filteredData.length >= tierThreshold);
 
-	const overlaySlot = useMemo(
-		() => (
-			<>
-				{isCanvasTier ? (
-					<Badge
-						variant="secondary"
-						className="border-primary/20 bg-background/90 text-foreground absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-xs backdrop-blur-md"
-					>
-						<Cpu className="text-primary size-3 animate-pulse" aria-hidden="true" />
-						<span>{t("markers_gpu_badge", { count: filteredData.length })}</span>
-					</Badge>
-				) : null}
+	const overlaySlot = (
+		<>
+			{isCanvasTier ? (
+				<Badge
+					variant="secondary"
+					className="border-primary/20 bg-background/90 text-foreground absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-xs backdrop-blur-md"
+				>
+					<Cpu className="text-primary size-3 animate-pulse" aria-hidden="true" />
+					<span>{t("markers_gpu_badge", { count: filteredData.length })}</span>
+				</Badge>
+			) : null}
 
-				<LocationMarkerSearchOverlay
-					showSearch={showSearch}
-					searchQuery={searchQuery}
-					onSearchChange={setSearchQuery}
-					searchPlaceholder={searchPlaceholder}
-					showCategoryFilter={showCategoryFilter}
-					categories={categories}
-					selectedCategory={selectedCategory}
-					onCategoryChange={setSelectedCategory}
-					totalCount={totalCount}
-					categoryCounts={categoryCounts}
-				/>
+			<LocationMarkerSearchOverlay
+				showSearch={showSearch}
+				searchQuery={searchQuery}
+				onSearchChange={setSearchQuery}
+				searchPlaceholder={searchPlaceholder}
+				showCategoryFilter={showCategoryFilter}
+				categories={categories}
+				selectedCategory={selectedCategory}
+				onCategoryChange={setSelectedCategory}
+				totalCount={totalCount}
+				categoryCounts={categoryCounts}
+			/>
 
-				{showSidebarList ? (
-					<LocationMarkerMobileDrawer
-						filteredData={filteredData}
-						selectedMarker={selectedMarker}
-						onSelectMarker={handleSelectMarker}
-					/>
-				) : null}
-			</>
-		),
-		[
-			isCanvasTier,
-			t,
-			filteredData,
-			showSearch,
-			searchQuery,
-			setSearchQuery,
-			searchPlaceholder,
-			showCategoryFilter,
-			categories,
-			selectedCategory,
-			setSelectedCategory,
-			totalCount,
-			categoryCounts,
-			showSidebarList,
-			selectedMarker,
-			handleSelectMarker,
-		],
-	);
-
-	const afterMapSlot = useMemo(
-		() =>
-			showSidebarList ? (
-				<LocationMarkerSidebar
+			{showSidebarList ? (
+				<LocationMarkerMobileDrawer
 					filteredData={filteredData}
 					selectedMarker={selectedMarker}
 					onSelectMarker={handleSelectMarker}
 				/>
-			) : null,
-		[showSidebarList, filteredData, selectedMarker, handleSelectMarker],
+			) : null}
+		</>
 	);
+
+	const afterMapSlot = showSidebarList ? (
+		<LocationMarkerSidebar
+			filteredData={filteredData}
+			selectedMarker={selectedMarker}
+			onSelectMarker={handleSelectMarker}
+		/>
+	) : null;
 
 	return (
 		<MapFrame
@@ -197,4 +172,4 @@ export const LocationMarkerMap = memo(function LocationMarkerMap(props: Location
 			)}
 		</MapFrame>
 	);
-});
+}

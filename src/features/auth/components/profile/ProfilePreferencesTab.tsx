@@ -41,8 +41,8 @@ export function ProfilePreferencesTab() {
 				<CardTitle className="text-base">{t("preferences_title")}</CardTitle>
 				<CardDescription>{t("preferences_desc")}</CardDescription>
 			</CardHeader>
-			<CardContent className="space-y-6">
-				<div className="space-y-2">
+			<CardContent className="flex flex-col gap-6">
+				<div className="flex flex-col gap-2">
 					<Label>{t("pref_theme_mode")}</Label>
 					<div className="grid grid-cols-3 gap-2">
 						{(
@@ -57,6 +57,7 @@ export function ProfilePreferencesTab() {
 								type="button"
 								variant={mode === opt.value ? "default" : "outline"}
 								size="sm"
+								aria-pressed={mode === opt.value}
 								onClick={() => setMode(opt.value)}
 								className="cursor-pointer"
 							>
@@ -66,7 +67,7 @@ export function ProfilePreferencesTab() {
 					</div>
 				</div>
 
-				<div className="space-y-2">
+				<div className="flex flex-col gap-2">
 					<Label>{t("pref_theme_color")}</Label>
 					<div className="flex flex-wrap gap-2">
 						{THEME_CONFIGS.map((cfg) => (
@@ -75,6 +76,7 @@ export function ProfilePreferencesTab() {
 								type="button"
 								variant={theme === cfg.id ? "default" : "outline"}
 								size="sm"
+								aria-pressed={theme === cfg.id}
 								onClick={() => setTheme(cfg.id as ThemeColor)}
 								className="cursor-pointer gap-2"
 							>
@@ -89,7 +91,7 @@ export function ProfilePreferencesTab() {
 					</div>
 				</div>
 
-				<div className="space-y-2">
+				<div className="flex flex-col gap-2">
 					<Label>{t("pref_radius")}</Label>
 					<div className="flex flex-wrap gap-2">
 						{RADIUS_OPTIONS.map((opt) => (
@@ -98,6 +100,7 @@ export function ProfilePreferencesTab() {
 								type="button"
 								variant={radius === opt.value ? "default" : "outline"}
 								size="sm"
+								aria-pressed={radius === opt.value}
 								onClick={() => setRadius(opt.value)}
 								className="cursor-pointer"
 							>
@@ -107,13 +110,14 @@ export function ProfilePreferencesTab() {
 					</div>
 				</div>
 
-				<div className="space-y-2">
+				<div className="flex flex-col gap-2">
 					<Label>{t("pref_language")}</Label>
 					<div className="flex gap-2">
 						<Button
 							type="button"
 							variant={locale === "zh" ? "default" : "outline"}
 							size="sm"
+							aria-pressed={locale === "zh"}
 							onClick={() => handleLanguageChange("zh")}
 							className="cursor-pointer"
 						>
@@ -123,6 +127,7 @@ export function ProfilePreferencesTab() {
 							type="button"
 							variant={locale === "en" ? "default" : "outline"}
 							size="sm"
+							aria-pressed={locale === "en"}
 							onClick={() => handleLanguageChange("en")}
 							className="cursor-pointer"
 						>

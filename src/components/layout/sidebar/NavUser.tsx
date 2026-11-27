@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 
-import { useMemoizedFn } from "ahooks";
 import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -58,7 +57,7 @@ export interface NavUserProps {
 function UserIdentity({ user, initials }: { user: SidebarUser; initials: string }) {
 	return (
 		<>
-			<Avatar className="h-8 w-8 rounded-lg after:rounded-lg [&_img]:rounded-lg">
+			<Avatar className="size-8 rounded-lg after:rounded-lg [&_img]:rounded-lg">
 				{user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
 				<AvatarFallback className="rounded-lg">{initials || "U"}</AvatarFallback>
 			</Avatar>
@@ -76,9 +75,9 @@ export function NavUser({ defaultOpen }: NavUserProps) {
 	const { isMobile, state } = useSidebar();
 	const { user, onLogout, isLoggingOut = false } = useLayoutAuth();
 
-	const handleLogout = useMemoizedFn(() => {
+	const handleLogout = () => {
 		onLogout?.();
-	});
+	};
 
 	if (!user) {
 		return <NavUserSkeleton />;
@@ -115,23 +114,23 @@ export function NavUser({ defaultOpen }: NavUserProps) {
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem className="cursor-pointer">
-								<Sparkles className="mr-2 size-4" />
+							<DropdownMenuItem disabled>
+								<Sparkles aria-hidden="true" />
 								<span>{t("nav_user_upgrade_pro")}</span>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
 							<DropdownMenuItem className="cursor-pointer" onSelect={() => router.push("/profile")}>
-								<BadgeCheck className="mr-2 size-4" />
+								<BadgeCheck aria-hidden="true" />
 								<span>{t("nav_user_account")}</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="cursor-pointer">
-								<CreditCard className="mr-2 size-4" />
+							<DropdownMenuItem disabled>
+								<CreditCard aria-hidden="true" />
 								<span>{t("nav_user_billing")}</span>
 							</DropdownMenuItem>
 							<DropdownMenuItem className="cursor-pointer" onSelect={() => router.push("/notifications")}>
-								<Bell className="mr-2 size-4" />
+								<Bell aria-hidden="true" />
 								<span>{t("nav_user_notifications")}</span>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
@@ -143,7 +142,7 @@ export function NavUser({ defaultOpen }: NavUserProps) {
 								onSelect={handleLogout}
 								disabled={isLoggingOut || !onLogout}
 							>
-								<LogOut className="mr-2 size-4" />
+								<LogOut aria-hidden="true" />
 								<span>{isLoggingOut ? t("nav_user_logging_out") : t("nav_user_logout")}</span>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>

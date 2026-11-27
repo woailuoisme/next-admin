@@ -76,7 +76,7 @@ export function SummaryEntry({
 	return (
 		<div
 			className={cn(
-				"border-border/60 bg-muted/10 space-y-1.5 rounded-lg border p-3 text-xs",
+				"border-border/60 bg-muted/10 flex flex-col gap-1.5 rounded-lg border p-3 text-xs",
 				colSpan ? COL_SPAN_CLASSES[colSpan] : undefined,
 				className,
 			)}

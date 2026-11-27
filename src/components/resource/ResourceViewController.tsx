@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
+import { AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { type DialogSize, ViewDialog } from "@/components/dialogs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { type ResourceDefinition, useResourceDetail } from "@/lib/resource";
 
 import type { ResourceActionsInput, ResourcePresentation, ResourceTranslateFn, ResourceViewSlotContext } from "./types";
@@ -47,17 +49,26 @@ export function ResourceViewController<TItem extends { id: string | number }>({
 	renderView,
 }: ResourceViewControllerProps<TItem>) {
 	const t = useTranslations(resource.i18nNamespace as never) as unknown as ResourceTranslateFn;
-	const { data: fetchedEntity, isLoading } = useResourceDetail(resource, viewId ?? "", {
-		enabled: Boolean(open && viewId),
+	const tResource = useTranslations("resource");
+	const shouldFetchDetail = Boolean(open && viewId);
+	const {
+		data: fetchedEntity,
+		isLoading,
+		isError,
+		refetch,
+	} = useResourceDetail(resource, viewId ?? "", {
+		enabled: shouldFetchDetail,
 	});
 
 	const effectiveEntity = fetchedEntity ?? activeViewItem ?? null;
+	const isDetailError = Boolean(shouldFetchDetail && isError && !effectiveEntity);
+	const isDetailNotFound = Boolean(shouldFetchDetail && !isLoading && !isDetailError && !effectiveEntity);
 
-	const handleEdit = useMemoizedFn(() => {
+	const handleEdit = () => {
 		if (!onEdit || !effectiveEntity) return;
 		onOpenChange(false);
 		onEdit(String(effectiveEntity.id));
-	});
+	};
 
 	const viewProps = buildResourceViewProps({
 		resource,
@@ -71,6 +82,23 @@ export function ResourceViewController<TItem extends { id: string | number }>({
 		renderView,
 	});
 
+	const errorFallback =
+		isDetailError || isDetailNotFound ? (
+			<Alert variant="destructive">
+				<AlertCircle aria-hidden="true" />
+				<AlertDescription className="flex flex-col gap-3">
+					<span>{isDetailError ? tResource("detail_load_error") : tResource("detail_not_found")}</span>
+					{isDetailError ? (
+						<div>
+							<Button type="button" variant="outline" size="xs" onClick={() => void refetch()}>
+								{tResource("retry")}
+							</Button>
+						</div>
+					) : null}
+				</AlertDescription>
+			</Alert>
+		) : null;
+
 	return (
 		<ViewDialog
 			presentation={presentation}
@@ -80,6 +108,8 @@ export function ResourceViewController<TItem extends { id: string | number }>({
 			allowFullscreen={allowFullscreen}
 			onEdit={onEdit && effectiveEntity ? handleEdit : undefined}
 			{...viewProps}
-		/>
+		>
+			{errorFallback ?? viewProps.children}
+		</ViewDialog>
 	);
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -26,7 +27,7 @@ interface NavMainDropdownItemRowProps {
 	isActive: boolean;
 }
 
-const NavMainDropdownItemRow = function NavMainDropdownItemRow({ subItem, isActive }: NavMainDropdownItemRowProps) {
+function NavMainDropdownItemRow({ subItem, isActive }: NavMainDropdownItemRowProps) {
 	return (
 		<DropdownMenuItem
 			asChild
@@ -49,7 +50,7 @@ const NavMainDropdownItemRow = function NavMainDropdownItemRow({ subItem, isActi
 			</Link>
 		</DropdownMenuItem>
 	);
-};
+}
 
 export function NavMainDropdown({ item, currentPath, isChildActive }: NavMainDropdownProps) {
 	const Icon = item.icon;
@@ -68,7 +69,7 @@ export function NavMainDropdown({ item, currentPath, isChildActive }: NavMainDro
 							isChildActive && "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-xs",
 						)}
 					>
-						<Icon className="size-4" />
+						<Icon aria-hidden="true" />
 						<span>{item.title}</span>
 					</SidebarMenuButton>
 				</DropdownMenuTrigger>
@@ -78,14 +79,18 @@ export function NavMainDropdown({ item, currentPath, isChildActive }: NavMainDro
 					sideOffset={10}
 					className="border-sidebar-border bg-popover/95 min-w-48 rounded-lg border p-1.5 shadow-xl backdrop-blur-md"
 				>
-					<DropdownMenuLabel className="text-muted-foreground flex items-center justify-between px-2 py-1.5 text-xs font-semibold">
-						<span>{item.title}</span>
-						<NavBadge badge={item.badge} />
-					</DropdownMenuLabel>
+					<DropdownMenuGroup>
+						<DropdownMenuLabel className="text-muted-foreground flex items-center justify-between px-2 py-1.5 text-xs font-semibold">
+							<span>{item.title}</span>
+							<NavBadge badge={item.badge} />
+						</DropdownMenuLabel>
+					</DropdownMenuGroup>
 					<DropdownMenuSeparator className="bg-border/50 my-1" />
-					{subItems.map((subItem) => (
-						<NavMainDropdownItemRow key={subItem.to} subItem={subItem} isActive={subItem.to === activeSubPath} />
-					))}
+					<DropdownMenuGroup>
+						{subItems.map((subItem) => (
+							<NavMainDropdownItemRow key={subItem.to} subItem={subItem} isActive={subItem.to === activeSubPath} />
+						))}
+					</DropdownMenuGroup>
 				</DropdownMenuContent>
 			</DropdownMenu>
 		</SidebarMenuItem>

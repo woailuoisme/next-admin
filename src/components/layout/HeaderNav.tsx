@@ -33,7 +33,7 @@ export interface HeaderNavProps {
 export function HeaderNav({ rightSlot, customGroups }: HeaderNavProps) {
 	const t = useTranslations("layout");
 	const pathname = usePathname();
-	const pageTitle = useRouteTitle(pathname);
+	const pageTitle = useRouteTitle(pathname, undefined, customGroups);
 
 	return (
 		<header className="border-border/60 bg-background/95 sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b px-4 backdrop-blur-md">

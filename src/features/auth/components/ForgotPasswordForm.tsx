@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Form, useAppForm } from "@/components/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MessageKeyOf } from "@/types/i18n";
 
@@ -39,23 +40,20 @@ export function ForgotPasswordForm({ expired = false }: ForgotPasswordFormProps)
 
 	return (
 		<AuthCard className="max-w-md">
-			<CardHeader className="space-y-1 text-center">
+			<CardHeader className="flex flex-col gap-1 text-center">
 				<CardTitle className="text-xl font-bold tracking-tight">{t("forgot_card_title")}</CardTitle>
 				<CardDescription className="text-xs">{t("forgot_card_hint")}</CardDescription>
 			</CardHeader>
 
-			<CardContent className="space-y-4">
+			<CardContent className="flex flex-col gap-4">
 				{expired ? (
-					<p
-						className="bg-muted text-muted-foreground flex items-center gap-1.5 rounded-md px-3 py-2 text-xs"
-						role="status"
-					>
-						<AlertCircle className="size-3.5 shrink-0" />
-						<span>{t("flow_expired_notice")}</span>
-					</p>
+					<Alert role="status" className="bg-muted text-muted-foreground">
+						<AlertCircle aria-hidden="true" />
+						<AlertDescription className="text-xs">{t("flow_expired_notice")}</AlertDescription>
+					</Alert>
 				) : null}
 
-				<Form form={form} className="space-y-4">
+				<Form form={form} className="flex flex-col gap-4">
 					<form.AppForm>
 						<form.AppField name="email">
 							{(field) => (

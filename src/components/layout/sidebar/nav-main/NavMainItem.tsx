@@ -21,7 +21,7 @@ export function NavMainItem({ item, isActive: controlledActive, currentPath }: N
 		<SidebarMenuItem>
 			<SidebarMenuButton asChild isActive={isActive} tooltip={item.title} className="font-medium">
 				<Link href={item.to}>
-					<Icon className="size-4" />
+					<Icon aria-hidden="true" />
 					<span>{item.title}</span>
 					<NavBadge badge={item.badge} className="ml-auto" />
 				</Link>

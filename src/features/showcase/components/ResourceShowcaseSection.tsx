@@ -1,13 +1,13 @@
-import { useMemoizedFn } from "ahooks";
-import { BadgeCheck, Check, Code2, Copy, Eye, Layers, Pencil, Plus, Sparkles } from "lucide-react";
+import { BadgeCheck, Code2, Eye, Layers, Pencil, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { cn } from "cn";
 
 import type { ResourcePresentation } from "@/components/resource";
+import { CopyButton } from "@/components/shared/CopyButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "cn";
 
 import {
 	buildCustomerSampleCode,
@@ -23,13 +23,8 @@ const PRESENTATION_MODES = [
 	{ key: "page", label: "📄 Page (独立页)" },
 ] as const;
 
-export function ResourceShowcaseSection() {
-	const [presentation, setPresentation] = useState<ResourcePresentation>("dialog");
-	const [customer, setCustomer] = useState<SampleCustomer>(INITIAL_CUSTOMER);
-	const [copied, setCopied] = useState(false);
-	const [activeMode, setActiveMode] = useState<"create" | "edit" | "view" | null>(null);
-
-	const [newCustomerDefaults] = useState<SampleCustomer>(() => ({
+function createNewCustomerDefaults(): SampleCustomer {
+	return {
 		id: `cust-${Math.floor(1000 + Math.random() * 9000)}`,
 		name: "",
 		email: "",
@@ -37,11 +32,20 @@ export function ResourceShowcaseSection() {
 		tier: "pro",
 		isActive: true,
 		notes: "",
-	}));
+	};
+}
+
+export function ResourceShowcaseSection() {
+	const [presentation, setPresentation] = useState<ResourcePresentation>("dialog");
+	const [customer, setCustomer] = useState<SampleCustomer>(INITIAL_CUSTOMER);
+	const [activeMode, setActiveMode] = useState<"create" | "edit" | "view" | null>(null);
+
+	const [newCustomerDefaults, setNewCustomerDefaults] = useState<SampleCustomer>(createNewCustomerDefaults);
 
 	const sampleCode = buildCustomerSampleCode(presentation);
 
 	const openCreate = () => {
+		setNewCustomerDefaults(createNewCustomerDefaults());
 		setActiveMode("create");
 		toast.info(`Triggered Create operation in [${presentation}] presentation mode`);
 	};
@@ -56,13 +60,6 @@ export function ResourceShowcaseSection() {
 		toast.info(`Triggered View operation for #${id} in [${presentation}] mode`);
 	};
 
-	const handleCopyCode = useMemoizedFn(() => {
-		navigator.clipboard.writeText(sampleCode);
-		setCopied(true);
-		toast.success("Code snippet copied to clipboard!");
-		setTimeout(() => setCopied(false), 2000);
-	});
-
 	return (
 		<Card className="border-border/70 overflow-hidden shadow-xs">
 			<CardHeader className="border-border/60 bg-muted/20 border-b pb-4">
@@ -70,7 +67,7 @@ export function ResourceShowcaseSection() {
 					<div>
 						<div className="flex items-center gap-2">
 							<span className="bg-primary/10 text-primary flex size-7 items-center justify-center rounded-lg">
-								<Layers className="size-4" />
+								<Layers className="size-4" aria-hidden="true" />
 							</span>
 							<CardTitle className="text-base font-semibold">Filament v5 工业级 Resource CRUD 宿主架构</CardTitle>
 							<Badge variant="outline" className="border-primary/30 text-primary text-[11px]">
@@ -83,20 +80,18 @@ export function ResourceShowcaseSection() {
 						</CardDescription>
 					</div>
 
-					<div className="border-border/70 bg-background/80 flex items-center gap-1.5 rounded-lg border p-1 shadow-xs">
+					<div className="border-border/70 bg-background/80 flex items-center gap-1 rounded-lg border p-1 shadow-xs">
 						{PRESENTATION_MODES.map((item) => (
 							<Button
 								key={item.key}
 								type="button"
 								variant={presentation === item.key ? "default" : "ghost"}
-								size="sm"
+								size="xs"
 								aria-pressed={presentation === item.key}
 								onClick={() => setPresentation(item.key)}
 								className={cn(
-									"h-auto cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-all",
-									presentation === item.key
-										? "shadow-xs"
-										: "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+									"px-2.5 text-xs font-medium",
+									presentation !== item.key && "text-muted-foreground hover:text-foreground",
 								)}
 							>
 								{item.label}
@@ -106,9 +101,9 @@ export function ResourceShowcaseSection() {
 				</div>
 			</CardHeader>
 
-			<CardContent className="space-y-6 p-6">
+			<CardContent className="flex flex-col gap-6 p-6">
 				<div className="border-border/60 bg-muted/15 flex flex-col justify-between gap-4 rounded-xl border p-4 sm:flex-row sm:items-center">
-					<div className="space-y-1">
+					<div className="flex flex-col gap-1">
 						<div className="text-foreground text-sm font-medium">
 							当前演示形态：<span className="text-primary ml-1 font-semibold capitalize">{presentation} Mode</span>
 						</div>
@@ -118,8 +113,8 @@ export function ResourceShowcaseSection() {
 					</div>
 
 					<div className="flex flex-wrap items-center gap-2.5">
-						<Button type="button" size="sm" onClick={openCreate} className="h-8.5 gap-1.5 text-xs shadow-xs">
-							<Plus className="size-3.5" />
+						<Button type="button" size="sm" onClick={openCreate} className="text-xs shadow-xs">
+							<Plus data-icon="inline-start" aria-hidden="true" />
 							<span>新建客户 (Create)</span>
 						</Button>
 						<Button
@@ -127,9 +122,9 @@ export function ResourceShowcaseSection() {
 							variant="outline"
 							size="sm"
 							onClick={() => openEdit(customer.id)}
-							className="h-8.5 gap-1.5 text-xs shadow-xs"
+							className="text-xs shadow-xs"
 						>
-							<Pencil className="size-3.5" />
+							<Pencil data-icon="inline-start" aria-hidden="true" />
 							<span>编辑客户 (Edit)</span>
 						</Button>
 						<Button
@@ -137,18 +132,18 @@ export function ResourceShowcaseSection() {
 							variant="secondary"
 							size="sm"
 							onClick={() => openView(customer.id)}
-							className="h-8.5 gap-1.5 text-xs shadow-xs"
+							className="text-xs shadow-xs"
 						>
-							<Eye className="size-3.5" />
+							<Eye data-icon="inline-start" aria-hidden="true" />
 							<span>查看详情 (View)</span>
 						</Button>
 					</div>
 				</div>
 
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-					<div className="border-border/60 bg-card space-y-2 rounded-lg border p-4">
+					<div className="border-border/60 bg-card flex flex-col gap-2 rounded-lg border p-4">
 						<div className="text-foreground flex items-center gap-2 text-xs font-semibold">
-							<BadgeCheck className={`size-4 shrink-0 ${SHOWCASE_ACCENT_CLASSES.success}`} />
+							<BadgeCheck className={`size-4 shrink-0 ${SHOWCASE_ACCENT_CLASSES.success}`} aria-hidden="true" />
 							<span>100% 视图与逻辑零冗余复用</span>
 						</div>
 						<p className="text-muted-foreground text-xs leading-relaxed">
@@ -157,20 +152,20 @@ export function ResourceShowcaseSection() {
 						</p>
 					</div>
 
-					<div className="border-border/60 bg-card space-y-2 rounded-lg border p-4">
+					<div className="border-border/60 bg-card flex flex-col gap-2 rounded-lg border p-4">
 						<div className="text-foreground flex items-center gap-2 text-xs font-semibold">
-							<BadgeCheck className={`size-4 shrink-0 ${SHOWCASE_ACCENT_CLASSES.info}`} />
+							<BadgeCheck className={`size-4 shrink-0 ${SHOWCASE_ACCENT_CLASSES.info}`} aria-hidden="true" />
 							<span>双轨路由与搜索参数自动适配</span>
 						</div>
 						<p className="text-muted-foreground text-xs leading-relaxed">
-							弹窗/抽屉自动同步 <code>?create=true</code> 与 <code>?editId=xxx</code>
-							（支持浏览器前进后退与协作分享）；页面模式自动调用路由跳转。
+							生产级 <code>ResourceScaffold</code> 会自动同步 <code>?create=true</code>、<code>?editId=xxx</code> 与详情
+							URL 参数；页面模式自动接入 Next.js App Router 子路由跳转。
 						</p>
 					</div>
 
-					<div className="border-border/60 bg-card space-y-2 rounded-lg border p-4">
+					<div className="border-border/60 bg-card flex flex-col gap-2 rounded-lg border p-4">
 						<div className="text-foreground flex items-center gap-2 text-xs font-semibold">
-							<BadgeCheck className={`size-4 shrink-0 ${SHOWCASE_ACCENT_CLASSES.warning}`} />
+							<BadgeCheck className={`size-4 shrink-0 ${SHOWCASE_ACCENT_CLASSES.warning}`} aria-hidden="true" />
 							<span>吸底操作栏与未保存拦截守卫</span>
 						</div>
 						<p className="text-muted-foreground text-xs leading-relaxed">
@@ -181,10 +176,10 @@ export function ResourceShowcaseSection() {
 				</div>
 
 				{presentation === "page" ? (
-					<div className="border-primary/30 bg-primary/5 space-y-3 rounded-xl border-2 border-dashed p-4">
+					<div className="border-primary/30 bg-primary/5 flex flex-col gap-3 rounded-xl border-2 border-dashed p-4">
 						<div className="flex items-center justify-between">
 							<div className="text-primary flex items-center gap-2 text-xs font-semibold">
-								<Sparkles className="size-4" />
+								<Sparkles className="size-4" aria-hidden="true" />
 								<span>Page 模式运行机制</span>
 							</div>
 							<Badge variant="outline" className="border-primary/40 bg-background text-[10px]">
@@ -192,8 +187,8 @@ export function ResourceShowcaseSection() {
 							</Badge>
 						</div>
 						<p className="text-muted-foreground text-xs leading-relaxed">
-							在生产项目中，Page 模式通常直接映射到独立路由页面（如 <code>/_authenticated/customers/create</code> 或{" "}
-							<code>/_authenticated/customers/$id/edit</code>）。
+							在生产项目中，Page 模式通常直接映射到独立 App Router 页面（如 <code>/customers/create</code> 或{" "}
+							<code>/customers/[id]/edit</code>）。
 						</p>
 					</div>
 				) : null}
@@ -201,12 +196,10 @@ export function ResourceShowcaseSection() {
 				<div className="border-border/60 bg-muted/40 relative rounded-lg border p-4 font-mono text-xs">
 					<div className="border-border/50 text-muted-foreground flex items-center justify-between border-b pb-2 text-[11px]">
 						<span className="flex items-center gap-1.5">
-							<Code2 className="size-3.5" />
+							<Code2 className="size-3.5" aria-hidden="true" />
 							<span>标准业务集成范例 (Resource Form / View Host)</span>
 						</span>
-						<Button type="button" variant="ghost" size="icon-xs" onClick={handleCopyCode} className="h-6 w-6">
-							{copied ? <Check className={`size-3 ${SHOWCASE_ACCENT_CLASSES.success}`} /> : <Copy className="size-3" />}
-						</Button>
+						<CopyButton text={sampleCode} title="复制代码片段" />
 					</div>
 					<pre className="text-foreground overflow-x-auto pt-3 text-[11px] leading-relaxed">{sampleCode}</pre>
 				</div>

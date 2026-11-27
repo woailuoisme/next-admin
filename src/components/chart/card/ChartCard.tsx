@@ -7,7 +7,8 @@ import { AlertCircle, Maximize2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "cn";
 
@@ -61,7 +62,9 @@ export function ChartCard({
 }: ChartCardProps) {
 	const t = useTranslations("chart");
 	const [isFullscreen, setIsFullscreen] = useState(false);
+	const [hasOpenedFullscreen, setHasOpenedFullscreen] = useState(false);
 	const handleOpenFullscreen = () => {
+		setHasOpenedFullscreen(true);
 		setIsFullscreen(true);
 	};
 
@@ -80,9 +83,9 @@ export function ChartCard({
 
 	return (
 		<>
-			<Card className={cn("flex flex-col overflow-hidden border-border/60 shadow-xs", className)}>
+			<Card className={cn("flex flex-col overflow-hidden shadow-xs", className)}>
 				<CardHeader className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">
-					<div className="min-w-0 space-y-1">
+					<div className="flex min-w-0 flex-col gap-1">
 						<CardTitle className="text-base font-semibold tracking-tight">{title}</CardTitle>
 						{description && <CardDescription className="text-muted-foreground text-xs">{description}</CardDescription>}
 					</div>
@@ -91,14 +94,10 @@ export function ChartCard({
 						{legendSlot}
 
 						{normalizedPeriods.length > 0 && (
-							<Tabs value={currentPeriod} onValueChange={onPeriodChange} className="h-8">
-								<TabsList className="bg-muted/60 h-8 p-0.5">
+							<Tabs value={currentPeriod} onValueChange={onPeriodChange}>
+								<TabsList>
 									{normalizedPeriods.map((opt) => (
-										<TabsTrigger
-											key={opt.value}
-											value={opt.value}
-											className="data-[state=active]:bg-background h-7 px-2.5 text-xs data-[state=active]:shadow-2xs"
-										>
+										<TabsTrigger key={opt.value} value={opt.value} className="px-2.5 text-xs">
 											{opt.label}
 										</TabsTrigger>
 									))}
@@ -115,49 +114,50 @@ export function ChartCard({
 								size="icon"
 								onClick={handleOpenFullscreen}
 								disabled={isLoading || isEmpty}
-								className="text-muted-foreground hover:text-foreground size-8"
+								className="text-muted-foreground hover:text-foreground"
 								title={t("fullscreen_title")}
 								aria-label={t("fullscreen_title")}
 							>
-								<Maximize2 className="size-3.5" aria-hidden="true" />
+								<Maximize2 aria-hidden="true" />
 							</Button>
 						)}
 					</div>
 				</CardHeader>
 
-				<CardContent className="min-w-0 flex-1 pt-2 pb-5">
+				<CardContent className={cn("min-w-0 flex-1 pt-2", !footerSlot && "pb-5")}>
 					{isLoading ? (
 						<ChartSkeleton height={height} variant={skeletonVariant} />
 					) : errorMessage ? (
-						<div
-							className="flex w-full flex-col items-center justify-center space-y-3 p-6 text-center"
-							style={{ height }}
-						>
-							<div className="bg-destructive/10 text-destructive rounded-full p-2.5">
-								<AlertCircle className="size-5" aria-hidden="true" />
-							</div>
-							<p className="text-destructive text-sm font-medium">{errorMessage}</p>
+						<Empty role="alert" style={{ minHeight: height }} className="border-0 p-6">
+							<EmptyHeader>
+								<EmptyMedia variant="icon" className="bg-destructive/10 text-destructive rounded-full">
+									<AlertCircle aria-hidden="true" />
+								</EmptyMedia>
+								<EmptyTitle className="text-destructive">{errorMessage}</EmptyTitle>
+							</EmptyHeader>
 							{onRetry && (
-								<Button type="button" variant="outline" size="sm" onClick={onRetry} className="h-8 gap-1.5 text-xs">
-									<RefreshCw className="size-3.5" aria-hidden="true" />
-									{t("retry")}
-								</Button>
+								<EmptyContent>
+									<Button type="button" variant="outline" size="sm" onClick={onRetry}>
+										<RefreshCw data-icon="inline-start" aria-hidden="true" />
+										{t("retry")}
+									</Button>
+								</EmptyContent>
 							)}
-						</div>
+						</Empty>
 					) : isEmpty ? (
 						<ChartEmptyState message={emptyMessage} height={height} />
 					) : (
-						<div className="w-full min-w-0" style={{ height }}>
+						<div className="w-full min-w-0" style={{ minHeight: height }}>
 							<ChartProvider height={height}>{children}</ChartProvider>
 						</div>
 					)}
-
-					{footerSlot && <div className="border-border/40 mt-2 border-t pt-4">{footerSlot}</div>}
 				</CardContent>
+
+				{footerSlot && <CardFooter>{footerSlot}</CardFooter>}
 			</Card>
 
-			{/* Fullscreen Focus Dialog (Lazy loaded on demand) */}
-			{showFullscreen && isFullscreen && (
+			{/* Fullscreen Focus Dialog (Lazy loaded on demand, preserved mounted after first open for exit animation) */}
+			{showFullscreen && hasOpenedFullscreen && (
 				<ChartFullscreenDialog
 					open={isFullscreen}
 					onOpenChange={setIsFullscreen}

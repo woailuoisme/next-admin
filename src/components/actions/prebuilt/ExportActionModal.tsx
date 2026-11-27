@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemoizedFn } from "ahooks";
-import { Download, Loader2 } from "lucide-react";
+import { Download } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { toast } from "sonner";
@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 
 import type { ActionRuntimeResourceBridge, ExportActionConfig, ExportColumnOption, ExportFormat } from "../types";
 import { resolveActionValue } from "../utils";
@@ -50,6 +51,10 @@ function ExportActionModalPanel<TPayload, TItem>({
 	const [isExporting, setIsExporting] = useState(false);
 
 	const initialRows = Array.isArray(payload) ? (payload as unknown as TItem[]) : (resourceBridge?.rows ?? []);
+	const submitLabel =
+		config.resolveRows && initialRows.length === 0
+			? t("export_submit_async")
+			: t("export_submit", { count: initialRows.length });
 	const availableColumns: ExportColumnOption<TItem>[] = config.columns?.length
 		? config.columns
 		: inferExportColumnsFromRows(initialRows);
@@ -106,9 +111,9 @@ function ExportActionModalPanel<TPayload, TItem>({
 	return (
 		<>
 			<div className={DIALOG_BODY_CLASS}>
-				<div className="space-y-4">
+				<div className="flex flex-col gap-4">
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<div className="space-y-1.5">
+						<div className="flex flex-col gap-1.5">
 							<Label htmlFor={formatId} className="text-xs font-medium">
 								{t("export_format")}
 							</Label>
@@ -117,16 +122,18 @@ function ExportActionModalPanel<TPayload, TItem>({
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-									{formats.map((item) => (
-										<SelectItem key={item} value={item} className="text-xs">
-											{FORMAT_LABELS[item]}
-										</SelectItem>
-									))}
+									<SelectGroup>
+										{formats.map((item) => (
+											<SelectItem key={item} value={item} className="text-xs">
+												{FORMAT_LABELS[item]}
+											</SelectItem>
+										))}
+									</SelectGroup>
 								</SelectContent>
 							</Select>
 						</div>
 
-						<div className="space-y-1.5">
+						<div className="flex flex-col gap-1.5">
 							<Label htmlFor={fileNameId} className="text-xs font-medium">
 								{t("export_filename")}
 							</Label>
@@ -163,14 +170,13 @@ function ExportActionModalPanel<TPayload, TItem>({
 				>
 					{t("cancel")}
 				</Button>
-				<Button
-					type="button"
-					onClick={() => void handleSubmit()}
-					disabled={isExporting}
-					className="h-8.5 gap-1.5 px-4 text-xs"
-				>
-					{isExporting ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
-					<span>{t("export_submit", { count: initialRows.length })}</span>
+				<Button type="button" onClick={() => void handleSubmit()} disabled={isExporting} className="h-8.5 px-4 text-xs">
+					{isExporting ? (
+						<Spinner data-icon="inline-start" role={undefined} aria-hidden="true" />
+					) : (
+						<Download data-icon="inline-start" aria-hidden="true" />
+					)}
+					{submitLabel}
 				</Button>
 			</DialogFooter>
 		</>

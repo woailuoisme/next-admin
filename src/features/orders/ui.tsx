@@ -4,6 +4,7 @@ import { Clock, DollarSign, PackageCheck, ShoppingCart } from "lucide-react";
 
 import { defineResourceUI } from "@/components/resource";
 import { Badge } from "@/components/ui/badge";
+import { getLocale } from "@/i18n/config";
 
 import { computeOrderStats, ORDER_STATUS_OPTIONS, orderResource } from "./resource";
 import { OrderDetailInfolist } from "./schema";
@@ -15,22 +16,30 @@ const STATUS_LABEL_KEY_MAP = Object.fromEntries(ORDER_STATUS_OPTIONS.map((opt) =
 	(typeof ORDER_STATUS_OPTIONS)[number]["labelKey"]
 >;
 
+function formatOrderDateTime(iso: string): string {
+	const date = new Date(iso);
+	if (Number.isNaN(date.getTime())) return iso;
+	return date.toLocaleString(getLocale() === "en" ? "en-US" : "zh-CN");
+}
+
 export const orderUI = defineResourceUI(orderResource, {
 	stats: {
 		columns: 4,
 		sparklineLayout: "inline",
 		build: ({ rows, total, rawResponse, t }) => {
 			const stats = computeOrderStats(rows, total, rawResponse?.summary);
+			const totalOrders = stats?.total ?? 0;
 			const pendingCount = stats?.pendingCount ?? 0;
+			const deliveredCount = stats?.deliveredCount ?? 0;
+			const deliveredRate = totalOrders > 0 ? `${Math.round((deliveredCount / totalOrders) * 100)}%` : "0%";
 			return [
 				{
 					id: "total",
 					title: t("metric_total_title"),
-					value: stats?.total ?? 0,
+					value: totalOrders,
 					icon: ShoppingCart,
 					theme: "chart-1",
 					description: t("metric_total_desc"),
-					trend: { value: "+12.4%", direction: "up", label: t("metric_total_trend") },
 					sparklineData: stats?.sparklines?.totalOrders,
 					sparklineType: "bar",
 				},
@@ -51,11 +60,11 @@ export const orderUI = defineResourceUI(orderResource, {
 				{
 					id: "delivered",
 					title: t("metric_delivered_title"),
-					value: stats?.deliveredCount ?? 0,
+					value: deliveredCount,
 					icon: PackageCheck,
 					theme: "chart-2",
 					description: t("metric_delivered_desc"),
-					trend: { value: "95.6%", direction: "up", label: t("metric_delivered_trend") },
+					trend: { value: deliveredRate, direction: "neutral", label: t("metric_delivered_trend") },
 					sparklineData: stats?.sparklines?.delivered,
 				},
 				{
@@ -67,7 +76,6 @@ export const orderUI = defineResourceUI(orderResource, {
 					icon: DollarSign,
 					theme: "chart-4",
 					description: t("metric_aov_desc"),
-					trend: { value: "+5.2%", direction: "up", label: t("metric_aov_trend") },
 					sparklineData: stats?.sparklines?.avgOrderValue,
 				},
 			];
@@ -86,7 +94,7 @@ export const orderUI = defineResourceUI(orderResource, {
 			);
 		},
 		description: (order, t) =>
-			order ? t("detail_placed_on", { date: new Date(order.createdAt).toLocaleString() }) : t("detail_sheet_desc"),
+			order ? t("detail_placed_on", { date: formatOrderDateTime(order.createdAt) }) : t("detail_sheet_desc"),
 		render: ({ entity }) => <OrderDetailInfolist order={entity} />,
 	},
 });

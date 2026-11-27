@@ -1,7 +1,5 @@
 "use client";
 
-import { memo } from "react";
-
 import { Bar } from "recharts";
 
 import type { BarTrendChartProps } from "./types";
@@ -14,7 +12,7 @@ import { DEFAULT_ANIMATION_DURATION, DEFAULT_CHART_MARGIN } from "../shared/cons
 
 const BAR_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 
-export const BarTrendChart = memo(function BarTrendChart({
+export function BarTrendChart({
 	data,
 	dataKey = "value",
 	xAxisKey = "label",
@@ -81,4 +79,4 @@ export const BarTrendChart = memo(function BarTrendChart({
 			)}
 		</CartesianScaffold>
 	);
-});
+}

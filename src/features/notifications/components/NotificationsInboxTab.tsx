@@ -8,6 +8,7 @@ import { useState } from "react";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import {
@@ -63,11 +64,20 @@ export function NotificationsInboxTab({ items, isLoading }: NotificationsInboxTa
 	const hasSearchOrCategoryFilter = categoryFilter !== "all" || normalizedSearch.length > 0;
 	const hasAnyFilter = hasSearchOrCategoryFilter || unreadOnly;
 
+	let systemCount = 0;
+	let orderCount = 0;
+	let customerCount = 0;
+	for (const item of items) {
+		if (item.category === "system") systemCount++;
+		else if (item.category === "order") orderCount++;
+		else if (item.category === "customer") customerCount++;
+	}
+
 	const categoryTabs: { key: NotificationCategoryFilter; label: string; count: number }[] = [
 		{ key: "all", label: t("tab_all"), count: items.length },
-		{ key: "system", label: t("tab_system"), count: items.filter((i) => i.category === "system").length },
-		{ key: "order", label: t("tab_order"), count: items.filter((i) => i.category === "order").length },
-		{ key: "customer", label: t("tab_customer"), count: items.filter((i) => i.category === "customer").length },
+		{ key: "system", label: t("tab_system"), count: systemCount },
+		{ key: "order", label: t("tab_order"), count: orderCount },
+		{ key: "customer", label: t("tab_customer"), count: customerCount },
 	];
 
 	const handleToggleSelectAll = (checked: boolean) => {
@@ -86,14 +96,14 @@ export function NotificationsInboxTab({ items, isLoading }: NotificationsInboxTa
 
 	const handleBatchMarkRead = async () => {
 		if (activeSelectedIds.length === 0) return;
-		await batchMarkReadMutation.mutateAsync(activeSelectedIds);
-		setSelectedIds([]);
+		const { failedIds } = await batchMarkReadMutation.mutateAsync(activeSelectedIds);
+		setSelectedIds(failedIds);
 	};
 
 	const handleBatchDeleteConfirm = async () => {
 		if (activeSelectedIds.length === 0) return;
-		await batchDeleteMutation.mutateAsync(activeSelectedIds);
-		setSelectedIds([]);
+		const { failedIds } = await batchDeleteMutation.mutateAsync(activeSelectedIds);
+		setSelectedIds(failedIds);
 	};
 
 	const handleItemOpen = (item: NotificationItem) => {
@@ -105,10 +115,16 @@ export function NotificationsInboxTab({ items, isLoading }: NotificationsInboxTa
 		}
 	};
 
+	const emptyDescription = hasSearchOrCategoryFilter
+		? t("empty_search_desc")
+		: unreadOnly
+			? t("empty_unread_desc")
+			: t("empty_category_desc");
+
 	return (
 		<>
 			<Card>
-				<CardContent className="space-y-4 p-4 sm:p-5">
+				<CardContent className="flex flex-col gap-4 p-4 sm:p-5">
 					<NotificationInboxFilterBar
 						categoryFilter={categoryFilter}
 						onCategoryChange={(next) => {
@@ -133,12 +149,12 @@ export function NotificationsInboxTab({ items, isLoading }: NotificationsInboxTa
 					/>
 
 					{isLoading ? (
-						<div className="space-y-3">
+						<div className="flex flex-col gap-3">
 							{[1, 2, 3, 4].map((idx) => (
 								<div key={idx} className="border-border flex items-start gap-3 rounded-lg border p-3.5">
 									<Skeleton className="mt-1 size-4 rounded" />
 									<Skeleton className="size-9 rounded-full" />
-									<div className="flex-1 space-y-2">
+									<div className="flex flex-1 flex-col gap-2">
 										<Skeleton className="h-4 w-48" />
 										<Skeleton className="h-3.5 w-full max-w-md" />
 									</div>
@@ -146,30 +162,28 @@ export function NotificationsInboxTab({ items, isLoading }: NotificationsInboxTa
 							))}
 						</div>
 					) : filteredItems.length === 0 ? (
-						<div className="border-border/70 flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-12 text-center">
-							<div className="bg-muted mb-3 flex size-11 items-center justify-center rounded-full">
-								<Bell className="text-muted-foreground size-5" />
-							</div>
-							<p className="text-foreground text-sm font-medium">{t("empty_title")}</p>
-							<p className="text-muted-foreground mt-1 max-w-sm text-xs">
-								{hasSearchOrCategoryFilter
-									? t("empty_search_desc")
-									: unreadOnly
-										? t("empty_unread_desc")
-										: t("empty_category_desc")}
-							</p>
+						<Empty className="border-dashed py-12">
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<Bell aria-hidden="true" />
+								</EmptyMedia>
+								<EmptyTitle className="text-sm">{t("empty_title")}</EmptyTitle>
+								<EmptyDescription className="max-w-sm text-xs">{emptyDescription}</EmptyDescription>
+							</EmptyHeader>
 							{hasAnyFilter ? (
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									onClick={handleClearFilters}
-									className="mt-4 cursor-pointer"
-								>
-									{t("clear_filters")}
-								</Button>
+								<EmptyContent>
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={handleClearFilters}
+										className="cursor-pointer"
+									>
+										{t("clear_filters")}
+									</Button>
+								</EmptyContent>
 							) : null}
-						</div>
+						</Empty>
 					) : (
 						<div className="divide-border border-border divide-y overflow-hidden rounded-lg border">
 							{filteredItems.map((item) => (

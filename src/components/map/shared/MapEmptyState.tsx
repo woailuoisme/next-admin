@@ -2,9 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { AlertCircle, MapPinOff, RefreshCw } from "lucide-react";
-import { memo, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { cn } from "cn";
 
 export interface MapEmptyStateProps {
@@ -19,7 +20,7 @@ export interface MapEmptyStateProps {
 	className?: string;
 }
 
-export const MapEmptyState = memo(function MapEmptyState({
+export function MapEmptyState({
 	height = 400,
 	title,
 	description,
@@ -37,50 +38,48 @@ export const MapEmptyState = memo(function MapEmptyState({
 	const resolvedDesc = message ?? description ?? (isError ? t("error_tile_timeout") : t("empty_desc"));
 
 	return (
-		<div
+		<Empty
 			className={cn(
-				"relative flex w-full flex-col items-center justify-center rounded-lg border border-dashed border-border/70 p-6 text-center select-none",
+				"relative flex-none rounded-lg border border-border/70 select-none",
 				isError ? "border-destructive/30 bg-destructive/5" : "bg-muted/10",
 				className,
 			)}
 			style={{ height }}
 			role={isError ? "alert" : "status"}
 		>
-			<div
-				className={cn(
-					"flex size-12 items-center justify-center rounded-full",
-					isError ? "bg-destructive/10 text-destructive" : "bg-muted/50 text-muted-foreground",
-				)}
-			>
-				{isError ? (
-					<AlertCircle aria-hidden="true" className="size-6 stroke-[1.5]" />
-				) : (
-					<MapPinOff aria-hidden="true" className="size-6 stroke-[1.5]" />
-				)}
-			</div>
+			<EmptyHeader>
+				<EmptyMedia
+					variant="icon"
+					className={cn(
+						"size-12 rounded-full [&_svg:not([class*='size-'])]:size-6",
+						isError ? "bg-destructive/10 text-destructive" : "bg-muted/50 text-muted-foreground",
+					)}
+				>
+					{isError ? (
+						<AlertCircle aria-hidden="true" className="stroke-[1.5]" />
+					) : (
+						<MapPinOff aria-hidden="true" className="stroke-[1.5]" />
+					)}
+				</EmptyMedia>
 
-			<h4 className={cn("mt-3 text-sm font-semibold", isError ? "text-destructive" : "text-foreground")}>
-				{resolvedTitle}
-			</h4>
-			<p className={cn("mt-1 max-w-sm text-xs", isError ? "text-destructive/80" : "text-muted-foreground")}>
-				{resolvedDesc}
-			</p>
+				<EmptyTitle className={cn("font-sans text-sm font-semibold", isError ? "text-destructive" : "text-foreground")}>
+					{resolvedTitle}
+				</EmptyTitle>
+				<EmptyDescription className={cn("text-xs", isError ? "text-destructive/80" : "text-muted-foreground")}>
+					{resolvedDesc}
+				</EmptyDescription>
+			</EmptyHeader>
 
 			{action ? (
-				<div className="mt-4">{action}</div>
+				<EmptyContent>{action}</EmptyContent>
 			) : actionLabel && onAction ? (
-				<div className="mt-4">
-					<Button
-						variant={isError ? "destructive" : "outline"}
-						size="sm"
-						onClick={onAction}
-						className="h-8 gap-1.5 text-xs"
-					>
-						{isError ? <RefreshCw aria-hidden="true" className="size-3.5" /> : null}
+				<EmptyContent>
+					<Button variant={isError ? "destructive" : "outline"} size="sm" onClick={onAction}>
+						{isError ? <RefreshCw data-icon="inline-start" aria-hidden="true" /> : null}
 						{actionLabel}
 					</Button>
-				</div>
+				</EmptyContent>
 			) : null}
-		</div>
+		</Empty>
 	);
-});
+}

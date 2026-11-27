@@ -185,7 +185,10 @@ export function renderTextEntryContent({
 			const email = sanitizeContactToken(rawValue);
 			if (!email) return <span>{String(rawValue)}</span>;
 			return (
-				<a href={`mailto:${email}`} className="text-primary underline-offset-4 transition-colors hover:underline">
+				<a
+					href={`mailto:${email}`}
+					className="text-primary break-all underline-offset-4 transition-colors hover:underline"
+				>
 					{String(rawValue)}
 				</a>
 			);
@@ -195,7 +198,10 @@ export function renderTextEntryContent({
 			const phone = sanitizeContactToken(rawValue);
 			if (!phone) return <span>{String(rawValue)}</span>;
 			return (
-				<a href={`tel:${phone}`} className="text-primary underline-offset-4 transition-colors hover:underline">
+				<a
+					href={`tel:${phone}`}
+					className="text-primary break-all underline-offset-4 transition-colors hover:underline"
+				>
 					{String(rawValue)}
 				</a>
 			);

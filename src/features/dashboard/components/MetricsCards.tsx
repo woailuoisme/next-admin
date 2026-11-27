@@ -34,7 +34,8 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
 		return <StatsGrid columns={4} isLoading />;
 	}
 
-	const customerGrowth = metrics.customersGrowth ?? 8.2;
+	const hasCustomerGrowth = typeof metrics.customersGrowth === "number" && Number.isFinite(metrics.customersGrowth);
+	const customerGrowth = hasCustomerGrowth ? metrics.customersGrowth : 0;
 
 	return (
 		<StatsGrid columns={4}>
@@ -100,8 +101,8 @@ export function MetricsCards({ metrics, monthlyTrends, sparklines, isLoading = f
 				theme="chart-3"
 				description={t("metric_customers_desc")}
 				trend={{
-					value: formatSignedGrowth(customerGrowth),
-					direction: customerGrowth >= 0 ? "up" : "down",
+					value: hasCustomerGrowth ? formatSignedGrowth(customerGrowth) : "—",
+					direction: !hasCustomerGrowth ? "neutral" : customerGrowth >= 0 ? "up" : "down",
 					label: t("metric_customers_trend"),
 					isPositiveGood: true,
 				}}

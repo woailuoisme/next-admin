@@ -43,7 +43,7 @@ export function ImageEntry({
 }: ImageEntryProps) {
 	const t = useTranslations("infolist");
 	const rawValue = useInfolistFieldValue(name, explicitValue);
-	const [activeLightboxIndex, setActiveLightboxIndex] = React.useState<number | null>(null);
+	const [selectedPreviewUrl, setSelectedPreviewUrl] = React.useState<string | null>(null);
 	const [failedUrls, setFailedUrls] = React.useState<Record<string, true>>({});
 
 	const candidates = rawValue ? (Array.isArray(rawValue) ? rawValue : [rawValue]) : [];
@@ -80,23 +80,16 @@ export function ImageEntry({
 		);
 	}
 
-	let healthyIdx = -1;
-	const activePreviewUrl =
-		activeLightboxIndex !== null && activeLightboxIndex >= 0 && activeLightboxIndex < healthyImages.length
-			? healthyImages[activeLightboxIndex]
-			: null;
+	const activeLightboxIndex = selectedPreviewUrl ? healthyImages.indexOf(selectedPreviewUrl) : -1;
+	const activePreviewUrl = activeLightboxIndex >= 0 ? healthyImages[activeLightboxIndex] : null;
 
 	return (
 		<EntryWrapper {...wrapperProps}>
 			<div className="flex flex-wrap items-center gap-2">
 				{images.map((url, idx) => {
 					const isFailed = Boolean(failedUrls[url]);
-					if (!isFailed) {
-						healthyIdx += 1;
-					}
-					const currentHealthyIdx = healthyIdx;
 					const mediaNode = isFailed ? (
-						<div className="bg-muted/60 text-muted-foreground/70 flex h-full w-full items-center justify-center px-1 text-center text-[10px] select-none">
+						<div className="bg-muted/60 text-muted-foreground/70 flex size-full items-center justify-center px-1 text-center text-[10px] select-none">
 							{t("empty_image")}
 						</div>
 					) : (
@@ -104,7 +97,7 @@ export function ImageEntry({
 							src={url}
 							alt={`${alt} ${idx + 1}`}
 							onError={() => handleImageError(url)}
-							className="h-full w-full object-cover object-center"
+							className="size-full object-cover object-center"
 							loading="lazy"
 						/>
 					);
@@ -133,7 +126,7 @@ export function ImageEntry({
 							type="button"
 							variant="ghost"
 							aria-label={buttonAriaLabel}
-							onClick={() => setActiveLightboxIndex(currentHealthyIdx)}
+							onClick={() => setSelectedPreviewUrl(url)}
 							className={cn(
 								"group relative shrink-0 cursor-zoom-in overflow-hidden border border-border bg-muted/20 p-0 transition-all hover:ring-2 hover:ring-primary/40",
 								sizeClasses[size],
@@ -146,13 +139,13 @@ export function ImageEntry({
 				})}
 			</div>
 
-			{lightbox && activeLightboxIndex !== null && activePreviewUrl && (
+			{lightbox && activePreviewUrl && (
 				<DynamicImageLightboxModal
 					previewUrl={activePreviewUrl}
 					images={healthyImages}
 					initialIndex={activeLightboxIndex}
 					alt={alt}
-					onClose={() => setActiveLightboxIndex(null)}
+					onClose={() => setSelectedPreviewUrl(null)}
 				/>
 			)}
 		</EntryWrapper>

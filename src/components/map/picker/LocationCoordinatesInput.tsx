@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
 import { RotateCcw } from "lucide-react";
-import { memo, useId, useState } from "react";
+import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,7 @@ function toDraft(value?: number): string {
 	return String(Number(value.toFixed(6)));
 }
 
-export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
+export function LocationCoordinatesInput({
 	value,
 	disabled = false,
 	readOnly = false,
@@ -63,10 +63,20 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
 	const commit = useMemoizedFn((forceConfirm = false) => {
 		if (disabled || readOnly) return;
 
+		const trimmedLng = lngDraft.trim();
+		const trimmedLat = latDraft.trim();
 		const lng = parseStrictFinite(lngDraft);
 		const lat = parseStrictFinite(latDraft);
+		const isLngValid = lng !== null && lng >= -180 && lng <= 180;
+		const isLatValid = lat !== null && lat >= -85.0511 && lat <= 85.0511;
 
-		if (lng === null || lat === null || lng < -180 || lng > 180 || lat < -85.0511 || lat > 85.0511) {
+		if (!isLngValid || !isLatValid) {
+			// 无已提交坐标且仅单侧仍为空时保留已输入字段的合法草稿，避免从经度切往纬度时失焦误清空
+			if (!forceConfirm && value === undefined && (trimmedLng === "" || trimmedLat === "")) {
+				if (trimmedLng !== "" && !isLngValid) setLngDraft("");
+				if (trimmedLat !== "" && !isLatValid) setLatDraft("");
+				return;
+			}
 			setLngDraft(toDraft(value?.lng));
 			setLatDraft(toDraft(value?.lat));
 			return;
@@ -139,12 +149,12 @@ export const LocationCoordinatesInput = memo(function LocationCoordinatesInput({
 					variant="outline"
 					size="sm"
 					onClick={onReset}
-					className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs"
+					className="text-muted-foreground hover:text-foreground h-8"
 				>
-					<RotateCcw aria-hidden="true" className="size-3" />
+					<RotateCcw data-icon="inline-start" aria-hidden="true" />
 					{t("picker_reset")}
 				</Button>
 			) : null}
 		</div>
 	);
-});
+}

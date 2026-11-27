@@ -1,21 +1,22 @@
 "use client";
 
 import { KeyRound, Laptop, Lock } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { Form, useAppForm } from "@/components/form";
-import { DEFAULT_PASSWORD_REQUIREMENTS, PasswordStrengthMeter } from "@/components/form/security/PasswordStrengthMeter";
+import { PasswordStrengthMeter } from "@/components/form/security/PasswordStrengthMeter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { getApiErrorMessage } from "@/lib/apiClient";
 
 import { useChangePasswordMutation } from "../../hooks";
-import { buildChangePasswordSchema, PASSWORD_REQUIREMENT_LABEL_KEYS } from "../../schemas";
+import { buildChangePasswordSchema } from "../../schemas";
 import type { AdminUser } from "../../types";
-import { AuthFormError } from "../AuthShell";
+import { AuthFormError, useFormatShortDate, usePasswordRequirements } from "../AuthShell";
 
 export interface ProfileSecurityTabProps {
 	admin: AdminUser;
@@ -23,9 +24,9 @@ export interface ProfileSecurityTabProps {
 
 export function ProfileSecurityTab({ admin }: ProfileSecurityTabProps) {
 	const t = useTranslations("profile");
-	const tForm = useTranslations("form");
 	const tAuth = useTranslations("auth");
-	const locale = useLocale();
+	const formatDate = useFormatShortDate();
+	const passwordRequirements = usePasswordRequirements();
 	const changePasswordMutation = useChangePasswordMutation();
 	const [passwordError, setPasswordError] = useState<string | null>(null);
 
@@ -64,29 +65,18 @@ export function ProfileSecurityTab({ admin }: ProfileSecurityTabProps) {
 		},
 	});
 
-	const passwordRequirements = DEFAULT_PASSWORD_REQUIREMENTS.map((requirement, index) => ({
-		...requirement,
-		label: tForm(PASSWORD_REQUIREMENT_LABEL_KEYS[index]),
-	}));
-
-	const formatDate = (iso: string) => {
-		const d = new Date(iso);
-		if (Number.isNaN(d.getTime())) return iso;
-		return d.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" });
-	};
-
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2 text-base">
-						<KeyRound className="size-4" />
+						<KeyRound className="size-4" aria-hidden="true" />
 						{t("security_title")}
 					</CardTitle>
 					<CardDescription>{t("security_desc")}</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<Form form={passwordForm} className="space-y-4">
+					<Form form={passwordForm} className="flex flex-col gap-4">
 						{passwordError ? <AuthFormError message={passwordError} /> : null}
 
 						<passwordForm.AppForm>
@@ -96,7 +86,7 @@ export function ProfileSecurityTab({ admin }: ProfileSecurityTabProps) {
 										label={t("current_password_label")}
 										password
 										placeholder={t("current_password_placeholder")}
-										prefix={<Lock className="text-muted-foreground size-4" />}
+										prefix={<Lock className="text-muted-foreground size-4" aria-hidden="true" />}
 										autoComplete="current-password"
 										required
 									/>
@@ -109,7 +99,7 @@ export function ProfileSecurityTab({ admin }: ProfileSecurityTabProps) {
 										label={t("new_password_label")}
 										password
 										placeholder={t("new_password_placeholder")}
-										prefix={<Lock className="text-muted-foreground size-4" />}
+										prefix={<Lock className="text-muted-foreground size-4" aria-hidden="true" />}
 										autoComplete="new-password"
 										required
 									/>
@@ -126,7 +116,7 @@ export function ProfileSecurityTab({ admin }: ProfileSecurityTabProps) {
 										label={t("confirm_password_label")}
 										password
 										placeholder={t("confirm_password_placeholder")}
-										prefix={<Lock className="text-muted-foreground size-4" />}
+										prefix={<Lock className="text-muted-foreground size-4" aria-hidden="true" />}
 										autoComplete="new-password"
 										required
 									/>
@@ -136,6 +126,9 @@ export function ProfileSecurityTab({ admin }: ProfileSecurityTabProps) {
 
 						<div className="flex justify-end pt-2">
 							<Button type="submit" disabled={changePasswordMutation.isPending} className="cursor-pointer">
+								{changePasswordMutation.isPending ? (
+									<Spinner data-icon="inline-start" role={undefined} aria-hidden="true" />
+								) : null}
 								{changePasswordMutation.isPending ? t("updating_password") : t("update_password")}
 							</Button>
 						</div>
@@ -152,9 +145,9 @@ export function ProfileSecurityTab({ admin }: ProfileSecurityTabProps) {
 					<div className="border-border flex items-center justify-between rounded-lg border p-3.5">
 						<div className="flex items-center gap-3">
 							<div className="bg-primary/10 text-primary flex size-9 items-center justify-center rounded-lg">
-								<Laptop className="size-4" />
+								<Laptop className="size-4" aria-hidden="true" />
 							</div>
-							<div className="space-y-0.5">
+							<div className="flex flex-col gap-0.5">
 								<div className="flex items-center gap-2">
 									<span className="text-sm font-medium">{t("session_browser")}</span>
 									<Badge variant="secondary" className="h-5 px-1.5 text-[10px]">

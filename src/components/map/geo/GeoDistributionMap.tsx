@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useMemoizedFn } from "ahooks";
-import { memo, useCallback, useMemo, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 import { MapGeoJSON, type MapGeoJSONEvent } from "@/components/ui/map";
 
@@ -16,7 +16,7 @@ import { GeoDistributionHoverCard, type HoveredRegionInfo } from "./GeoDistribut
 import { GeoDistributionLegend } from "./GeoDistributionLegend";
 import { type LegendStep, useGeoDistribution } from "./useGeoDistribution";
 
-const GeoHoverLeaf = memo(function GeoHoverLeaf({
+function GeoHoverLeaf({
 	store,
 	unit,
 	showLegend,
@@ -36,9 +36,9 @@ const GeoHoverLeaf = memo(function GeoHoverLeaf({
 			{showLegend ? <GeoDistributionLegend legendTitle={legendTitle} legendSteps={legendSteps} /> : null}
 		</>
 	);
-});
+}
 
-export const GeoDistributionMap = memo(function GeoDistributionMap({
+export function GeoDistributionMap({
 	data,
 	coordinateSystem = "WGS84",
 	valueKey = "value",
@@ -99,28 +99,19 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
 		basemapCRS,
 	});
 
-	const fillPaint = useMemo(
-		() => ({
-			"fill-color": fillColorExpression,
-			"fill-opacity": fillOpacity,
-		}),
-		[fillColorExpression, fillOpacity],
-	);
+	const fillPaint = {
+		"fill-color": fillColorExpression,
+		"fill-opacity": fillOpacity,
+	};
 
-	const linePaint = useMemo(
-		() => ({
-			"line-color": borderColor || borderColorToken,
-			"line-width": borderWidth,
-		}),
-		[borderColor, borderColorToken, borderWidth],
-	);
+	const linePaint = {
+		"line-color": borderColor || borderColorToken,
+		"line-width": borderWidth,
+	};
 
-	const fillHoverPaint = useMemo(
-		() => ({
-			"fill-opacity": Math.min(1, fillOpacity + 0.25),
-		}),
-		[fillOpacity],
-	);
+	const fillHoverPaint = {
+		"fill-opacity": Math.min(1, fillOpacity + 0.25),
+	};
 
 	const handleHover = useMemoizedFn((e: MapGeoJSONEvent | null) => {
 		if (!e || !e.feature) {
@@ -142,25 +133,22 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
 	const combinedLoading = isLoading || fetchLoading;
 	const combinedError = error ?? fetchError;
 	const combinedHasError = Boolean(isError || combinedError);
-	const handleCombinedRetry = useCallback(() => {
+	const handleCombinedRetry = () => {
 		retryFetch();
 		onRetry?.();
-	}, [retryFetch, onRetry]);
+	};
 
 	const hasEmptyData =
 		isEmpty || (!combinedLoading && !combinedHasError && (!resolvedData || resolvedData.features.length === 0));
 
-	const overlaySlot = useMemo(
-		() => (
-			<GeoHoverLeaf
-				store={hoverStore}
-				unit={unit}
-				showLegend={showLegend}
-				legendTitle={effectiveLegendTitle}
-				legendSteps={legendSteps}
-			/>
-		),
-		[hoverStore, unit, showLegend, effectiveLegendTitle, legendSteps],
+	const overlaySlot = (
+		<GeoHoverLeaf
+			store={hoverStore}
+			unit={unit}
+			showLegend={showLegend}
+			legendTitle={effectiveLegendTitle}
+			legendSteps={legendSteps}
+		/>
 	);
 
 	return (
@@ -205,4 +193,4 @@ export const GeoDistributionMap = memo(function GeoDistributionMap({
 			) : null}
 		</MapFrame>
 	);
-});
+}

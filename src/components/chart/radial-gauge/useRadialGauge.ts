@@ -1,7 +1,6 @@
 "use client";
 
 import { clamp, orderBy } from "es-toolkit";
-import { useMemo } from "react";
 
 import type { RadialGaugeChartProps } from "./types";
 
@@ -29,15 +28,14 @@ export function useRadialGauge(props: RadialGaugeChartProps) {
   const percentage = high > low ? ((clampedValue - low) / (high - low)) * 100 : 0;
 
   // Pick color according to thresholds if provided
-  const activeColor = useMemo(() => {
-    if (color) return color;
-    if (thresholds && thresholds.length > 0) {
-      const sorted = orderBy(thresholds, [(t) => t.value], ["desc"]);
-      const matched = sorted.find((t) => clampedValue >= t.value);
-      if (matched) return matched.color;
-    }
-    return activeStroke;
-  }, [color, thresholds, clampedValue, activeStroke]);
+  let activeColor = activeStroke;
+  if (color) {
+    activeColor = color;
+  } else if (thresholds && thresholds.length > 0) {
+    const sorted = orderBy(thresholds, [(t) => t.value], ["desc"]);
+    const matched = sorted.find((t) => clampedValue >= t.value);
+    if (matched) activeColor = matched.color;
+  }
 
   // Geometry setup for a 240-degree open gauge arc
   const size = Math.max(64, resolveNumericChartHeight(resolvedHeight, 240));

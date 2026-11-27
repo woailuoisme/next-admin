@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { TabsContent } from "@/components/ui/tabs";
@@ -25,57 +25,51 @@ export function BroadcasterShowcaseTab() {
 	const [title, setTitle] = useState("新订单已支付成功");
 	const [content, setContent] = useState("订单号 #ORD-2026-9921，金额 ¥3,480.00，已通过实时通道下发履约通知");
 
-	const handlePublicDemoPub = useCallback(
-		(pub: { data: Record<string, unknown>; offset?: number }) => {
-			if (isPaused) return;
-			const data = pub.data;
-			setMessages((prev) => [
-				{
-					id: (data.id as string) || `msg-${Date.now()}-${Math.random()}`,
-					channel: "public:demo",
-					topic: (data.topic as StreamMessageItem["topic"]) || "custom",
-					level: (data.level as StreamMessageItem["level"]) || "info",
-					title: (data.title as string) || "实时广播事件",
-					content: (data.content as string) || JSON.stringify(data),
-					sender: (data.sender as string) || "anonymous_operator",
-					timestamp: (data.timestamp as number) || Date.now(),
-					offset: pub.offset,
-					rawPayload: data,
-				},
-				...prev.slice(0, 100),
-			]);
-		},
-		[isPaused],
-	);
+	const handlePublicDemoPub = (pub: { data: Record<string, unknown>; offset?: number }) => {
+		if (isPaused) return;
+		const data = pub.data;
+		setMessages((prev) => [
+			{
+				id: (data.id as string) || `msg-${Date.now()}-${Math.random()}`,
+				channel: "public:demo",
+				topic: (data.topic as StreamMessageItem["topic"]) || "custom",
+				level: (data.level as StreamMessageItem["level"]) || "info",
+				title: (data.title as string) || "实时广播事件",
+				content: (data.content as string) || JSON.stringify(data),
+				sender: (data.sender as string) || "anonymous_operator",
+				timestamp: (data.timestamp as number) || Date.now(),
+				offset: pub.offset,
+				rawPayload: data,
+			},
+			...prev.slice(0, 100),
+		]);
+	};
 
-	const handleNotificationPub = useCallback(
-		(pub: { data: Record<string, unknown>; offset?: number }) => {
-			if (isPaused) return;
-			const data = pub.data;
-			const level = (data.level as StreamMessageItem["level"]) || "info";
-			const itemTitle = (data.title as string) || "系统广播通知";
-			const itemContent = (data.content as string) || "";
-			const toastByLevel = { error: toast.error, warning: toast.warning, success: toast.success, info: toast.info };
-			(toastByLevel[level] ?? toast.info)(itemTitle, { description: itemContent });
+	const handleNotificationPub = (pub: { data: Record<string, unknown>; offset?: number }) => {
+		const data = pub.data;
+		const level = (data.level as StreamMessageItem["level"]) || "info";
+		const itemTitle = (data.title as string) || "系统广播通知";
+		const itemContent = (data.content as string) || "";
+		const toastByLevel = { error: toast.error, warning: toast.warning, success: toast.success, info: toast.info };
+		(toastByLevel[level] ?? toast.info)(itemTitle, { description: itemContent });
 
-			setMessages((prev) => [
-				{
-					id: (data.id as string) || `notif-${Date.now()}-${Math.random()}`,
-					channel: "notification",
-					topic: "notification",
-					level,
-					title: itemTitle,
-					content: itemContent,
-					sender: (data.sender as string) || "notification_broker",
-					timestamp: (data.timestamp as number) || Date.now(),
-					offset: pub.offset,
-					rawPayload: data,
-				},
-				...prev.slice(0, 100),
-			]);
-		},
-		[isPaused],
-	);
+		if (isPaused) return;
+		setMessages((prev) => [
+			{
+				id: (data.id as string) || `notif-${Date.now()}-${Math.random()}`,
+				channel: "notification",
+				topic: "notification",
+				level,
+				title: itemTitle,
+				content: itemContent,
+				sender: (data.sender as string) || "notification_broker",
+				timestamp: (data.timestamp as number) || Date.now(),
+				offset: pub.offset,
+				rawPayload: data,
+			},
+			...prev.slice(0, 100),
+		]);
+	};
 
 	useSubscription("public:demo", handlePublicDemoPub);
 	useSubscription("notification", handleNotificationPub);
@@ -145,7 +139,7 @@ export function BroadcasterShowcaseTab() {
 	});
 
 	return (
-		<TabsContent value="broadcaster" className="space-y-6">
+		<TabsContent value="broadcaster" className="flex flex-col gap-6">
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
 				<BroadcasterComposerCard
 					targetChannel={targetChannel}

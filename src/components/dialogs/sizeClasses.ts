@@ -29,7 +29,7 @@ export const SHEET_SIZE_CLASSES: Record<DialogSize, string> = {
 };
 
 /** 弹窗可滚动主体（表单字段 / 详情内容共用） */
-export const DIALOG_BODY_CLASS = "min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-4";
+export const DIALOG_BODY_CLASS = "flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-6 py-4";
 
 /** 弹窗吸底操作栏（DialogFooter / SheetFooter 共用） */
 export const DIALOG_FOOTER_CLASS =

@@ -1,6 +1,5 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -8,6 +7,7 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 
@@ -30,6 +30,16 @@ function getAccessibleLabel(label: ReactNode, ariaLabel: string | undefined, fal
 	if (ariaLabel) return ariaLabel;
 	if (typeof label === "string" && label.trim()) return label;
 	return fallback;
+}
+
+function renderActionIcon(IconComponent: ActionDef<any, any>["icon"], isPending: boolean, dataIcon?: "inline-start") {
+	if (isPending) {
+		return <Spinner role={undefined} aria-hidden="true" data-icon={dataIcon} />;
+	}
+	if (IconComponent) {
+		return <IconComponent aria-hidden="true" data-icon={dataIcon} />;
+	}
+	return null;
 }
 
 /**
@@ -74,11 +84,7 @@ export function ActionTriggerButton<TPayload = any>({
 		const isDestructive = color === "destructive";
 		const menuItemContent = (
 			<>
-				{isPending ? (
-					<Loader2 className="size-3.5 shrink-0 animate-spin" aria-hidden="true" />
-				) : Icon ? (
-					<Icon className="size-3.5 shrink-0" aria-hidden="true" />
-				) : null}
+				{renderActionIcon(Icon, isPending)}
 				<span className="flex-1 truncate">{label ?? accessibleName}</span>
 				{badge !== undefined ? (
 					<Badge variant="secondary" className="ml-auto h-4 px-1.5 text-[10px]">
@@ -124,14 +130,10 @@ export function ActionTriggerButton<TPayload = any>({
 
 	const isCellIcon = iconOnly || (surface === "cell" && Boolean(Icon));
 	const resolvedVariant = action.variant ?? (surface === "cell" ? "ghost" : ACTION_COLOR_BUTTON_VARIANT[color]);
-	const resolvedSize = action.size ?? (isCellIcon ? "icon-sm" : surface === "batch" ? "sm" : "sm");
+	const resolvedSize = action.size ?? (isCellIcon ? "icon-sm" : "sm");
 
 	const surfaceButtonClasses =
-		surface === "batch"
-			? "h-7 gap-1.5 rounded-full px-3 text-xs"
-			: isCellIcon
-				? "cursor-pointer"
-				: "h-8.5 gap-1.5 text-xs shadow-xs";
+		surface === "batch" ? "h-7 rounded-full px-3 text-xs" : isCellIcon ? "cursor-pointer" : "h-8.5 text-xs shadow-xs";
 
 	const colorClasses =
 		surface === "cell" && color === "destructive"
@@ -142,23 +144,16 @@ export function ActionTriggerButton<TPayload = any>({
 					? ACTION_COLOR_TEXT_CLASSES[color]
 					: "";
 
+	const iconNode = renderActionIcon(Icon, isPending, isCellIcon ? undefined : "inline-start");
 	const buttonContent = isCellIcon ? (
 		<>
-			{isPending ? (
-				<Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-			) : Icon ? (
-				<Icon className="size-3.5" aria-hidden="true" />
-			) : null}
+			{iconNode}
 			<span className="sr-only">{accessibleName}</span>
 		</>
 	) : (
 		<>
-			{isPending ? (
-				<Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-			) : Icon ? (
-				<Icon className="size-3.5" aria-hidden="true" />
-			) : null}
-			{label !== undefined ? <span>{label}</span> : null}
+			{iconNode}
+			{label}
 			{badge !== undefined ? (
 				<Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
 					{badge}

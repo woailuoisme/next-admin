@@ -20,9 +20,9 @@ const VARIANT_CONTENT: Record<Exclude<StatSkeletonVariant, "default">, ReactNode
 		<>
 			<div className="flex items-center justify-between">
 				<Skeleton className="h-4 w-28" />
-				<Skeleton className="h-9 w-9 rounded-lg" />
+				<Skeleton className="size-9 rounded-lg" />
 			</div>
-			<div className="space-y-2">
+			<div className="flex flex-col gap-2">
 				<Skeleton className="h-8 w-36" />
 				<Skeleton className="h-4 w-24" />
 			</div>
@@ -35,7 +35,7 @@ const VARIANT_CONTENT: Record<Exclude<StatSkeletonVariant, "default">, ReactNode
 				<Skeleton className="h-4 w-28" />
 				<Skeleton className="h-6 w-20 rounded-full" />
 			</div>
-			<div className="space-y-2">
+			<div className="flex flex-col gap-2">
 				<Skeleton className="h-8 w-32" />
 				<Skeleton className="h-4 w-20" />
 			</div>
@@ -46,9 +46,9 @@ const VARIANT_CONTENT: Record<Exclude<StatSkeletonVariant, "default">, ReactNode
 		<>
 			<div className="flex items-center justify-between">
 				<Skeleton className="h-4 w-28" />
-				<Skeleton className="h-9 w-9 rounded-lg" />
+				<Skeleton className="size-9 rounded-lg" />
 			</div>
-			<div className="space-y-2">
+			<div className="flex flex-col gap-2">
 				<Skeleton className="h-8 w-36" />
 				<Skeleton className="h-4 w-24" />
 			</div>
@@ -88,9 +88,9 @@ export function StatCardSkeleton({
 			size={resolvedDensity === "compact" ? "sm" : "default"}
 			data-density={resolvedDensity}
 			data-sparkline-layout={resolvedSparklineLayout}
-			className={cn("gap-0 overflow-hidden border border-border/60 py-0", className)}
+			className={cn("gap-0 overflow-hidden py-0", className)}
 		>
-			<CardContent className={cn("flex h-full flex-col justify-between gap-0", dStyles.cardPadding, dStyles.headerGap)}>
+			<CardContent className={cn("flex h-full flex-col justify-between", dStyles.cardPadding, dStyles.headerGap)}>
 				<span className="sr-only">{t("loading")}</span>
 				{variant !== "default" && VARIANT_CONTENT[variant] ? (
 					VARIANT_CONTENT[variant]
@@ -98,13 +98,20 @@ export function StatCardSkeleton({
 					<>
 						<div className="flex items-center justify-between">
 							<Skeleton className={cn(resolvedDensity === "compact" ? "h-3.5 w-20" : "h-4 w-24")} />
-							<Skeleton className={cn(resolvedDensity === "compact" ? "h-6 w-6 rounded-md" : "h-8 w-8 rounded-lg")} />
+							<Skeleton className={cn(resolvedDensity === "compact" ? "size-6 rounded-md" : "size-8 rounded-lg")} />
 						</div>
-						<div className={cn(resolvedDensity === "compact" ? "space-y-1" : "space-y-2")}>
+						<div className={cn("flex flex-col", resolvedDensity === "compact" ? "gap-1" : "gap-2")}>
 							<Skeleton className={cn(resolvedDensity === "compact" ? "h-6 w-28" : "h-7 w-32")} />
-							<Skeleton className="h-3.5 w-16" />
+							{hasSparkline && resolvedSparklineLayout === "inline" ? (
+								<div className="flex items-center justify-between gap-2.5">
+									<Skeleton className="h-3.5 w-16" />
+									<Skeleton className={cn("w-20 shrink-0", resolvedDensity === "compact" ? "h-5" : "h-7")} />
+								</div>
+							) : (
+								<Skeleton className="h-3.5 w-16" />
+							)}
 						</div>
-						{hasSparkline ? (
+						{hasSparkline && resolvedSparklineLayout === "bottom" ? (
 							<Skeleton className={cn("mt-1.5 w-full", resolvedDensity === "compact" ? "h-6" : "h-8")} />
 						) : null}
 					</>

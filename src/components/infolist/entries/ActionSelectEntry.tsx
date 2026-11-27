@@ -1,12 +1,12 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Loader2 } from "lucide-react";
 import * as React from "react";
 
 import { COL_SPAN_CLASSES, type ColSpan } from "@/components/shared/grid";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "cn";
 
 export interface ActionSelectOption<TValue extends string = string> {
@@ -72,7 +72,7 @@ function ActionSelectEntryImpl<TValue extends string = string>({
 	return (
 		<div
 			className={cn(
-				"border-border/70 bg-muted/20 space-y-2 rounded-xl border p-3",
+				"border-border/70 bg-muted/20 flex flex-col gap-2 rounded-xl border p-3",
 				colSpan ? COL_SPAN_CLASSES[colSpan] : undefined,
 				className,
 			)}
@@ -82,24 +82,22 @@ function ActionSelectEntryImpl<TValue extends string = string>({
 				{label}
 			</Label>
 			<Select value={value} onValueChange={(val) => void handleValueChange(val)} disabled={disabled || busy}>
-				<SelectTrigger
-					id={triggerId}
-					aria-busy={busy || undefined}
-					className="h-8 w-full text-xs font-medium capitalize"
-				>
+				<SelectTrigger id={triggerId} aria-busy={busy || undefined} className="w-full text-xs font-medium">
 					<SelectValue placeholder={placeholder} />
 				</SelectTrigger>
 				<SelectContent>
-					{options.map((item) => (
-						<SelectItem key={item.value} value={item.value}>
-							{item.label}
-						</SelectItem>
-					))}
+					<SelectGroup>
+						{options.map((item) => (
+							<SelectItem key={item.value} value={item.value}>
+								{item.label}
+							</SelectItem>
+						))}
+					</SelectGroup>
 				</SelectContent>
 			</Select>
 			{busy && pendingText ? (
 				<p role="status" aria-live="polite" className="text-muted-foreground flex items-center gap-1 text-[10px]">
-					<Loader2 className="size-3 animate-spin" aria-hidden="true" /> {pendingText}
+					<Spinner aria-hidden="true" className="size-3" /> {pendingText}
 				</p>
 			) : null}
 		</div>

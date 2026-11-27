@@ -1,7 +1,6 @@
 "use client";
 
 import { useFormatter } from "next-intl";
-import { memo } from "react";
 
 export interface HoveredRegionInfo {
 	name: string;
@@ -14,10 +13,7 @@ interface GeoDistributionHoverCardProps {
 	unit?: string;
 }
 
-export const GeoDistributionHoverCard = memo(function GeoDistributionHoverCard({
-	info,
-	unit = "",
-}: GeoDistributionHoverCardProps) {
+export function GeoDistributionHoverCard({ info, unit = "" }: GeoDistributionHoverCardProps) {
 	const formatter = useFormatter();
 	if (!info) return null;
 
@@ -34,4 +30,4 @@ export const GeoDistributionHoverCard = memo(function GeoDistributionHoverCard({
 			) : null}
 		</div>
 	);
-});
+}

@@ -3,7 +3,7 @@
 import type * as GeoJSON from "geojson";
 
 import { useFormatter } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { BasemapPreset } from "../presets/basemaps";
 import type { ChoroplethColorScheme, GeoDistributionMapProps } from "./types";
@@ -61,12 +61,12 @@ export function useGeoDistribution({
   } | null>(null);
   const [fetchNonce, setFetchNonce] = useState(0);
 
-  const retryFetch = useCallback(() => {
+  const retryFetch = () => {
     if (urlString) {
       geojsonUrlCache.delete(urlString);
       setFetchNonce((n) => n + 1);
     }
-  }, [urlString]);
+  };
 
   useEffect(() => {
     if (!urlString) return;
@@ -112,10 +112,7 @@ export function useGeoDistribution({
   const fetchError = urlString ? (activeFetchMatch?.error ?? null) : null;
   const fetchLoading = Boolean(urlString && !cachedUrlData && !activeFetchMatch);
 
-  const rawFeatureCollection = useMemo(() => {
-    if (isUrl) return fetchedGeojson;
-    return normalizeToFeatureCollection(data);
-  }, [isUrl, fetchedGeojson, data]);
+  const rawFeatureCollection = isUrl ? fetchedGeojson : normalizeToFeatureCollection(data);
 
   const { sourceCoords, targetCoords, needsTransform } = resolveCoordinateSystems(
     coordinateSystem as CoordinateSystem,
@@ -123,19 +120,18 @@ export function useGeoDistribution({
     basemapCRS,
   );
 
+  // 避免大体积 GeoJSON 多边形坐标转换在无关渲染时重复执行
   const resolvedData = useMemo<GeoJSON.FeatureCollection | null>(() => {
     if (!rawFeatureCollection) return null;
     if (!needsTransform) return rawFeatureCollection;
     return transformGeoJSON(rawFeatureCollection, sourceCoords, targetCoords);
   }, [rawFeatureCollection, needsTransform, sourceCoords, targetCoords]);
 
-  const fitBoundsPoints = useMemo(() => (resolvedData ? extractGeoJSONPoints(resolvedData) : []), [resolvedData]);
+  const fitBoundsPoints = resolvedData ? extractGeoJSONPoints(resolvedData) : [];
 
-  const colors = useMemo(
-    () => buildAdaptiveSchemeRamp(colorScheme as ChoroplethColorScheme, tokens),
-    [colorScheme, tokens],
-  );
+  const colors = buildAdaptiveSchemeRamp(colorScheme as ChoroplethColorScheme, tokens);
 
+  // 避免分级设色区间扫描与 MapLibre step 表达式重复构建
   const { min, max, thresholds, legendSteps, fillColorExpression } = useMemo(() => {
     const rawValues = resolvedData
       ? resolvedData.features

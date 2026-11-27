@@ -86,13 +86,13 @@ export function RootErrorComponent({
 			<h2 className="mb-2 text-xl font-bold tracking-tight">{effectiveTitle}</h2>
 			<p className="text-muted-foreground mb-6 max-w-md text-sm">{errorMessage}</p>
 			<div className="flex flex-wrap items-center justify-center gap-3">
-				<Button onClick={handleRetry} className="cursor-pointer gap-2">
-					<RefreshCw aria-hidden="true" className="size-4" />
+				<Button onClick={handleRetry} className="cursor-pointer">
+					<RefreshCw data-icon="inline-start" aria-hidden="true" />
 					{effectiveRetryText}
 				</Button>
-				<Button variant="outline" asChild className="cursor-pointer gap-2">
+				<Button variant="outline" asChild className="cursor-pointer">
 					<Link href="/">
-						<Home aria-hidden="true" className="size-4" />
+						<Home data-icon="inline-start" aria-hidden="true" />
 						{effectiveHomeText}
 					</Link>
 				</Button>
@@ -109,8 +109,9 @@ export function RootErrorComponent({
 						className="text-muted-foreground hover:text-foreground h-auto px-2 py-1 font-mono text-xs"
 					>
 						<ChevronDown
+							data-icon="inline-start"
 							aria-hidden="true"
-							className={cn("size-3.5 transition-transform duration-200", showDetails && "rotate-180")}
+							className={cn("transition-transform duration-200", showDetails && "rotate-180")}
 						/>
 						{showDetails ? t("error_hide_details") : t("error_show_details")}
 					</Button>

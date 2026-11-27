@@ -1,11 +1,13 @@
-import { AreaTrendChart } from "@/components/chart/area/AreaTrendChart";
-import { BarTrendChart } from "@/components/chart/bar/BarTrendChart";
 import { ChartCard } from "@/components/chart/card/ChartCard";
-import { ComposedTrendChart } from "@/components/chart/composed/ComposedTrendChart";
-import { DonutDistributionChart } from "@/components/chart/donut/DonutDistributionChart";
-import { HorizontalBarChart } from "@/components/chart/horizontal-bar/HorizontalBarChart";
-import { RadarMetricChart } from "@/components/chart/radar/RadarMetricChart";
-import { RadialGaugeChart } from "@/components/chart/radial-gauge/RadialGaugeChart";
+import {
+	LazyAreaTrendChart,
+	LazyBarTrendChart,
+	LazyComposedTrendChart,
+	LazyDonutDistributionChart,
+	LazyHorizontalBarChart,
+	LazyRadarMetricChart,
+	LazyRadialGaugeChart,
+} from "@/components/chart/lazy";
 import { CHART_PALETTE } from "@/components/chart/shared/theme";
 import { TabsContent } from "@/components/ui/tabs";
 import {
@@ -58,7 +60,7 @@ interface AllOverviewTabProps {
 
 export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, trendData }: AllOverviewTabProps) {
 	return (
-		<TabsContent value="all" className="space-y-6">
+		<TabsContent value="all" className="flex flex-col gap-6">
 			{/* Row 1: Area Trend + Donut Distribution */}
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="lg:col-span-2">
@@ -71,7 +73,7 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
 						{...chartStateProps}
 						height={320}
 					>
-						<AreaTrendChart
+						<LazyAreaTrendChart
 							data={trendData}
 							dataKey="revenue"
 							secondaryDataKey="cost"
@@ -90,7 +92,7 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
 						{...chartStateProps}
 						height={320}
 					>
-						<DonutDistributionChart
+						<LazyDonutDistributionChart
 							data={CATEGORY_DISTRIBUTION}
 							centerLabel="销售总额"
 							centerValue="¥109.1k"
@@ -114,7 +116,7 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
 					{...chartStateProps}
 					height={300}
 				>
-					<BarTrendChart
+					<LazyBarTrendChart
 						data={trendData}
 						dataKey="orders"
 						secondaryDataKey="refunds"
@@ -130,7 +132,7 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
 					{...chartStateProps}
 					height={300}
 				>
-					<HorizontalBarChart
+					<LazyHorizontalBarChart
 						data={TRAFFIC_CHANNELS}
 						valueFormatter={VISITS_FORMATTER}
 						showPercentage={true}
@@ -153,7 +155,7 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
 						{...chartStateProps}
 						height={300}
 					>
-						<ComposedTrendChart
+						<LazyComposedTrendChart
 							data={trendData}
 							xAxisKey="period"
 							height={300}
@@ -170,7 +172,14 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
 						{...chartStateProps}
 						height={140}
 					>
-						<RadialGaugeChart value={99.85} max={100} label="核心 API 可用率" unit="%" theme="chart-2" height={130} />
+						<LazyRadialGaugeChart
+							value={99.85}
+							max={100}
+							label="核心 API 可用率"
+							unit="%"
+							theme="chart-2"
+							height={130}
+						/>
 					</ChartCard>
 
 					<ChartCard
@@ -179,7 +188,7 @@ export function AllOverviewTab({ activePeriod, onPeriodChange, chartStateProps, 
 						{...chartStateProps}
 						height={160}
 					>
-						<RadarMetricChart data={ARCHITECTURE_RADAR_DATA} height={160} series={OVERVIEW_RADAR_SERIES} />
+						<LazyRadarMetricChart data={ARCHITECTURE_RADAR_DATA} height={160} series={OVERVIEW_RADAR_SERIES} />
 					</ChartCard>
 				</div>
 			</div>

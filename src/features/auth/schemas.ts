@@ -32,6 +32,38 @@ export function isStrongEnough(password: string): boolean {
   return CHARACTER_CLASSES.filter((pattern) => pattern.test(password)).length >= 2;
 }
 
+function applyStrongPasswordRules({
+  password,
+  confirmPassword,
+  passwordField,
+  email,
+  messages,
+  ctx,
+}: {
+  password: string;
+  confirmPassword: string;
+  passwordField: "password" | "newPassword";
+  email?: string;
+  messages: ResetPasswordMessages;
+  ctx: z.RefinementCtx;
+}) {
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    ctx.addIssue({ code: "custom", path: [passwordField], message: messages.tooShort });
+    return;
+  }
+  if (!isStrongEnough(password)) {
+    ctx.addIssue({ code: "custom", path: [passwordField], message: messages.tooWeak });
+    return;
+  }
+  if (email && password.toLowerCase() === email.toLowerCase()) {
+    ctx.addIssue({ code: "custom", path: [passwordField], message: messages.sameAsEmail });
+    return;
+  }
+  if (password !== confirmPassword) {
+    ctx.addIssue({ code: "custom", path: ["confirmPassword"], message: messages.mismatch });
+  }
+}
+
 export function buildResetPasswordSchema(messages: ResetPasswordMessages) {
   return z
     .object({
@@ -40,21 +72,14 @@ export function buildResetPasswordSchema(messages: ResetPasswordMessages) {
       confirmPassword: z.string(),
     })
     .superRefine(({ email, password, confirmPassword }, ctx) => {
-      if (password.length < MIN_PASSWORD_LENGTH) {
-        ctx.addIssue({ code: "custom", path: ["password"], message: messages.tooShort });
-        return;
-      }
-      if (!isStrongEnough(password)) {
-        ctx.addIssue({ code: "custom", path: ["password"], message: messages.tooWeak });
-        return;
-      }
-      if (email && password.toLowerCase() === email.toLowerCase()) {
-        ctx.addIssue({ code: "custom", path: ["password"], message: messages.sameAsEmail });
-        return;
-      }
-      if (password !== confirmPassword) {
-        ctx.addIssue({ code: "custom", path: ["confirmPassword"], message: messages.mismatch });
-      }
+      applyStrongPasswordRules({
+        password,
+        confirmPassword,
+        passwordField: "password",
+        email,
+        messages,
+        ctx,
+      });
     });
 }
 
@@ -101,20 +126,13 @@ export function buildChangePasswordSchema(
       confirmPassword: z.string(),
     })
     .superRefine(({ newPassword, confirmPassword }, ctx) => {
-      if (newPassword.length < MIN_PASSWORD_LENGTH) {
-        ctx.addIssue({ code: "custom", path: ["newPassword"], message: messages.tooShort });
-        return;
-      }
-      if (!isStrongEnough(newPassword)) {
-        ctx.addIssue({ code: "custom", path: ["newPassword"], message: messages.tooWeak });
-        return;
-      }
-      if (currentEmail && newPassword.toLowerCase() === currentEmail.toLowerCase()) {
-        ctx.addIssue({ code: "custom", path: ["newPassword"], message: messages.sameAsEmail });
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        ctx.addIssue({ code: "custom", path: ["confirmPassword"], message: messages.mismatch });
-      }
+      applyStrongPasswordRules({
+        password: newPassword,
+        confirmPassword,
+        passwordField: "newPassword",
+        email: currentEmail,
+        messages,
+        ctx,
+      });
     });
 }

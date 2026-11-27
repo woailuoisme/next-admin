@@ -26,7 +26,7 @@ export function ResourceListSkeleton({ withStats = true, ariaLabel }: ResourceLi
 		<PageSkeletonRegion ariaLabel={ariaLabel}>
 			{/* Header Bar */}
 			<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-				<div className="space-y-1.5">
+				<div className="flex flex-col gap-1.5">
 					<Skeleton className="h-8 w-44" />
 					<Skeleton className="h-3.5 w-72 max-w-full" />
 				</div>
@@ -37,12 +37,12 @@ export function ResourceListSkeleton({ withStats = true, ariaLabel }: ResourceLi
 			{withStats ? (
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					{KPI_CARD_KEYS.map((key) => (
-						<div key={key} className="border-border/60 bg-card space-y-1.5 rounded-xl border p-3.5 shadow-xs">
+						<div key={key} className="border-border/60 bg-card flex flex-col gap-1.5 rounded-xl border p-3.5 shadow-xs">
 							<div className="flex items-center justify-between">
 								<Skeleton className="h-3.5 w-20" />
 								<Skeleton className="size-6 rounded-md" />
 							</div>
-							<div className="space-y-1">
+							<div className="flex flex-col gap-1">
 								<Skeleton className="h-6 w-28" />
 								<div className="flex items-center justify-between pt-0.5">
 									<Skeleton className="h-3.5 w-16" />
@@ -80,7 +80,7 @@ export function ResourceListSkeleton({ withStats = true, ariaLabel }: ResourceLi
 							<Skeleton className="size-4 shrink-0 rounded" />
 							<div className="flex min-w-0 flex-[1.5] items-center gap-3">
 								<Skeleton className="size-8 shrink-0 rounded-md" />
-								<div className="min-w-0 flex-1 space-y-1.5">
+								<div className="flex min-w-0 flex-1 flex-col gap-1.5">
 									<Skeleton className="h-3.5 w-36 max-w-full" />
 									<Skeleton className="h-3 w-24 max-w-full" />
 								</div>
@@ -116,12 +116,12 @@ export function ResourceActionSkeleton({ ariaLabel }: ResourceActionSkeletonProp
 	return (
 		<PageSkeletonRegion ariaLabel={ariaLabel}>
 			{/* Breadcrumb + Header */}
-			<div className="border-border/70 space-y-3 border-b pb-5">
+			<div className="border-border/70 flex flex-col gap-3 border-b pb-5">
 				<Skeleton className="h-3.5 w-44 max-w-full" />
 				<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
 					<div className="flex items-center gap-3">
 						<Skeleton className="size-8 rounded-md" />
-						<div className="space-y-1.5">
+						<div className="flex flex-col gap-1.5">
 							<Skeleton className="h-7 w-48 max-w-full" />
 							<Skeleton className="h-3.5 w-64 max-w-full" />
 						</div>
@@ -131,14 +131,14 @@ export function ResourceActionSkeleton({ ariaLabel }: ResourceActionSkeletonProp
 			</div>
 
 			{/* Section Cards */}
-			<div className="border-border bg-card space-y-5 rounded-xl border p-6">
-				<div className="space-y-1.5">
+			<div className="border-border bg-card flex flex-col gap-5 rounded-xl border p-6">
+				<div className="flex flex-col gap-1.5">
 					<Skeleton className="h-5 w-32" />
 					<Skeleton className="h-3.5 w-56 max-w-full" />
 				</div>
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					{FORM_FIELD_KEYS.map((key) => (
-						<div key={key} className="space-y-2">
+						<div key={key} className="flex flex-col gap-2">
 							<Skeleton className="h-3.5 w-20" />
 							<Skeleton className="h-9 w-full rounded-md" />
 						</div>
@@ -146,8 +146,8 @@ export function ResourceActionSkeleton({ ariaLabel }: ResourceActionSkeletonProp
 				</div>
 			</div>
 
-			<div className="border-border bg-card space-y-5 rounded-xl border p-6">
-				<div className="space-y-1.5">
+			<div className="border-border bg-card flex flex-col gap-5 rounded-xl border p-6">
+				<div className="flex flex-col gap-1.5">
 					<Skeleton className="h-5 w-28" />
 					<Skeleton className="h-3.5 w-48 max-w-full" />
 				</div>

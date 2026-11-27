@@ -1,13 +1,14 @@
 "use client";
 
 import { QueryClientProvider } from "@tanstack/react-query";
-import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon } from "lucide-react";
+import { CircleCheckIcon, InfoIcon, OctagonXIcon, TriangleAlertIcon } from "lucide-react";
 import { ThemeProvider } from "next-themes";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { type ReactNode, useEffect, useState } from "react";
 
 import { ThemeInitializer } from "@/components/layout/ThemeInitializer";
 import { Toaster } from "@/components/ui/sonner";
+import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UploadConfig } from "@/components/upload-config";
 import { env } from "@/env";
@@ -19,7 +20,7 @@ const TOASTER_ICONS = {
 	info: <InfoIcon className="text-chart-1 size-4" aria-hidden="true" />,
 	warning: <TriangleAlertIcon className="text-chart-3 size-4" aria-hidden="true" />,
 	error: <OctagonXIcon className="text-destructive size-4" aria-hidden="true" />,
-	loading: <Loader2Icon className="text-primary size-4 animate-spin" aria-hidden="true" />,
+	loading: <Spinner role={undefined} aria-hidden="true" className="text-primary motion-reduce:animate-none" />,
 };
 
 /** 仅订阅解析后主题状态的叶子节点，避免主题切换触发整个 AppProviders 子树重渲染 */

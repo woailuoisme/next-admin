@@ -2,7 +2,7 @@
 
 import type * as MapLibreGL from "maplibre-gl";
 
-import { memo, useEffect } from "react";
+import { useEffect } from "react";
 
 import { useMap } from "@/components/ui/map";
 
@@ -35,7 +35,7 @@ export function ensureFallbackStyleImage(map: MapLibreGL.Map, id: string): void 
  * 监听地图容器尺寸变化（侧栏折叠、全屏 Portal 切换、Tabs 切换、页面重显）并自动触发 map.resize()；
  * 同时统一托管缺失 Sprite 图标的兜底解析器（覆盖 MapFrame 与 LocationPicker）。
  */
-export const MapAutoResizer = memo(function MapAutoResizer({ debounceMs = 50 }: MapAutoResizerProps) {
+export function MapAutoResizer({ debounceMs = 50 }: MapAutoResizerProps) {
 	const { map, isLoaded } = useMap();
 
 	useEffect(() => {
@@ -106,4 +106,4 @@ export const MapAutoResizer = memo(function MapAutoResizer({ debounceMs = 50 }: 
 	}, [map, isLoaded]);
 
 	return null;
-});
+}

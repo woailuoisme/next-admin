@@ -95,9 +95,9 @@ export function NotificationsPreferencesTab() {
 				<CardTitle className="text-base">{t("preferences_title")}</CardTitle>
 				<CardDescription>{t("preferences_desc")}</CardDescription>
 			</CardHeader>
-			<CardContent className="space-y-4">
+			<CardContent className="flex flex-col gap-4">
 				<div className="border-border flex items-center justify-between rounded-lg border p-4">
-					<div className="space-y-0.5">
+					<div className="flex flex-col gap-0.5">
 						<Label htmlFor="pref-sound-switch" className="text-sm font-medium">
 							{t("pref_sound")}
 						</Label>
@@ -123,7 +123,7 @@ export function NotificationsPreferencesTab() {
 									<div className="bg-muted mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg">
 										<Icon className="text-muted-foreground size-4" />
 									</div>
-									<div className="space-y-0.5">
+									<div className="flex flex-col gap-0.5">
 										<p className="text-sm font-medium">{title}</p>
 										<p className="text-muted-foreground text-xs">{desc}</p>
 									</div>

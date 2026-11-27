@@ -13,9 +13,9 @@ export function BigDataShowcaseTab({ isLoading, isEmpty, isError, onRetry }: Dem
 	const [bigDataRenderMode, setBigDataRenderMode] = useState<"auto" | "dom" | "canvas">("auto");
 
 	return (
-		<TabsContent value="bigdata" className="space-y-4">
+		<TabsContent value="bigdata" className="flex flex-col gap-4">
 			<div className="border-border/70 bg-card flex items-center justify-between rounded-lg border p-3 shadow-xs">
-				<div className="space-y-0.5">
+				<div className="flex flex-col gap-0.5">
 					<div className="text-foreground text-xs font-semibold">{t("maps_bigdata_control_title")}</div>
 					<div className="text-muted-foreground text-[11px]">{t("maps_bigdata_control_desc")}</div>
 				</div>
@@ -23,8 +23,10 @@ export function BigDataShowcaseTab({ isLoading, isEmpty, isError, onRetry }: Dem
 					{BIG_DATA_MODES.map((mode) => (
 						<Button
 							key={mode}
+							type="button"
 							variant={bigDataRenderMode === mode ? "default" : "outline"}
 							size="xs"
+							aria-pressed={bigDataRenderMode === mode}
 							className="text-xs uppercase"
 							onClick={() => setBigDataRenderMode(mode)}
 						>

@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-
 import type { WaterfallFinancialChartProps, WaterfallItem, WaterfallItemType, WaterfallProcessedItem } from "./types";
 
 import { useChartFormatters } from "../hooks/useChartFormatters";
@@ -34,11 +32,9 @@ function resolveWaterfallType(
 export function useWaterfallFinancial(props: WaterfallFinancialChartProps) {
   const { data, valueFormatter: customFormatter } = props;
 
-  const processedData = useMemo<WaterfallProcessedItem[]>(() => {
-    if (!data || data.length === 0) return [];
-
+  const processedData: WaterfallProcessedItem[] = [];
+  if (data && data.length > 0) {
     let runningTotal = 0;
-    const items: WaterfallProcessedItem[] = [];
 
     for (const [index, item] of data.entries()) {
       const rawVal = toFiniteNumber(item.value);
@@ -66,7 +62,7 @@ export function useWaterfallFinancial(props: WaterfallFinancialChartProps) {
             ? "var(--chart-1)"
             : "var(--destructive)";
 
-      items.push({
+      processedData.push({
         label: item.label,
         rawVal,
         range,
@@ -77,9 +73,7 @@ export function useWaterfallFinancial(props: WaterfallFinancialChartProps) {
 
       runningTotal = nextRunningTotal;
     }
-
-    return items;
-  }, [data]);
+  }
 
   const { valueFormatter } = useChartFormatters({ valueFormatter: customFormatter });
 

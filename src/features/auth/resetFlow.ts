@@ -25,31 +25,46 @@ export function saveResetFlow(state: ResetFlowState): void {
   window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-export function readResetFlow(): ResetFlowState | null {
-  if (!isBrowser()) return null;
+function inspectResetFlow(): { status: "empty" | "invalid" | "expired" | "valid"; flow: ResetFlowState | null } {
+  if (!isBrowser()) return { status: "empty", flow: null };
 
   const raw = window.sessionStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
+  if (!raw) return { status: "empty", flow: null };
 
   let parsed: ResetFlowState;
   try {
     parsed = JSON.parse(raw) as ResetFlowState;
   } catch {
-    window.sessionStorage.removeItem(STORAGE_KEY);
-    return null;
+    return { status: "invalid", flow: null };
   }
 
   if (!parsed?.ticket || !parsed.email || typeof parsed.expiresAt !== "number") {
-    window.sessionStorage.removeItem(STORAGE_KEY);
-    return null;
+    return { status: "invalid", flow: null };
   }
 
   if (Date.now() > parsed.expiresAt) {
+    return { status: "expired", flow: null };
+  }
+
+  return { status: "valid", flow: parsed };
+}
+
+/** 纯读取（无清理副作用）：供 React render 阶段安全读取状态并在 StrictMode 下保持幂等 */
+export function peekResetFlow(): { flow: ResetFlowState | null; expired: boolean } {
+  const result = inspectResetFlow();
+  return {
+    flow: result.flow,
+    expired: result.status === "expired" || result.status === "invalid",
+  };
+}
+
+export function readResetFlow(): ResetFlowState | null {
+  const result = inspectResetFlow();
+  if (result.status === "invalid" || result.status === "expired") {
     window.sessionStorage.removeItem(STORAGE_KEY);
     return null;
   }
-
-  return parsed;
+  return result.flow;
 }
 
 /** 在已有票据上补充字段（例如校验通过后写入 resetToken） */

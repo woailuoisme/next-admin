@@ -1,10 +1,12 @@
 "use client";
 
 import { Radio, Send } from "lucide-react";
+import { useId } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -58,28 +60,31 @@ export function BroadcasterComposerCard({
 	onApplyTemplate,
 	onSend,
 }: BroadcasterComposerCardProps) {
+	const fieldId = useId();
+
 	return (
-		<div className="space-y-4 lg:col-span-2">
+		<div className="flex flex-col gap-4 lg:col-span-2">
 			<Card className="bg-card border-border shadow-xs">
 				<CardHeader className="pb-3">
 					<CardTitle className="text-foreground flex items-center gap-2 text-sm font-semibold">
-						<Radio className="text-primary h-4 w-4" />
+						<Radio className="text-primary size-4" aria-hidden="true" />
 						消息与广播发送控制台
 					</CardTitle>
 					<CardDescription className="text-muted-foreground text-xs">
 						通过服务端代理以 APIKey 身份安全推送消息到 Centrifugo
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
-					<div className="space-y-1.5">
+				<CardContent className="flex flex-col gap-4">
+					<div className="flex flex-col gap-1.5">
 						<span className="text-muted-foreground text-xs font-medium">快速套用预设模板:</span>
 						<div className="flex flex-wrap gap-1.5">
 							{BROADCASTER_TEMPLATES.map((tpl) => (
 								<Button
 									key={tpl.label}
+									type="button"
 									variant="outline"
-									size="sm"
-									className="h-7 px-2 text-[11px]"
+									size="xs"
+									className="text-[11px]"
 									onClick={() => onApplyTemplate(tpl.title, tpl.content, tpl.level, tpl.channel)}
 								>
 									{tpl.label}
@@ -88,10 +93,12 @@ export function BroadcasterComposerCard({
 						</div>
 					</div>
 
-					<div className="space-y-1.5">
-						<span className="text-foreground text-xs font-medium">目标发布频道</span>
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor={`${fieldId}-channel`} className="text-foreground text-xs font-medium">
+							目标发布频道
+						</Label>
 						<Select value={targetChannel} onValueChange={onTargetChannelChange}>
-							<SelectTrigger className="h-9 text-xs">
+							<SelectTrigger id={`${fieldId}-channel`} className="h-9 text-xs">
 								<SelectValue placeholder="选择频道" />
 							</SelectTrigger>
 							<SelectContent>
@@ -104,10 +111,12 @@ export function BroadcasterComposerCard({
 						</Select>
 					</div>
 
-					<div className="space-y-1.5">
-						<span className="text-foreground text-xs font-medium">通知级别 (Level)</span>
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor={`${fieldId}-level`} className="text-foreground text-xs font-medium">
+							通知级别 (Level)
+						</Label>
 						<Select value={messageLevel} onValueChange={(v) => onMessageLevelChange(v as typeof messageLevel)}>
-							<SelectTrigger className="h-9 text-xs">
+							<SelectTrigger id={`${fieldId}-level`} className="h-9 text-xs">
 								<SelectValue placeholder="选择级别" />
 							</SelectTrigger>
 							<SelectContent>
@@ -120,9 +129,12 @@ export function BroadcasterComposerCard({
 						</Select>
 					</div>
 
-					<div className="space-y-1.5">
-						<span className="text-foreground text-xs font-medium">消息标题</span>
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor={`${fieldId}-title`} className="text-foreground text-xs font-medium">
+							消息标题
+						</Label>
 						<Input
+							id={`${fieldId}-title`}
 							value={title}
 							onChange={(e) => onTitleChange(e.target.value)}
 							placeholder="输入通知标题..."
@@ -130,9 +142,12 @@ export function BroadcasterComposerCard({
 						/>
 					</div>
 
-					<div className="space-y-1.5">
-						<span className="text-foreground text-xs font-medium">消息正文详情</span>
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor={`${fieldId}-content`} className="text-foreground text-xs font-medium">
+							消息正文详情
+						</Label>
 						<Textarea
+							id={`${fieldId}-content`}
 							value={content}
 							onChange={(e) => onContentChange(e.target.value)}
 							placeholder="输入详细消息内容..."
@@ -142,12 +157,13 @@ export function BroadcasterComposerCard({
 					</div>
 
 					<Button
+						type="button"
 						variant="default"
 						onClick={onSend}
 						disabled={isPublishing || !isConnected || !title.trim() || !content.trim()}
-						className="w-full gap-2 text-xs"
+						className="w-full text-xs"
 					>
-						<Send className="h-3.5 w-3.5" />
+						<Send data-icon="inline-start" aria-hidden="true" />
 						{isPublishing ? "正在广播下发..." : "立刻广播下发"}
 					</Button>
 				</CardContent>

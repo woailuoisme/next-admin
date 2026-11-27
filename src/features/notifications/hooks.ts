@@ -1,6 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { useRef } from "react";
 import { toast } from "sonner";
 
 import { useAuthAdmin } from "@/features/auth";
@@ -139,13 +141,23 @@ export interface BatchNotificationOptions {
   errorMessage?: (failed: number, total: number) => string;
 }
 
+export interface BatchNotificationResult {
+  succeeded: number;
+  failedIds: string[];
+}
+
 function useBatchNotificationAction(action: (id: string) => Promise<unknown>, options?: BatchNotificationOptions) {
+  const t = useTranslations("notification");
   const queryClient = useQueryClient();
+  const lastFailedIdsRef = useRef<string[]>([]);
   const batch = useBatchMutation({
     mutationFn: action,
-    entityName: "Notification",
+    entityName: t("batch_entity_name"),
     successMessage: options?.successMessage,
     errorMessage: options?.errorMessage,
+    onError: (failed) => {
+      lastFailedIdsRef.current = failed.map((entry) => entry.item);
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: notificationsEndpoint.keys.all });
     },
@@ -153,9 +165,13 @@ function useBatchNotificationAction(action: (id: string) => Promise<unknown>, op
 
   return {
     ...batch,
-    mutateAsync: async (ids: string[]) => {
+    mutateAsync: async (ids: string[]): Promise<BatchNotificationResult> => {
+      lastFailedIdsRef.current = [];
       const results = await batch.mutateBatchAsync(ids);
-      return results.length;
+      return {
+        succeeded: results.length,
+        failedIds: lastFailedIdsRef.current,
+      };
     },
   };
 }

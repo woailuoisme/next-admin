@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -63,22 +62,22 @@ export function ChoicesTab({ form }: ChoicesTabProps) {
 	const [asyncCategoryOptions, setAsyncCategoryOptions] = useState<CascaderOption[]>(INITIAL_ASYNC_CATEGORIES);
 	const [asyncProjectTreeData, setAsyncProjectTreeData] = useState<TreeSelectNode[]>(INITIAL_ASYNC_PROJECT_TREE);
 
-	const handleLoadCategoryData = useMemoizedFn(async (selectedOptions: CascaderOption[]) => {
+	const handleLoadCategoryData = async (selectedOptions: CascaderOption[]) => {
 		const targetOption = selectedOptions[selectedOptions.length - 1];
 		if (!targetOption) return;
 		await waitSafely(800);
 		const children = CATEGORY_CHILDREN_BY_KEY[String(targetOption.value)] ?? [];
 		setAsyncCategoryOptions((prev) => attachChildrenByValue(prev, targetOption.value, children));
-	});
+	};
 
-	const handleLoadProjectNodeData = useMemoizedFn(async (node: TreeSelectNode) => {
+	const handleLoadProjectNodeData = async (node: TreeSelectNode) => {
 		await waitSafely(750);
 		const children = PROJECT_CHILDREN_BY_KEY[String(node.value)] ?? [];
 		setAsyncProjectTreeData((prev) => attachChildrenByValue(prev, node.value, children));
-	});
+	};
 
 	return (
-		<div className="space-y-6">
+		<div className="flex flex-col gap-6">
 			<Section
 				title="Select, Combobox, Radio & Toggles"
 				description="Categorical selectors, searchable dropdowns, and segmented controls."

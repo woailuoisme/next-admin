@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Loader2, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "cn";
 
 export interface MapSkeletonProps {
@@ -43,7 +44,7 @@ export function MapSkeleton({ height = 400, className, message }: MapSkeletonPro
 				</div>
 
 				<div className="text-muted-foreground flex items-center gap-2 text-xs">
-					<Loader2 aria-hidden="true" className="text-primary size-3.5 animate-spin motion-reduce:animate-none" />
+					<Spinner role={undefined} aria-hidden="true" className="text-primary size-3.5 motion-reduce:animate-none" />
 					<span>{resolvedMessage}</span>
 				</div>
 			</div>

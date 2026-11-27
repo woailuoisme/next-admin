@@ -4,11 +4,11 @@ import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useMemoizedFn } from "ahooks";
 import { Maximize2 } from "lucide-react";
-import { memo, useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "cn";
 
 import type { MapCardProps } from "./types";
@@ -25,7 +25,7 @@ const subscribeNoop = () => () => {};
 const getIsClient = () => true;
 const getIsServer = () => false;
 
-export const MapCard = memo(function MapCard({
+export function MapCard({
 	title,
 	description,
 	actionSlot,
@@ -51,6 +51,7 @@ export const MapCard = memo(function MapCard({
 }: MapCardProps) {
 	const t = useTranslations("map");
 	const [isFullscreen, setIsFullscreen] = useState(false);
+	const [hasOpenedFullscreen, setHasOpenedFullscreen] = useState(false);
 
 	/**
 	 * 单一持久化 WebGL 宿主节点：进入/退出全屏仅将该 DOM 节点在卡片槽位与 Dialog 槽位间移动，
@@ -69,6 +70,7 @@ export const MapCard = memo(function MapCard({
 		};
 	}, [hostEl]);
 
+	// 稳定 Portal DOM ref 回调，并在全屏状态切换时将宿主节点精确迁移至目标槽位
 	const attachCardSlot = useCallback(
 		(slot: HTMLDivElement | null) => {
 			if (slot && hostEl && !isFullscreen && hostEl.parentNode !== slot) {
@@ -78,6 +80,7 @@ export const MapCard = memo(function MapCard({
 		[hostEl, isFullscreen],
 	);
 
+	// 稳定 Portal DOM ref 回调，避免 Dialog 内容挂载时重复迁移宿主节点
 	const attachDialogSlot = useCallback(
 		(slot: HTMLDivElement | null) => {
 			if (slot && hostEl && isFullscreen && hostEl.parentNode !== slot) {
@@ -87,7 +90,10 @@ export const MapCard = memo(function MapCard({
 		[hostEl, isFullscreen],
 	);
 
-	const openFullscreen = useMemoizedFn(() => setIsFullscreen(true));
+	const openFullscreen = useMemoizedFn(() => {
+		setHasOpenedFullscreen(true);
+		setIsFullscreen(true);
+	});
 	const canFullscreen = fullscreenable ?? showFullscreen;
 	const hasError = Boolean(isError || error);
 	const errorDetail = error instanceof Error ? error.message : typeof error === "string" ? error : undefined;
@@ -97,9 +103,9 @@ export const MapCard = memo(function MapCard({
 
 	return (
 		<>
-			<Card className={cn("flex flex-col overflow-hidden border-border/60 shadow-xs", className)}>
+			<Card className={cn("flex flex-col overflow-hidden shadow-xs", className)}>
 				<CardHeader className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">
-					<div className="min-w-0 space-y-1">
+					<div className="flex min-w-0 flex-col gap-1">
 						<CardTitle className="text-base font-semibold tracking-tight">{title}</CardTitle>
 						{description ? (
 							<CardDescription className="text-muted-foreground text-xs">{description}</CardDescription>
@@ -122,11 +128,11 @@ export const MapCard = memo(function MapCard({
 								size="icon"
 								onClick={openFullscreen}
 								disabled={isLoading || isEmpty || hasError}
-								className="text-muted-foreground hover:text-foreground size-8"
+								className="text-muted-foreground hover:text-foreground"
 								title={t("fullscreen_title")}
 								aria-label={t("fullscreen_title")}
 							>
-								<Maximize2 className="size-3.5" aria-hidden="true" />
+								<Maximize2 aria-hidden="true" />
 							</Button>
 						) : null}
 					</div>
@@ -156,14 +162,14 @@ export const MapCard = memo(function MapCard({
 							)}
 						</div>
 					)}
-
-					{footerSlot ? <div className="border-border/40 mt-2 border-t pt-4">{footerSlot}</div> : null}
 				</CardContent>
+
+				{footerSlot ? <CardFooter className="border-border/40 bg-transparent">{footerSlot}</CardFooter> : null}
 			</Card>
 
 			{shouldRenderMap && hostEl ? createPortal(children, hostEl) : null}
 
-			{canFullscreen && isFullscreen ? (
+			{canFullscreen && hasOpenedFullscreen ? (
 				<MapFullscreenDialog
 					open={isFullscreen}
 					onOpenChange={setIsFullscreen}
@@ -175,4 +181,4 @@ export const MapCard = memo(function MapCard({
 			) : null}
 		</>
 	);
-});
+}

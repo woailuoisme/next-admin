@@ -37,23 +37,26 @@ export function StatsHeaderBar({ demoState, onDemoStateChange }: StatsHeaderBarP
 					{DEMO_STATES.map((st) => (
 						<Button
 							key={st}
-							size="sm"
+							type="button"
+							size="xs"
 							variant={demoState === st ? "secondary" : "ghost"}
-							className="h-7 text-xs capitalize"
+							aria-pressed={demoState === st}
+							className="capitalize"
 							onClick={() => onDemoStateChange(st)}
 						>
 							{st}
 						</Button>
 					))}
 				</div>
-				<Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={tick}>
-					<RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+				<Button type="button" variant="outline" size="sm" className="text-xs" onClick={tick}>
+					<RefreshCw data-icon="inline-start" aria-hidden="true" />
 					Pulse Step
 				</Button>
 				<Button
+					type="button"
 					variant={isRunning ? "secondary" : "default"}
 					size="sm"
-					className="h-8 font-mono text-xs"
+					className="font-mono text-xs"
 					onClick={toggle}
 				>
 					{isRunning ? "Pause Stream" : "Resume Stream"}

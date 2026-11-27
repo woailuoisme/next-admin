@@ -88,14 +88,14 @@ export function DonutDistributionChart(props: DonutDistributionChartProps) {
 
 			{/* Legend list */}
 			{showLegend && (
-				<div className="max-h-[220px] w-full flex-1 space-y-2.5 overflow-y-auto pr-1">
+				<div className="flex max-h-[220px] w-full flex-1 flex-col gap-2.5 overflow-y-auto pr-1">
 					{enrichedData.map((item, index) => (
 						<div
 							key={`${item.name}-${index}`}
 							className="hover:bg-muted/40 flex items-center justify-between rounded-md px-2 py-1 text-xs transition-colors"
 						>
 							<div className="flex min-w-0 items-center gap-2">
-								<span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+								<span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
 								<span className="text-foreground truncate font-medium">{item.name}</span>
 							</div>
 							<div className="flex shrink-0 items-center gap-3">

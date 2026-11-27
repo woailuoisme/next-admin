@@ -6,6 +6,7 @@ import { useId, useState } from "react";
 import { ActionList } from "@/components/actions";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccessControlProvider } from "@/lib/resource";
@@ -39,7 +40,7 @@ export function ActionsShowcasePage() {
 					<div>
 						<div className="flex items-center gap-2">
 							<span className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg">
-								<MousePointerClick className="size-4" />
+								<MousePointerClick className="size-4" aria-hidden="true" />
 							</span>
 							<h1 className="text-2xl font-bold tracking-tight">Filament v5 Actions 统一动作引擎</h1>
 						</div>
@@ -52,7 +53,7 @@ export function ActionsShowcasePage() {
 					</Badge>
 				</div>
 
-				<Tabs defaultValue="modals" className="space-y-4">
+				<Tabs defaultValue="modals" className="flex flex-col gap-4">
 					<TabsList>
 						<TabsTrigger value="modals" className="text-xs">
 							Modals & SlideOver
@@ -87,16 +88,20 @@ export function ActionsShowcasePage() {
 									支持 ButtonGroup、DropdownMenu（含分割线与空分组自动折叠）与动态 RBAC 授权。
 								</CardDescription>
 							</CardHeader>
-							<CardContent className="space-y-5">
+							<CardContent className="flex flex-col gap-5">
 								<div className="border-border/60 bg-muted/20 flex flex-wrap items-center gap-6 rounded-lg border p-3 text-xs">
-									<label htmlFor={adminSwitchId} className="flex cursor-pointer items-center gap-2">
+									<div className="flex items-center gap-2">
 										<Switch id={adminSwitchId} checked={isAdmin} onCheckedChange={setIsAdmin} />
-										<span>当前角色：管理员 (Admin)</span>
-									</label>
-									<label htmlFor={publishSwitchId} className="flex cursor-pointer items-center gap-2">
+										<Label htmlFor={adminSwitchId} className="cursor-pointer text-xs font-normal">
+											当前角色：管理员 (Admin)
+										</Label>
+									</div>
+									<div className="flex items-center gap-2">
 										<Switch id={publishSwitchId} checked={allowPublish} onCheckedChange={setAllowPublish} />
-										<span>允许批量发布</span>
-									</label>
+										<Label htmlFor={publishSwitchId} className="cursor-pointer text-xs font-normal">
+											允许批量发布
+										</Label>
+									</div>
 								</div>
 								<ActionList actions={groupedDemos} surface="toolbar" />
 							</CardContent>
@@ -121,7 +126,7 @@ export function ActionsShowcasePage() {
 											key={article.id}
 											className="flex flex-col justify-between gap-3 px-4 py-3 sm:flex-row sm:items-center"
 										>
-											<div className="space-y-1">
+											<div className="flex flex-col gap-1">
 												<div className="flex items-center gap-2">
 													<span className="text-sm font-medium">{article.title}</span>
 													<Badge variant={article.deletedAt ? "destructive" : "secondary"} className="text-[10px]">

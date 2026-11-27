@@ -2,8 +2,6 @@
 
 import { useTranslations } from "next-intl";
 
-import { memo } from "react";
-
 import { cn } from "cn";
 
 import type { HorizontalBarChartProps } from "./types";
@@ -12,7 +10,7 @@ import { useChartHeight } from "../shared/ChartContext";
 import { ChartEmptyState } from "../shared/ChartEmptyState";
 import { useHorizontalBar } from "./useHorizontalBar";
 
-export const HorizontalBarChart = memo(function HorizontalBarChart(props: HorizontalBarChartProps) {
+export function HorizontalBarChart(props: HorizontalBarChartProps) {
 	const { showPercentage = true, height, className } = props;
 	const t = useTranslations("chart");
 	const resolvedHeight = useChartHeight(height, 200);
@@ -24,7 +22,7 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
 	}
 
 	return (
-		<div className={cn("w-full space-y-3", className)} style={{ minHeight: resolvedHeight }}>
+		<div className={cn("flex w-full flex-col gap-3", className)} style={{ minHeight: resolvedHeight }}>
 			{items.map((item, idx) => {
 				const Icon = item.icon;
 				const rank = idx + 1;
@@ -32,7 +30,7 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
 				return (
 					<div
 						key={`${item.id ?? item.label}-${idx}`}
-						className="hover:bg-muted/30 space-y-1.5 rounded-lg p-1.5 transition-colors"
+						className="hover:bg-muted/30 flex flex-col gap-1.5 rounded-lg p-1.5 transition-colors"
 					>
 						{/* Top text line: Rank, Label, Value, Percentage */}
 						<div className="flex items-center justify-between text-xs">
@@ -40,7 +38,7 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
 								{/* Rank number badge */}
 								<span
 									className={cn(
-										"flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-bold",
+										"flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-bold",
 										rank === 1 && "border border-primary/25 bg-primary/15 text-primary",
 										rank === 2 && "border border-chart-1/30 bg-chart-1/15 text-chart-1",
 										rank === 3 && "border border-chart-4/30 bg-chart-4/15 text-chart-4",
@@ -50,7 +48,7 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
 									{rank}
 								</span>
 
-								{Icon && <Icon className="text-muted-foreground h-3.5 w-3.5 shrink-0" />}
+								{Icon && <Icon className="text-muted-foreground size-3.5 shrink-0" />}
 
 								<span className="text-foreground truncate font-medium">{item.label}</span>
 
@@ -93,4 +91,4 @@ export const HorizontalBarChart = memo(function HorizontalBarChart(props: Horizo
 			})}
 		</div>
 	);
-});
+}

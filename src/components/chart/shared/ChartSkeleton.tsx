@@ -51,8 +51,9 @@ export function ChartSkeleton({ height = 240, className, variant = "trend" }: Ch
 
 			{variant === "donut" && (
 				<div className="relative flex flex-col items-center justify-center">
-					<div className="border-muted/60 border-t-muted flex h-32 w-32 animate-pulse items-center justify-center rounded-full border-12">
-						<div className="flex flex-col items-center space-y-1.5">
+					<div className="relative flex size-32 items-center justify-center">
+						<Skeleton className="size-32 rounded-full" />
+						<div className="bg-card absolute flex size-20 flex-col items-center justify-center gap-1.5 rounded-full">
 							<Skeleton className="h-2.5 w-10 rounded-xs" />
 							<Skeleton className="h-4 w-14 rounded-xs" />
 						</div>
@@ -67,8 +68,9 @@ export function ChartSkeleton({ height = 240, className, variant = "trend" }: Ch
 
 			{variant === "gauge" && (
 				<div className="relative flex flex-col items-center justify-center">
-					<div className="border-muted/60 flex h-24 w-36 animate-pulse items-end justify-center rounded-t-full border-12 border-b-0 pb-2">
-						<div className="flex flex-col items-center space-y-1">
+					<div className="relative flex h-24 w-36 items-end justify-center overflow-hidden">
+						<Skeleton className="size-36 translate-y-12 rounded-full" />
+						<div className="bg-card absolute bottom-0 flex h-16 w-24 flex-col items-center justify-end gap-1 rounded-t-full pb-2">
 							<Skeleton className="h-4 w-12 rounded-xs" />
 							<Skeleton className="h-2.5 w-8 rounded-xs" />
 						</div>
@@ -78,7 +80,7 @@ export function ChartSkeleton({ height = 240, className, variant = "trend" }: Ch
 
 			{(variant === "trend" || variant === "radar" || variant === "default") && (
 				<div className="flex h-full w-full flex-col justify-between px-3 py-2">
-					<div className="flex flex-1 flex-col justify-around space-y-4">
+					<div className="flex flex-1 flex-col justify-around gap-4">
 						<div className="border-border/40 bg-border/30 h-px w-full border-t border-dashed" />
 						<div className="border-border/40 bg-border/30 h-px w-full border-t border-dashed" />
 						<div className="border-border/40 bg-border/30 h-px w-full border-t border-dashed" />

@@ -68,9 +68,9 @@ export function StatCardRoot({
 				data-sparkline-layout={resolvedSparklineLayout}
 				onKeyDown={onKeyDown}
 				className={cn(
-					"@container relative gap-0 overflow-hidden border-border/60 py-0 transition-all duration-200",
+					"@container relative gap-0 overflow-hidden py-0 transition-all duration-200",
 					isInteractive &&
-						"group cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-within:ring-2 focus-within:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+						"group cursor-pointer hover:-translate-y-0.5 hover:ring-primary/50 hover:shadow-md focus-within:ring-2 focus-within:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 					className,
 				)}
 				{...props}
@@ -109,7 +109,7 @@ export function StatCardHelpTooltip({ description, className }: StatCardHelpTool
 					)}
 					aria-label={description}
 				>
-					<HelpCircle className="size-3.5" aria-hidden="true" />
+					<HelpCircle aria-hidden="true" />
 				</Button>
 			</TooltipTrigger>
 			<TooltipContent side="top" className="max-w-xs text-xs">

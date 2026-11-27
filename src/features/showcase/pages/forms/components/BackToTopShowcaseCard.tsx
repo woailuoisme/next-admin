@@ -16,7 +16,7 @@ export function BackToTopShowcaseCard() {
 	const localContainerRef = useRef<HTMLDivElement>(null);
 	const [showProgress, setShowProgress] = useState(true);
 
-	// 稳定引用：避免 BackToTop 内部的事件监听在每次渲染时重新订阅
+	// Whitelist AGENTS.md §5.2: 保持传给 BackToTop 的滚动容器 getter 引用稳定，避免重订阅 scroll 监听
 	const getLocalScrollTarget = useMemoizedFn(() => localContainerRef.current);
 
 	return (
@@ -42,9 +42,9 @@ export function BackToTopShowcaseCard() {
 					</div>
 				</div>
 			</CardHeader>
-			<CardContent className="space-y-4 text-xs">
+			<CardContent className="flex flex-col gap-4 text-xs">
 				<p className="bg-muted/40 text-muted-foreground flex items-start gap-1.5 rounded-md p-2.5">
-					<Lightbulb className="text-primary mt-0.5 size-3.5 shrink-0" />
+					<Lightbulb className="text-primary mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
 					<span>
 						<strong>全局模式提示</strong>：向下滚动当前表单页面超过
 						300px，页面右下角将自动浮现带有实时滚动进度环的全局返回顶部按钮。
@@ -56,7 +56,7 @@ export function BackToTopShowcaseCard() {
 					</div>
 					<div
 						ref={localContainerRef}
-						className="border-border/70 bg-muted/20 relative h-44 space-y-3 overflow-y-auto rounded-lg border p-4"
+						className="border-border/70 bg-muted/20 relative flex h-44 flex-col gap-3 overflow-y-auto rounded-lg border p-4"
 					>
 						{LOCAL_SCROLL_ITEMS.map((item) => (
 							<div key={item.id} className="border-border/50 bg-background/80 rounded-md border p-3 shadow-xs">

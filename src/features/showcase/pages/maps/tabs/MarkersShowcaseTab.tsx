@@ -7,7 +7,7 @@ import type { DemoStateProps } from "../types";
 export function MarkersShowcaseTab({ isLoading, isEmpty, isError, onRetry }: DemoStateProps) {
 	const t = useTranslations("showcase");
 	return (
-		<TabsContent value="markers" className="space-y-4">
+		<TabsContent value="markers" className="flex flex-col gap-4">
 			<LazyLocationMarkerMap
 				locations={MOCK_LOCATIONS}
 				height={520}

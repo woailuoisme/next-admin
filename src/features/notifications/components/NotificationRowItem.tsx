@@ -66,7 +66,7 @@ export function NotificationRowItem({
 				<Icon className={iconClassName} />
 			</div>
 
-			<div className="min-w-0 flex-1 space-y-1">
+			<div className="flex min-w-0 flex-1 flex-col gap-1">
 				<div className="flex flex-wrap items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
 						{!item.read ? <span className="bg-primary size-2 shrink-0 rounded-full" aria-hidden="true" /> : null}
@@ -115,9 +115,9 @@ export function NotificationRowItem({
 						onClick={() => onMarkRead(item.id)}
 						aria-label={t("mark_as_read")}
 						title={t("mark_as_read")}
-						className="text-muted-foreground hover:text-foreground size-8 cursor-pointer"
+						className="text-muted-foreground hover:text-foreground cursor-pointer"
 					>
-						<CheckCheck className="size-4" />
+						<CheckCheck aria-hidden="true" />
 					</Button>
 				) : null}
 				<Button
@@ -127,9 +127,9 @@ export function NotificationRowItem({
 					onClick={() => onDelete(item.id)}
 					aria-label={t("delete")}
 					title={t("delete")}
-					className="text-muted-foreground hover:text-destructive size-8 cursor-pointer"
+					className="text-muted-foreground hover:text-destructive cursor-pointer"
 				>
-					<Trash2 className="size-4" />
+					<Trash2 aria-hidden="true" />
 				</Button>
 			</div>
 		</div>

@@ -2,15 +2,13 @@
 
 import { useTranslations } from "next-intl";
 
-import { memo } from "react";
-
 import { cn } from "cn";
 
 import type { RadialGaugeChartProps } from "./types";
 
 import { useRadialGauge } from "./useRadialGauge";
 
-export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaugeChartProps) {
+export function RadialGaugeChart(props: RadialGaugeChartProps) {
 	const t = useTranslations("chart");
 	const { label: rawLabel, unit = "%", formattedValue, subtext, className } = props;
 	const label = rawLabel ?? t("gauge_label");
@@ -144,4 +142,4 @@ export const RadialGaugeChart = memo(function RadialGaugeChart(props: RadialGaug
 			)}
 		</div>
 	);
-});
+}

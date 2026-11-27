@@ -67,6 +67,9 @@ describe("Orders Feature Tests", () => {
 		expect(screen.getByText("已交付完成")).toBeInTheDocument();
 		expect(screen.getByText("平均客单价 (AOV)")).toBeInTheDocument();
 		expect(screen.getByText("500.00")).toBeInTheDocument();
+		expect(screen.getByText("50%")).toBeInTheDocument();
+		expect(screen.queryByText("95.6%")).toBeNull();
+		expect(screen.queryByText("+12.4%")).toBeNull();
 		expect(container.querySelector(".text-destructive")).toBeInTheDocument();
 	});
 

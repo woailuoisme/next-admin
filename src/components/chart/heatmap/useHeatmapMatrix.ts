@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-
 import type { HeatmapCell } from "./types";
 
 import { toFiniteNumber } from "../shared/formatters";
@@ -37,68 +35,72 @@ export function useHeatmapMatrix({
   xLabels,
   yLabels,
 }: UseHeatmapMatrixOptions) {
-  return useMemo(() => {
-    const safeData = data ?? [];
-    const getX = (item: HeatmapCell): string | number => {
-      const val = item[xKey] ?? item.x;
-      return typeof val === "number" || typeof val === "string" ? val : "";
-    };
-    const getY = (item: HeatmapCell): string => String(item[yKey] ?? item.y ?? "");
-    const getValue = (item: HeatmapCell): number => toFiniteNumber(item[valueKey] ?? item.value, 0);
+  const safeData = data ?? [];
+  const getX = (item: HeatmapCell): string | number => {
+    const val = item[xKey] ?? item.x;
+    return typeof val === "number" || typeof val === "string" ? val : "";
+  };
+  const getY = (item: HeatmapCell): string => String(item[yKey] ?? item.y ?? "");
+  const getValue = (item: HeatmapCell): number => toFiniteNumber(item[valueKey] ?? item.value, 0);
 
-    const computedXLabels = xLabels && xLabels.length > 0 ? xLabels : Array.from(new Set(safeData.map(getX)));
+  const shouldCollectX = !xLabels || xLabels.length === 0;
+  const shouldCollectY = !yLabels || yLabels.length === 0;
+  const xLabelSet = shouldCollectX ? new Set<string | number>() : null;
+  const yLabelSet = shouldCollectY ? new Set<string>() : null;
 
-    const computedYLabels = yLabels && yLabels.length > 0 ? yLabels : Array.from(new Set(safeData.map(getY)));
+  let min = Number.POSITIVE_INFINITY;
+  let max = Number.NEGATIVE_INFINITY;
 
-    let min = Number.POSITIVE_INFINITY;
-    let max = Number.NEGATIVE_INFINITY;
+  const cellLookup = new Map<string, HeatmapCell>();
 
-    const cellLookup = new Map<string, HeatmapCell>();
+  for (const item of safeData) {
+    const xVal = getX(item);
+    const yVal = getY(item);
+    const val = getValue(item);
+    xLabelSet?.add(xVal);
+    yLabelSet?.add(yVal);
+    const key = `${String(xVal)}__${yVal}`;
+    cellLookup.set(key, { ...item, x: xVal, y: yVal, value: val });
+    if (val < min) min = val;
+    if (val > max) max = val;
+  }
 
-    for (const item of safeData) {
-      const xVal = getX(item);
-      const yVal = getY(item);
-      const val = getValue(item);
-      const key = `${String(xVal)}__${yVal}`;
-      cellLookup.set(key, { ...item, x: xVal, y: yVal, value: val });
-      if (val < min) min = val;
-      if (val > max) max = val;
-    }
+  const computedXLabels = shouldCollectX ? Array.from(xLabelSet!) : xLabels!;
+  const computedYLabels = shouldCollectY ? Array.from(yLabelSet!) : yLabels!;
 
-    if (min === Number.POSITIVE_INFINITY) {
-      min = 0;
-      max = 0;
-    }
+  if (min === Number.POSITIVE_INFINITY) {
+    min = 0;
+    max = 0;
+  }
 
-    const range = max - min;
+  const range = max - min;
 
-    const rows: ComputedHeatmapRow[] = computedYLabels.map((y) => {
-      const cells: ComputedHeatmapCell[] = computedXLabels.map((x) => {
-        const key = `${String(x)}__${y}`;
-        const raw = cellLookup.get(key);
-        const value = raw?.value ?? 0;
-        const ratio = range > 0 ? Math.max(0, Math.min(1, (value - min) / range)) : value > 0 ? 1 : 0;
-        const level = value === 0 ? 0 : Math.min(4, Math.max(1, Math.ceil(ratio * 4)));
+  const rows: ComputedHeatmapRow[] = computedYLabels.map((y) => {
+    const cells: ComputedHeatmapCell[] = computedXLabels.map((x) => {
+      const key = `${String(x)}__${y}`;
+      const raw = cellLookup.get(key);
+      const value = raw?.value ?? 0;
+      const ratio = range > 0 ? Math.max(0, Math.min(1, (value - min) / range)) : value > 0 ? 1 : 0;
+      const level = value === 0 ? 0 : Math.min(4, Math.max(1, Math.ceil(ratio * 4)));
 
-        return {
-          x,
-          y,
-          value,
-          ratio,
-          level,
-          raw,
-        };
-      });
-
-      return { y, cells };
+      return {
+        x,
+        y,
+        value,
+        ratio,
+        level,
+        raw,
+      };
     });
 
-    return {
-      xLabels: computedXLabels,
-      yLabels: computedYLabels,
-      rows,
-      min,
-      max,
-    };
-  }, [data, xKey, yKey, valueKey, xLabels, yLabels]);
+    return { y, cells };
+  });
+
+  return {
+    xLabels: computedXLabels,
+    yLabels: computedYLabels,
+    rows,
+    min,
+    max,
+  };
 }

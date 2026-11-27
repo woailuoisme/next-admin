@@ -2,7 +2,6 @@
 
 import { sumBy } from "es-toolkit";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
 
 import type { DonutDistributionChartProps, EnrichedDonutSliceData } from "./types";
 
@@ -22,24 +21,21 @@ export function useDonutDistribution(props: DonutDistributionChartProps) {
     valueFormatter: propValueFormatter,
   });
 
-  const { total, enrichedData } = useMemo(() => {
-    const normalized = data.map((item) => ({
+  const normalized = data.map((item) => ({
+    ...item,
+    value: Math.max(0, toFiniteNumber(item.value, 0)),
+  }));
+  const total = sumBy(normalized, (curr) => curr.value);
+  const enrichedData: EnrichedDonutSliceData[] = normalized.map((item, idx) => {
+    const color = item.color || CHART_PALETTE[idx % CHART_PALETTE.length];
+    const percentage = total > 0 ? (item.value / total) * 100 : 0;
+    return {
       ...item,
-      value: Math.max(0, toFiniteNumber(item.value, 0)),
-    }));
-    const sum = sumBy(normalized, (curr) => curr.value);
-    const enriched: EnrichedDonutSliceData[] = normalized.map((item, idx) => {
-      const color = item.color || CHART_PALETTE[idx % CHART_PALETTE.length];
-      const percentage = sum > 0 ? (item.value / sum) * 100 : 0;
-      return {
-        ...item,
-        color,
-        fill: color,
-        percentage,
-      };
-    });
-    return { total: sum, enrichedData: enriched };
-  }, [data]);
+      color,
+      fill: color,
+      percentage,
+    };
+  });
 
   const displayCenterValue = centerValue ?? valueFormatter(total);
 

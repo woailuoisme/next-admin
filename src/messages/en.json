@@ -263,7 +263,10 @@
     "pref_in_app": "In-app alerts",
     "pref_email_digest": "Email digest",
     "pref_sound": "Notification sound",
-    "pref_saved": "Notification preferences saved"
+    "pref_saved": "Notification preferences saved",
+    "load_error": "Failed to load notifications. Please try again.",
+    "retry": "Retry",
+    "batch_entity_name": "Notification"
   },
   "products": {
     "status_active": "Active",
@@ -538,7 +541,10 @@
     "unsaved_changes_confirm": "You have unsaved changes. Are you sure you want to discard them?",
     "unsaved_changes_stay": "Keep editing",
     "unsaved_changes_discard": "Discard & leave",
-    "unsupported_mode_fallback": "Current view configuration is incomplete."
+    "unsupported_mode_fallback": "Current view configuration is incomplete.",
+    "detail_load_error": "Failed to load details. Please try again.",
+    "detail_not_found": "Record not found or has been removed.",
+    "retry": "Retry"
   },
   "map": {
     "basemap_selector": "Basemap",
@@ -891,6 +897,7 @@
     "create_action": "Add Category",
     "form_desc": "Group catalog merchandise into logical taxonomy departments.",
     "form_name_label": "Category Name",
+    "form_name_placeholder": "e.g. Smart Home",
     "form_slug_label": "Slug Identifier",
     "form_slug_placeholder": "smart-home",
     "form_desc_label": "Description",
@@ -931,7 +938,10 @@
     "confirm_activate_desc": "\"{name}\" will regain full customer account access.",
     "confirm_batch_suspend_title": "Suspend {count} Customers?",
     "confirm_batch_suspend_desc": "Are you sure you want to suspend the {count} selected customers? This can be reversed later.",
-    "batch_suspend_success": "Suspended {count} customers"
+    "batch_suspend_success": "Suspended {count} customers",
+    "batch_suspend_partial": "Suspended {succeeded} customers, {failed} failed",
+    "batch_suspend_failed": "Failed to suspend selected customers",
+    "batch_suspend_noop": "Selected customers are already inactive"
   },
   "dashboard": {
     "page_title": "Executive Dashboard",
@@ -953,6 +963,8 @@
     "metric_customers_trend": "vs last month",
     "revenue_chart_title": "Revenue Trajectory",
     "revenue_chart_desc": "Monthly booked revenue and sales volatility over the last 12 months",
+    "period_3m": "3 months",
+    "period_6m": "6 months",
     "period_7d": "7 days",
     "period_30d": "30 days",
     "period_12m": "12 months",
@@ -968,6 +980,7 @@
     "recent_orders_title": "Recent Customer Orders",
     "recent_orders_desc": "Latest customer purchase records requiring fulfillment",
     "recent_orders_view_all": "View All",
+    "recent_orders_empty": "No recent orders",
     "recent_orders_items": "{count, plural, one {# item} other {# items}}",
     "quick_actions_title": "Operational Quick Actions",
     "quick_actions_desc": "Direct shortcuts for frequent management operations",
@@ -1099,6 +1112,7 @@
     "import_preview_title": "Preview & Validation",
     "import_valid_count": "{count} valid",
     "import_error_count": "{count} errors",
+    "import_row_status": "Status",
     "import_row_valid": "Valid",
     "import_row_invalid": "Invalid",
     "import_submit": "Import {count} valid rows",
@@ -1106,6 +1120,7 @@
     "import_parse_error": "Failed to parse file. Please check the file format.",
     "import_success": "Successfully imported {count} records",
     "import_partial": "Imported {succeeded} records, {failed} failed",
+    "import_failed_all": "Import failed for all {failed} rows. Please check and retry",
     "export_label": "Export",
     "export_title": "Export {entityName}",
     "export_desc": "Choose the export format, file name, and columns to include.",
@@ -1115,6 +1130,7 @@
     "export_select_all": "Select All",
     "export_deselect_all": "Clear",
     "export_submit": "Export ({count} rows)",
+    "export_submit_async": "Export",
     "export_empty": "No data available to export",
     "export_no_columns": "Select at least one column to export",
     "export_success": "Exported {count} records",
@@ -1156,6 +1172,7 @@
     "avatar_url_placeholder": "https://example.com/avatar.png",
     "avatar_url_invalid": "Enter a valid http(s) or relative avatar URL",
     "avatar_presets_label": "Quick Avatar Presets",
+    "avatar_preset_aria": "Select preset avatar {index}",
     "save_profile": "Save Changes",
     "saving_profile": "Saving...",
     "profile_updated": "Profile updated successfully",

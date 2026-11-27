@@ -1,4 +1,3 @@
-import { useMemoizedFn } from "ahooks";
 import { Bell } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ButtonHTMLAttributes, forwardRef } from "react";
@@ -18,15 +17,15 @@ export const NotificationTrigger = forwardRef<HTMLButtonElement, NotificationTri
 	ref,
 ) {
 	const t = useTranslations("notification");
-	const handleMouseEnter = useMemoizedFn((e: React.MouseEvent<HTMLButtonElement>) => {
+	const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
 		onPrefetch?.();
 		onMouseEnter?.(e);
-	});
+	};
 
-	const handleFocus = useMemoizedFn((e: React.FocusEvent<HTMLButtonElement>) => {
+	const handleFocus = (e: React.FocusEvent<HTMLButtonElement>) => {
 		onPrefetch?.();
 		onFocus?.(e);
-	});
+	};
 
 	const formattedBadge = unreadCount > 99 ? "99+" : unreadCount;
 	const resolvedAriaLabel = unreadCount > 0 ? t("trigger_unread_aria", { count: unreadCount }) : t("view");
@@ -40,14 +39,14 @@ export const NotificationTrigger = forwardRef<HTMLButtonElement, NotificationTri
 						type="button"
 						variant="ghost"
 						size="icon"
-						className={cn("relative size-8 rounded-full transition-colors hover:bg-accent/80", className)}
+						className={cn("relative rounded-full transition-colors hover:bg-accent/80", className)}
 						aria-label={resolvedAriaLabel}
 						onMouseEnter={handleMouseEnter}
 						onFocus={handleFocus}
 						{...props}
 					>
 						<Bell
-							className="text-muted-foreground size-4 transition-transform group-hover:scale-105"
+							className="text-muted-foreground transition-transform group-hover/button:scale-105"
 							aria-hidden="true"
 						/>
 						{unreadCount > 0 && (
@@ -61,7 +60,7 @@ export const NotificationTrigger = forwardRef<HTMLButtonElement, NotificationTri
 								</span>
 								<span
 									aria-hidden="true"
-									className="bg-destructive/60 pointer-events-none absolute -top-0.5 -right-0.5 size-4 animate-ping rounded-full"
+									className="bg-destructive/60 pointer-events-none absolute -top-0.5 -right-0.5 size-4 animate-ping rounded-full motion-reduce:animate-none"
 								/>
 							</>
 						)}

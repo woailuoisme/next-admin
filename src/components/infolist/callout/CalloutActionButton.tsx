@@ -40,9 +40,9 @@ export function CalloutActionButton({
 		: null;
 	const isBlockedLink = Boolean(action.href) && !safeHref && !action.onClick;
 
-	const iconNode = renderIconSlot(action.icon, "size-3");
+	const iconNode = renderIconSlot(action.icon);
 	const renderedIcon = iconNode ? (
-		<span className="mr-1 inline-flex size-3 shrink-0 items-center justify-center" aria-hidden="true">
+		<span data-icon="inline-start" className="inline-flex shrink-0 items-center justify-center" aria-hidden="true">
 			{iconNode}
 		</span>
 	) : null;

@@ -1,7 +1,6 @@
 "use client";
 
 import { MapPin } from "lucide-react";
-import { memo, useCallback } from "react";
 
 import { MapMarker, MarkerContent, MarkerPopup } from "@/components/ui/map";
 import { cn } from "cn";
@@ -17,16 +16,11 @@ interface LocationMarkerPinProps {
 	renderPopup?: (item: LocationMarkerItem) => React.ReactNode;
 }
 
-export const LocationMarkerPin = memo(function LocationMarkerPin({
-	item,
-	isSelected,
-	onSelect,
-	renderPopup,
-}: LocationMarkerPinProps) {
+export function LocationMarkerPin({ item, isSelected, onSelect, renderPopup }: LocationMarkerPinProps) {
 	const pinColor = item.color || "var(--primary)";
-	const handleSelect = useCallback(() => {
+	const handleSelect = () => {
 		onSelect(item);
-	}, [item, onSelect]);
+	};
 
 	return (
 		<MapMarker longitude={item.coordinates[0]} latitude={item.coordinates[1]} onClick={handleSelect}>
@@ -71,4 +65,4 @@ export const LocationMarkerPin = memo(function LocationMarkerPin({
 			</MarkerPopup>
 		</MapMarker>
 	);
-});
+}

@@ -2,7 +2,7 @@
 
 import { useMemoizedFn } from "ahooks";
 import { useTranslations } from "next-intl";
-import { type SubmitEvent, useEffect, useState } from "react";
+import { type ReactNode, type SubmitEvent, useEffect, useState } from "react";
 
 import { dispatchFormSubmit, useLockedAsyncCallback } from "@/components/form/core/FormContext";
 
@@ -112,17 +112,18 @@ export function useFormSurfaceState<TData = Record<string, unknown>>({
       ? (editTitle ?? tDialog("form_edit_title", { entityName: resolvedEntityName }))
       : (createTitle ?? tDialog("form_create_title", { entityName: resolvedEntityName })));
 
+  const resolveDefaultSubmitText = (
+    explicitSubmitText: ReactNode,
+    dialogKey: "form_edit_submit" | "form_create_submit",
+  ) =>
+    explicitSubmitText ??
+    (isPage && !entityName ? tResource("save_changes") : tDialog(dialogKey, { entityName: resolvedEntityName }));
+
   const resolvedSubmitText =
     submitText ??
     (isEdit
-      ? (editSubmitText ??
-        (isPage && !entityName
-          ? tResource("save_changes")
-          : tDialog("form_edit_submit", { entityName: resolvedEntityName })))
-      : (createSubmitText ??
-        (isPage && !entityName
-          ? tResource("save_changes")
-          : tDialog("form_create_submit", { entityName: resolvedEntityName }))));
+      ? resolveDefaultSubmitText(editSubmitText, "form_edit_submit")
+      : resolveDefaultSubmitText(createSubmitText, "form_create_submit"));
 
   const resolvedCancelText = cancelText ?? (isPage ? tResource("cancel") : tDialog("cancel"));
   const resolvedSaveAndContinueText =

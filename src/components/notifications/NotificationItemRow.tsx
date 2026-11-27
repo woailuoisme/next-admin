@@ -1,4 +1,3 @@
-import { useMemoizedFn } from "ahooks";
 import { ArrowRight, Check, Clock, ExternalLink, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
@@ -31,12 +30,12 @@ function RowAction({ label, Icon, onClick, className }: RowActionProps) {
 				<Button
 					type="button"
 					variant="ghost"
-					size="icon"
+					size="icon-xs"
 					onClick={onClick}
 					aria-label={label}
-					className={cn("text-muted-foreground hover:bg-muted hover:text-foreground size-6 rounded", className)}
+					className={cn("text-muted-foreground hover:bg-muted hover:text-foreground rounded", className)}
 				>
-					<Icon className="size-3.5" aria-hidden="true" />
+					<Icon aria-hidden="true" />
 				</Button>
 			</TooltipTrigger>
 			<TooltipContent side="top" className="text-[11px]">
@@ -52,28 +51,28 @@ export function NotificationItemRow({ item, onItemClick, onMarkAsRead, onDelete 
 	const { Icon, className: iconClassName } = getCategoryIconComponent(item.category, item.severity);
 	const severityBgClass = SEVERITY_BADGE_CLASSES[item.severity];
 
-	const handleClick = useMemoizedFn(() => {
+	const handleClick = () => {
 		onItemClick(item);
-	});
+	};
 
-	const handleMarkRead = useMemoizedFn((e: React.MouseEvent) => {
+	const handleMarkRead = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		onMarkAsRead?.(item.id);
-	});
+	};
 
-	const handleDelete = useMemoizedFn((e: React.MouseEvent) => {
+	const handleDelete = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		onDelete?.(item.id);
-	});
+	};
 
-	const handleExternalAction = useMemoizedFn((e: React.MouseEvent) => {
+	const handleExternalAction = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		handleClick();
-	});
+	};
 
-	const handleToolbarClick = useMemoizedFn((e: React.MouseEvent) => {
+	const handleToolbarClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-	});
+	};
 
 	const rowAriaLabel = item.read ? item.title : t("item_unread_aria", { title: item.title });
 
@@ -107,7 +106,7 @@ export function NotificationItemRow({ item, onItemClick, onMarkAsRead, onDelete 
 			</div>
 
 			{/* 文本及元信息 */}
-			<div className="pointer-events-none relative z-10 min-w-0 flex-1 space-y-1">
+			<div className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col gap-1">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex min-w-0 items-center gap-1.5">
 						{!item.read && (

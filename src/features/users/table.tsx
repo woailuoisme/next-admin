@@ -1,12 +1,14 @@
 "use client";
 
 import { Ban, UserCheck } from "lucide-react";
+import { toast } from "sonner";
 
 import { action } from "@/components/actions";
 import { col } from "@/components/data-table/columns/col";
 import type { ResourceTableSchema } from "@/components/resource";
+import { invalidateResourceScope } from "@/lib/resource";
 
-import { customerResource } from "./resource";
+import { buildCustomerStatusMap, buildCustomerStatusOptions, customerResource } from "./resource";
 import type { Customer } from "./types";
 
 const STATUS_VARIANT_MAP = {
@@ -14,10 +16,12 @@ const STATUS_VARIANT_MAP = {
 	inactive: "secondary",
 } as const;
 
-const PINNED_COLUMNS: { left?: string[]; right?: string[] } = {
+const PINNED_COLUMNS: Readonly<{ left?: string[]; right?: string[] }> = Object.freeze({
 	left: ["avatarUrl"],
 	right: ["__actions"],
-};
+});
+
+const BATCH_SUSPEND_CONCURRENCY = 5;
 
 export const customerTableConfig: ResourceTableSchema<Customer> = {
 	pinnedColumns: PINNED_COLUMNS,
@@ -28,17 +32,11 @@ export const customerTableConfig: ResourceTableSchema<Customer> = {
 			field: "status",
 			label: t("col_status"),
 			placeholder: t("filter_status_placeholder"),
-			options: [
-				{ label: t("status_active"), value: "active" },
-				{ label: t("status_inactive"), value: "inactive" },
-			],
+			options: buildCustomerStatusOptions(t),
 		},
 	],
 	columns: ({ t }) => {
-		const statusLabelMap = {
-			active: t("status_active"),
-			inactive: t("status_inactive"),
-		};
+		const statusLabelMap = buildCustomerStatusMap(t);
 
 		return [
 			col.avatar<Customer>("avatarUrl", t("col_customer"), {
@@ -118,12 +116,43 @@ export const customerTableConfig: ResourceTableSchema<Customer> = {
 				title: (rows) => t("confirm_batch_suspend_title", { count: rows.length }),
 				description: (rows) => t("confirm_batch_suspend_desc", { count: rows.length }),
 			},
-			handler: async ({ payload }) => {
-				await Promise.all(
-					payload.map((row) => customerResource.actions.toggleStatus.mutationFn({ id: row.id, status: "inactive" })),
-				);
+			handler: async ({ payload, queryClient }) => {
+				const activeTargets = payload.filter((row) => row.status === "active");
+				if (activeTargets.length === 0) {
+					toast.info(t("batch_suspend_noop"));
+					return { succeeded: 0, failed: 0, noop: true };
+				}
+
+				let succeeded = 0;
+				let failed = 0;
+				for (let i = 0; i < activeTargets.length; i += BATCH_SUSPEND_CONCURRENCY) {
+					const chunk = activeTargets.slice(i, i + BATCH_SUSPEND_CONCURRENCY);
+					const settled = await Promise.allSettled(
+						chunk.map((row) => customerResource.actions.toggleStatus.mutationFn({ id: row.id, status: "inactive" })),
+					);
+					for (const item of settled) {
+						if (item.status === "fulfilled") succeeded++;
+						else failed++;
+					}
+				}
+
+				if (succeeded > 0) {
+					invalidateResourceScope(queryClient, customerResource);
+				}
+
+				if (succeeded === 0 && failed > 0) {
+					throw new Error("batch-suspend-failed");
+				}
+
+				if (failed > 0) {
+					toast.warning(t("batch_suspend_partial", { succeeded, failed }));
+				} else {
+					toast.success(t("batch_suspend_success", { count: succeeded }));
+				}
+
+				return { succeeded, failed, noop: false };
 			},
-			successMessage: (_res, { payload }) => t("batch_suspend_success", { count: payload.length }),
+			errorMessage: () => t("batch_suspend_failed"),
 		}),
 	],
 };

@@ -86,7 +86,7 @@ export function useSessionValidation() {
     queryFn: async () => {
       const admin = await fetchCurrentAdminApi();
       const currentToken = useAuthStore.getState().session?.token;
-      if (currentToken) {
+      if (currentToken && currentToken === token) {
         setAuthSession({ token: currentToken, admin });
       }
       return admin;

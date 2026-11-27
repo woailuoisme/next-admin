@@ -1,11 +1,14 @@
 "use client";
 
 import { useMemoizedFn } from "ahooks";
+import { AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ReactNode, useRef } from "react";
 
 import { type DialogSize, FormDialog } from "@/components/dialogs";
 import { useAppForm } from "@/components/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { type ResourceDefinition, useResourceCreate, useResourceDetail, useResourceUpdate } from "@/lib/resource";
 
 import type { BreadcrumbItem, ResourceFormSlotContext, ResourcePresentation } from "./types";
@@ -28,6 +31,8 @@ export interface ResourceFormControllerProps<
 	size?: DialogSize;
 	allowFullscreen?: boolean;
 	loading?: boolean;
+	detailError?: boolean;
+	onRetryDetail?: () => void;
 	breadcrumbs?: BreadcrumbItem[];
 	backTo?: string;
 	resolveFormDefaults?: (entity: TItem | null) => TInput;
@@ -50,12 +55,15 @@ export function ResourceFormController<TItem extends { id: string | number }, TI
 	size,
 	allowFullscreen,
 	loading = false,
+	detailError = false,
+	onRetryDetail,
 	breadcrumbs,
 	backTo,
 	resolveFormDefaults,
 	renderForm,
 }: ResourceFormControllerProps<TItem, TInput>) {
 	const t = useTranslations(resource.i18nNamespace as never);
+	const tResource = useTranslations("resource");
 	const createMutation = useResourceCreate(resource);
 	const updateMutation = useResourceUpdate(resource);
 	const keepOpenAfterSubmitRef = useRef(false);
@@ -68,7 +76,18 @@ export function ResourceFormController<TItem extends { id: string | number }, TI
 	const isEditing = mode === "edit";
 	const isEditingEntityMissing = isEditing && !effectiveEntity;
 	const isDetailLoading = isEditing && (loading || (shouldFetchDetail && detailQuery.isLoading)) && !effectiveEntity;
+	const isDetailError =
+		isEditing && Boolean(detailError || (shouldFetchDetail && detailQuery.isError)) && !effectiveEntity;
+	const isDetailNotFound = isEditing && !isDetailLoading && !isDetailError && !effectiveEntity;
 	const isPending = createMutation.isPending || updateMutation.isPending;
+
+	const handleRetryDetail = () => {
+		if (onRetryDetail) {
+			onRetryDetail();
+			return;
+		}
+		void detailQuery.refetch();
+	};
 
 	const defaultValues = resolveResourceFormDefaults(resource, effectiveEntity, resolveFormDefaults);
 
@@ -130,10 +149,26 @@ export function ResourceFormController<TItem extends { id: string | number }, TI
 			enableDirtyGuard
 			loading={isDetailLoading}
 			isSubmitting={isPending}
-			isSubmitDisabled={isEditingEntityMissing}
+			isSubmitDisabled={isEditingEntityMissing || isDetailError}
 			onSaveAndContinue={handleSaveAndContinue}
 		>
-			{renderForm({ form, mode, entity: effectiveEntity, isEditing, isSubmitting: isPending })}
+			{isDetailError || isDetailNotFound ? (
+				<Alert variant="destructive">
+					<AlertCircle aria-hidden="true" />
+					<AlertDescription className="flex flex-col gap-3">
+						<span>{isDetailError ? tResource("detail_load_error") : tResource("detail_not_found")}</span>
+						{isDetailError ? (
+							<div>
+								<Button type="button" variant="outline" size="xs" onClick={handleRetryDetail}>
+									{tResource("retry")}
+								</Button>
+							</div>
+						) : null}
+					</AlertDescription>
+				</Alert>
+			) : (
+				renderForm({ form, mode, entity: effectiveEntity, isEditing, isSubmitting: isPending })
+			)}
 		</FormDialog>
 	);
 }

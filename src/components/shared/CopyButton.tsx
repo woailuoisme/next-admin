@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 
-import { useMemoizedFn } from "ahooks";
 import { Check, Copy } from "lucide-react";
 import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -39,7 +38,7 @@ export function CopyButton({ text, className, title, successMessage, errorMessag
 		};
 	}, []);
 
-	const handleCopy = useMemoizedFn(async (e: MouseEvent<HTMLButtonElement>) => {
+	const handleCopy = async (e: MouseEvent<HTMLButtonElement>) => {
 		e.stopPropagation();
 		e.preventDefault();
 		try {
@@ -56,7 +55,7 @@ export function CopyButton({ text, className, title, successMessage, errorMessag
 			}
 			toast.error(resolvedErrorMessage);
 		}
-	});
+	};
 
 	return (
 		<Tooltip>
@@ -64,18 +63,15 @@ export function CopyButton({ text, className, title, successMessage, errorMessag
 				<Button
 					type="button"
 					variant="ghost"
-					size="icon"
-					className={cn(
-						"size-6 cursor-pointer p-0 text-muted-foreground transition-colors hover:text-foreground",
-						className,
-					)}
+					size="icon-xs"
+					className={cn("cursor-pointer p-0 text-muted-foreground transition-colors hover:text-foreground", className)}
 					onClick={handleCopy}
 					aria-label={resolvedTitle}
 				>
 					{copied ? (
-						<Check className="animate-in text-primary zoom-in size-3 duration-200" aria-hidden="true" />
+						<Check className="animate-in text-primary zoom-in duration-200" aria-hidden="true" />
 					) : (
-						<Copy className="size-3 transition-transform duration-150 hover:scale-110" aria-hidden="true" />
+						<Copy className="transition-transform duration-150 hover:scale-110" aria-hidden="true" />
 					)}
 				</Button>
 			</TooltipTrigger>

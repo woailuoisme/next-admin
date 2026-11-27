@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { Navigation, Truck } from "lucide-react";
-import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { MarkerContent, MarkerPopup, RouteMarker } from "@/components/ui/map";
@@ -14,7 +13,7 @@ interface VehicleMarkerProps {
 	progress: number;
 }
 
-export const VehicleMarker = memo(function VehicleMarker({ vehicle, progress }: VehicleMarkerProps) {
+export function VehicleMarker({ vehicle, progress }: VehicleMarkerProps) {
 	const t = useTranslations("map");
 
 	return (
@@ -72,4 +71,4 @@ export const VehicleMarker = memo(function VehicleMarker({ vehicle, progress }: 
 			</MarkerPopup>
 		</RouteMarker>
 	);
-});
+}

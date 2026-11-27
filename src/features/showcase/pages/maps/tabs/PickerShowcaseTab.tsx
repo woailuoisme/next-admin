@@ -16,7 +16,7 @@ export function PickerShowcaseTab() {
 	});
 
 	return (
-		<TabsContent value="picker" className="space-y-4">
+		<TabsContent value="picker" className="flex flex-col gap-4">
 			<Card className="p-6">
 				<div className="mb-4">
 					<h3 className="text-foreground text-base font-semibold">{t("maps_picker_title")}</h3>
@@ -45,7 +45,7 @@ export function PickerShowcaseTab() {
 							<h4 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
 								{t("maps_picker_mirror_title")}
 							</h4>
-							<div className="mt-3 space-y-2.5">
+							<div className="mt-3 flex flex-col gap-2.5">
 								<div className="flex items-center justify-between text-xs">
 									<span className="text-muted-foreground">{t("maps_picker_lng")}</span>
 									<span className="text-primary font-mono font-semibold">{formPickerVal.lng.toFixed(6)}</span>
@@ -65,7 +65,7 @@ export function PickerShowcaseTab() {
 
 						<div className="border-primary/20 bg-primary/10 text-primary mt-4 rounded-md border p-2.5 text-xs">
 							<div className="flex items-center gap-1.5 font-semibold">
-								<Sparkles className="size-3.5" />
+								<Sparkles className="size-3.5" aria-hidden="true" />
 								<span>{t("maps_picker_design_title")}</span>
 							</div>
 							<p className="text-muted-foreground mt-1 text-[11px]">{t("maps_picker_design_desc")}</p>

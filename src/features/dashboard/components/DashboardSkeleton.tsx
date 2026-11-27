@@ -14,7 +14,7 @@ export function DashboardSkeleton() {
 		<PageSkeletonRegion data-testid="dashboard-skeleton">
 			{/* Page Header Skeleton */}
 			<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-				<div className="space-y-1.5">
+				<div className="flex flex-col gap-1.5">
 					<Skeleton className="h-8 w-64" />
 					<Skeleton className="h-4 w-96 max-w-full" />
 				</div>

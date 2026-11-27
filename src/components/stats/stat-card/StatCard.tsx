@@ -35,7 +35,7 @@ function StatCardFooterMetrics({ trend, sparklineData, sparklineType, theme }: S
 	return (
 		<div
 			className={cn(
-				sparklineLayout === "bottom" ? "space-y-2" : "flex items-center justify-between gap-2.5",
+				sparklineLayout === "bottom" ? "flex flex-col gap-2" : "flex items-center justify-between gap-2.5",
 				dStyles.trendSpacing,
 			)}
 		>

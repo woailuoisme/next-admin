@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Pause, Play, RotateCcw } from "lucide-react";
-import { memo, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ interface RoutePlaybackScrubberProps {
 	vehicle?: VehicleInfo;
 }
 
-export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
+export function RoutePlaybackScrubber({
 	isPlaying,
 	progressStore,
 	onTogglePlay,
@@ -44,23 +44,23 @@ export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
 			<Button
 				variant="ghost"
 				size="icon"
-				className="text-primary size-8 shrink-0"
+				className="text-primary shrink-0"
 				onClick={onTogglePlay}
 				title={playLabel}
 				aria-label={playLabel}
 			>
-				{isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
+				{isPlaying ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
 			</Button>
 
 			<Button
 				variant="ghost"
 				size="icon"
-				className="text-muted-foreground hover:text-foreground size-8 shrink-0"
+				className="text-muted-foreground hover:text-foreground shrink-0"
 				onClick={onReset}
 				title={resetLabel}
 				aria-label={resetLabel}
 			>
-				<RotateCcw className="size-3.5" />
+				<RotateCcw aria-hidden="true" />
 			</Button>
 
 			<div className="flex flex-1 items-center gap-3">
@@ -85,4 +85,4 @@ export const RoutePlaybackScrubber = memo(function RoutePlaybackScrubber({
 			) : null}
 		</div>
 	);
-});
+}

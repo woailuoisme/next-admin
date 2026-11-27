@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { createContext, memo, useContext, useMemo, type ComponentType } from "react";
+import { createContext, useContext, type ComponentType } from "react";
 
 import { MapSkeleton } from "../shared/MapSkeleton";
 
@@ -30,16 +30,11 @@ export function createLazyMap<P extends { height?: number | string; className?: 
 		loading: LazyMapLoading,
 	});
 
-	return memo(function LazyMapWrapper(props: P) {
-		const ctxValue = useMemo(
-			() => ({ height: props.height, className: props.className }),
-			[props.height, props.className],
-		);
-
+	return function LazyMapWrapper(props: P) {
 		return (
-			<LazySkeletonContext.Provider value={ctxValue}>
+			<LazySkeletonContext.Provider value={{ height: props.height, className: props.className }}>
 				<DynamicComponent {...(props as P & object)} />
 			</LazySkeletonContext.Provider>
 		);
-	});
+	};
 }

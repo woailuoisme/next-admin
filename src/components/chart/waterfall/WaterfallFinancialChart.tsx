@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 
-import { memo, useCallback } from "react";
 import { Bar, Cell, LabelList } from "recharts";
 
 import type { WaterfallFinancialChartProps, WaterfallItemType } from "./types";
@@ -25,7 +24,7 @@ interface WaterfallTooltipItem {
 	type?: WaterfallItemType;
 }
 
-export const WaterfallFinancialChart = memo(function WaterfallFinancialChart(props: WaterfallFinancialChartProps) {
+export function WaterfallFinancialChart(props: WaterfallFinancialChartProps) {
 	const {
 		height,
 		xAxisFormatter,
@@ -41,41 +40,44 @@ export const WaterfallFinancialChart = memo(function WaterfallFinancialChart(pro
 	const t = useTranslations("chart");
 	const { processedData, valueFormatter } = useWaterfallFinancial(props);
 
-	const resolveTooltipDetail = useCallback(
-		(payload: ReadonlyArray<ChartTooltipEntry>) => {
-			const item = payload[0]?.payload as WaterfallTooltipItem | undefined;
-			if (!item) return null;
+	const resolveTooltipDetail = (payload: ReadonlyArray<ChartTooltipEntry>) => {
+		const item = payload[0]?.payload as WaterfallTooltipItem | undefined;
+		if (!item) return null;
 
-			const isPositive = item.rawVal > 0;
-			const isNegative = item.rawVal < 0;
-			const prefix = isPositive && item.type === "increase" ? "+" : "";
+		const signedChange =
+			item.type === "decrease"
+				? -Math.abs(item.rawVal)
+				: item.type === "increase"
+					? Math.abs(item.rawVal)
+					: item.rawVal;
+		const isPositive = signedChange > 0;
+		const isNegative = signedChange < 0;
+		const prefix = isPositive && item.type === "increase" ? "+" : "";
 
-			return {
-				title: item.label,
-				color: item.fill,
-				rows: [
-					{
-						label: t("waterfall_change"),
-						value: `${prefix}${valueFormatter(item.rawVal)}`,
-						valueClassName:
-							isPositive && item.type === "increase"
-								? "text-primary font-medium"
-								: isNegative || item.type === "decrease"
-									? "text-destructive font-medium"
-									: "text-foreground font-medium",
-					},
-					{
-						label: t("waterfall_total"),
-						value: valueFormatter(item.runningTotal),
-					},
-				],
-			};
-		},
-		[t, valueFormatter],
-	);
+		return {
+			title: item.label,
+			color: item.fill,
+			rows: [
+				{
+					label: t("waterfall_change"),
+					value: `${prefix}${valueFormatter(signedChange)}`,
+					valueClassName:
+						isPositive && item.type === "increase"
+							? "text-primary font-medium"
+							: isNegative || item.type === "decrease"
+								? "text-destructive font-medium"
+								: "text-foreground font-medium",
+				},
+				{
+					label: t("waterfall_total"),
+					value: valueFormatter(item.runningTotal),
+				},
+			],
+		};
+	};
 
 	const renderTooltip = useChartDetailTooltip(resolveTooltipDetail);
-	const formatBarLabel = useCallback((val: unknown) => valueFormatter(toFiniteNumber(val)), [valueFormatter]);
+	const formatBarLabel = (val: unknown) => valueFormatter(toFiniteNumber(val));
 
 	return (
 		<CartesianScaffold
@@ -116,4 +118,4 @@ export const WaterfallFinancialChart = memo(function WaterfallFinancialChart(pro
 			</Bar>
 		</CartesianScaffold>
 	);
-});
+}

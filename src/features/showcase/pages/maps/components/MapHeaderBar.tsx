@@ -38,9 +38,11 @@ export function MapHeaderBar({ demoState, onDemoStateChange, onReset }: MapHeade
 					{DEMO_STATES.map((st) => (
 						<Button
 							key={st}
+							type="button"
 							variant={demoState === st ? "default" : "ghost"}
-							size="sm"
-							className="h-7 px-2.5 text-xs"
+							size="xs"
+							aria-pressed={demoState === st}
+							className="px-2.5"
 							onClick={() => onDemoStateChange(st)}
 						>
 							{stateLabels[st]}
@@ -48,8 +50,8 @@ export function MapHeaderBar({ demoState, onDemoStateChange, onReset }: MapHeade
 					))}
 				</div>
 
-				<Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={onReset}>
-					<RefreshCw className="size-3.5" />
+				<Button type="button" variant="outline" size="sm" className="text-xs" onClick={onReset}>
+					<RefreshCw data-icon="inline-start" aria-hidden="true" />
 					{t("maps_state_reset")}
 				</Button>
 			</div>

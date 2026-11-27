@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-
 import type { ComposedTrendChartProps } from "./types";
 
 import { useChartFormatters } from "../hooks/useChartFormatters";
@@ -29,33 +27,25 @@ export function useComposedTrend(props: ComposedTrendChartProps) {
     composedMode: true,
   });
 
-  const normalizedBars = useMemo(
-    () =>
-      bars.map((bar, idx) => ({
-        ...bar,
-        color: bar.color || CHART_PALETTE[idx % CHART_PALETTE.length],
-        yAxisId: bar.yAxisId ?? "left",
-      })),
-    [bars],
-  );
+  const normalizedBars = bars.map((bar, idx) => ({
+    ...bar,
+    color: bar.color || CHART_PALETTE[idx % CHART_PALETTE.length],
+    yAxisId: bar.yAxisId ?? "left",
+  }));
 
-  const normalizedLines = useMemo(
-    () =>
-      lines.map((line, idx) => {
-        const color = line.color || CHART_PALETTE[(bars.length + idx) % CHART_PALETTE.length];
-        return {
-          ...line,
-          color,
-          yAxisId: line.yAxisId ?? (hasRightAxis ? "right" : "left"),
-          strokeWidth: line.strokeWidth ?? 2.5,
-          activeDot: {
-            ...DEFAULT_LINE_ACTIVE_DOT_BASE,
-            stroke: color,
-          },
-        };
-      }),
-    [lines, bars.length, hasRightAxis],
-  );
+  const normalizedLines = lines.map((line, idx) => {
+    const color = line.color || CHART_PALETTE[(bars.length + idx) % CHART_PALETTE.length];
+    return {
+      ...line,
+      color,
+      yAxisId: line.yAxisId ?? (hasRightAxis ? "right" : "left"),
+      strokeWidth: line.strokeWidth ?? 2.5,
+      activeDot: {
+        ...DEFAULT_LINE_ACTIVE_DOT_BASE,
+        stroke: color,
+      },
+    };
+  });
 
   return {
     hasRightAxis,

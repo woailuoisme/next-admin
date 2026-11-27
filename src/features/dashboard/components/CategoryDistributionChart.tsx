@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemoizedFn } from "ahooks";
 import { useFormatter, useTranslations } from "next-intl";
 
 import { ChartCard, LazyDonutDistributionChart } from "@/components/chart";
@@ -18,9 +17,8 @@ const EMPTY_DISTRIBUTION_DATA: CategoryDistributionPoint[] = [];
 export function CategoryDistributionChart({ data, isLoading = false, className }: CategoryDistributionChartProps) {
 	const t = useTranslations("dashboard");
 	const format = useFormatter();
-	const formatCategoryShare = useMemoizedFn((val: number) =>
-		format.number(val, { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }),
-	);
+	const formatCategoryShare = (val: number) =>
+		format.number(val, { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
 	const chartData = data ?? EMPTY_DISTRIBUTION_DATA;
 
 	return (

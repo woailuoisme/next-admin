@@ -38,12 +38,12 @@ export function ThemeColorPicker({ className, title, ariaLabel, footerSlot }: Th
 							variant="ghost"
 							size="icon"
 							className={cn(
-								"text-muted-foreground hover:bg-muted hover:text-foreground relative size-8 cursor-pointer rounded-lg",
+								"text-muted-foreground hover:bg-muted hover:text-foreground relative cursor-pointer rounded-lg",
 								className,
 							)}
 							aria-label={ariaLabel ?? t("theme_settings_aria")}
 						>
-							<Palette className="size-4" aria-hidden="true" />
+							<Palette aria-hidden="true" />
 							<span
 								aria-hidden="true"
 								className="border-background absolute right-1 bottom-1 size-2 rounded-full border shadow-xs"
